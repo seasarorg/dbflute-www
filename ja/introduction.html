@@ -34,7 +34,7 @@
 # ********************
 # DBFlute-introduction
 # ********************
-# Written by jflute at 2006/09/26 Tue.
+# Written by jflute at 2006/09/28 Thu.
 ※(説明中にex)として載せているSourceの抜粋はJava版とします。(S2DaoもDBFluteも))
 
 <img height="340" width="720" src="images/dbflute_ldb_text_erd.jpg" alt="">
@@ -290,10 +290,13 @@ S2Daoの利用に対して積極的にならない可能性があります。
         - - - - - - - - -/
 
         [fetchSoope()/fetchPage()補足]
-          {Oracle、FirstBird、MySQL、PostgreSQL}など、SQL文法的にLimitSearch検索がサポートされているDB
+          {Oracle、FirstBird、MySQL、PostgreSQL}など、SQL文法的にLimitSearchがサポートされているDB
           に関しては、そのSQLを利用して検索します(ROWNUMやoffset/limitなど)。
           {SQLServer、DB2}など、SQL文法的に「先頭から何件」という検索しかできないDBに関しては、
           例えば80-100を取得する際に、先頭から100件を取得しResultSetで先頭80件を飛ばして取得します。
+
+          ※Adviceを頂きまして、DB2に関しては、ROW_NUMBER()関数を利用したLimitSearchを
+            検討します(2006/09/28現在)。
 
     6. lockForUpdate()による更新Lockのサポート
 
@@ -423,7 +426,7 @@ ConditionBeanは、Or句やGroupBy句、Union句をサポートしません。�
     これは外だしSQLの領域として、ConditionBeanではサポートするべきでないと判断しました。
 
 ConditionBeanは、ForeignKeyが繋がっている関連で親Tableの結合のみをサポートします。
-基本的に結合はleft outer joinだけとし、“結合するだけでBaseTableの件数が絞られる”PatternのSQLは
+基本的に結合はleft outer joinだけとし、“結合するだけでBaseTableの件数が絞られる”PatternのSQL(inner join)は
 発行しないこととします(結合先の列で明示的にWhere句に条件を指定するのはサポートしている)。
 
 ConditionBeanで全てを補うのではなく、S2Daoの機能との調和を考えています。
@@ -543,7 +546,7 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     // BOOKに紐付くCOLLECTIONの検索・関連付け
     bhv.loadCollectionList(ls); // DefaultのOrderByはPKの昇順
 
-    for (LdBook entity : bhv) {
+    for (LdBook entity : ls) {
         final java.util.List reffererList = entity.getCollectionList();
         assertNotNull(reffererList);
     }
@@ -621,6 +624,8 @@ CommonColumn (Option)
 QueryTimeout
 
     SQLのTimeout設定です。Propertyで指定することができます。
+    意外にS2Daoを利用する場合、気軽にこの設定が指定できません。(PreparedStatementを隠蔽しているため)
+    DBFluteではS2Daoの拡張Classにてこの設定を行います。
 
 
 SqlParameterBean
