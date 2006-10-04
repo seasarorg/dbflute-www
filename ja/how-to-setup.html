@@ -30,41 +30,9 @@
 <!-- document start -->
 
 <p>
-{how-to-setup}
+Setupの方法を記述します。
 <p>
 <pre>
-
-# /============================================================================
-#                                                                   Torque Task
-#                                                                   ===========
-
-A. JDBC-Task
-    概要：
-        DatabaseからJDBC経由でSchema情報を取得する。
-        まずこれを実行しなければ始まらない。
-
-B. OM-Task
-    概要：
-        Schema情報とVelocity-Templateを利用して、S2Dao-Objectを生成する。
-        Velocity-Templateは'%DBFLUTE_HOME%/templates/om'以下に存在する。
-
-C. Document-Task
-    概要：
-        Schema情報を利用して、Schema情報のHTML-Documentを生成する。
-        Batchを実行したCurrentDirectoryの'output/doc'以下に生成される。
-
-D. Invoke_ReplaceSchema-Task
-    概要：
-        指定されたSqlFile(DropTableとCreateTableのDDL文)を実行してDBのSchemaを作り直す。
-        複数のSQL文を区切るDelimiterは';'です。
-
-E. Invoke_SqlDirectory-Task
-    概要：
-        指定されたDirectory以下(再帰的)のSqlFileを全て実行する。
-        拡張子は'.sql'です(大文字小文字区別なし)。
-        複数のSQL文を区切るDelimiterは';'です。
-        S2Daoの“Test値を利用した外だしSQL”の一斉実行が可能。
-
 
 
 # /============================================================================
@@ -111,87 +79,91 @@ E. Invoke_SqlDirectory-Task
 
     実行するために最低限考慮する必要があるPropertyを以下に記載します。
 
-    - {Project Basic Property}
-        -- torque.project (Required)
-            --- Projectの名称。
+    {Project Basic Property}
 
-        -- torque.database (Required)
-            --- DBの種類。
+        torque.project (Required)
+            Projectの名称。
 
-        -- torque.java.dir (Required)
-            --- Sourceの出力先Directory。
-            --- 絶対Path、もしくは、実行Directoryからの相対Path。
+        torque.database (Required)
+            DBの種類。
 
-        -- torque.java.location.for.gen (NotRequired)
-            --- Sourceの出力先の後に付けるGenとして生成するDirectory。
-            --- Allcommon(一部例外)とConditionBeanがこのDirectoryに出力されます。
-            --- GenとMainでProjectを分けたい場合に利用します(MainのCompileを早くさせるため)。
+        torque.java.dir (Required)
+            Sourceの出力先Directory。
+            絶対Path、もしくは、実行Directoryからの相対Path。
 
-        -- torque.java.location.for.main (NotRequired)
-            --- Sourceの出力先の後に付けるMainとして生成するDirectory。
-            --- Allcommon(一部例外)とConditionBeanがこのDirectoryに出力されます。
-            --- GenとMainでProjectを分けたい場合に利用します(MainのCompileを早くさせるため)。
+        torque.java.location.for.gen (NotRequired)
+            Sourceの出力先の後に付けるGenとして生成するDirectory。
+            Allcommon(一部例外)とConditionBeanがこのDirectoryに出力されます。
+            GenとMainでProjectを分けたい場合に利用します(MainのCompileのPerformanceを上げるため)。
 
-    - {OM Task Property}
-        -- torque.targetLanguage (NotRequired - Default 'java')
-            --- 生成されるSourceの言語。{java or csharp}
+        torque.java.location.for.main (NotRequired)
+            Sourceの出力先の後に付けるMainとして生成するDirectory。
+            Allcommon(一部例外)とConditionBeanがこのDirectoryに出力されます。
+            GenとMainでProjectを分けたい場合に利用します(MainのCompileを早くさせるため)。
 
-        -- torque.isJavaNameOfTableSameAsDbName (NotRequired - Default 'false')
-            --- DB上のTableNameがClassで利用したいName(ClassName)と同じか否か。
+    {OM Task Property}
+        torque.targetLanguage (NotRequired - Default 'java')
+            生成されるSourceの言語。{java or csharp}
 
-        -- torque.isJavaNameOfColumnSameAsDbName (NotRequired - Default 'false')
-            --- DB上のColumnNameがClassで利用したいName(PropertyName)と同じか否か。
+        torque.isJavaNameOfTableSameAsDbName (NotRequired - Default 'false')
+            DB上のTableNameがClassで利用したいName(ClassName)と同じか否か。
+            基本的にDBのTable名が'X_XXX_XXX'というような'_'つながりの場合はfalseで構いません。
 
-        -- torque.isAvailableEntityLazyLoad (NotRequired - Default 'false')
-            --- Lazyloadを有効にするか否か。
-            --- trueの時は、Instance化していない関連EntityをGetしたときに内部でSQLを発行してInstanceが取得します。
-            --- ☆trueの時は、Application起動時にLazyLoadContainer-Classを初期化する必要があります。
-            --- ☆非推奨です。将来的に削除される可能性があります。
+        torque.isJavaNameOfColumnSameAsDbName (NotRequired - Default 'false')
+            DB上のColumnNameがClassで利用したいName(PropertyName)と同じか否か。
+            基本的にDBのColumn名が'X_XXX_XXX'というような'_'つながりの場合はfalseで構いません。
 
-        -- torque.isJavaNameOfColumnSameAsDbName (NotRequired - Default 'false')
-            --- DB上のColumnNameがClassで利用したいName(PropertyName)と同じか否か。
+        torque.isAvailableEntityLazyLoad (NotRequired - Default 'false')
+            Lazyloadを有効にするか否か。
+            trueの時は、Instance化していない関連EntityをGetしたときに内部でSQLを発行してInstanceが取得します。
+            ☆trueの時は、Application起動時にLazyLoadContainer-Classを初期化する必要があります。
+            ☆非推奨です。将来的に削除される可能性があります。
 
-        -- torque.isAvailableGenerics (NotRequired - Default 'true')
-            --- Java-1.4.Xを利用する場合は、falseを指定する必要があります。
-            --- CSharpではこのPropertyによる挙動の変化はありません。
+        torque.isAvailableBehaviorGeneration (NotRequired - Default 'false')
+            Behaviorを生成するか否か。
+            Behaviorには様々な便利Methodが作成されます。
 
-        -- {ClassのPackage}
-            --- torque.baseCommonPackage (Required)
-            --- torque.baseDaoPackage (Required)
-            --- torque.baseEntityPackage (Required)
-            --- torque.conditionBeanPackage (Required)
-            --- ...
+        torque.isAvailableGenerics (NotRequired - Default 'true')
+            Java-1.4.Xを利用する場合は、falseを指定する必要があります。
+            CSharpではこのPropertyによる挙動の変化はありません。
 
-        -- torque.identityDefinitionMap (NotRequired - Default 'map:{}')
-            --- ID-Annotationを付けるべき{Table=ColumnName}を指定します。(identity列など)
+        torque.baseCommonPackage (Required)
+        torque.baseDaoPackage (Required)
+        torque.baseEntityPackage (Required)
+        torque.conditionBeanPackage (Required)
+        ...
+            自動生成されるClassのPackage.
 
-        -- torque.updateDateFieldName (NotRequired - Default null)
-            --- Timestamp-Annotationを付けるべきColumnNameを指定します。(更新日時など)
-            --- 指定したColumnが定義されているEntity全てにAnnotationが付与されます。
+        torque.identityDefinitionMap (NotRequired - Default 'map:{}')
+            ID-Annotationを付けるべき{Table=ColumnName}を指定します。(identity列など)
 
-        -- torque.versionNoFieldName (NotRequired - Default null)
-            --- VersionNo-Annotationを付けるべきColumnNameを指定します。(VersionNo列など)
-            --- 指定したColumnが定義されているEntity全てにAnnotationが付与されます。
+        torque.updateDateFieldName (NotRequired - Default null)
+            Timestamp-Annotationを付けるべきColumnNameを指定します。(更新日時など)
+            指定したColumnが定義されているEntity全てにAnnotationが付与されます。
 
-    - {JDBC Task Property}
-        -- torque.database.driver (Required)
-            --- JDBC-DriverのClassFullName。
+        torque.versionNoFieldName (NotRequired - Default null)
+            VersionNo-Annotationを付けるべきColumnNameを指定します。(VersionNo列など)
+            指定したColumnが定義されているEntity全てにAnnotationが付与されます。
 
-        -- torque.database.url (Required)
-            --- JDBC接続のConnectionURL。
+    {JDBC Task Property}
+        torque.database.driver (Required)
+            JDBC-DriverのClassFullName。
 
-        -- torque.database.host (Required)
-            --- JDBC接続の接続先Host。
+        torque.database.url (Required)
+            JDBC接続のConnectionURL。
 
-        -- torque.database.schema (Required)
-            --- JDBC接続の接続先Schema。
-            --- Oracle/DB2/Derbyは、Schema名は大文字である必要がありますのでご注意下さい。
+        torque.database.host (Required)
+            JDBC接続の接続先Host。
 
-        -- torque.database.user (Required)
-            --- JDBC接続の接続User。
+        torque.database.schema (Required)
+            JDBC接続の接続先Schema。
+            Oracle/DB2/Derbyは、Schema名は大文字である必要がありますのでご注意下さい。
 
-        -- torque.database.password (Required)
-            --- JDBC接続の接続Password。
+        torque.database.user (Required)
+            JDBC接続の接続User。
+
+        torque.database.password (Required)
+            JDBC接続の接続Password。
 
     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     ※j2ee.diconの設定にて、Component定義を以下のように差し替えてください。
@@ -247,6 +219,38 @@ E. Invoke_SqlDirectory-Task
 7. Modify build-properties again
 
     Projectの要件に合わせて、最適なPropertyを設定していきます。
+
+
+# /============================================================================
+#                                                                   Torque Task
+#                                                                   ===========
+
+A. JDBC-Task
+    概要：
+        DatabaseからJDBC経由でSchema情報を取得する。
+        まずこれを実行しなければ始まらない。
+
+B. OM-Task
+    概要：
+        Schema情報とVelocity-Templateを利用して、S2Dao-Objectを生成する。
+        Velocity-Templateは'%DBFLUTE_HOME%/templates/om'以下に存在する。
+
+C. Document-Task
+    概要：
+        Schema情報を利用して、Schema情報のHTML-Documentを生成する。
+        Batchを実行したCurrentDirectoryの'output/doc'以下に生成される。
+
+D. Invoke_ReplaceSchema-Task
+    概要：
+        指定されたSqlFile(DropTableとCreateTableのDDL文)を実行してDBのSchemaを作り直す。
+        複数のSQL文を区切るDelimiterは';'です。
+
+E. Invoke_SqlDirectory-Task
+    概要：
+        指定されたDirectory以下(再帰的)のSqlFileを全て実行する。
+        拡張子は'.sql'です(大文字小文字区別なし)。
+        複数のSQL文を区切るDelimiterは';'です。
+        S2Daoの“Test値を利用した外だしSQL”の一斉実行が可能。
 
 
 </pre>
