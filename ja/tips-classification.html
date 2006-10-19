@@ -81,6 +81,10 @@ codeを定義することによって、以下のようになります。
     ※'name=Xxx'が指定されている場合は、定数名にnameが採用されます。(nameに関しては後述)
       そうでない場合は、定数名にcodeが採用されます。
 
+    ※TODO: [2006/10/16]現在、ENUM対応できていません。
+      JDK-1.4をサポートしているため内部構造が複雑になってしまう可能性があり、踏み切っていません。
+      将来的にはENUMで生成したいと考えております。
+
 
 // --------------------------------------------------
 //                                   区分値の名称定義
@@ -207,20 +211,23 @@ tableにTable名を指定し、code/name/aliasにそれぞれ該当するColumn�
 
     ※参照するDatabaseは、JDBC-TaskにおけるDatabaseと同じものです。
     ※これを指定すると、Generate時にDBに指定されたRecordが登録されていることが前提となります。
-
+    ※この例では、nameにCOLLECTION_STATUS_NAMEを指定していますが、この場合Master-Maintenanceなどにより
+      COLLECTION_STATUS_NAMEが更新された場合は、自動生成し直さなければなりません(ズレが生じてしまうため)。
+      nameを実Dataから取得する場合は、固定的なデータに対して適用するようにして下さい。
 
 // --------------------------------------------------
 //                                       区分値の配置
 //                                       ------------
 
 ある区分値が、どのEntityのどのPropertyに関連付けられるものなのかを設定できます。
+これらはbuild.propertiesの「torque.classificationDeploymentMap」を設定することで作成されます。
 関連付けると以下のようになります。
 
     A. 関連付けられたEntityのPropertyに区分値の設定Methodが作成されます。
     B. 関連付けられたEntityのPropertyに区分値の判定Methodが作成されます。
+    C. 関連付けられたConditionBeanのPropertyに区分値の条件付加Methodが作成されます。
 
-
-    ex) BOOKのOUT_OF_USER_SELECT_YNにYesNo区分値を関連付けした場合｛about A｝
+    ex) BOOKのOUT_OF_USER_SELECT_YNにYesNo区分値を関連付けした場合のEntity｛about A｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // =====================================================================================
     //                                                                       Classify Method
@@ -243,7 +250,7 @@ tableにTable名を指定し、code/name/aliasにそれぞれ該当するColumn�
     - - - - - - - - - -/
     ※TODO: new Stringってなんか変ですけど、ちょっとVelocity-Template上の都合です。{堪忍}
 
-    ex) BOOKのOUT_OF_USER_SELECT_YNにYesNo区分値を関連付けした場合｛about B｝
+    ex) BOOKのOUT_OF_USER_SELECT_YNにYesNo区分値を関連付けした場合のEntity｛about B｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // =====================================================================================
     //                                                          Classification Determination
@@ -306,6 +313,49 @@ tableにTable名を指定し、code/name/aliasにそれぞれ該当するColumn�
             throw new IllegalStateException(msg + " outOfUserSelectYn=" + _outOfUserSelectYn);
         }
         return isOutOfUserSelectYnNo();
+    }
+    - - - - - - - - - -/
+
+    ex) BOOKのOUT_OF_USER_SELECT_YNにYesNo区分値を関連付けした場合のConditionBean｛about B｝
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Set the value of Yes of outOfUserSelectYn as equal. { = }
+     * 
+     * @return this. (NotNull)
+     */
+    public LdBookCQ setOutOfUserSelectYn_Equal_Yes() {
+        return registerOutOfUserSelectYn(LdConditionKey.CK_EQUAL
+                                         , LdClassificationDefinition.CODE_YesNo_Yes);
+    }
+
+    /**
+     * Set the value of Yes of outOfUserSelectYn as equal as inline. { = }
+     * 
+     * @return this. (NotNull)
+     */
+    public LdBookCQ setOutOfUserSelectYn_Equal_Yes_AsInline() {
+        return registerInlineOutOfUserSelectYn(LdConditionKey.CK_EQUAL
+                                               , LdClassificationDefinition.CODE_YesNo_Yes);
+    }
+        
+    /**
+     * Set the value of No of outOfUserSelectYn as equal. { = }
+     * 
+     * @return this. (NotNull)
+     */
+    public LdBookCQ setOutOfUserSelectYn_Equal_No() {
+        return registerOutOfUserSelectYn(LdConditionKey.CK_EQUAL
+                                         , LdClassificationDefinition.CODE_YesNo_No);
+    }
+
+    /**
+     * Set the value of No of outOfUserSelectYn as equal as inline. { = }
+     * 
+     * @return this. (NotNull)
+     */
+    public LdBookCQ setOutOfUserSelectYn_Equal_No_AsInline() {
+        return registerInlineOutOfUserSelectYn(LdConditionKey.CK_EQUAL
+                                               , LdClassificationDefinition.CODE_YesNo_No);
     }
     - - - - - - - - - -/
 

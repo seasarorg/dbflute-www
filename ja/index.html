@@ -58,6 +58,23 @@
 
 <h3><a name="information">お知らせ</a></h3>
 <ul>
+	<li>【2006-10-19】 DBFlute-0.1.05では、ConditionBeanの条件をInlineViewとして設定できるようにします。</li>
+	今までは、結合先の列のWhere句条件は必ずBaseTableの件数を絞られていました。そうでなければならないこともありますが、<br>
+	NullableであるFK列での参照など、結合先Tableのみが単純に絞られてBaseTableの件数は絞りたくない場合があります。<br>
+	その時は、結合先Tableはfrom句のInlineViewにて絞らなければなりません。(結合先の論理削除を絞る場合など)<br>
+	ConditionBeanではこのように指定できます。<br>
+	　　// 従来：条件は通常のWhere句に付加される。BaseTableもこの条件で絞られる。<br>
+	　　cb.query().queryForeignTable().setActiveYn_Equal("y");<br>
+	　　 // 追加：条件はInlineViewのWhere句に付加される。BaseTableはこの条件で絞られない。<br>
+	　　cb.query().queryForeignTable().setActiveYn_Equal_AsInline("y");<br>
+	<p>
+	<li>【2006-10-19】 DBFlute-0.1.05では、Classificationの便利MethodをConditionBeanにも追加しました。</li>
+	今までは、Entityには設定Methodや判定Methodなどの便利Methodが作成されていましたが、<br>
+	ConditionBeanに区分値の条件付加Methodを作成するようにしました。<br>
+	ConditionBeanではこのように指定できます。<br>
+	　　cb.query().setActiveYn_Equal_Yes();<br>
+	　　cb.query().setActiveYn_Equal_No();<br>
+	<p>
 	<li>【2006-10-16】 DBFlute-0.1.04をReleaseしました。内容は以下の通りです。</li>
 	{Java/C#}
 	<br>
@@ -70,16 +87,6 @@
 	但し、JDBCの実装によっては正確に取得できない場合もあるかも知れないので、Identityの定義は残しておきます。<br>
 	JDBCのAutoIncrement情報に無くても、build.propertiesのIdentityの定義で指定されている場合はID-Annotationを付与します。<br>
 	<p>
-	<li>【2006-10-11】 DBFlute-0.1.03をReleaseしました。内容は以下の通りです。</li>
-	{Java/C#}
-	<p>Entity.acceptColumnValueMap()で引数のMapに値が含まれてない列に関しては、isSetterInvokedをfalseにするように修正。<br>
-		　　→acceptColumnValueMap()のMethod仕様としてEntityの初期化を含むので、Setter呼び出しの記録も破棄する。
-	</p>
-	{C# only}
-	<p>AbstractBehaviorWritable.reflectAfterSelectForUpdateNewTx()でのcatchをSystemExceptionからExceptionに修正。<br>
-		　　→ApplicationExceptionの場合はcatchされずに中断してしまっていたため。
-	</p>
-
 	<div align="right">(Last Updated at 2006/10/11)</div>
 </ul>
 

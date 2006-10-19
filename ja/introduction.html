@@ -39,6 +39,8 @@
 
 <img height="340" width="720" src="images/dbflute_ldb_text_erd.jpg" alt="">
 
+<a href="http://dbflute.sandbox.seasar.org/ja/ldb/erd/index.html">詳細なERDはこちら</a>
+
 // ======================================================================================================
 //                                                                                                  Intro
 //                                                                                                  =====
@@ -133,7 +135,7 @@ DBFluteの理解にはS2Daoの理解が必要です。
       また、このif分岐機能により、Select句の列・結合Table・OrderBy要素なども動的に変更することが可能であり、
       一つのSQL文を複数のModuleで再利用することが容易に可能であります(設計は難しいかも知れませんが...)。
       この場合“サジ加減”を気をつけて設計しないと大変ですが、例えば200-300行に渡るSQL文を、
-      “ちょっとSelectする列と結合するTableが違うだけ”・“OrderByが違う”などの理由だけで5個も6個も書くのは、
+      “ちょっとSelectするColumnと結合するTableが違うだけ”・“OrderByが違う”などの理由だけで5個も6個も書くのは、
       効率が悪く、そして、修正の際のCostが高いと思われます。
       (Project(人)によってやり方は様々かも知れませんが、S2Daoの利用によって自由に設計できることが確かだと思います)
 
@@ -234,8 +236,8 @@ S2Daoの利用に対して積極的にならない可能性があります。
         final java.util.List<LdBook> resultList = dao.selectList(cb);
         - - - - - - - - -/
 
-    3. Select句に含める列のTable単位での指定をサポート
-        ※S2Daoでは、SQL自動生成の場合はForeignTableの列を全て指定してしまう。
+    3. Select句に含めるColumnのTable単位での指定をサポート
+        ※S2Daoでは、SQL自動生成の場合はForeignTableのColumnを全て指定してしまう。
           (もちろん、RELNO/RELKEY-Annotationの指定次第ではあるが、それはやはり
            Staticなものになってしまう)
         ※Select句に含めることのできるTableは、MyTableと1階層のForeignTableです。
@@ -247,7 +249,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         final java.util.List<LdBook> resultList = dao.selectList(cb);
         - - - - - - - - -/
 
-    4. Where句に指定する条件で無限階層のForeignTableの列の指定をサポート
+    4. Where句に指定する条件で無限階層のForeignTableのColumnの指定をサポート
         ※S2Daoでは、1階層のForeignTableだけが指定可能。
 
         ex) BOOKに対してForeignTableのAUTHORを結合してAUTHOR_AGEで30歳以上を検索。
@@ -316,7 +318,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
     --- ここからはConditionBeanのAdvance機能 ---
     --------------------------------------------
 
-    7. ExtendedEntityに値受け取り用のPropertyを定義することにより、無限階層のForeignTableの列を
+    7. ExtendedEntityに値受け取り用のPropertyを定義することにより、無限階層のForeignTableのColumnを
        Select句に含めて取得することが可能(BaseTableの導出列として取得。
 
         ex) BOOKに対してGenreCodeがNotNullで、かつ、1階層上位のGENREの名称を取得
@@ -337,7 +339,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
 
         [includeAsMine():補足]
         ※通常はSelect句に含められるのは1階層のForeignTableまでなので、
-          どうしても2階層より先の列の値をSQL一発実行で取得したい場合に有効。
+          どうしても2階層より先のColumnの値をSQL一発実行で取得したい場合に有効。
 
     8. InScopeSubQuery()によるin検索のサポート ※'where xxx in (select xxx from xxx)'のような検索のこと
 
@@ -368,17 +370,16 @@ S2Daoの利用に対して積極的にならない可能性があります。
         - - - - - - - - -/
 
         [InScopeSubQuery():補足]
-          少々複雑なSQLではありますが、ReffererTable(子Table)の列で絞り込む検索や
-          多重度{n:n}の関係にあるTableの列で絞り込む場合の定型的な(一般的な)SQLであることと、
+          少々複雑なSQLではありますが、ReffererTable(子Table)のColumnで絞り込む検索や
+          多重度{n:n}の関係にあるTableのColumnで絞り込む場合の定型的な(一般的な)SQLであることと、
           SQLにおけるin句の副問い合せはとても間違いやすい文法であることを考慮してサポートしました。
 
     9. 多重度{1:1}のReffererTable(子Table)への結合が可能。
-       ※通常はForeignTable(親Table)への結合しかサポートされませんが、多重度が{1:1}とDB情報から判断できる場合に
-         ReffererTableをForeignTableと同じように扱うことが可能です。(結合による取得件数の変動が無いため)
+        ※通常はForeignTable(親Table)への結合しかサポートされませんが、多重度が{1:1}とDB情報から判断できる場合に
+          ReffererTableをForeignTableと同じように扱うことが可能です。(結合による取得件数の変動が無いため)
 
         ex) COLLECTIONに対して多重度{1:1}のReffererTableであるCOLLECTION_STATUSの
             STATUS_CODE 'OUT'(貸し出し中) で絞り込み検索
-
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         final LdCollectionCB cb = new LdCollectionCB();
         cb.setupSelect_CollectionStatusAsOne();// StatusCodeをSelect句に含めるため
@@ -400,8 +401,34 @@ S2Daoの利用に対して積極的にならない可能性があります。
         [多重度{1:1}のReffererTable:補足]
         Project(人)によって方針は様々と思われるますが、DB設計において多重度{1:1}のReffererTableは重要に
         なることがあります。LifeCycleの違い・運用後のDB変更などにおいてよく利用されます。
-        多重度{1:1}であるか否かの判定は、ReffererTableのPKもしくはUniqueKeyとReffererTableの自TableへのFK列が
+        多重度{1:1}であるか否かの判定は、ReffererTableのPKもしくはUniqueKeyとReffererTableの自TableへのFKが
         同じ構成の場合にtrueとなります。
+
+    10. Where句に指定する条件をInlineViewとして設定可能。
+         ※主に、自Tableの件数を変化させずに結合先Tableのみを絞り込みたい場合に利用します。
+
+        ex) 利用者一覧の表示にて、「黒い行動」のレベル４以上を犯したことのある人のみ、「どの位黒いか」のランクを表示
+              →LB_USERの検索でBLACK_LISTを結合するが、BLACK_ACTION.BLACK_LEVELが4以上のBLACK_LISTだけを結合
+                (BLACK_LIST.BLACK_LIST_IDに対し、InlineのInScopeSubQueryを設定)
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        final LdLbUserCB cb = new LdLbUserCB();
+        cb.setupSelect_BlackListAsOne();
+        {
+            final LdBlackActionCB subCB = new LdBlackActionCB();
+            subCB.query().setBlackLevel_GreaterEqual(4);
+            final LdBlackListCQ balckListCQ = cb.query().queryBlackListAsOne();
+            balckListCQ.setBlackListId_InScopeSubQuery_BlackActionList_AsInline(subCB.query());
+        }
+        java.util.List<LdLbUser> ls = dao.selectList(cb);
+        for (LdLbUser user : ls) {
+            // 
+            // 以下の条件の利用者の場合は、このMethodの戻り値がnullとなります。
+            //   条件：「黒い行動」のレベル４以上を犯したことが無い or そもそもBlackListに登録されていない
+            // 
+            final String rank = user.getBlackListAsOne().getBlackRank();
+        }
+        - - - - - - - - -/
+
 
 ConditionBeanに関しては、各Project(人)によっては賛否両論かもしれません。
 このようなSQL自動生成Objectは、今までのO/R-Mapperで既にもっとRichなものが存在します。確かに便利ではありましたが、
