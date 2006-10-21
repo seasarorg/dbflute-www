@@ -31,40 +31,75 @@
 <p>
 <a href="index.html">to Top</a>
 <p><b>
-Identityの設定方法を記述します。
+Ant-Taskの一覧です。
 <p></b>
 <pre>
 
 
-// ======================================================================================================
-//                                                                                               Identity
-//                                                                                               ========
-DBFluteには、Identity(PrimaryKeyの自動採番)に対するS2DaoのID-Annotationを設定する機能があります。
-これらはbuild.propertiesの「torque.identityDefinitionMap」を設定することで作成されます。
+# /============================================================================
+#                                                                   Torque Task
+#                                                                   ===========
 
-    ex) BOOK_IDがIdentityの場合
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /** ID-Annotation */
-    public static final String bookId_ID = "identity";
-    - - - - - - - - - -/
+A. JDBC-Task
+    概要：
+        DatabaseからJDBC経由でSchema情報を取得する。
 
-DBFluteでは、JDBCよりAutoIncrement情報を取得してID-Annotationを自動付加するようにしています。
-よって、(JDBC-Driverがしっかり実装されてさえいれば)特にこの設定を気にする必要はありません。
+    詳細：
+        実行すると'./schema'以下に取得したSchema情報がXMLとして保存される。
+        まずこれを実行しなければ始まらない。
 
-しかし、場合によっては手動で設定したい場合もあるかもしれないので、この設定が存在します。
 
-    ex) build.properties
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    torque.identityDefinitionMap    = map:{ \
-        AUTHOR          =   AUTHOR_ID \
-        ; BOOK          =   BOOK_ID \
-        ; COLLECTION	=   COLLECTION_ID \
-    }
-    - - - - - - - - - -/
 
-TableName = ColumnName というように設定します。ColumnNameはIdentity列を指定します。
-もし、JDBCからの自動付加と重複していても、特に問題はありません。(手動設定が無視されるだけ)
+B. OM-Task
+    概要：
+        Schema情報とVelocity-Templateを利用して、S2DaoのClassを生成する。
 
+    詳細：
+        Velocity-Templateは'%DBFLUTE_HOME%/templates/om'以下に存在する。
+
+
+
+C. schemaHTML-Task
+    概要：
+        Schema情報を利用して、Schema情報のHTML-Documentを生成する。(schemaHTML)
+
+    詳細：
+        Batchを実行したCurrentDirectoryの'output/doc'以下に生成される。
+
+
+
+
+D. Invoke_ReplaceSchema-Task
+    概要：
+        指定されたSqlFile(DropTableとCreateTableのDDL文)を実行してDBのSchemaを作り直す。
+
+    詳細：
+        複数のSQL文を区切るDelimiterは';'です。
+
+        単にSQL文を実行しているだけなので、別にDDLでなくても実行されます。
+        一応、明示的に'DBのReplace用'と銘打っているだけです。
+        DBをReplaceすると同時に、Master-TableのRecordを格納したり、
+        Test用のRecordを登録したりするのにも利用できます。
+
+        build.propertiesでは、JDBC-Taskで利用するDB接続先情報と
+        'invokeReplaceSchemaDefinitionMap'が必要となります。
+
+
+
+E. Invoke_SqlDirectory-Task
+    概要：
+        指定されたDirectory以下(再帰的)のSqlFileを全て実行する。
+
+    詳細：
+        拡張子は'.sql'です(大文字小文字区別なし)。
+        複数のSQL文を区切るDelimiterは';'です。
+
+        - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        S2Daoの“Test値を利用した外だしSQL”の一斉実行が可能
+        - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+        build.propertiesでは、JDBC-Taskで利用するDB接続先情報と
+        'invokeSqlDirectoryDefinitionMap'が必要となります。
 
 </pre>
 </p>

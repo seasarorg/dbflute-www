@@ -31,39 +31,65 @@
 <p>
 <a href="index.html">to Top</a>
 <p><b>
-Identityの設定方法を記述します。
+schemaHTMLの利用方法を記述します。
 <p></b>
 <pre>
 
 
 // ======================================================================================================
-//                                                                                               Identity
-//                                                                                               ========
-DBFluteには、Identity(PrimaryKeyの自動採番)に対するS2DaoのID-Annotationを設定する機能があります。
-これらはbuild.propertiesの「torque.identityDefinitionMap」を設定することで作成されます。
+//                                                                                             schemaHTML
+//                                                                                             ==========
 
-    ex) BOOK_IDがIdentityの場合
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /** ID-Annotation */
-    public static final String bookId_ID = "identity";
-    - - - - - - - - - -/
+schemaHTMLは、他のO/R-Mappterを利用している方でも役に立つ機能です。<a href="./ldb/schema/project-schema-ldb.html">Sample(LDB)</a>
 
-DBFluteでは、JDBCよりAutoIncrement情報を取得してID-Annotationを自動付加するようにしています。
-よって、(JDBC-Driverがしっかり実装されてさえいれば)特にこの設定を気にする必要はありません。
 
-しかし、場合によっては手動で設定したい場合もあるかもしれないので、この設定が存在します。
+既にJDBC-Taskを実行する環境が整っている方は、'doc.bat'を実行してみてください。
+Client-Directoryの'./output/doc'以下にHTMLが作成されます。
 
-    ex) build.properties
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    torque.identityDefinitionMap    = map:{ \
-        AUTHOR          =   AUTHOR_ID \
-        ; BOOK          =   BOOK_ID \
-        ; COLLECTION	=   COLLECTION_ID \
-    }
-    - - - - - - - - - -/
+<b>TODO:</b> SchemaHTMLの項目は固定です。[2006/10/21 現在]
+      その内、ある程度ユーザが項目を選択できるようにできれば...と考えております。
+      (一応、Templateは、%DBFLUTE_HOME%/templates/doc/html/table.vmにありますので独自修正は可能です)
 
-TableName = ColumnName というように設定します。ColumnNameはIdentity列を指定します。
-もし、JDBCからの自動付加と重複していても、特に問題はありません。(手動設定が無視されるだけ)
+
+DBFluteを「schemaHTMLのみ」で利用する方は以下の手順を参考にして下さい。
+
+手順：
+
+1. DBFluteのModuleを配置します。
+
+   ※<a href="index.html">How to Setup</a>を参考にして下さい。
+     →Environment-Variableの設定まででOKです。
+
+
+2. Client-Directoryを配置します。
+
+   Client-DirectoryのTemplateとして、sample4useのschemaHTMLOnlyを利用します。
+   %DBFLUTE_HOME%/etc/sample4use/ldb_schemaHTMLOnlyをLocalPCの任意の場所にCopyして下さい。
+
+
+3. build.propertiesを修正します。
+
+   {for ALL}
+   database        : 接続するDatabaseの種類。 {oracle or db2 or mysql or ...etc}
+   targetLanguage  : 利用する言語。 {java or csharp} ※もし、それ以外の場合は'java'として下さい。
+
+   {for JDBC}
+   database.driver : JDBCでDatabaseに接続するためのJDBC-DriverのClass名。
+                     ※指定のJDBC-Driverが、%DBFLUTE_HOME%/lib/forExecuteに無い場合は追加して下さい。
+                       →そしてその時は作者(jflute)までご一報下さい(無料のものであれば追加します)。
+   database.url      : JDBCの接続URL。
+   database.schema   : 接続先Schemaの名前。
+   database.user     : 接続User。
+   database.password : 接続Password。
+
+   ※Project名は、そのまま(schemaHTMLOnly)で特に構わなければ変更する必要はありません。
+     schemaHTML-Taskのみの利用であれば、特にProject名が何であろうとあまり影響しません。
+
+
+4. 'doc.bat'を実行します。
+
+    Client-Directoryの'./output/doc'以下にHTMLが作成されます。
+
 
 
 </pre>
