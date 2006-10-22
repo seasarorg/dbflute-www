@@ -210,12 +210,12 @@ S2Daoの利用に対して積極的にならない可能性があります。
         {=, &gt;, &lt;, &gt;=, &lt;=, Like, is null, is not null, in(), not in()}
         ※全てAND条件によって接合される。
 
-        ex) BOOKに対してBOOK_NAMEの'S2Dao'前方一致で、かつ、AUTHOR_IDがnullでないものを検索
+        ex) BOOKに対してBOOK_NAMEの'S2Dao'前方一致で、かつ、GENRE_CODEがnullでないものを検索
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         final LdBookCB cb = new LdBookCB();
         cb.query().setBookName_PrefixSearch("S2Dao");// '%'は内部で自動的に付与される
-        cb.query().setAuthorId_IsNotNull();
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        cb.query().setGenreCode_IsNotNull();
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
         ex) BOOKに対してGENRE_CODEが{'NOVEL', 'HOW-TO-BOOK'}のものを検索
@@ -223,7 +223,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         final LdBookCB cb = new LdBookCB();
         final String[] genreCodeArray = new String[]{"NOVEL", "HOW-TO-BOOK"};
         cb.query().setGenreCode_InScope(java.util.Arrays.asList(genreCodeArray));
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
     2. OrderBy句に指定するColumn & {Asc or Desc}のDynamic指定をサポート
@@ -233,7 +233,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         final LdBookCB cb = new LdBookCB();
         cb.query().addOrderBy_RTime_Desc();
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
     3. Select句に含めるColumnのTable単位での指定をサポート
@@ -246,7 +246,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         final LdBookCB cb = new LdBookCB();
         cb.setupSelect_Author();
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
     4. Where句に指定する条件で無限階層のForeignTableのColumnの指定をサポート
@@ -256,7 +256,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         final LdBookCB cb = new LdBookCB();
         cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
         ※query().queryXxx().queryXxx().queryXxx()...と繋げることで無限階層に設定可能
 
@@ -267,7 +267,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         final LdBookCB cb = new LdBookCB();
         cb.query().addOrderBy_RTime_Desc();
         cb.fetchFirst(50);
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
         ex) BOOKに対して登録日時の降順で、81件目から100件目のみ検索
@@ -275,7 +275,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
         final LdBookCB cb = new LdBookCB();
         cb.query().addOrderBy_RTime_Desc();
         cb.fetchScope(80, 20);// 80件目から20件分を取得(81件目から100件目)
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
         ex) BOOKに対して登録日時の降順で、PageSize20件でPaging検索
@@ -284,11 +284,11 @@ S2Daoの利用に対して積極的にならない可能性があります。
         cb.query().addOrderBy_RTime_Desc();
         cb.fetchFirst(20);
         cb.fetchPage(1);// 1-20
-        final java.util.List&lt;LdBook&gt; resultListFirstPage = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; lsFirstPage = dao.selectList(cb);
         cb.fetchPage(2);// 21-40
-        final java.util.List&lt;LdBook&gt; resultListSecoundPage = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; lsSecoundPage = dao.selectList(cb);
         cb.fetchPage(3);// 41-60
-        final java.util.List&lt;LdBook&gt; resultListThirdPage = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; lsThirdPage = dao.selectList(cb);
         - - - - - - - - -/
 
         [fetchSoope()/fetchPage()補足]
@@ -366,7 +366,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
             cb.query().setBookId_InScopeSubQuery(subCB.query());
         }
         cb.addOrderBy_PK_Asc();
-        final java.util.List&lt;LdBook&gt; resultList = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
 
         [InScopeSubQuery():補足]
@@ -387,8 +387,8 @@ S2Daoの利用に対して積極的にならない可能性があります。
         // 多重度{1:1}のReffererTableには'AsOne'という接尾辞が付く
         cb.query().queryCollectionStatusAsOne().setStatusCode_Equal("OUT");
 
-        final java.util.List&lt;LdCollection&gt; resultList = dao.selectList(cb);
-        for (final LdCollection entity : resultList) {
+        final java.util.List&lt;LdCollection&gt; ls = dao.selectList(cb);
+        for (final LdCollection entity : ls) {
             // このように取得できる
             final LdCollectionStatus statusEntity = entity.getCollectionStatusAsOne();
             final String statusCode = statusEntity.getCollectionStatusCode();
