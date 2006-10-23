@@ -62,77 +62,19 @@
 
 <h3><a name="information">お知らせ</a></h3>
 <ul>
-	<li>【2006-10-22】 'SchemaHTML'だけを利用する人のためのDocumentを作成しました。<a href="./tips-schemaHTML.html">こちら</a></li>
-	<li>【2006-10-22】 DBFlute-0.1.06をReleaseしました。内容は以下の通りです。</li>
+	<li>【2006-10-24】 DBFlute-0.1.07をReleaseしました。内容は以下の通りです。</li>
 	{Java/C#}
 	<br>
-	　A. 自動生成されるClassのPackage(or Namespace)の指定にデフォルト値を追加しました。<br>
-	　　　従来：entity/dao/condition-bean/...と一つ一つ指定。<br>
-	　　　今後：基底となるPackageだけを指定して、その下に各Packageのデフォルト値を適用させることが可能。<br>
-	　　　　　　また、基底となるPackageを指定した上で、それぞれのPackageを指定することも可能。{連結される}<br>
-	　　　　　　(従来のやり方はそのままで動作します)<br>
-	<pre>
-        ex) 例えば、「packageBase = dbflute.ldb」と設定した場合：
-              baseCommonPackage       --> dbflute.ldb.allcommon
-              baseBehaviorPackage     --> dbflute.ldb.bsbhv
-              baseDaoPackage          --> dbflute.ldb.bsdao
-              baseEntityPackage       --> dbflute.ldb.bsentity
-              conditionBeanPackage    --> dbflute.ldb.cbean
-              extendedBehaviorPackage --> dbflute.ldb.exbhv
-              extendedDaoPackage      --> dbflute.ldb.exdao
-              extendedEntityPackage   --> dbflute.ldb.exentity
-	</pre>
+	　A. SQLServerのJDBCがgetIndexInfo()のrs.getString(8)がnullを返す問題に対応。<br>
+	　B. libの中にPostgreSQLのjarを登録。(8.1)<br>
 	{Java Only}
 	<br>
-	　B. S2Dao-1.0.36 に対応しました。<br>
-	　　　※特に何も変更せず、Compileも通って正常に動作致しました。<br>
-	<p>
-	<li>【2006-10-20】 DBFluteの機能として'SchemaHTML'を前面に出すことにしました。</li>
-	これは<a href="http://db.apache.org/torque/">Apache Torque</a>の機能で元々あったのですが、<br>
-	そのHTMLのVelocity-Templateを変更して業務において役に立つ形にしました。<a href="./ldb/schema/project-schema-ldb.html">Sample(LDB)</a>
-	<p>
-	<li>【2006-10-20】 DBFlute-0.1.05をReleaseしました。内容は以下の通りです。</li>
-	{Java/C#}
+	　C. Classificationの設定が全く無い場合に、ConditionQueryにimport文が残ってしまうBugを修正。
 	<br>
-	　A. ConditionBeanの条件をInlineViewとして設定できるように修正。<br>
-	　　　　　　　｛<a href="./introduction.html">作者からのIntroductionのConditionBean記述を参考</a>｝<br>
-	<br>
-	　B. Classificationの便利MethodをConditionBeanにも追加。<br>
-	　　　→ cb.query().setActiveYn_Equal_Yes(); // active_yn の条件として = 'y' を付加する。<br>
-	　　　　　　　｛<a href="./tips-classification.html">Tips: Classification</a>｝<br>
-	<br>
-	　C. ClassificationのDeployment指定(ある区分値をどの列に関連付けるかの指定)において、<br>
-	　　　Column名でPrefix/Suffix指定できるように修正。<br>
-	　　　　　　　｛<a href="./tips-classification.html">Tips: Classification</a>｝<br>
-	<br>
-	{C# Only}
-	<br>
-	　D. BehaviorのLoad[ReffererTable]()-Methodが正常に動作しないBUGを修正。
 	<p>
-	<li>【2006-10-19】 DBFlute-0.1.05では、ConditionBeanの条件をInlineViewとして設定できるようにします。</li>
-	今までは、結合先の列のWhere句条件は必ずBaseTableの件数を絞られていました。そうでなければならないこともありますが、<br>
-	NullableであるFK列での参照など、結合先Tableのみが単純に絞られてBaseTableの件数は絞りたくない場合があります。<br>
-	その時は、結合先Tableはfrom句のInlineViewにて絞らなければなりません。(結合先の論理削除を絞る場合など)<br>
-	ConditionBeanではこのように指定できます。<br>
-	　　// 従来：条件は通常のWhere句に付加される。BaseTableもこの条件で絞られる。<br>
-	　　cb.query().queryForeignTable().setActiveYn_Equal("y");<br>
-	　　 // 追加：条件はInlineViewのWhere句に付加される。BaseTableはこの条件で絞られない。<br>
-	　　cb.query().queryForeignTable().setActiveYn_Equal_AsInline("y");<br>
+	<li>【2006-10-22】 'SchemaHTML'だけを利用する人のためのDocumentを作成しました。<a href="./tips-schemaHTML.html">こちら</a></li>
 	<p>
-	<li>【2006-10-19】 DBFlute-0.1.05では、Classificationの便利MethodをConditionBeanにも追加しました。</li>
-	今までは、Entityには設定Methodや判定Methodなどの便利Methodが作成されていましたが、<br>
-	ConditionBeanに区分値の条件付加Methodを作成するようにしました。<br>
-	ConditionBeanではこのように指定できます。<br>
-	　　cb.query().setActiveYn_Equal_Yes();<br>
-	　　cb.query().setActiveYn_Equal_No();<br>
-	<p>
-	<li>【2006-10-16】 DBFlute-0.1.04をReleaseしました。内容は以下の通りです。</li>
-	{Java/C#}
-	<br>
-	　A. JDBCよりAutoIncrement情報を取得してID-Annotationを自動付加するように修正。｛<a href="./tips-identity.html">Tips: Identity</a>｝<br>
-	　B. Classificationの定義で、実際のTableに登録されているDataを取得できるように修正。｛<a href="./tips-classification.html">Tips: Classification</a>｝<br>
-	<p>
-	<div align="right">(Last Updated at 2006/10/11)</div>
+	<div align="right">(Last Updated at 2006/10/24)</div>
 </ul>
 
 <br>
@@ -161,8 +103,7 @@
 
 <h3><a name="download">ダウンロード</a></h3>
 <ul>
-	<li><a href="../download/2006-10-22/dbflute-0.1.07-pre-jdbcfix.zip">DBFlute-0.1.07 PreRelease(JDBC Fix & Add PostgreSQL Driver & One BugFix)</a></li>
-	<li><a href="../download/2006-10-22/dbflute-0.1.06.zip">DBFlute-0.1.06</a></li>
+	<li><a href="../download/2006-10-24/dbflute-0.1.07.zip">DBFlute-0.1.07</a></li>
 </ul>
 
 <br><br>
