@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- don't edit start -->
+<head>
+<title>Seasar - DI Container with AOP - </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link href="seasar_b.css" type="text/css" rel="stylesheet" media="screen" />
+<link href="seasar_p.css" type="text/css" rel="stylesheet" media="print" />
+<script src="seasar_b.js" type="text/JavaScript" language="JavaScript"></script>
+</head>
+<body onload="preload('ja')">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="left"><tr>
+<td align="left" valign="top" width="780"><table width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr><td colspan="7"><img height="5" width="780" src="images/top01_b.gif" alt=""></td></tr>
+<tr><td><img height="117" width="235" src="images/top02_b.gif" alt="Seasar"></td>
+<td colspan="3"><img height="117" width="289" src="images/top03.gif" alt="DI Container with AOP"></td>
+<td colspan="3"><img height="117" width="256" src="images/spacer.gif" alt=""></td>
+</tr><tr><td rowspan="2"><img src="images/top04.gif" alt="" height="49" width="235"></td>
+<td><a href="http://www.seasar.org/index.html"><img src="images/menu01_b_ja.gif" height="30" width="78" border="0" alt="" id="menu01" onmouseover="swap(1)" onmouseout="restore(1)"></a></td>
+<td><a href="http://www.seasar.org/projects.html"><img src="images/menu02_b_ja.gif" height="30" width="101" border="0" alt="" id="menu02" onmouseover="swap(2)" onmouseout="restore(2)"></a></td>
+<td><a href="http://www.seasar.org/products.html"><img src="images/menu03_b_ja.gif" height="30" width="110" border="0" alt="" id="menu03" onmouseover="swap(3)" onmouseout="restore(3)"></a></td>
+<td><a href="http://www.seasar.org/resources.html"><img src="images/menu04_b_ja.gif" height="30" width="113" border="0" alt="" id="menu04" onmouseover="swap(4)" onmouseout="restore(4)"></a></td>
+<td><img src="images/menu05_b_ja.gif" height="30" width="109" border="0" alt="" id="menu05" onmouseover="swap(5)" onmouseout="restore(5)"></td>
+<td><img height="30" width="34" src="images/menu06.gif" alt=""></td></tr><tr>
+<td colspan="6"><img height="19" width="545" src="images/spacer.gif" alt=""></td></tr></table>
+<table  width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr align="left" valign="top"><td width="14"><img height="14" width="14" src="images/spacer.gif" alt=""></td><td width="740" class="main">
+<!-- don't edit end -->
+<!-- document start -->
+<p>
+<a href="index.html">to Top</a>
+<p><b>
+LimitSearch/PagingSearchについて記述します。
+<p></b>
+<pre>
+
+※DBFluteは、S2Pagerを参考にしていますがS2Pager自身を利用していません。
+
+
+// ======================================================================================================
+//                                                            ConditionBeanによるLimitSearch/PagingSearch
+//                                                            ===========================================
+// -----------------------------------------------------
+//                                           LimitSearch
+//                                           -----------
+
+ConditionBeanにおいて、「先頭の何件を取得する」という条件の検索が可能です。
+
+    ex) BOOKに対してAuthorが30歳以上/登録日時の降順/最初の50件のみ検索
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBookCB cb = new LdBookCB();
+    cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
+    cb.query().addOrderBy_RTime_Desc();
+    cb.fetchFirst(50);
+    final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+    - - - - - - - - -/
+
+
+また、「何件から何件を取得する」という条件の検索が可能です。
+
+    ex) BOOKに対しAuthorが30歳以上/登録日時の降順/81件目から100件目のみ検索
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBookCB cb = new LdBookCB();
+    cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
+    cb.query().addOrderBy_RTime_Desc();
+    cb.fetchScope(80, 20);// 80件目から20件分を取得(81件目から100件目)
+    final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+    - - - - - - - - -/
+
+
+[補足]
+  {Oracle、FirstBird、MySQL、PostgreSQL}など、SQL文法的にLimitSearchがサポートされているDB
+  に関しては、そのSQLを利用して検索します(ROWNUMやoffset/limitなど)。
+  {SQLServer、DB2}など、SQL文法的に「先頭から何件」という検索しかできないDBに関しては、
+  例えば80-100を取得する際に、先頭から100件を取得しResultSetで先頭80件を飛ばして取得します。
+
+  ※Adviceを頂きまして、DB2に関しては、ROW_NUMBER()関数を利用したLimitSearchを
+    検討します(2006/09/28現在)。
+
+
+// -----------------------------------------------------
+//                                          PagingSearch
+//                                          ------------
+
+ConditionBeanにおいて、「PageSizeを何件として指定したPageを検索する」という条件の検索が可能です。
+
+    ex) BOOKに対してAuthorが30歳以上/登録日時の降順/PageSize20件でPaging検索
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBookCB cb = new LdBookCB();
+    cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
+    cb.query().addOrderBy_RTime_Desc();
+    cb.fetchFirst(20);// PageSizeの設定
+    cb.fetchPage(1);// 1-20
+    final java.util.List&lt;LdBook&gt; lsFirstPage = dao.selectList(cb);
+    cb.fetchPage(2);// 21-40
+    final java.util.List&lt;LdBook&gt; lsSecoundPage = dao.selectList(cb);
+    cb.fetchPage(3);// 41-60
+    final java.util.List&lt;LdBook&gt; lsThirdPage = dao.selectList(cb);
+    - - - - - - - - -/
+
+
+// -----------------------------------------------------
+//                                      PagingResultBean
+//                                      ----------------
+
+DBFluteには、Pagingの結果を管理するObjectが用意されています。
+そのObjectを効率よく利用するMethodがBehaviorに存在します。
+
+    ex) BOOKに対してAuthorが30歳以上/登録日時の降順/PageSize20件でPaging検索
+        ※該当のConditionBeanにて条件に合致する総Record数が76件だと仮定します。
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBookCB cb = new LdBookCB();
+    cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
+    cb.query().addOrderBy_RTime_Desc();
+    cb.fetchFirst(20);// PageSizeの設定
+    cb.fetchPage(1);// 1-20
+    final LdPagingResultBean&lt;LdBook&gt; rbFirstPage = bhv.selectPage(cb);
+    cb.fetchPage(2);// 21-40
+    final LdPagingResultBean&lt;LdBook&gt; rbSecondPage = bhv.selectPage(cb);
+    cb.fetchPage(3);// 41-60
+    final LdPagingResultBean&lt;LdBook&gt; rbThirdPage = bhv.selectPage(cb);
+    cb.fetchPage(4);// 61-76
+    final LdPagingResultBean&lt;LdBook&gt; rbFourthPage = bhv.selectPage(cb);
+
+    // ***************************************
+    // 「1」Page目のPaging結果についてのAssert
+    // ***************************************
+
+    // 検索したTable名(結合の中心Table) → BOOK
+    assertEquals("BOOK", rbFirstPage.getTableDbName());
+
+    // 総Record数 → 76
+    assertEquals(76, rbFirstPage.getAllRecordCount());
+
+    // 該当PageのEntityのList → 件数はPageSizeと同じ
+    assertEquals(20, rbFirstPage.getSelectedList().size());
+
+    // OrderByの一番目の要素のASC/DESC → DESC
+    assertTrue(getOrderByClause().isFirstElementDesc());
+
+    // OrderByの一番目の要素の列名 → R_TIME
+    assertTrue(getOrderByClause().isSameAsFirstElementColumnName("R_TIME"));
+
+    // PageSize → 20
+    assertEquals(20, rbFirstPage.getPageSize());
+
+    // 現在のPage番号 → 1
+    assertEquals(1, rbFirstPage.getCurrentPageNumber());
+
+    // 総Page数 → 4      ※allRecordCountとpageSizeから計算
+    assertEquals(4, rbFirstPage.getAllPageCount());
+
+    // 前のPageがあるか否か → 現在は1Page目なのでFalse
+    assertFalse(rbFirstPage.isExistPrePage());
+
+    // 次のPageがあるか否か → 次の2Page目があるのでTrue
+    assertTrue(rbFirstPage.isExistNextPage());
+
+    // ***************************************
+    // 「2」Page目のPaging結果についてのAssert
+    // ***************************************
+    // ※共通部のAssertは省略｛それらは1Page目と同じ値となります｝
+
+    // 現在のPage番号 → 2
+    assertEquals(2, rbSecondPage.getCurrentPageNumber());
+
+    // 前のPageがあるか否か → 現在は2Page目なのでTrue
+    assertTrue(rbSecondPage.isExistPrePage());
+
+    // 次のPageがあるか否か → 次の3Page目があるのでTrue
+    assertTrue(rbSecondPage.isExistNextPage());
+
+    // ***************************************
+    // 「3」Page目のPaging結果についてのAssert
+    // ***************************************
+
+    // 現在のPage番号 → 3
+    assertEquals(3, rbThirdPage.getCurrentPageNumber());
+
+    // 前のPageがあるか否か → 現在は3Page目なのでTrue
+    assertTrue(rbThirdPage.isExistPrePage());
+
+    // 次のPageがあるか否か → 次の4Page目があるのでTrue
+    assertTrue(rbThirdPage.isExistNextPage());
+
+    // ***************************************
+    // 「4」Page目のPaging結果についてのAssert
+    // ***************************************
+
+    // 現在のPage番号 → 4
+    assertEquals(4, rbFourthPage.getCurrentPageNumber());
+
+    // 該当PageのEntityのList → 最後のPageなので件数は16件
+    assertEquals(16, rbFourthPage.getSelectedList().size());
+
+    // 前のPageがあるか否か → 現在は4Page目なのでTrue
+    assertTrue(rbFourthPage.isExistPrePage());
+
+    // 次のPageがあるか否か → 次の5Page目はないのでFalse
+    assertFalse(rbFourthPage.isExistNextPage());
+    - - - - - - - - -/
+
+
+もし総Page数が100件以上など膨大な場合に、画面にて全てのPage番号のLinkを表示するのは
+あまり格好良くありません。その場合に「ある限られたPage番号のみ」を表示することがよくあります。
+
+PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 2 Pattern用意しています。
+(他にPatternがあるようでしたら相談して下さい)
+
+
+｛PageRange｝
+
+    ex) 「ある限られたPage番号」は現在のPage番号の前後1Pageとした場合
+        ※一般的には、前後5Pageとか前後10Pageとかが基本です。(例は総Page数が少ないので前後1Pageとします)
+        ※これらは、設定されたPageRangeSizeとPaging結果を基に都度算出します。
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // **********************
+    // 「1」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後1Pageとする
+    rbFirstPage.setPageRangeSize(1);
+
+    // 該当するPageRangeのPage番号の配列 → 1,2
+    assertEquals(new int[]{1,2}, rbFirstPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 1Page目より前はないのでFalse
+    assertFalse(rbFirstPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 3Page目があるのでTrue
+    assertTrue(rbFirstPage.isExistNextPageRange());
+
+    // **********************
+    // 「2」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後1Pageとする
+    rbSecondPage.setPageRangeSize(1);
+
+    // 該当するPageRangeのPage番号の配列 → 1,2,3
+    assertEquals(new int[]{1,2,3}, rbSecondPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 1Page目より前は無いのでFalse
+    assertFalse(rbSecondPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 4Page目があるのでTrue
+    assertTrue(rbSecondPage.isExistNextPageRange());
+
+    // **********************
+    // 「3」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後1Pageとする
+    rbThirdPage.setPageRangeSize(1);
+
+    // 該当するPageRangeのPage番号の配列 → 2,3,4
+    assertEquals(new int[]{2,3,4}, rbThirdPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 1Page目はあるのでTrue
+    assertTrue(rbThirdPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 5Page目はないのでFalse
+    assertFalse(rbThirdPage.isExistNextPageRange());
+
+    // **********************
+    // 「4」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後1Pageとする
+    rbFourthPage.setPageRangeSize(1);
+
+    // 該当するPageRangeのPage番号の配列 → 3,4
+    assertEquals(new int[]{3,4}, rbFourthPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 2Page目はあるのでTrue
+    assertTrue(rbFourthPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 5Page目以降はないのでFalse
+    assertTrue(rbFourthPage.isExistNextPageRange());
+    - - - - - - - - -/
+
+
+｛PageGroup｝
+
+    ex) 「ある限られたPage番号」は2Page毎のGroupとする場合
+        ※一般的には、5Page/10Pageとかが基本です。(例は総Page数が少ないので2Page毎のGroupとします)
+        ※これらは、設定されたPageGroupSizeとPaging結果を基に都度算出します。
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // **********************
+    // 「1」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは2Page毎のGroupとする
+    rbFirstPage.setPageGroupSize(2);
+
+    // 該当するPageGroupのPage番号の配列 → 1,2
+    assertEquals(new int[]{1,2}, rbFirstPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
+    assertFalse(rbFirstPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 3Page目があるのでTrue
+    assertTrue(rbFirstPage.isExistNextPageGroup());
+
+    // **********************
+    // 「2」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは2Page毎のGroupとする
+    rbSecondPage.setPageGroupSize(2);
+
+    // 該当するPageGroupのPage番号の配列 → 1,2
+    assertEquals(new int[]{1,2}, rbSecondPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
+    assertFalse(rbSecondPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 3Page目があるのでTrue
+    assertTrue(rbSecondPage.isExistNextPageGroup());
+
+    // **********************
+    // 「3」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは2Page毎のGroupとする
+    rbThirdPage.setPageGroupSize(2);
+
+    // 該当するPageGroupのPage番号の配列 → 3,4
+    assertEquals(new int[]{3,4}, rbThirdPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 2Page目より前があるのでTrue
+    assertTrue(rbThirdPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 5Page目以降はないのでFalse
+    assertFalse(rbThirdPage.isExistNextPageGroup());
+
+    // **********************
+    // 「4」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは2Page毎のGroupとする
+    rbThirdPage.setPageGroupSize(2);
+
+    // 該当するPageGroupのPage番号の配列 → 3,4
+    assertEquals(new int[]{3,4}, rbFourthPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 2Page目より前があるのでTrue
+    assertTrue(rbFourthPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 5Page目以降はないのでFalse
+    assertFalse(rbFourthPage.isExistNextPageGroup());
+    - - - - - - - - -/
+
+
+// -----------------------------------------------------
+//                           Behavior.selectPage()の補足
+//                           ---------------------------
+
+Behavior.selectPage()について
+
+このMethodは、以下の処理を一手に引き受けてくれます。
+
+  A. 総Record数取得のためのselectCount()の呼び出し
+  B. 想定外Page数指定の際の再検索(すれ違いなど)
+  C. Paging検索/PagingResultBeanの生成
+
+
+{A}
+
+総Record数を取得するために「LimitSearchの条件のみ除去したselectCount()」を実行します。
+
+※総Page数を求めるために必ず必要です。
+
+
+{B}
+
+例えば、総Record数が61件で画面にて3Page目を開いてたとして、
+4Page目に遷移する直前に他のThreadに4Page目に表示するはずの1件が削除されたとします。
+(もしくは、現在の条件に合致しない値に更新されたとか)
+すると4Page目で検索しても取得できるRecordは0件です。
+その場合、selectPage()では、3Page目を検索し直します(その瞬間の最大Page)。
+
+これは画面の非機能要件にあたる部分であり、各Projectによってやりたいことが変わるかもしれませんが、
+Defaultでこのような動きをします。(大抵の場合はこの動きで良いのではないかと考えました)
+
+特に、一覧の画面内にてRecordの編集・削除ができる場合に、その処理の後の再検索においてこの動きが利用できます。
+4Page目を開いていて61件目を自分で編集・削除したことにより4Page目がなくなってしまう場合は、4Page目を再検索しても
+3Page目が結果として帰ってきますので、Programが再検索のときにそこを意識する必要はありません。
+(常に自Page番号で検索すれば良い)
+
+
+もし、この動きではどうしても要件を満たせない場合は、selectPage()の別引数のMethodをご利用ください。
+
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    selectPage(XxxCB cb, SelectPageInvoker&lt;Xxx&gt; invoker)
+    - - - - - -/
+
+SelectPageInvokerはInterfaceです。selectPage()はinvokeSelectPage()というMethodをCallbackします。
+このMethodを自由に実装することにより、各Projectに合わせた動きを実現することが可能です。
+(「A」に関しても同様のことが言えます)
+
+
+{C}
+
+Paging検索の実行と既に説明した通りのPaggingResultBeanを生成します。
+
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+複雑な検索(UNIONなど)の場合は“外だしSQL”を利用します。そのやり方は後述します。
+
+ただ、もしProjectにてViewを利用することができるのであれば、その複雑なSQLの基本部分をViewで実装すれば、
+DBFluteはViewを一つのTableとして自動生成しますので、そのViewのConditionBeanでPagingが可能となります。
+
+それが一番楽と言えば楽ですが、管理やMaintenance性を考えた場合にViewを積極利用しないProjectもあるかと思います。
+その場合はやはり“外だしSQL”となります。
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
+
+// ======================================================================================================
+//                                                            “外だしSQL”によるLimitSearch/PagingSearch
+//                                                            ===========================================
+
+TODO: できます。。。が、すいません、そのうち書きます。｛時間が無いため保留｝
+
+
+
+
+</pre>
+</p>
+
+<!-- document end -->
+</html>
