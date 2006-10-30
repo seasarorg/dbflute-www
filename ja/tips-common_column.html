@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- don't edit start -->
+<head>
+<title>Seasar - DI Container with AOP - </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link href="seasar_b.css" type="text/css" rel="stylesheet" media="screen" />
+<link href="seasar_p.css" type="text/css" rel="stylesheet" media="print" />
+<script src="seasar_b.js" type="text/JavaScript" language="JavaScript"></script>
+</head>
+<body onload="preload('ja')">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="left"><tr>
+<td align="left" valign="top" width="780"><table width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr><td colspan="7"><img height="5" width="780" src="images/top01_b.gif" alt=""></td></tr>
+<tr><td><img height="117" width="235" src="images/top02_b.gif" alt="Seasar"></td>
+<td colspan="3"><img height="117" width="289" src="images/top03.gif" alt="DI Container with AOP"></td>
+<td colspan="3"><img height="117" width="256" src="images/spacer.gif" alt=""></td>
+</tr><tr><td rowspan="2"><img src="images/top04.gif" alt="" height="49" width="235"></td>
+<td><a href="http://www.seasar.org/index.html"><img src="images/menu01_b_ja.gif" height="30" width="78" border="0" alt="" id="menu01" onmouseover="swap(1)" onmouseout="restore(1)"></a></td>
+<td><a href="http://www.seasar.org/projects.html"><img src="images/menu02_b_ja.gif" height="30" width="101" border="0" alt="" id="menu02" onmouseover="swap(2)" onmouseout="restore(2)"></a></td>
+<td><a href="http://www.seasar.org/products.html"><img src="images/menu03_b_ja.gif" height="30" width="110" border="0" alt="" id="menu03" onmouseover="swap(3)" onmouseout="restore(3)"></a></td>
+<td><a href="http://www.seasar.org/resources.html"><img src="images/menu04_b_ja.gif" height="30" width="113" border="0" alt="" id="menu04" onmouseover="swap(4)" onmouseout="restore(4)"></a></td>
+<td><img src="images/menu05_b_ja.gif" height="30" width="109" border="0" alt="" id="menu05" onmouseover="swap(5)" onmouseout="restore(5)"></td>
+<td><img height="30" width="34" src="images/menu06.gif" alt=""></td></tr><tr>
+<td colspan="6"><img height="19" width="545" src="images/spacer.gif" alt=""></td></tr></table>
+<table  width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr align="left" valign="top"><td width="14"><img height="14" width="14" src="images/spacer.gif" alt=""></td><td width="740" class="main">
+<!-- don't edit end -->
+<!-- document start -->
+<p>
+<a href="index.html">to Top</a>
+<p><b>
+CommonColumnの設定方法を記述します。
+<p></b>
+<pre>
+
+
+// ======================================================================================================
+//                                                                                           CommonColumn
+//                                                                                           ============
+
+DBFluteには、CommonColumn(共通列)を設定し、それらの列に対して処理を行うMethodや機能を生成することが可能です。
+
+
+
+// --------------------------------------------------
+//                                 CommonColumnとは？
+//                                 ------------------
+
+  全てTableに共通に定義されている列：
+    ex) LDBの場合
+      R_TIME 登録日時
+      R_USER 登録User
+      U_TIME 更新日時
+      U_USER 更新User
+
+  条件：
+    - 必ず全てのTableに定義されていなくても良いです
+    - 列名と名称は同じである必要があります。
+    - 残念ながらCommonColumnの一部だけが定義されていてもそれはCommonColumnとは認識されません。
+
+
+
+// ---------------------------------------------------------
+//                                 EntityDefinedCommonColumn
+//                                 -------------------------
+
+CommonColumnを設定すると該当TableのEntityがEntityDefinedCommonColumn-Interfaceをimplementsするようになります。
+
+     ※EntityDefinedCommonColumnはEntity-Interfaceをextendsしています。
+     ※EntityDefinedCommonColumnにはCommonColumnのGetter/Setterなどが定義されています。
+
+    ex) LdBook (LdBsBook)
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public abstract class LdBsBook implements LdEntityDefinedCommonColumn
+    - - - - - - - - - -/
+
+    ※CommonColumn設定してない場合は ↓
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public abstract class LdBsBook implements LdEntity
+    - - - - - - - - - -/
+
+    ex) LdEntityDefinedCommonColumn
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public interface LdEntityDefinedCommonColumn extends LdEntity {
+
+        public java.sql.Timestamp getRTime();
+
+        public void setRTime(java.sql.Timestamp v);
+
+        public boolean isSetterInvokedRTime();
+      
+        public java.sql.Timestamp getUTime();
+
+        public void setUTime(java.sql.Timestamp v);
+
+        public boolean isSetterInvokedUTime();
+      
+        public String getRUser();
+
+        public void setRUser(String v);
+
+        public boolean isSetterInvokedRUser();
+      
+        public String getUUser();
+
+        public void setUUser(String v);
+
+        public boolean isSetterInvokedUUser();
+      
+        public String extractCommonColumnValueMapString();
+    }
+    - - - - - - - - - -/
+
+これにより、CommonColumnに対して処理をするClassなどで、Reflectionで無理やりではなく、
+このInterface経由で共通設定を行うことができます。
+
+build.propertiesには、「列名=型;...」と指定します。
+
+    ex) build.properties - 'commonColumnMap'
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnMap = map:{R_TIME=TIMESTAMP ; U_TIME=TIMESTAMP ; R_USER=VARCHAR ; U_USER=VARCHAR}
+    - - - - - - - - - -/
+
+この場合の型は、DBFluteにおける共通型を使用します。(DBの型ではないです)
+build.propertiesにて、'jdbcToJavaNativeMap'を独自に設定していない限り、
+DBFluteの型とClassの型のMappingは以下のとおりです。
+
+    * ------------------------------------------------------------------
+    * DBFlute Type  | Java Type            | CSharp Type               |
+    * ------------------------------------------------------------------
+    * CHAR          | java.lang.String     | String                    |
+    * VARCHAR       | java.lang.String     | String                    |
+    * LONGVARCHAR   | java.lang.String     | String                    |
+    * NUMERIC       | java.math.BigDecimal | Nullables.NullableDecimal |
+    * DECIMAL       | java.math.BigDecimal | Nullables.NullableDecimal |
+    * BIT           | java.lang.Boolean    | Nullables.NullableBoolean |
+    * TINYINT       | java.math.BigDecimal | Nullables.NullableDecimal |
+    * SMALLINT      | java.math.BigDecimal | Nullables.NullableDecimal |
+    * INTEGER       | java.math.BigDecimal | Nullables.NullableDecimal |
+    * BIGINT        | java.math.BigDecimal | Nullables.NullableDecimal |
+    * REAL          | java.math.BigDecimal | Nullables.NullableDecimal |
+    * FLOAT         | java.math.BigDecimal | Nullables.NullableDecimal |
+    * DOUBLE        | java.math.BigDecimal | Nullables.NullableDecimal |
+    * BINARY        | byte[]               | byte[]                    |
+    * VARBINARY     | byte[]               | byte[]                    |
+    * LONGVARBINARY | byte[]               | byte[]                    |
+    * DATE          | java.util.Date       | Nullables.NullableDateTime|
+    * TIME          | java.sql.Time        | Nullables.NullableDateTime|
+    * TIMESTAMP     | java.sql.Timestamp   | Nullables.NullableDateTime|
+
+よって、このDefaultの設定では、CHARだろうがVARCHARだろうがStringなので、
+そこを厳密に区別して設定しなくても特に問題は無いです。
+
+
+
+// ---------------------------------------------------------
+//                            Insert時Update時の値の自動登録
+//                            ------------------------------
+
+CommonColumnを設定するとCommonColumnへのInsert時Update時の値の自動登録が可能になります。
+
+
+// ---------------------------------------
+//                       Interceptorの作成
+//                       -----------------
+どの値にどの値を設定するかは、Interceptorにて定義されます。
+それをbuild.propertiesにて指定することが可能です。
+
+    ex) build.properties - 'commonColumnSetupBeforeInsertInterceptorLogicMap' (Insert)
+           - 登録日時は、現在日時
+           - 登録Userは、Session上のLoginしているUserの名称
+           - 更新Userは、登録Userと同様の値
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnSetupBeforeInsertInterceptorLogicMap = map:{ \
+            ; R_TIME=new java.sql.Timestamp(System.currentTimeMillis()) \
+            ; R_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+            ; U_USER=entity.getRUser() \
+        }
+    - - - - - - - - - -/
+
+    ex) build.properties - 'commonColumnSetupBeforeUpdateInterceptorLogicMap' (Update)
+           - 更新Userは、Session上のLoginしているUserの名称
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnSetupBeforeUpdateInterceptorLogicMap = map:{ \
+            U_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+        }
+    - - - - - - - - - -/
+
+    ex) build.properties - 'commonColumnSetupBeforeUpdateInterceptorLogicMap' (Update)
+           ※Deleteなのでほとんどの場合必要はありませんが、場合によって判定に使うなど
+             の要件があったときのために一応設定が可能です。
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnSetupBeforeDeleteInterceptorLogicMap = map:{}
+    - - - - - - - - - -/
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+ここの例(LDB)では、U_TIMEに対して何も処理を行っていません。
+それはU_TIMEをS2DaoのTimestamp-Annotationにて設定しているからです。
+
+    ex) build.properties - 'updateDateFieldName'
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.updateDateFieldName = U_TIME
+    - - - - - - - - - -/
+
+Timestamp-Annotationに設定された列は、Insert時Update時に自動で現在日時が設定されます。
+なので、ここで設定しなくても自動で設定されます。(設定しても無視されます)
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+build.propertiesにて以上の設定を行うとInterceptorが作成されます。
+
+    ex) LdCommonColumnSetupBeforeInsertInterceptor (Insert)
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    protected void setupEntity(LdEntityDefinedCommonColumn entity) {
+        final java.sql.Timestamp rTime = new java.sql.Timestamp(System.currentTimeMillis());
+        entity.setRTime(rTime);
+
+        final String rUser = dbflute.ldb.nongenerate.LdUserContext.getLoginUser();
+        entity.setRUser(rUser);
+
+        final String uUser = entity.getRUser();
+        entity.setUUser(uUser);
+    }
+    - - - - - - - - - -/
+
+...おわかりでしょうか？build.propertiesに設定した文字列が、単に変数の'='の右側にコピーされているだけです。
+
+よって、このPropertyの設定には以下の特徴(制限!?)があります：
+
+  - entityという変数を利用することができる。
+  - 処理の最後を示すSemiColon';'は不要。
+  - 何らかのClassを利用するときは、そのClassはPackage付きで記述すること。
+
+
+// ---------------------------------------
+//                   Interceptorの関連付け
+//                   ---------------------
+
+Interceptorが作成されましたので、これをInsertやUpdateのMethodに関連付けなければなりません。
+DefaultではどのMethodにも関連付けられませんので、build.propertiesで指定する必要があります。
+
+Behaviorの｛delegateXxx()｝に関連付ける場合は、以下のPropertyをtrueにします。
+
+    ex) build.properties - isAvailableCommonColumnSetupInterceptorToBehavior
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.isAvailableCommonColumnSetupInterceptorToBehavior = true
+    - - - - - - - - - -/
+
+    ex) BOOKをINSERTする場合
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBook entity = new LdBook();
+    entity.setBookId(bookId);
+    entity.setBookName(bookName);
+    final LdBookBhv bhv = getMyBhv();
+    bhv.delegateInsert(entity); // Interceptorが動いてCommonColumnには値が自動設定される。
+    - - - - - - - - - -/
+
+Daoの｛insert() / update() / delete() / create() / modify() / remove()｝に関連付ける場合は、
+以下のPropertyをtrueにします。
+
+    ex) build.properties - isAvailableCommonColumnSetupInterceptorToDao
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.isAvailableCommonColumnSetupInterceptorToDao = true
+    - - - - - - - - - -/
+
+    ex) BOOKをINSERTする場合
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBook entity = new LdBook();
+    entity.setBookId(bookId);
+    entity.setBookName(bookName);
+    final LdBookDao dao = getMyDao();
+    dao.insert(entity); // Interceptorが動いてCommonColumnには値が自動設定される。
+    - - - - - - - - - -/
+
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+Behaviorに関連付けるかDaoに関連付けるかの選択は、各Projectの判断に任させます。
+
+作者は Behavior に関連付けることをお奨めします。
+
+Daoを直接呼び出されるとCommonColumnには値が設定されないですが、その場合は「UpdateやInsertは
+必ずBehavior経由で行うこと」をProjectの方針とします。
+
+もし、Daoに設定してしまうと、いざCommonColumnに対して特殊な値を設定したい場合があった時に
+何も出来なくなってしまいます。
+
+もちろん、これは作者の個人的な思いなので、各Projectにて最適な判断をお願いします。
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
+
+// ---------------------------------------------------------
+//                                                  おまけ!?
+//                                                  --------
+
+DBMetaにて、CommonColumnを持ったTableか否かの判定ができます。
+  ※DBMeta → TableのMeta情報を管理しているClass (「Table名 + Dbm」がClass名)
+
+    ex) BOOKはCommonColumnが定義されているか否か
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    assertTrue(LdBookDbm.getInstance().hasCommonColumn());
+    - - - - - - - - - -/
+      or
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBook entity = new LdBook();
+    LdDBMeta dbmeta = entity.getDBMeta();
+    assertTrue(dbmeta.hasCommonColumn());
+    - - - - - - - - - -/
+
+
+
+</pre>
+</p>
+
+<!-- document end -->
+</html>
