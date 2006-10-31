@@ -72,6 +72,45 @@ DBFluteは、SQL文を自動生成する機能を有しますが、SQL文を隠�
 DBFluteは、S2Daoの利用を促進することを最大の目的とします。
 
 
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+{DBFluteのSQL自動生成機能について}
+
+ConditionBeanと呼ばれます。
+詳細についてはConditionBeanの紹介を後述しますので、そちらをご覧下さい。
+
+ConditionBeanに関しては、各Project(人)によっては賛否両論かもしれません。
+このようなSQL自動生成Objectは、今までのO/R-Mapperで既にもっとRichなものが存在します。確かに便利ではありましたが、
+複雑なQueryを頑張って作成すると、逆にそれは｛パッと見「どんなSQLなのか?」がわかりにくいもの｝になってしまいます。
+また、結局作成できるSQLに限界はありますので、その場合の打開策が確立しない場合は完全に困窮してしまいます。
+
+DBFluteの思想としては、その辺の問題を踏まえた上でConditionBeanを提供し、S2Daoの“外だしSQL”との連携を
+目指しています。
+
+  - 簡単なSQLはConditionBean
+  - 複雑なSQLは“外だしSQL”
+
+そのためには、その境目が明確にしていることが重要だと思っています(開発者を迷わせないために)。
+
+ConditionBeanは、Or句やGroupBy句、Union句をサポートしません。それはできないのではなくあえてサポートしていません。
+これらの構文をサポートした場合、それこそ先述した｛パッと見「どんなSQLなのか?」がわかりにくいもの｝
+になってしまう可能性があります。複雑なSQLにConditionBeanを使うと逆に開発効率を落とすことになりやすく
+本末転倒となってしまうのです。そのようなSQLに関しては、それこそS2Daoの“外だしSQL”の出番だと考えています。
+
+  ※「Or句ぐらいはサポートしても...」と思われる方もいるかもしれませんが、Or句は一般にパフォーマンス劣化を
+    招きやすい演算子であり、パフォーマンスチューニング時にUnionに置き換えるケースもよくあるため、
+    これは外だしSQLの領域として、ConditionBeanではサポートするべきでないと判断しました。
+
+ConditionBeanは、ForeignKeyで関連付けれらている「親Table」と「{1:1}の子Table」の結合のみをサポートします。
+基本的に結合はleft outer joinだけとし、“結合するだけでBaseTableの件数が絞られる”PatternのSQL(inner join)は
+発行しないこととします(結合先の列で明示的にWhere句に条件を指定するのはサポートしている)。
+
+ConditionBeanで全てを補うのではなく、S2Daoの機能との調和を考えています。
+
+もちろんこれは作者の考え方であり、各Projectによって最適な方法は様々です。
+ConditionBeanは一つの選択肢と考えて下さい。
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
 // ======================================================================================================
 //                                                                                                  S2Dao
 //                                                                                                  =====
@@ -430,37 +469,6 @@ S2Daoの利用に対して積極的にならない可能性があります。
         - - - - - - - - -/
 
 
-ConditionBeanに関しては、各Project(人)によっては賛否両論かもしれません。
-このようなSQL自動生成Objectは、今までのO/R-Mapperで既にもっとRichなものが存在します。確かに便利ではありましたが、
-複雑なQueryを頑張って作成すると、逆にそれは｛パッと見「どんなSQLなのか?」がわかりにくいもの｝になってしまいます。
-また、結局作成できるSQLに限界はありますので、その場合の打開策が確立しない場合は完全に困窮してしまいます。
-
-DBFluteの思想としては、その辺の問題を踏まえた上でConditionBeanを提供し、S2Daoの“外だしSQL”との連携を
-目指しています。
-
-  - 簡単なSQLはConditionBean
-  - 複雑なSQLは“外だしSQL”
-
-そのためには、その境目が明確にしていることが重要だと思っています(開発者を迷わせないために)。
-
-ConditionBeanは、Or句やGroupBy句、Union句をサポートしません。それはできないのではなくあえてサポートしていません。
-これらの構文をサポートした場合、それこそ先述した｛パッと見「どんなSQLなのか?」がわかりにくいもの｝
-になってしまう可能性があります。複雑なSQLにConditionBeanを使うと逆に開発効率を落とすことになりやすく
-本末転倒となってしまうのです。そのようなSQLに関しては、それこそS2Daoの“外だしSQL”の出番だと考えています。
-
-  ※「Or句ぐらいはサポートしても...」と思われる方もいるかもしれませんが、Or句は一般にパフォーマンス劣化を
-    招きやすい演算子であり、パフォーマンスチューニング時にUnionに置き換えるケースもよくあるため、
-    これは外だしSQLの領域として、ConditionBeanではサポートするべきでないと判断しました。
-
-ConditionBeanは、ForeignKeyが繋がっている関連で親Tableの結合のみをサポートします。
-基本的に結合はleft outer joinだけとし、“結合するだけでBaseTableの件数が絞られる”PatternのSQL(inner join)は
-発行しないこととします(結合先の列で明示的にWhere句に条件を指定するのはサポートしている)。
-
-ConditionBeanで全てを補うのではなく、S2Daoの機能との調和を考えています。
-
-もちろんこれは作者の考え方であり、各Projectによって最適な方法は様々です。
-ConditionBeanは一つの選択肢と考えて下さい。
-
 
 // --------------------------------------------------
 //                                       CustomizeDao
@@ -632,11 +640,11 @@ Behavior (Option)
     Behaviorはステートレスなオブジェクトで、singletonとしてdao.diconに定義されます。
 
     ex) BOOKのBehaviorに定義されている主なMethod：
-    - LdListResultBean selectListTx(LdBookCB cb); // ConditionBeanによる検索の結果をResultBeanにて取得
-    - LdPagingResultBean selectPageTx(LdBookCB cb); // ConditionBeanによるPaging検索の結果をResultBeanにて取得
-    - LdBook selectEntityWithDeletedCheckTx(LdBookCB cb); // ConditionBeanによる一意検索を存在Check付きで取得
-    - int insertOrUpdateAfterSelectForUpdateTx(LdBook entity); // 新規ならInsert、既存ならUpdate
-    - int updateAfterSelectForUpdateTx(LdBook entity); // SelectForUpdate後に指定したEntityをMergeして更新
+    - LdListResultBean selectList(LdBookCB cb); // ConditionBeanによる検索の結果をResultBeanにて取得
+    - LdPagingResultBean selectPage(LdBookCB cb); // ConditionBeanによるPaging検索の結果をResultBeanにて取得
+    - LdBook selectEntityWithDeletedCheck(LdBookCB cb); // ConditionBeanによる一意検索を存在Check付きで取得
+    - int insertOrUpdateAfterSelectForUpdate(LdBook entity); // 新規ならInsert、既存ならUpdate
+    - int updateAfterSelectForUpdate(LdBook entity); // SelectForUpdate後に指定したEntityをMergeして更新
         →呼び出し側では、new LdBook()したEntity-Instanceに更新したい列の値だけを格納して更新が可能。
 
 
