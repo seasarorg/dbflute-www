@@ -483,59 +483,7 @@ S2Daoの利用に対して積極的にならない可能性があります。
 # 機能を追加する予定です。｛単にCustomizeDaoのEntityを生成する機能を間借りするだけかも知れませんが...｝
 # ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
-
-一つ、“A”の問題に対するApproachで抜けているものがあります。
-
-自動生成されるEntityとDaoはTableの構造に対応していますが、業務ではTableの構造に合致しない形で検索したい場合が
-よくあります。それは、GroupBy句を利用する場合や色々なTableの列をSelect句に含める場合などです。
-似た構造をした既存のEntityの一部の列に値をMappingしたり、Entityに導出列というような扱いでPropertyを追加しても
-実現は可能ではありますが、その数が多くなる場合などは専用のEntityで扱いたい場合もあります。
-その時、結局手動でDaoとEntityを作成するのでは、“A”の問題は完全には解決しないことになります。
-
-    ※Database-ObjectのViewを利用すれば、それはTableの一つとみなされ、それに対するDaoとEntityは自動生成されます。
-      しかし、ProjectによってはViewを作成することに抵抗があったり、Viewを作成する権限が開発Teamに無かったりする
-      場合もあります。Viewの存在は問題を完全には解決してくれません。
-
-DBFluteはこれに対し以下の機能で対応します。
-
-    CustomizeDao
-
-これは、上記の要件が発生した場合に、“Table構造と合致しない”DaoとEntityを自動生成する機能です。
-“Table構造と合致する”DaoとEntityはDBのMeta情報から生成されますが、“Table構造と合致しない”DaoとEntityは
-以下のようなTorque-GeneratorのPropertyから生成します(これは手動で記述する)。
-
-    ex) BookAuthorなるEntityを作成する。(AUTHOR_NAMEと参照されているCOLLECTIONのRecord数を保持する)
-          columnMap - Entityが保持する(Select句に指定する)列の定義。'*'はPrimaryKeyと判断される。
-          importMap - Daoに定義するimport文。(DaoのMethodの引数にて利用するClassのため)
-          methodMap - Daoに定義するMethod。
-          relationMap - Entityの関連情報。tableNameはEntityのTable-AnnotationのTable名。
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    BOOK_AUTHOR = map:{ \
-        columnMap = map:{*BOOK_ID=VARCHAR;BOOK_NAME=VARCHAR;AUTHOR_NAME=VARCHAR;COLLECTION_CNT=INTEGER} \
-        ; importMap = map:{ \
-            import s2daogen.ldb.allcommon.cbean.LdPagingBean = dummy \
-        } \
-        ; methodMap = map:{ \
-            selectListByPrefix=String bookNamePrefix \
-            ; selectListAsPage=LdPagingBean pb, String authorName \
-        } \
-        ; relationMap = map:{ \
-            tableName=BOOK \
-        } \
-    } \
-    - - - - - - - - /
-    ※例は簡単なものになっていますが、実際にCustomizeDaoを適応するPatternはもっと複雑なものとなります。
-
-この情報から、“DB情報より自動生成したEntityと同じTemplate”を使って、“Table構造と合致しない”DaoとEntityが
-自動生成されます。また、そのDaoは自動生成されるdao.diconに自動定義されます。
-上記のPropertyを作成して自動生成を実行し、定義したMethodで利用する“外だしSQL”のFileを用意すれば、
-Programでは以下のように呼び出すことが可能です。
-
-    final BookAuthorDao dao = (BookAuthorDao)container.getComponent(BookAuthorDao.class);
-    final BookAuthor entity = dao.selectListByPrefix("S2Dao");
-
-“Table構造と合致する”DaoとEntityの自動生成、“Table構造と合致しない”DaoとEntityの自動生成、
-これを組み合わせることにより、開発者が手動でDaoやEntityを作成する必要はなくなると考えます。
+以前のCustomizeDaoの記事は<a href="./introduction-customizedao.html">こちら</a>
 
 
 // --------------------------------------------------
