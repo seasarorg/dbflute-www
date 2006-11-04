@@ -303,7 +303,11 @@ torque.projectPrefix        = Ld
 #
 #   originalDaoComponentMap: (NotRequired - Default 'map:{}')
 #     The map of the original dao component.
-#     ex) map:{ authInfosCreater = map:{ className=MspadminBiz.Dao.Original.AuthInfosCreaterImpl } }
+#     If componentName have '*' as prefix, the component should be Dao.
+#     ex) map:{ \
+#             ; *bookAuthorDao = map:{ className=dbflute.ldb.nongenerate.dao.BookAuthorDao } \
+#             ; blackListHandler = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
+#         }
 #
 #   originalBehaviorAspectMap: (NotRequired - Default 'map:{}')
 #     The map of the original behavior aspect.
@@ -323,7 +327,10 @@ torque.j2eeDiconResourceName        = j2ee-ldb.dicon
 torque.requiredTxComponentName      = requiredTx
 torque.requiresNewTxComponentName   = requiresNewTx
 torque.daoDiconOtherIncludeDefinitionMap = map:{}
-torque.originalDaoComponentMap = map:{}
+torque.originalDaoComponentMap = map:{ \
+             ; *libraryDetailDao = map:{ className=dbflute.ldb.nongenerate.dao.LibraryDetailDao } \
+             ; blackListHandler  = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
+         }
 torque.originalBehaviorAspectMap = map:{}
 # ----------------/
 
@@ -360,6 +367,7 @@ torque.originalBehaviorAspectMap = map:{}
 
     {originalDaoComponentMap}は、dao.diconに独自のComponentを登録したい場合に利用します。
     dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
+    手動で作成されたDaoはこれを利用して登録します。ComponentNameにPrefixとして'*'を付けるとDaoとして認識されます。
     特に何もなければ未指定で構いません。
 
     {originalBehaviorAspectMap}は、dao.diconに独自のBehaviorAspect(Interceptor)を登録したい場合に利用します。
