@@ -47,7 +47,7 @@ DBFluteには、S2Daoの“外だしSQL”(SQLファイル)から、それに対
 //                                      Sql2Entityの役割
 //                                      ----------------
 
-複雑なSQLはS2Daoの“外だしSQL”(SQLファイル)を利用します。(UnionやGroupByなど)
+複雑なSQLはS2Daoの“外だしSQL”(SQLファイル)を利用します。(GroupByやSelect句での副問合せなど)
 但しその場合、戻り値となるEntityを自分で作成しなければなりません。
 
 それはとても面倒なので、作ったSQL文からEntityを自動生成して、その煩雑さを解消したいと考えます。
@@ -92,7 +92,7 @@ Client-Directoryに用意されている「sql2entity.bat」を実行すると�
 //                                       Daoでの設定方法
 //                                       ---------------
 
-{S2Dao-1.0.XX} (Java)
+{S2Dao-1.0.XX} (Java) & {S2Dao.net-1.0.X} (C#)
 
 exdaoのどれかのDaoにMethodを追加します。
 (どのDao(Table)に定義するかは、検索するSQLとTableの関連性から適切に(適当に)決めてください)
@@ -104,13 +104,14 @@ exdaoのどれかのDaoにMethodを追加します。
 
 Entity検索 → 戻り値の型に、CustomizeEntityを指定する。
 List検索   → ListのElementの型(Generics)に、CustomizeEntityを指定する。
+  ※Array型はSupportしていません。
 
 すると、S2Dao内部で検索結果がMappingされるEntityが、DaoのBean-Annotationに指定されたEntityではなく、
 戻り値に指定されたCustomizeEntityに差し替えられます。(上記の例だと「LdBookCollectionStatistic」)
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-本来、S2Dao-1.0.XXは「1Daoに付き1Entity」なのですが、DBFluteがS2Daoをちょっと改良して上記の利用方法を可能としました。
-(拡張は、DaoMetaDataImplを継承拡張しているだけなので、S2Daoのjarは公式Siteから手に入るもので大丈夫です)
+本来、S2Dao-1.0.XXは「1Daoに付き1Entity」なのですが、DBFluteがS2Daoを拡張して上記の利用方法を可能としました。
+(拡張は、DaoMetaDataImplを継承拡張しているだけなので、利用するS2Daoのjarは公式Siteから手に入るものでOKです)
 
 制限としては、JDK-1.4を利用される場合はListのElement指定ができないため、List検索ではこの方式は利用できません。
 その場合(JDK-1.4)は、後述の【新しいDao-Interfaceを(手動で)作成する場合】をご覧下さい。
@@ -122,11 +123,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 Method単位でEntityを指定できるので、既存のexdaoのどれかのDaoにMethodを追加して下さい。
 (どのDao(Table)に定義するかは、検索するSQLとTableの関連性から適切に(適当に)決めてください)
 
-
-{S2Dao.net-1.0.X} (C#)
-
-「1Daoに付き1Entity」なので、新しいDaoを作成する必要があります。
-後述の【新しいDao-Interfaceを(手動で)作成する場合】をご覧下さい。
 
 
 * * * * * * * * * * * * * * * * * * * * * * *
@@ -164,15 +160,19 @@ Method単位でEntityを指定できるので、既存のexdaoのどれかのDao
     torque.sql2EntityDefinitionMap = map:{ \
              ; sqlDirectory = ./playsql/testsql \
              ; isPlainEntity = true \
+             ; outputDirectory = ./output/src \
+             ; packageString = dbflute.ldb \
          }
     - - - - - - - - - -/
 
-sqlDirectory  ： '.sql'を探すDirectoryを指定することができます。
-isPlainEntity ： trueの場合、DBFluteに依存しないPlainなEntityを作成します。
+sqlDirectory    ： '.sql'を探すDirectoryを指定することができます。
+isPlainEntity   ： trueの場合、DBFluteに依存しないPlainなEntityを作成します。
+outputDirectory ： 自動生成Classを出力するDirectoryです。(このDirectory以下にPackage構成が展開されます)
+packageString   ： 自動生成ClassのPackageです。
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-DBFluteは特に利用していないがS2Daoは利用しているが、Sql2Entityの機能を利用したいという方は、
-このisPlainEntityをtrueにしてご利用下さい。
+DBFluteは特に利用していないがS2Daoを利用していてSql2Entityの機能を利用したいという方は、
+このisPlainEntityを必ず true にしてご利用下さい。
 
   ※ちなみにそのような方は、<a href="./how-to-setup.html">How to Setup</a> のClient-Directoryの選択にて、
     'otherORMapper'を選ぶと環境構築が楽になります。
