@@ -102,9 +102,9 @@ exdaoのどれかのDaoにMethodを追加します。
     public java.util.List&lt;LdBookCollectionStatistic&gt; selectBookCollectionStatistic(String bookName);
     - - - - - - - - - -/
 
-Entity検索 → 戻り値の型に、CustomizeEntityを指定する。
-List検索   → ListのElementの型(Generics)に、CustomizeEntityを指定する。
-  ※Array型はSupportしていません。
+Entity検索 → 戻り値の型にCustomizeEntityを指定する。
+List検索   → ListのElementの型(Generics)にCustomizeEntityを指定する。
+Array検索  → ArrayのElementの型にCustomizeEntityを指定する。
 
 すると、S2Dao内部で検索結果がMappingされるEntityが、DaoのBean-Annotationに指定されたEntityではなく、
 戻り値に指定されたCustomizeEntityに差し替えられます。(上記の例だと「LdBookCollectionStatistic」)
@@ -113,8 +113,15 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 本来、S2Dao-1.0.XXは「1Daoに付き1Entity」なのですが、DBFluteがS2Daoを拡張して上記の利用方法を可能としました。
 (拡張は、DaoMetaDataImplを継承拡張しているだけなので、利用するS2Daoのjarは公式Siteから手に入るものでOKです)
 
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+★TODO: これは、S2Dao-1.0.Xに含めても良い機能ではないかと思っています。{2006/11/06現在}
+        Java版に関しては、S2Dao-1.1がReleaseされるまでのつなぎの拡張なので要検討ではありますが、
+        C#版に関しては対応しても良いのではと思います。
+        いずれにせよ、このDBFluteで実績を付けてから提案なり検討していきたいと思います。
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
 制限としては、JDK-1.4を利用される場合はListのElement指定ができないため、List検索ではこの方式は利用できません。
-その場合(JDK-1.4)は、後述の【新しいDao-Interfaceを(手動で)作成する場合】をご覧下さい。
+その場合(JDK-1.4)は、Arrayの戻り値を使うようにして下さい
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
@@ -122,30 +129,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 Method単位でEntityを指定できるので、既存のexdaoのどれかのDaoにMethodを追加して下さい。
 (どのDao(Table)に定義するかは、検索するSQLとTableの関連性から適切に(適当に)決めてください)
-
-
-
-* * * * * * * * * * * * * * * * * * * * * * *
-【新しいDao-Interfaceを(手動で)作成する場合】
-* * * * * * * * * * * * * * * * * * * * * * *
-
-自動生成されたEntityをBeanと設定し、作成した'.sql'を実行するためのMethodの宣言だけを定義すればOKです。
-
-その手動作成したDaoを'dao.dicon'に登録する必要があります。
-しかし、'dao.dicon'は自動生成対象のFileです。手動で追加しても上書きされてしまいます。
-なので、以下のPropertyを利用します。
-
-    ex) build.properties - 'originalDaoComponentMap'
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    torque.originalDaoComponentMap = map:{ \
-           ; *libraryDetailDao = map:{ className=dbflute.ldb.nongenerate.dao.LibraryDetailDao } \
-           ; blackListHandler  = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
-       }
-    - - - - - - - - - -/
-
-このように設定すると、これらのClassのComponent定義が'dao.dicon'に追加されます。
-ここではDaoを登録したいので、ComponentNameのPrefixとして'*'を必ず付けてください。
-('*'がDaoであるという目印となり、'dao.interceptor'がAspectされるようになります)
 
 
 // -----------------------------------------------------
