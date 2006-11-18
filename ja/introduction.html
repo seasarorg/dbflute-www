@@ -71,44 +71,8 @@ DBFluteは、SQL文を自動生成する機能を有しますが、SQL文を隠�
 
 DBFluteは、S2Daoの利用を促進することを最大の目的とします。
 
+  ※DBFluteのSQL自動生成機能のPolicyについては、<a href="./condition_bean_policy.html">ConditionBean Policy</a> をご覧下さい。
 
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-{DBFluteのSQL自動生成機能について}
-
-ConditionBeanと呼ばれます。
-詳細についてはConditionBeanの紹介を後述しますので、そちらをご覧下さい。
-
-ConditionBeanに関しては、各Project(人)によっては賛否両論かもしれません。
-このようなSQL自動生成Objectは、今までのO/R-Mapperで既にもっとRichなものが存在します。確かに便利ではありましたが、
-複雑なQueryを頑張って作成すると、逆にそれは｛パッと見「どんなSQLなのか?」がわかりにくいもの｝になってしまいます。
-また、結局作成できるSQLに限界はありますので、その場合の打開策が確立しない場合は完全に困窮してしまいます。
-
-DBFluteの思想としては、その辺の問題を踏まえた上でConditionBeanを提供し、S2Daoの“外だしSQL”との連携を
-目指しています。
-
-  - 簡単なSQLはConditionBean
-  - 複雑なSQLは“外だしSQL”
-
-そのためには、その境目が明確にしていることが重要だと思っています(開発者を迷わせないために)。
-
-ConditionBeanは、Or句やGroupBy句、Union句をサポートしません。それはできないのではなくあえてサポートしていません。
-これらの構文をサポートした場合、それこそ先述した｛パッと見「どんなSQLなのか?」がわかりにくいもの｝
-になってしまう可能性があります。複雑なSQLにConditionBeanを使うと逆に開発効率を落とすことになりやすく
-本末転倒となってしまうのです。そのようなSQLに関しては、それこそS2Daoの“外だしSQL”の出番だと考えています。
-
-  ※「Or句ぐらいはサポートしても...」と思われる方もいるかもしれませんが、Or句は一般にパフォーマンス劣化を
-    招きやすい演算子であり、パフォーマンスチューニング時にUnionに置き換えるケースもよくあるため、
-    これは外だしSQLの領域として、ConditionBeanではサポートするべきでないと判断しました。
-
-ConditionBeanは、ForeignKeyで関連付けれらている「親Table」と「{1:1}の子Table」の結合のみをサポートします。
-基本的に結合はleft outer joinだけとし、“結合するだけでBaseTableの件数が絞られる”PatternのSQL(inner join)は
-発行しないこととします(結合先の列で明示的にWhere句に条件を指定するのはサポートしている)。
-
-ConditionBeanで全てを補うのではなく、S2Daoの機能との調和を考えています。
-
-もちろんこれは作者の考え方であり、各Projectによって最適な方法は様々です。
-ConditionBeanは一つの選択肢と考えて下さい。
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 // ======================================================================================================
@@ -181,6 +145,8 @@ DBFluteの理解にはS2Daoの理解が必要です。
         ※DBMSのViewやTable-Functionを利用することにより、再利用性というのは実現できるかもしれませんが、
           Projectによっては、積極的にそれらを利用しない、もしくは、できない場合が多々あります。
 
+
+
 // ======================================================================================================
 //                                                                                                DBFlute
 //                                                                                                =======
@@ -213,7 +179,7 @@ S2Daoの提供する機能は素晴らしいものであります。
 当然、各Projectの工夫によってこれらの問題を解決できないことはないです。しかし、S2Daoを提案する際に、
 この点は非常にNeckになります。特にTorque/Hibernateを経験してきた人たちにとってはこの点は見逃せない問題で、
 S2Daoの利用に対して積極的にならない可能性があります。
-(作者は実際にこのあたりの問題がNeckになってS2Daoの採用を見送ったProjectを見たことがあります。)
+(作者は実際にこのあたりの問題がネックになってS2Daoの採用を見送ったProjectを見たことがあります。)
 
 // --------------------------------------------------
 //                                  DBFluteのApproach
@@ -231,249 +197,14 @@ S2Daoの利用に対して積極的にならない可能性があります。
 
 “B”に関する詳細は次に説明致します。
 
-
 // --------------------------------------------------
 //                                      ConditionBean
 //                                      -------------
-
-- What is ConditionBean?
-
-    S2Daoの「DTO引数によるSQL自動生成機能」を拡張し、SQL自動生成の幅を広げたもの。
-
-      ※ConditionBeanのClass、そして、ConditionBeanを引数に受け取るDaoのMethodは自動生成。
-
-- What has been enhanced to it?
-
-    1. Where句に指定する条件で{=}以外の演算子をサポート
-
-        {=, &gt;, &lt;, &gt;=, &lt;=, Like, is null, is not null, in(), not in()}
-        ※全てAND条件によって接合される。
-
-        ex) BOOKに対してBOOK_NAMEの'S2Dao'前方一致で、かつ、GENRE_CODEがnullでないものを検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().setBookName_PrefixSearch("S2Dao");// '%'は内部で自動的に付与される
-        cb.query().setGenreCode_IsNotNull();
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-        ex) BOOKに対してGENRE_CODEが{'NOVEL', 'HOW-TO-BOOK'}のものを検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        final String[] genreCodeArray = new String[]{"NOVEL", "HOW-TO-BOOK"};
-        cb.query().setGenreCode_InScope(java.util.Arrays.asList(genreCodeArray));
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-    2. OrderBy句に指定するColumn & {Asc or Desc}のDynamic指定をサポート
-        ※S2Daoでは、OrderByはDaoのAnnotationにStaticに指定する。
-
-        ex) BOOKに対して登録日時の降順で全件検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().addOrderBy_RTime_Desc();
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-    3. Select句に含めるColumnのTable単位での指定をサポート
-        ※S2Daoでは、SQL自動生成の場合はForeignTableのColumnを全て指定してしまう。
-          (もちろん、RELNO/RELKEY-Annotationの指定次第ではあるが、それはやはり
-           Staticなものになってしまう)
-        ※Select句に含めることのできるTableは、MyTableと1階層のForeignTableです。
-
-        ex) BOOKに対してAUTHORを結合して検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.setupSelect_Author();
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-    4. Where句に指定する条件で無限階層のForeignTableのColumnの指定をサポート
-        ※S2Daoでは、1階層のForeignTableだけが指定可能。
-
-        ex) BOOKに対してForeignTableのAUTHORを結合してAUTHOR_AGEで30歳以上を検索。
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-        ※query().queryXxx().queryXxx().queryXxx()...と繋げることで無限階層に設定可能
-
-    5. fetchFirst(), fetchScope(), fetchPage()によるLimitSearch/PagingSearchをサポート
-
-        ex) BOOKに対して登録日時の降順で、最初の50件のみ検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().addOrderBy_RTime_Desc();
-        cb.fetchFirst(50);
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-        ex) BOOKに対して登録日時の降順で、81件目から100件目のみ検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().addOrderBy_RTime_Desc();
-        cb.fetchScope(80, 20);// 80件目から20件分を取得(81件目から100件目)
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-        ex) BOOKに対して登録日時の降順で、PageSize20件でPaging検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().addOrderBy_RTime_Desc();
-        cb.fetchFirst(20);
-        cb.fetchPage(1);// 1-20
-        final java.util.List&lt;LdBook&gt; lsFirstPage = dao.selectList(cb);
-        cb.fetchPage(2);// 21-40
-        final java.util.List&lt;LdBook&gt; lsSecondPage = dao.selectList(cb);
-        cb.fetchPage(3);// 41-60
-        final java.util.List&lt;LdBook&gt; lsThirdPage = dao.selectList(cb);
-        - - - - - - - - -/
-
-        [fetchSoope()/fetchPage()補足]
-          {Oracle、FirstBird、MySQL、PostgreSQL}など、SQL文法的にLimitSearchがサポートされているDB
-          に関しては、そのSQLを利用して検索します(ROWNUMやoffset/limitなど)。
-          {SQLServer、DB2}など、SQL文法的に「先頭から何件」という検索しかできないDBに関しては、
-          例えば80-100を取得する際に、先頭から100件を取得しResultSetで先頭80件を飛ばして取得します。
-
-          ※Adviceを頂きまして、DB2に関しては、ROW_NUMBER()関数を利用したLimitSearchを
-            検討します(2006/09/28現在)。
-
-    6. lockForUpdate()による更新Lockのサポート
-
-        ex) BOOKに対してBOOK_ID'3'の完全一致で更新Lockをかけて検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().setBookId_Equal(3);
-        cb.lockForUpdate();
-        final LdBook entity = dao.selectEntity(cb);
-        - - - - - - - - -/
-
-        [lockForUpdate():補足]
-          DBによっては結合時のfor updateの振る舞いが変わるため(Lockの範囲/文法Errorなど)、
-          利用には注意して下さい(そもそも結合してのfor updateはほとんどの場合不要と思われます)。
-
-    --------------------------------------------
-    --- ここからはConditionBeanのAdvance機能 ---
-    --------------------------------------------
-
-    7. ExtendedEntityに値受け取り用のPropertyを定義することにより、無限階層のForeignTableのColumnを
-       Select句に含めて取得することが可能(BaseTableの導出列として取得。
-
-        ex) BOOKに対してGenreCodeがNotNullで、かつ、1階層上位のGENREの名称を取得
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdBookCB cb = new LdBookCB();
-        cb.query().setGenreCode_IsNotNull();
-
-        // columnのalias名は'parentGenreName'
-        cb.query().queryGenre().queryGenreSelf().includeAsMine_GenreName("parentGenreName");
-
-        final java.util.List&lt;LdBook&gt; ls = dao.selectEntity(cb);
-        for (final LdBook entity : ls) {
-            // BOOKのExtendedEntityに'parentGenreName'のget/setを定義しておくこと(手動)。
-            final String actualOne = entity.getParentGenreName();
-            ...
-        }
-        - - - - - - - - -/
-
-        [includeAsMine():補足]
-        ※通常はSelect句に含められるのは1階層のForeignTableまでなので、
-          どうしても2階層より先のColumnの値をSQL一発実行で取得したい場合に有効。
-
-    8. InScopeSubQuery()によるin検索のサポート ※'where xxx in (select xxx from xxx)'のような検索のこと
-
-        ex) BOOKに対して'中目黒'で始まる図書館に蔵書とされているBOOKをAUTHOR/PUBLISHERを結合して検索
-            (OrderByはBOOKのPrimaryKeyの昇順で)
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        // [出力されるSQL]
-        // select ...
-        //   from BOOK
-        //     left outer join AUTHOR on ...
-        //     left outer join PUBLISHER on ...
-        //  where BOOK.BOOK_ID in (select COLLECTION.BOOK_ID
-        //                           from COLLECTION
-        //                             left outer join LIBRARY on ...
-        //                          where LIBRARY.LIBRARY_NAME like '中目黒%')
-        //  order by BOOK.BOOK_ID asc
-        //
-        final LdBookCB cb = new LdBookCB();
-        cb.setupSelect_Author();
-        cb.setupSelect_Publisher();
-        {
-            final LdCollectionCB subCB = new LdCollectionCB();
-            subCB.query().queryLibrary().setLibraryName_PrefixSearch("中目黒");
-            cb.query().setBookId_InScopeSubQuery(subCB.query());
-        }
-        cb.addOrderBy_PK_Asc();
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
-        - - - - - - - - -/
-
-        [InScopeSubQuery():補足]
-          少々複雑なSQLではありますが、ReffererTable(子Table)のColumnで絞り込む検索や
-          多重度{n:n}の関係にあるTableのColumnで絞り込む場合の定型的な(一般的な)SQLであることと、
-          SQLにおけるin句の副問い合せはとても間違いやすい文法であることを考慮してサポートしました。
-
-    9. 多重度{1:1}のReffererTable(子Table)への結合が可能。
-        ※通常はForeignTable(親Table)への結合しかサポートされませんが、多重度が{1:1}とDB情報から判断できる場合に
-          ReffererTableをForeignTableと同じように扱うことが可能です。(結合による取得件数の変動が無いため)
-
-        ex) COLLECTIONに対して多重度{1:1}のReffererTableであるCOLLECTION_STATUSの
-            STATUS_CODE 'OUT'(貸し出し中) で絞り込み検索
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdCollectionCB cb = new LdCollectionCB();
-        cb.setupSelect_CollectionStatusAsOne();// StatusCodeをSelect句に含めるため
-
-        // 多重度{1:1}のReffererTableには'AsOne'という接尾辞が付く
-        cb.query().queryCollectionStatusAsOne().setStatusCode_Equal("OUT");
-
-        final java.util.List&lt;LdCollection&gt; ls = dao.selectList(cb);
-        for (final LdCollection entity : ls) {
-            // このように取得できる
-            final LdCollectionStatus statusEntity = entity.getCollectionStatusAsOne();
-            final String statusCode = statusEntity.getCollectionStatusCode();
-
-            // 必ず 'OUT'(貸し出し中) のはず
-            assertEqual("OUT", statusCode);
-        }
-        - - - - - - - - -/
-
-        [多重度{1:1}のReffererTable:補足]
-        Project(人)によって方針は様々と思われるますが、DB設計において多重度{1:1}のReffererTableは重要に
-        なることがあります。LifeCycleの違い・運用後のDB変更などにおいてよく利用されます。
-        多重度{1:1}であるか否かの判定は、ReffererTableのPKもしくはUniqueKeyとReffererTableの自TableへのFKが
-        同じ構成の場合にtrueとなります。
-
-    10. Where句に指定する条件をInlineViewとして設定可能。
-         ※主に、自Tableの件数を変化させずに結合先Tableのみを絞り込みたい場合に利用します。
-
-        ex) 利用者一覧の表示にて、「黒い行動」のレベル４以上を犯したことのある人のみ、「どの位黒いか」のランクを表示
-              →LB_USERの検索でBLACK_LISTを結合するが、BLACK_ACTION.BLACK_LEVELが4以上のBLACK_LISTだけを結合
-                (BLACK_LIST.BLACK_LIST_IDに対し、InlineのInScopeSubQueryを設定)
-        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        final LdLbUserCB cb = new LdLbUserCB();
-        cb.setupSelect_BlackListAsOne();
-        {
-            final LdBlackActionCB subCB = new LdBlackActionCB();
-            subCB.query().setBlackLevel_GreaterEqual(4);
-            final LdBlackListCQ balckListCQ = cb.query().queryBlackListAsOne();
-            balckListCQ.setBlackListId_InScopeSubQuery_BlackActionList_AsInline(subCB.query());
-        }
-        java.util.List&lt;LdLbUser&gt; ls = dao.selectList(cb);
-        for (LdLbUser user : ls) {
-            // 
-            // 以下の条件の利用者の場合は、このMethodの戻り値がnullとなります。
-            //   条件：「黒い行動」のレベル４以上を犯したことが無い or そもそもBlackListに登録されていない
-            // 
-            final String rank = user.getBlackListAsOne().getBlackRank();
-        }
-        - - - - - - - - -/
-
-
+ConditionBeanについては、<a href="./tips-condition_bean.html">Tips: ConditionBean</a> をご覧下さい。
 
 // --------------------------------------------------
 //                                       CustomizeDao
 //                                       ------------
-
 # ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 # S2Dao-1.1 において、Method単位で戻り値のEntityを指定することが可能になる予定です。
 # よって、CustomizeDaoを利用する必要がなくなります。（これは良かったことです）
@@ -485,104 +216,11 @@ S2Daoの利用に対して積極的にならない可能性があります。
 
 以前のCustomizeDaoの記事は<a href="./introduction-customizedao.html">こちら</a>
 
-
 // --------------------------------------------------
 //                                      {1:n} Loading
 //                                      -------------
-
 S2Daoでは{1:n}検索をサポートしていません(S2Dao-1.0.XXにおいて)。
-
-    ex) BOOK(本)の一覧に紐付くCOLLECTION(蔵書)の情報を付加して検索
-        (COLLECTIONが一つも存在しないBOOKも対象)
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    select book.*, collection.*
-      from BOOK book
-        left outer join Collection collection on book.BOOK_ID = collection.BOOK_ID
-     where ...
-    - - - - - - - - /
-
-このようなSQLの結果を、S2Daoでは Book-Entity と Collection-Entity にRelation付きでMappingすることができません。
-Book-Entityに導出列Propertyを定義するか、もしくは、CustomizeDaoを使ってSelect句と同構成のEntityを自動生成するか。
-いずれにせよ、ObjectのRelationを利用することはできません。
-
-DBFluteでは、これに対し以下のようなApproachで対応します。
-
-    1. 取得したいBOOKの一覧を検索する。(この時点でCOLLECTIONは検索しない)
-
-    2. BOOKのPrimaryKey(or UniqueKey)のListを作成し、それをInScopeの条件としてCOLLECTIONを検索。
-         →OrderByは、{COLLECTION.BOOK_ID asc, [指定されたOrderBy]}
-
-    3. 取得したCOLLECTIONの一覧からBOOK_IDをKeyにして該当のBOOKにCOLLECTIONを追加する。
-
-一発のSQLではありませんが、「BOOKの検索・COLLECTIONの検索」の二発のSQLで実現します。
-これらの処理がBehaviorと呼ばれるObjectのMethodにて実装されています。(Behaviorの紹介は後述)
-
-    ex) BOOK(本)の一覧に紐付くCOLLECTION(蔵書)の情報を付加して検索
-        - COLLECTIONが一つも存在しないBOOKも対象とする。
-        - AUTHOR / PUBLISHERを結合する。
-        - 本の名前が'S2Dao'で始まるものを対象とする。
-        - 本の名前の昇順で取得する。
-        - 本に紐付くCOLLECTIONの一覧は、COLLECTION_ID(PK)の昇順とする。
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    final LdBookCB cb = new LdBookCB();
-    cb.setupSelect_Author();
-    cb.setupSelect_Publisher();
-    cb.query().setBookName_Prefix("S2Dao");
-    cb.query().addOrderBy_BookName_Asc();
-
-    final LdBookDao dao = ... // Dao-Componentを取得
-    final LdBookBhv bhv = ... // Behavior-Componentを取得
-
-    // BOOKの検索
-    final java.util.List<LdBook> ls = dao.selectList(cb);
-
-    // BOOKに紐付くCOLLECTIONの検索・関連付け
-    bhv.loadCollectionList(ls); // DefaultのOrderByはPKの昇順
-
-    for (LdBook entity : ls) {
-        final java.util.List reffererList = entity.getCollectionList();
-        assertNotNull(reffererList);
-    }
-    - - - - - - - - /
-
-また、第2引数にてReffererのOrderBy条件や絞り込み条件などを指定することが可能です。
-
-    ex) 上記の例の条件に加え、
-         - COLLECTIONのSTATUSが'WAT'(入荷待ち)でないもので絞り込む。
-         - COLLECTIONをARRIVAL_DATE(到着日)の降順で並べる。
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    final LdBookCB cb = new LdBookCB();
-    cb.setupSelect_Author();
-    cb.setupSelect_Publisher();
-    cb.query().setBookName_Prefix("S2Dao");
-    cb.query().addOrderBy_BookName_Asc();
-
-    final LdBookDao dao = ... // Dao-Componentを取得
-    final LdBookBhv bhv = ... // Behavior-Componentを取得
-
-    // BOOKの検索
-    final java.util.List<LdBook> ls = dao.selectList(cb);
-
-    // BOOKに紐付くCOLLECTIONの検索・関連付け
-    // COLLECTIONの条件に、「STATUSが'WAT'(入荷待ち)でないもの」と「ARRIVAL_DATE(到着日)の降順」を追加
-    final ReffererConditionCollectionList reffererCondition = new ReffererConditionCollectionList() {
-        public void setup(LdCollectionCB cb) {
-            cb.query().queryCollectionStatus().setCollectionStatusCode_NotEqual('WAT');
-            cb.query().addOrderBy_ArribalDate_Desc();
-        }
-    };
-    bhv.loadCollectionList(ls, reffererCondition);
-
-    for (LdBook entity : bhv) {
-        final java.util.List reffererList = entity.getCollectionList();
-        assertNotNull(reffererList);
-    }
-    - - - - - - - - /
-
-
-このやり方が理想なのかと問われると「NO!」ではありますが、業務で許容される範囲での利用であれば、
-とても有効に使える機能だと作者は考えています。
-
+DBFluteでのApproachは、<a href="./tips-behavior-one_to_many_loading.html">Tips: Behavior - one-to-many loading</a> をご覧下さい。
 
 // --------------------------------------------------
 //                                              Other
