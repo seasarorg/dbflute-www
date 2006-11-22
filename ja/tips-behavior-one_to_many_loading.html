@@ -52,9 +52,9 @@ S2Daoでは{1:n}検索をサポートしていません(S2Dao-1.0.XXにおいて
      where ...
     - - - - - - - - /
 
-このようなSQLの結果を、S2Daoでは Book-Entity と Collection-Entity にRelation付きでMappingすることができません。
-Book-Entityに導出列Propertyを定義するか、もしくは、CustomizeDaoを使ってSelect句と同構成のEntityを自動生成するか。
-いずれにせよ、ObjectのRelationを利用することはできません。
+このようなSQLの結果を、S2Daoでは Book-Entity(親) と Collection-Entity(子) のObject-Graphで取得することができません。
+Book-Entityに導出列Propertyを定義するか、もしくは、Sql2Entityを使ってSelect句と同構成のEntityを自動生成するか。
+いずれにせよ、Object-Graphを取得することはできません。
 
 DBFluteでは、これに対し以下のようなApproachで対応します。
 
@@ -68,6 +68,8 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     ********************************************************************************************
 
 一発のSQLではありませんが、「BOOKの検索・COLLECTIONの検索」の二発のSQLで実現します。
+これはLazyLoadではありません。BOOKが1件でも50件でもそれ(それら)の子供のCOLLECTIONは全て一発で取得します。
+
 これらの処理がBehaviorと呼ばれるObjectのMethodにて実装されています。(Behaviorの紹介は後述)
 
     ex) BOOK(本)の一覧に紐付くCOLLECTION(蔵書)の情報を付加して検索
@@ -87,7 +89,7 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     final LdBookBhv bhv = ... // Behavior-Componentを取得
 
     // BOOKの検索
-    final java.util.List<LdBook> ls = dao.selectList(cb);
+    final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
 
     // BOOKに紐付くCOLLECTIONの検索・関連付け
     bhv.loadCollectionList(ls); // DefaultのOrderByはPKの昇順
@@ -114,17 +116,17 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     final LdBookBhv bhv = ... // Behavior-Componentを取得
 
     // BOOKの検索
-    final java.util.List<LdBook> ls = dao.selectList(cb);
+    final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
 
     // BOOKに紐付くCOLLECTIONの検索・関連付け
     // COLLECTIONの条件に、「STATUSが'WAT'(入荷待ち)でないもの」と「ARRIVAL_DATE(到着日)の降順」を追加
-    final ReffererConditionCollectionList reffererCondition = new ReffererConditionCollectionList() {
+    final LdCollectionBhv.CBSetupper cbSetupper = new LdCollectionBhv.CBSetupper() {
         public void setup(LdCollectionCB cb) {
             cb.query().queryCollectionStatus().setCollectionStatusCode_NotEqual('WAT');
             cb.query().addOrderBy_ArribalDate_Desc();
         }
     };
-    bhv.loadCollectionList(ls, reffererCondition);
+    bhv.loadCollectionList(ls, cbSetupper);
 
     for (LdBook entity : bhv) {
         final java.util.List reffererList = entity.getCollectionList();
@@ -133,8 +135,8 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     - - - - - - - - /
 
 
-このやり方が理想なのかと問われると「NO!」ではありますが、業務で許容される範囲での利用であれば、
-とても有効に使える機能だと作者は考えています。
+このやり方が理想なのかと問われると「NO!」ではありますが、
+業務で許容される範囲での利用であればとても有効に使える機能だと作者は考えています。
 
 </pre>
 </p>
