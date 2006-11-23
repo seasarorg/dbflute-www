@@ -53,8 +53,14 @@ S2Daoでは{1:n}検索をサポートしていません(S2Dao-1.0.XXにおいて
     - - - - - - - - /
 
 このようなSQLの結果を、S2Daoでは Book-Entity(親) と Collection-Entity(子) のObject-Graphで取得することができません。
-Book-Entityに導出列Propertyを定義するか、もしくは、Sql2Entityを使ってSelect句と同構成のEntityを自動生成するか。
-いずれにせよ、Object-Graphを取得することはできません。
+
+ひらべったく情報を取得するのは：
+  “外だしSQL”をガッツリ書いて、子供のColumnの値の受け口を以下の方法で作る。
+  「Book-Entityに導出列Propertyを定義する or Sql2Entityを使ってSelect句と同構成のEntityを自動生成する」
+
+これで欲しい情報は取得できますが、Object-Graphを取得することはできません。
+呼び出したLogicが自分でコントロールブレイク処理を行って展開しなければなりません。
+
 
 DBFluteでは、これに対し以下のようなApproachで対応します。
 
@@ -68,9 +74,13 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
     ********************************************************************************************
 
 一発のSQLではありませんが、「BOOKの検索・COLLECTIONの検索」の二発のSQLで実現します。
-これはLazyLoadではありません。BOOKが1件でも50件でもそれ(それら)の子供のCOLLECTIONは全て一発で取得します。
 
-これらの処理がBehaviorと呼ばれるObjectのMethodにて実装されています。(Behaviorの紹介は後述)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    これはLazyLoadではありません。
+    BOOKが1件でも50件でもそれ(それら)の子供のCOLLECTIONを全て一発で取得します。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+これらの処理がBehaviorと呼ばれるObjectのMethodにて実装されています。
 
     ex) BOOK(本)の一覧に紐付くCOLLECTION(蔵書)の情報を付加して検索
         - COLLECTIONが一つも存在しないBOOKも対象とする。
