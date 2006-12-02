@@ -75,7 +75,7 @@ Client-Directoryに用意されている「sql2entity.bat」を実行すると�
 
       ex) LdBookDao_selectBookCollectionStatistic.sql
       /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      --#BookCollectionStatistic#--
+      --#BookCollectionStatistic#
       select book.BOOK_ID
            , book.BOOK_NAME
            , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
@@ -87,15 +87,17 @@ Client-Directoryに用意されている「sql2entity.bat」を実行すると�
       ;
       - - - - - - - - - -/
 
-    2. '.sql'の中に'--#entityName#--'と記載されているものを対象にSQLを実行する。
+    2. '.sql'の中に'--#entityName#'と記載されているものを対象にSQLを実行する。
 
     3. 結果のResultSetのMetaDataから、ColumnNameとColumnTypeを取得する。
 
     4. CustomizeEntityを自動生成する。
 
 ※「2」に関して、SQLだけではどうしても自動生成するEntityName(Class名)は推測できませんので、
-  '--#'と'#--'の間に存在する文字列をEntityNameとし、その文字列が存在する'.sql'だけを対象として実行します。
+  '--#'と'#'の間に存在する文字列をEntityNameとし、その文字列が存在する'.sql'だけを対象として実行します。
   (全ての'.sql'が新たなEntityを必要とするわけではないので、EntityNameの有無でそれを区別します)
+
+※'-- #'というように空白が一つ空いても構いません(２つ以上はダメ)。{MySQL対応}
 
 ※同時に“外だしSQL”が設定されたTest値でしっかり動作するかのTestにもなります。
 
@@ -192,8 +194,8 @@ PrimaryKeyを設定するとEntityにてPrimaryKeyを識別することができ
 
     ex) LdBookDao.selectBookCollectionStatistic()の'.sql'
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    --#BookCollectionStatistic#--
-    --*BOOK_ID*--
+    --#BookCollectionStatistic#
+    --*BOOK_ID*
     select book.BOOK_ID
          , book.BOOK_NAME
          , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
@@ -205,10 +207,10 @@ PrimaryKeyを設定するとEntityにてPrimaryKeyを識別することができ
     ;
     - - - - - - - - - -/
 
-'--*'と'*--'で囲まれた文字列がPrimaryKeyとなります。
+'--*'と'*'で囲まれた文字列がPrimaryKeyとなります。
 PrimaryKeyが複数存在する場合は、',' or ';' or '/' or '\t'で区切って記載します。
 
-    ex) --*BOOK_ID, COLLECTION_ID*--
+    ex) --*BOOK_ID, COLLECTION_ID*
 
 
 
