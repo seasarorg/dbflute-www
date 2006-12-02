@@ -200,26 +200,33 @@ S2Daoの利用に対して積極的にならない可能性があります。
 // --------------------------------------------------
 //                                      ConditionBean
 //                                      -------------
+ConditionBeanは、DBFluteの提供する最大の機能です。
 ConditionBeanについては、<a href="./tips-condition_bean.html">Tips: ConditionBean</a> をご覧下さい。
 
 // --------------------------------------------------
-//                                       CustomizeDao
-//                                       ------------
-# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-# S2Dao-1.1 において、Method単位で戻り値のEntityを指定することが可能になる予定です。
-# よって、CustomizeDaoを利用する必要がなくなります。（これは良かったことです）
-# 将来のバージョンで削除されるかもしれませんのでご注意下さい。
-#
-# ただ、独自のEntityを自動生成する機能は必要となりますので、CustomizeEntityなる新しい
-# 機能を追加する予定です。｛単にCustomizeDaoのEntityを生成する機能を間借りするだけかも知れませんが...｝
-# ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+//                                         Sql2Entity
+//                                         ----------
+一つ、“A”の問題に対するApproachで抜けているものがあります。
 
-以前のCustomizeDaoの記事は<a href="./introduction-customizedao.html">こちら</a>
+自動生成されるEntityとDaoはTableの構造に対応していますが、業務ではTableの構造に合致しない形で検索したい場合が
+よくあります。それは、GroupBy句を利用する場合や色々なTableの列をSelect句に含める場合などです。
+似た構造をした既存のEntityの一部の列に値をMappingしたり、Entityに導出列というような扱いでPropertyを追加しても
+実現は可能ではありますが、その数が多くなる場合などは専用のEntityで扱いたい場合もあります。
+その時、結局手動でEntityを作成するのでは、“A”の問題は完全には解決しないことになります。
+
+    ※Database-ObjectのViewを利用すれば、それはTableの一つとみなされ、それに対するDaoとEntityは自動生成されます。
+      しかし、ProjectによってはViewを作成することに抵抗があったり、Viewを作成する権限が開発Teamに無かったりする
+      場合もあります。Viewの存在は問題を完全には解決してくれません。
+
+DBFluteは、Sql2Entity-Taskを利用して、CustomizeEntity(Tableの構造に合致しない)を自動生成します。
+Sql2Entityについては、<a href="./tips-sql2entity.html">Tips: Sql2Entity</a> をご覧下さい。
 
 // --------------------------------------------------
-//                                      {1:n} Loading
-//                                      -------------
-S2Daoでは{1:n}検索をサポートしていません(S2Dao-1.0.XXにおいて)。
+//                                one-to-many Loading
+//                                -------------------
+S2Daoでは{one-to-many}検索をサポートしていません(S2Dao-1.0.XXにおいて)。
+せっかく検索結果をEntity形式で取得しているのに、one-to-manyの関係をフラットに取得して自分で
+コントロールブレイク処理をするのはなんともやり切れません。Object-Graphで取得したいものです。
 DBFluteでのApproachは、<a href="./tips-behavior-one_to_many_loading.html">Tips: Behavior - one-to-many loading</a> をご覧下さい。
 
 // --------------------------------------------------
@@ -240,8 +247,6 @@ Behavior (Option)
     - LdPagingResultBean selectPage(LdBookCB cb); // ConditionBeanによるPaging検索の結果をResultBeanにて取得
     - LdBook selectEntityWithDeletedCheck(LdBookCB cb); // ConditionBeanによる一意検索を存在Check付きで取得
     - int insertOrUpdateAfterSelectForUpdate(LdBook entity); // 新規ならInsert、既存ならUpdate
-    - int updateAfterSelectForUpdate(LdBook entity); // SelectForUpdate後に指定したEntityをMergeして更新
-        →呼び出し側では、new LdBook()したEntity-Instanceに更新したい列の値だけを格納して更新が可能。
 
 
 CommonColumn (Option)
@@ -250,7 +255,7 @@ CommonColumn (Option)
     Propertyの定義に従って自動生成・自動設定します。Daoに設定するかBehaviorに設定するかは選択可能です。
     これの利用により、呼び出し側では共通列に現在日時を格納したりSessionからLoginIDを取得して格納したりする共通作業を
     実装する必要がありません。
-
+    <a href="./tips-common_column.html">Tips: CommonColumn</a>
 
 QueryTimeout
 
