@@ -42,6 +42,122 @@ build.propertiesのアドバンス設定(AdvanceProperties)について記述し
 # =======================================================================================
 #                                                                             for OM task
 #                                                                             ===========
+
+# /---------------------------------------------------------------------------
+# [Common Column]
+#   commonColumnMap: (NotRequired - Default 'map:{}')
+#     The map of common column.
+#     Default value is enmpty-map.
+#     For example, The date you registered the record, The staff who updated the record and so on...
+#
+#     ex) map:{R_TIME=TIMESTAMP;U_TIME=TIMESTAMP;R_STAFF=VARCHAR;U_STAFF=VARCHAR}
+#
+#   commonColumnSetupBeforeInsertInterceptorLogicMap: (NotNull - map-property or empty(map:{}))
+#   commonColumnSetupBeforeUpdateInterceptorLogicMap: (NotNull - map-property or empty(map:{}))
+#   commonColumnSetupBeforeDeleteInterceptorLogicMap: (NotNull - map-property or empty(map:{}))
+#     (NotRequired - Default 'map:{}')
+#     ex) map:{ \
+#           R_TIME=new java.sql.Timestamp(System.currentTimeMillis()) \
+#           ; R_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+#           ; U_USER=entity.getRStaff() \
+#         }
+#     ex) map:{ \
+#           U_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+#         }
+#
+torque.commonColumnMap = map:{R_TIME=TIMESTAMP;U_TIME=TIMESTAMP;R_USER=VARCHAR;U_USER=VARCHAR}
+
+torque.commonColumnSetupBeforeInsertInterceptorLogicMap = map:{ \
+        R_TIME=new java.sql.Timestamp(System.currentTimeMillis()) \
+        ; R_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+        ; U_USER=entity.getRUser() \
+    }
+
+torque.commonColumnSetupBeforeUpdateInterceptorLogicMap = map:{ \
+        U_USER=dbflute.ldb.nongenerate.LdUserContext.getLoginUser() \
+    }
+
+torque.commonColumnSetupBeforeDeleteInterceptorLogicMap = map:{}
+# ----------------/
+
+    - - - - - - - - - -
+    <a href="./tips-common_column.html">Tips: CommonColumn</a>
+    - - - - - - - - - -
+
+
+
+# /---------------------------------------------------------------------------
+# [Classification]
+#   classificationDefinitionMap: (NotRequired - Default 'map:{}')
+#
+#     ex) map:{ \
+#        CollectionStatus   =   list:{ \
+#                                    map:{code=C10;name=ArrivalWait} \
+#                                    ; map:{code=C20;name=LendingOk} \
+#                               } \
+#        }
+#
+#     ex) From Database ()
+#      map:{ \
+#        CollectionStatus   =   list:{ \
+#               map:{table=COLLECTION_STATUS_LOOKUP;code=COLLECTION_STATUS_CODE;name=COLLECTION_STATUS_NAME} \
+#           } \
+#      }
+#
+#   classificationDeploymentMap: (NotRequired - Default 'map:{}')
+#
+#     ex) map:{ \
+#            ; $$ALL$$                  = map:{suffix:_YN=YesNo} \
+#            ; COLLECTION_STATUS        = map:{COLLECTION_STATUS_CODE=CollectionStatus} \
+#            ; COLLECTION_STATUS_LOOKUP = map:{COLLECTION_STATUS_CODE=CollectionStatus} \
+#         }
+#
+torque.classificationDefinitionMap = map:{ \
+		; YesNo				=	list:{ \
+									; map:{code=y;name=Yes;alias=\u306f\u3044} \
+									; map:{code=n;name=No;alias=\u3044\u3044\u3048} \
+								} \
+		; CollectionStatus	=	list:{ \
+									; map:{code=NOR} \
+									; map:{code=WAT} \
+									; map:{code=OUT} \
+								} \
+	}
+
+torque.classificationDeploymentMap = map:{ \
+		; $$ALL$$					=	map:{suffix:_YN=YesNo} \
+		; COLLECTION_STATUS			=	map:{COLLECTION_STATUS_CODE=CollectionStatus} \
+		; COLLECTION_STATUS_LOOKUP	=	map:{COLLECTION_STATUS_CODE=CollectionStatus} \
+	}
+# ----------------/
+
+    - - - - - - - - - -
+    <a href="./tips-classification.html">Tips: Classification</a>
+    - - - - - - - - - -
+
+
+
+# _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#                                                     Select Param
+#                                                     _/_/_/_/_/_/
+
+# /---------------------------------------------------------------------------
+# [SelectQueryTimeout] (NotRequired - Default '-1')
+torque.selectQueryTimeout = -1
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    時には、「30分掛かってもいいから検索結果が帰って来て欲しい！」という画面やBatch処理があるやもしれません。
+    その場合には、SQLのTimeout設定を延ばす必要があるため、この設定をMilli秒単位で指定します。
+
+    素のS2Daoを利用すると、PreparedStatementが隠蔽されているため、QueryTimeoutを設定するのは
+    結構大変です(独自拡張が必要)。DBFluteはS2DaoのSelectDynamicCommandを拡張しているため、
+    この設定が容易に可能です。
+
+    作者は実際にCatalog系DBのAdmin画面にてこの設定が必要となり利用しました。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                            Additional ForeignKey
 #                                                     _/_/_/_/_/_/
@@ -75,7 +191,18 @@ torque.additionalForeignKeyMap = map:{ \
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     DBに物理的なForeignKey制約が無い場合にDBFluteに擬似的にFKを認識させる機能です。
     ProjectでFK制約をDBに全く貼らないProjectや、Viewに対して結合したい場合などに有効です。
+
+    ＜複合FK＞
     複合列によるFKの場合は、'/'で区切ってColumn名を設定します。
+
+    ＜ColumnNameの省略＞
+    localColumnNameとforeignColumnNameを省略した場合は、ForeignTableのPrimaryKeyのColumnと
+    同じ名前のLocalTableのColumnを関連付けます。
+
+    ＜WildCard＞
+    「localTableName=*」とすると指定されたlocalColumnNameが定義されている全てのTableに擬似FKを付与します。
+    共通列などでFK制約が貼られていない場合などに有効です。
+    (localColumnNameを省略した場合はForeignTableのPrimaryKeyのColumnNameで探しに行きます)
 
     注：
     細かいことを差し置いて極端なことを言うと、
@@ -85,6 +212,44 @@ torque.additionalForeignKeyMap = map:{ \
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
+
+# _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#                                                 Source Reduction
+#                                                         _/_/_/_/
+# /---------------------------------------------------------------------------
+# [Make Deprecated] (NotRequired - Default 'true')
+#   [true]
+#     Make deprecated method and class and so on...
+#
+torque.isMakeDeprecated = false
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    Deprecated指定のClassやMethodを作成するか否かを指定します。
+
+    自動生成されるSourceの量を減らすためにも、DeprecatedのMethodをどうしても利用しなければ
+    ならない理由が無い限り、この設定をfalseにすることをお奨めします。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+# /---------------------------------------------------------------------------
+# [Make BehaviorForUpdate] (NotRequired - Default 'true')
+#   [true]
+#     Make for-update method of behavior.
+#
+torque.isMakeBehaviorForUpdate = false
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    Behaviorに定義されるSelectForUpdate関連のMethodを作成するか否かを指定します。
+
+    「Project全体で更新Lockを掛けることはない」という方針の場合は、
+    自動生成されるSourceの量を減らすためにも、この設定をfalseにすることをお奨めします。
+
+    また、「時々ForUpdateすることがある」場合でも、ConditionBeanでForUpdateすることは可能なので、
+    Behaviorに生成されるSelectForUpdate関連のMethodが不要であれば、遠慮なくfalseにしてOKです。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 </pre>
 </p>
