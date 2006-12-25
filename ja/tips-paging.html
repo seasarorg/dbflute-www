@@ -414,8 +414,94 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 //                                                            “外だしSQL”によるLimitSearch/PagingSearch
 //                                                            ===========================================
 
-TODO: できます。。。が、すいません、そのうち書きます。｛時間が無いため保留｝
+Pagingで検索する画面は、複雑なSQLになりがちです。なので、外だしSQLでもPagingができなければなりません。
 
+
+    ex) 呼び出し側
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    PagingBean pb = new SimplePagingBean();
+    pb.fetchFirst(20);
+    pb.fetchPage(4); // 81-100件目
+    PagingResultBean&lt;LdBook&gt; rb = bhv.selectPageXxx(pb, xxxDate);
+    - - - - - -/
+
+        呼び出し側では、SimplePagingBeanを利用してPaging情報をBehaviorに渡すようにします。
+        BehaviorのMethodはExに定義するProject独自のMethodとなります。
+
+
+    ex) ExBehaviorの独自Method
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public PagingResultBean&lt;LdBook&gt; selectPageXxx(final PagingBean pb, final Timestamp xxxDate) {
+        assertObjectNotNull("pb", pb);
+        assertListNotNullAndNotEmpty(keywordList);
+
+        final SelectPageCallback&lt;LdBook&gt; callback = new SelectPageCallback&lt;LdBook&gt;() {
+            public PagingBean getPagingBean() {
+                return pb;
+            }
+
+            public int selectCountIgnoreFetchScope() {
+                return getMyDao().selectCountXxx(xxxDate);
+            }
+
+            public List&lt;LdBook&gt; selectList() {
+                return getMyDao().selectPageXxx(pb, xxxDate);
+            }
+        };
+        return new SelectPageSimpleInvoker&lt;LdBook&gt;(this).invokeSelectPage(callback);
+    }
+    - - - - - -/
+
+        ExBehaviorに独自に作成する“外だしSQL”を利用したselectPage()を定義します。
+        SelectPageCallbackのそれぞれの実装MethodにDaoのMethodを指定します。
+
+        selectCountIgnoreFetchScope()は、FetchScope(Paging)をしない場合に
+        該当の条件でHITする件数を取得するMethodを呼び出すようにします。
+
+        selectList()は、実際にPagingの条件を考慮して検索するMethodを呼び出すようにします。
+
+
+    ex) ExDaoの独自Method
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public int selectCountXxx(Timestamp xxxDate);
+
+    public int selectPageXxx(PagingBean pb, Timestamp xxxDate);
+    - - - - - -/
+
+        ExDaoに独自のMethodを定義します。
+        selectCountXxx()にはPagingBeanの引数は不要です。(Pagingを考慮しない件数を取りたいため)
+
+
+    ex) FetchScope(Paging)を考慮しないSelectCountのSQL
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    select count(*)
+      from BOOK
+     where ...(色々複雑な条件...)
+    - - - - - -/
+
+        FetchScope(Paging)をしない場合に該当の条件でHITする件数を取得するSQL。
+
+
+    ex) PagingのSQL｛MySQLの場合｝
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    select BOOK_ID, BOOK_NAME, ...
+      from BOOK
+     where ...(色々複雑な条件...)
+     limit /*$pb.pageStartIndex*/4, /*$pb.fetchSize*/9
+    - - - - - -/
+
+    ex) PagingのSQL｛SQLServerの場合｝
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    select top /*$pb.pageEndIndex*/100 BOOK_ID, BOOK_NAME, ...
+      from BOOK
+     where ...(色々複雑な条件...)
+    - - - - - -/
+
+        Paging検索の本体。
+
+
+
+    TODO: 書き途中...様々なDBの書き方を追加すること。＆動的OrderByの利用方法
 
 
 
