@@ -124,7 +124,91 @@ Setter-Injectionされるので、DaoSelectorのSetterを用意してDaoSelector
 「B」に関しては、後述するMethodを説明を見てもらった方が説明が早いです。
 
 
-では、Methodを一つずつ説明していきます。
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+                Methodの用途別概要
+                _/_/_/_/_/_/_/_/_/
+
+＜Entity検索＞
+
+ConditionBeanによるEntity検索：
+
+  → delegateSelectEntity()
+
+
+ConditionBeanによる「nullを期待しない」Entity検索：
+
+  → selectEntityWithDeletedCheck();
+
+
+PrimaryKeyによる「nullを期待しない」Entity検索：
+
+  → selectByPKValueWithDeletedCheck();
+
+
+PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：
+
+  → selectForUpdateByPKValueWithDeletedCheck()
+
+
+＜List検索＞
+
+ConditionBeanによるList検索：
+
+  → delegateSelectList()
+
+
+ConditionBeanによる「ListResultBeanを戻り値とした」List検索：
+
+  → selectList()
+
+
+ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：
+
+  → selectPage()
+
+
+＜登録＞
+
+通常の登録：
+
+  → delegateInsert()
+
+
+なければ登録、あれば更新：
+
+  → insertOrUpdateAfterSelect()
+
+
+なければ登録、あれば更新｛更新Lock付き｝：
+
+  → insertOrUpdateAfterSelectForUpdate()
+
+
+＜更新＞
+
+通常の更新：
+
+  → delegateUpdate()
+
+
+事前に検索して取得したEntityに対してMergeして更新：
+
+  → updateAfterSelect()
+
+    ※引数のEntityにTimestampやVersionNoなどの排他制御用の値を格納しない場合は、
+      DB上に格納されている値をそのまま利用する。つまり排他制御は実質しない。
+
+
+事前に検索して取得したEntityに対してMergeして更新｛更新Lock付き｝：
+
+  → updateAfterSelectForUpdate()
+
+
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+                  Methodの詳細説明
+                _/_/_/_/_/_/_/_/_/
 
 
     // =====================================================================================
