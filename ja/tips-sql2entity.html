@@ -213,6 +213,79 @@ PrimaryKeyが複数存在する場合は、',' or ';' or '/' or '\t'で区切っ
     ex) --*BOOK_ID, COLLECTION_ID*
 
 
+// -----------------------------------------------------
+//                                   ParameterBeanの生成
+//                                   -------------------
+
+SQLへ渡すParameter(引数)の数が多くなりがちです。
+また、Java版だと引数が2つ以上の場合はARGS-Annotationを設定してなければならないのでちょっと面倒です。
+
+そこで、DBFluteではSql2Entityを生成するのと同時に、SQLへのParameterBean(引数DTO)を生成することができます。
+
+    ex) LdBookDao.selectBookCollectionStatistic()の'.sql'
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    --#BookCollectionStatistic#
+    --*BOOK_ID*
+
+    --!BookCollectionStatisticPmb!
+    --!!java.math.BigDecimal bookId!!
+    --!!String bookName!!
+
+    select book.BOOK_ID
+         , book.BOOK_NAME
+         , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
+      from BOOK book
+     /*BEGIN*/where
+       /*IF pmb.bookId != null*/book.BOOK_ID = /*pmb.bookId*/1/*END*/
+       /*IF pmb.bookName != null*/and book.BOOK_NAME like /*pmb.bookName*/'S2Dao' || '%'/*END*/
+      /*END*/
+     order by COLLECTION_COUNT desc
+    ;
+    - - - - - - - - - -/
+
+{Class}
+'--!'と'!'の間に存在する文字列をClassNameとします。
+指定するClassNameは、ProjectPrefixを除いたClassNameです。
+空白を入れて'extends Xxx'と続けて指定することにより、継承Classを指定することができます。
+(C#版においても'extends'と記述して下さい。内部で':'に置き換えます)
+
+{Property}
+'--!!'と'!!'の間に存在する文字列をPropertyとします。
+型と名称を間に空白を入れて指定します。
+Propertyは複数指定可能です。
+
+{OutputPackage}
+GenerationGapにて、それぞれ 'bsdao.pmbean' と 'exdao.pmbean' に出力されます。
+
+{Other}
+CustomizeEntity(--#EntityName#)を指定していなくても、ParameterBean(--!ParameterBean!)を指定していれば、
+Sql2Entityの対象SQLと判断され実行されます。
+戻り値のEntityはDomainEntityで、ParameterBeanだけを利用したい場合も特に問題ありません。
+
+全く同じ ParameterBean を別のSQLで利用した場合は、どちらか片方に記述するだけでOKです。
+
+
+// -----------------------------------------------------
+//                 ParameterBeanとSimplePagingBeanの連携
+//                 -------------------------------------
+
+外だしSQLでParameterBeanを利用する時は、Pagingと併用することが多いです。(検索条件の多いPaging検索画面などにおいて)
+その場合はClassNameを以下のように設定することで、SimplePagingBeanを継承したParameterBeanを作成することができます。
+
+    ex) --!BookCollectionStatisticPmb extends SPB!
+
+このように記述すると、'SPB'という文字列を内部で SimplePagingBean に置き換えます。
+
+    ex) 呼び出し側のProgram記述例
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBookCollectionStatisticPmb pmb = new LdBookCollectionStatisticPmb();
+    pmb.fetchFirst(3);// pageSizeは'3'
+    pmb.fetchPage(2);// pageNumberは'2'
+    pmb.setBookName("S2Dao");
+    java.util.List&lt;LdBookCollectionStatistic&gt; ls = dao.selectBookCollectionStatistic(pmb);
+    - - - - - - - - - -/
+
+外だしSQLのPagingについては <a href="./tips-paging.html">Tips: Paging</a> をご覧下さい。
 
 
 </pre>
