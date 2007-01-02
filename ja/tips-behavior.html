@@ -129,80 +129,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                 Methodの用途別概要
                 _/_/_/_/_/_/_/_/_/
 
-＜Entity検索＞
-
-ConditionBeanによるEntity検索：
-
-  → delegateSelectEntity()
-
-
-ConditionBeanによる「nullを期待しない」Entity検索：
-
-  → selectEntityWithDeletedCheck();
-
-
-PrimaryKeyによる「nullを期待しない」Entity検索：
-
-  → selectByPKValueWithDeletedCheck();
-
-
-PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：
-
-  → selectForUpdateByPKValueWithDeletedCheck()
-
-
-＜List検索＞
-
-ConditionBeanによるList検索：
-
-  → delegateSelectList()
-
-
-ConditionBeanによる「ListResultBeanを戻り値とした」List検索：
-
-  → selectList()
-
-
-ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：
-
-  → selectPage()
-
-
-＜登録＞
-
-通常の登録：
-
-  → delegateInsert()
-
-
-なければ登録、あれば更新：
-
-  → insertOrUpdateAfterSelect()
-
-
-なければ登録、あれば更新｛更新Lock付き｝：
-
-  → insertOrUpdateAfterSelectForUpdate()
-
-
-＜更新＞
-
-通常の更新：
-
-  → delegateUpdate()
-
-
-事前に検索して取得したEntityに対してMergeして更新：
-
-  → updateAfterSelect()
-
-    ※引数のEntityにTimestampやVersionNoなどの排他制御用の値を格納しない場合は、
-      DB上に格納されている値をそのまま利用する。つまり排他制御は実質しない。
-
-
-事前に検索して取得したEntityに対してMergeして更新｛更新Lock付き｝：
-
-  → updateAfterSelectForUpdate()
+<a href="tips-behavior-method_for_use.html">Methodの用途別概要</a> をご覧下さい。
 
 
 
@@ -447,13 +374,182 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         該当の条件で検索結果が1件で無い場合は、専用の例外が発生します。
 
 
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public LdBook selectByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
+        LdBook entity = new LdBook();
+        entity.setBookId(bookId);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        return selectEntityWithDeletedCheck(cb);
+    }
+    - - - - - - - - /
+
+        PrimaryKeyを引数として削除されたか否かをCheckする一件検索です。
+        PrimaryKeyの存在しないTableでは作成されません。
 
 
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public LdBook selectForUpdateByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
+        LdBook entity = new LdBook();
+        entity.setBookId(bookId);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        cb.lockForUpdate();
+        return selectEntityWithDeletedCheck(cb);
+    }
+    - - - - - - - - /
+
+        PrimaryKeyを引数として削除されたか否かをCheckする更新Lock付きの一件検索です。
+        PrimaryKeyの存在しないTableでは作成されません。
 
 
+    // =====================================================================================
+    //                                                                         Load Refferer
+    //                                                                         =============
 
-TODO: 書き途中です。
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Load refferer of collectionList.
+     * 
+     * @param ls Entity list of main table. (NotNull)
+     */
+    public void loadCollectionList(java.util.List&lt;LdBook&gt; ls) {
+        LdBook entity = new LdBook();
+        entity.setBookId(bookId);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        cb.lockForUpdate();
+        return selectEntityWithDeletedCheck(cb);
+    }
+    - - - - - - - - /
 
+        こちらに関しては、<a href="./tips-behavior-one_to_many_loading.html">Tips: Behavior - one-to-many loading</a> をご覧下さい。
+
+
+    // =====================================================================================
+    //                                                                          Basic Update
+    //                                                                          ============
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Insert or update after select.
+     * {update: modified only}
+     * 
+     * @param entity Entity. This must contain primary-key value at least(Except use identity). (NotNull)
+     * @return Updated count.
+     */
+    public int insertOrUpdateAfterSelect(LdBook entity) {
+        assertEntityNotNull(entity);
+        if (!entity.hasPrimaryKeyValue()) {
+            return delegateInsert(entity);
+        }
+        LdBook currentEntity = null;
+        try {
+            final LdBookCB cb = newMyConditionBean();
+            cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+            currentEntity = selectEntityWithDeletedCheck(cb);
+        } catch (dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException e) {
+            return delegateInsert(entity);
+        }
+        assertEntityNotNullAndHasPrimaryKeyValue(entity);
+        mergeEntity(entity, currentEntity);
+        return delegateUpdate(currentEntity);
+    }
+    - - - - - - - - /
+
+        「なければInsert、あればUpdate」します。
+        外部Systemから夜間にDataを取り込む場合などに利用されます。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Update after select.
+     * 
+     * @param entity Entity. This must contain primary-key value at least. (NotNull)
+     * @return Updated count.
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
+     */
+    public int updateAfterSelect(LdBook entity) {
+        assertEntityNotNullAndHasPrimaryKeyValue(entity);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        final LdBook currentEntity = selectEntityWithDeletedCheck(cb);
+        mergeEntity(entity, currentEntity);
+        return delegateUpdate(currentEntity);
+    }
+    - - - - - - - - /
+
+        一旦Selectしてから更新をします。
+
+          1. 引数のEntityのPrimaryKeyに該当するRecordを検索する。
+          2. 検索結果のEntityに対して、引数のEntityでSetterの呼ばれた列の値を反映させる。
+          3. 更新する。
+
+        ＜引数のEntity＞
+        PrimaryKeyの値＋更新したい列の値だけを格納していれば良いです。
+          →newしたEntityにPrimaryKeyと更新したい列の値をSetすればOKです。
+
+        ＜Update文のSet句＞
+        Update文のSet句には、引数のEntityでSetterの呼ばれた列だけが指定されます(S2Dao-1.0.40より)。
+
+        ＜排他制御＞
+        引数のEntityにVersionNoやTimestampが指定されていない場合は、存在Checkで取得したDB上の値を
+        そのままS2Daoに渡します。つまりその場合は、実質的な排他制御は行われません(0.x秒単位の排他制御は行われる)。
+        排他制御を必要としない更新の場合は、このMethodを使うと便利です。
+          → delegateUpdate()でVersionNoやTimestampを指定しないと更新に失敗する(S2Daoの仕様)。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Insert or update after select-for-update.
+     * {update: modified only}
+     * 
+     * @param entity Entity. This must contain primary-key value at least. (NotNull)
+     * @return Updated count.
+     */
+    public int insertOrUpdateAfterSelectForUpdate(LdBook entity) {
+        assertEntityNotNull(entity);
+        if (!entity.hasPrimaryKeyValue()) {
+            return delegateInsert(entity);
+        }
+        LdBook currentEntity = null;
+        try {
+            final LdBookCB cb = newMyConditionBean();
+            cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+            cb.lockForUpdate();
+            currentEntity = selectEntityWithDeletedCheck(cb);
+        } catch (dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException e) {
+            return delegateInsert(entity);
+        }
+        assertEntityNotNullAndHasPrimaryKeyValue(entity);
+        mergeEntity(entity, currentEntity);
+        return delegateUpdate(entity);
+    }
+    - - - - - - - - /
+
+        先述した insertOrUpdateAfterSelect() のForUpdate版です。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Update after select-for-update.
+     * 
+     * @param entity Entity. This must contain primary-key value at least. (NotNull)
+     * @return Updated count.
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
+     */
+    public int updateAfterSelectForUpdate(LdBook entity) {
+        assertEntityNotNullAndHasPrimaryKeyValue(entity);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        cb.lockForUpdate();
+        final LdBook currentEntity = selectEntityWithDeletedCheck(cb);
+        mergeEntity(entity, currentEntity);
+        return delegateUpdate(currentEntity);
+    }
+    - - - - - - - - /
+
+        先述した updateAfterSelect() のForUpdate版です。
 
 
 </pre>
