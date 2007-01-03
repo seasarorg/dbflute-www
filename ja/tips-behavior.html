@@ -108,23 +108,6 @@ Setter-Injectionされるので、DaoSelectorのSetterを用意してDaoSelector
 #          What kind of methods does behavior have?
 #          ----------------------------------------
 
-大きく分類して２種類：
-
-  A. Daoへ処理を委譲するだけのDelegate-Method。
-  B. 様々な振舞いを付加して「A」を利用するMethod。
-
-
-「A」に関しては、２つ目的があります。
-
-  A-1. BehaviorだけでDB-Accessができるようにすること。
-         →利用Class側が、BehaviorもDaoも両方扱うのはややこしい。Behaviorがあればよい。
-  A-2. AspectのPointcutとして「A」のMethodを利用する。
-
-
-「B」に関しては、後述するMethodを説明を見てもらった方が説明が早いです。
-
-
-
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                   用途別Method概要
                 _/_/_/_/_/_/_/_/_/
@@ -138,153 +121,10 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                 _/_/_/_/_/_/_/_/_/
 
 
-    // =====================================================================================
-    //                                                                       Delegate Method
-    //                                                                       ===============
 
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateGetCountAll() {
-        return getMyDao().getCountAll();
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「Recordの総件数の取得」のMethodに対するDelegateです。
+TODO: 以下書き途中です。。。
 
 
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public java.util.List&lt;LdBook&gt; delegateGetListAll() {
-        return getMyDao().getListAll();
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「Recordの全件取得」のMethodに対するDelegateです。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdBook delegateGetEntity(java.math.BigDecimal bookId) {
-        return getMyDao().getEntity(bookId);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「主キーによる一件取得」のMethodに対するDelegateです。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateSelectCount(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return getMyDao().selectCount(cb);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「ConditionBeanによる条件でFetchScopeを無視した件数取得」のMethodに対するDelegateです。
-          →FetchScopeは、ConditionBean.fetchFirst()/fetchScope()/fetchPage()などのLimitSearch検索のことです。
-            つまり、ConditionBeanで876件取得できる条件でHITする81-100件目を取得するように設定しても、
-            このMethodでは、「876」が戻ります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdBook delegateSelectEntity(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return getMyDao().selectEntity(cb);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「ConditionBeanによる条件で一件取得」のMethodに対するDelegateです。
-        複数件HITしてしまう条件で検索した場合は、S2Daoの仕様通りとなります。
-          →2006/12/19時点のS2Dao-1.0.39では、最初の一件が戻ります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public java.util.List&lt;LdBook&gt; delegateSelectList(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return getMyDao().selectList(cb);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「ConditionBeanによる条件で一覧取得」のMethodに対するDelegateです。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public java.math.BigDecimal delegateSelectNextVal() {
-        return getMyDao().selectNextVal();
-    }
-    - - - - - - - - /
-
-        build.propertiesにてSequenceの設定をした場合の
-        Daoに定義されている「Sequence取得」のMethodに対するDelegateです。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateInsert(LdBook entity) {
-        assertEntityNotNull(entity);// If this table use identity, the entity does not have primary-key.
-        filterEntityOfInsert(entity);
-        assertEntityOfInsert(entity);
-        return getMyDao().insert(entity);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「insert()」のMethodに対するDelegateです。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateUpdate(LdBook entity) {
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        filterEntityOfUpdate(entity);
-        assertEntityOfUpdate(entity);
-        return getMyDao().updateModifiedOnly(entity);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「updateModifiedOnly()」のMethodに対するDelegateです。
-        EntityのSetterが呼び出されたColumnだけでUpdate文のSet句を作成します。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateDelete(LdBook entity) {
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        filterEntityOfDelete(entity);
-        assertEntityOfDelete(entity);
-        return getMyDao().delete(entity);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「delete()」のMethodに対するDelegateです。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateInsertList(java.util.List&lt;LdBook&gt; entityList) {
-        assertListNotNullAndEmpty(entityList);
-        return getMyDao().insertList(entityList);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「Batch-Insert」のMethodに対するDelegateです。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateUpdateList(java.util.List&lt;LdBook&gt; entityList) {
-        assertListNotNullAndEmpty(entityList);
-        return getMyDao().updateList(entityList);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「Batch-Update」のMethodに対するDelegateです。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateDeleteList(java.util.List&lt;LdBook&gt; entityList) {
-        assertListNotNullAndEmpty(entityList);
-        return getMyDao().deleteList(entityList);
-    }
-    - - - - - - - - /
-
-        Daoに定義されている「Batch-Delete」のMethodに対するDelegateです。
-        build.propertiesにてCommonColumn(共通列)のInterceptorを設定したときは、このMethodにAspectが掛かります。
 
 
     // =====================================================================================
@@ -292,7 +132,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     //                                                                    ==================
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /**
-     * Select simple count by condition-bean.
+     * Select count by condition-bean.
      * 
      * If the argument 'condition-bean' is effective about fetch-scope,
      * this method invoke select count ignoring the fetch-scope.
@@ -300,7 +140,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
      * @param cb Condition-bean. This condition-bean should not be set up about fetch-scope. (NotNull)
      * @return Selected count. (NotNull)
      */
-    public int selectSimpleCount(LdBookCB cb) {
+    public int selectCount(LdBookCB cb) {
         assertConditionBeanNotNull(cb);
         return delegateSelectCount(cb);
     }
@@ -318,13 +158,13 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     //                                                                   ===================
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /**
-     * Select simple entity by condition-bean.
+     * Select entity by condition-bean.
      * 
      * @param cb Condition-bean. (NotNull)
      * @return Selected entity. (Nullalble)
      * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
      */
-    public LdBook selectSimpleEntity(LdBookCB cb) {
+    public LdBook selectEntity(LdBookCB cb) {
         assertConditionBeanNotNull(cb);
         final java.util.List&lt;LdBook&gt; ls = delegateSelectList(cb);
         if (ls.isEmpty()) {
@@ -388,14 +228,14 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     /*
-     * Select entity for update by primary-key with deleted check.
+     * Select entity by primary-key with deleted check for update .
      * 
      * @param primaryKey
      * @return Selected entity. (NotNull)
      * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
      * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
      */
-    public LdBook selectForUpdateByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
+    public LdBook selectByPKValueWithDeletedCheckForUpdate(java.math.BigDecimal bookId) {
         LdBook entity = new LdBook();
         entity.setBookId(bookId);
         final LdBookCB cb = newMyConditionBean();
@@ -638,6 +478,8 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     - - - - - - - - /
 
         先述した updateAfterSelect() のForUpdate版です。
+
+
 
 
 </pre>

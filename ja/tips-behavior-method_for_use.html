@@ -38,27 +38,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 // ======================================================================================================
 //                                                                            Behavior - 用途別Method概要
-//                                                                                  =====================
-
-# -------------------------------------------------
-#                                        とりあえず
-#                                        ----------
-
-とりあえずは、bhv.selectS...まで書けば、おおよそ勘で利用できるSimpleなMethodが補完されるはずです。
-
-  selectSimpleCount();
-  selectSimpleEntity();
-  selectSimpleList();
-  ...
-
-
-また、bhv.delegate...まで書けば、Daoに定義されているMethodへのDelegate-Methodが補完されるはずです。
-
-  delegateInsert()
-  delegateUpdate()
-  ...
-
-
+//                                                                            ===========================
 
 # -------------------------------------------------
 #                                      Select Count
@@ -66,7 +46,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>ConditionBeanによるCount検索：</b>
 
-    → selectSimpleCount()
+    → <b>selectCount()</b>
 
       もし、引数のConditionBeanに fetchFirst()やFetchPage()などが呼び出されていて
       ConditionBeanのFetchScope設定が有効な場合、このMethodはその設定を無視して処理します。
@@ -76,7 +56,6 @@ BehaviorのMethodの用途別概要を記述します。
         ※DBFluteの独自用語として、このことを IgnoreFetchScope と言います。
 
 
-
 # -------------------------------------------------
 #                                     Select Entity
 #                                     -------------
@@ -84,7 +63,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>ConditionBeanによるEntity検索：</b>
 
-    → <b>selectSimpleEntity()</b>
+    → <b>selectEntity()</b>
 
       該当の条件にHITするRecordが無い場合はNullが戻ります。
       該当の条件にHITするRecordが複数件の場合は例外が発生します。
@@ -108,7 +87,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：</b>
 
-    → <b>selectForUpdateByPKValueWithDeletedCheck()</b>
+    → <b>selectByPKValueWithDeletedCheckForUpdate()</b>
 
       selectByPKValueWithDeletedCheck()に更新Lockを付与したものです。
 
@@ -125,11 +104,11 @@ S2Dao仕様では、該当条件に複数件HITする場合に先頭の一件目
 以下のようにConditionBeanを設定して下さい。
 
     /- - - - - - - - - - - - - - - - - - - - - - - - - - 
-    LdBookCB cb = new LdBookCB();
+    final LdBookCB cb = new LdBookCB();
     cb.query().setXxx...(xxx);
     cb.query().addOrderBy_Xxx_Asc();
     <b>fetchFirst(1);</b> // ☆
-    LdBook entity = bhv.selectSimpleEntity(cb);
+    final LdBook entity = bhv.selectSimpleEntity(cb);
     - - - - - -/
 
 すると、複数件HITする条件の中のSortされた上での一件目が取得できます。
@@ -142,8 +121,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                       Select List
 #                                       -----------
 
-
-<b>ConditionBeanによるList検索：</b>
+<b>ConditionBeanによる「SimpleなListを戻り値とした」List検索：</b>
 
     → <b>selectSimpleList()</b>
 
@@ -164,30 +142,15 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
       戻り値：PagingResultBean
 
 
-
 # -------------------------------------------------
 #                                     Entity Insert
 #                                     -------------
 
 <b>通常の登録：</b>
 
-    → <b>delegateInsert()</b>
+    → <b>insert()</b>
 
       該当のRecordが既に存在する場合は一意制約違反のSQLExceptionが発生します。
-
-
-<b>なければ登録、あれば更新：</b>
-
-    → <b>insertOrUpdateAfterSelect()</b>
-
-      主に外部SystemからのDataを夜間に取り込むBatchなどで利用される。
-
-
-<b>なければ登録、あれば更新｛更新Lock付き｝：</b>
-
-    → <b>insertOrUpdateAfterSelectForUpdate()</b>
-
-      主に外部SystemからのDataを夜間に取り込むBatchなどで利用される。
 
 
 # -------------------------------------------------
@@ -196,16 +159,8 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>通常の更新：</b>
 
-    → <b>delegateUpdate()</b>
+    → <b>update()</b>
 
-      S2Dao-1.0.39以前：
-        Entityに定義されている全てのColumnがUpdate文のSet句に指定されます。
-        引数のEntityに値がSetされていないColumnは、全てnullで更新されます。
-
-        引数のEntityは、newして値をSetしたものではなく、一度SelectしたEntityを
-        利用するのが良いかと思われます。
-
-      S2Dao-1.0.40以後：
         EntityのSetterが呼び出されたColumnだけがUpdate文のSet句に指定されます。
 
         引数のEntityは、newして値をSetしたもので構いません。
@@ -217,26 +172,34 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     → <b>updateAfterSelect()</b>
 
-      S2Dao-1.0.39以前：
-        Entityに定義されている全てのColumnがUpdate文のSet句に指定されます。
-        引数のEntityに値がSetされていないColumnは、全てDB上の値そのままで更新されます。
+        EntityのSetterが呼び出されたColumnだけがUpdate文のSet句に指定されます。
 
         引数のEntityは、newして値をSetしたもので構いません。
         但し、VersionNoやTimestampをEntityに設定している場合で、引数のEntityのそれらの値が null の場合は、
         DB上の値そのままを排他制御に利用するため、実質的な排他制御が行われずに更新されます。
         (逆に排他制御をしたくない場合はこのMethodを使うと良いかと思います)
 
-      S2Dao-1.0.40以後：
-        EntityのSetterが呼び出されたColumnだけがUpdate文のSet句に指定されます。
 
-        引数のEntityは、...(S2Dao-1.0.39以前の記述と同様)
+<b>なければ登録あれば更新：</b>
+
+    → <b>insertOrUpdateAfterSelect()</b>
+
+      主に外部SystemからのDataを夜間に取り込むBatchなどで利用されます。
 
 
-<b>更新Lock付きで一旦Selectしてから更新：</b>
+<b>一旦Selectしてから更新｛更新Lock付き｝：</b>
 
     → <b>updateAfterSelectForUpdate()</b>
 
       ForUpdateが付いただけで、それ以外の動きはupdateAfterSelect()と同様です。
+
+
+<b>なければ登録あれば更新｛更新Lock付き｝：</b>
+
+    → <b>insertOrUpdateAfterSelectForUpdate()</b>
+
+      ForUpdateが付いただけで、それ以外の動きはinsertOrUpdateAfterSelect()と同様です。
+      主に外部SystemからのDataを夜間に取り込むBatchなどで利用されます。
 
 
 
@@ -258,10 +221,10 @@ Projectによって様々ではありますが、以下の点を割り切りで�
   C. Update前にSelectは更新Lockなし。
 
 
-「A」に関して割り切れない場合は、やはりdelegateUpdate()を利用して下さい。
+「A」に関して割り切れない場合は、やはりupdate()を利用して下さい。
 updateAfterSelect()は排他制御が業務要件的に不要である場合にだけ利用して下さい。
 
-「B」に関して割り切れない場合は、やはりdelegateUpdate()を利用して下さい。
+「B」に関して割り切れない場合は、やはりupdate()を利用して下さい。
 updateAfterSelect()は排他制御が業務要件的に不要である場合にだけ利用して下さい。
 
 「C」に関して割り切れない場合は、updateAfterSelectForUpdate()を利用して下さい。
@@ -273,11 +236,33 @@ updateAfterSelect()は排他制御が業務要件的に不要である場合に�
 #
 # もし、排他制御の結果として、「そのRecordが他の人に削除されたのか更新されたのか」
 # を区別して扱いたい場合は、updateAfterSelect() or updateAfterSelectForUpdate()
-# を利用しなければなりません。(delegateUpdate()ではその区別は付けられない)
+# を利用しなければなりません。(update()ではその区別は付けられない)
 #
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
+
+
+
+# -------------------------------------------------
+#                                     Entity Delete
+#                                     -------------
+
+<b>通常の削除：</b>
+
+    → <b>delete()</b>
+
+
+
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+Method名が「delegate...」で始まっているMethodは極力外側のClassから呼び出さないようにして下さい。
+将来的にprotectedにする可能性があるからです。(現状、ASPECTを掛けるためにpublicになっている...)
+
+delegate...() を利用しなくても要件を満たすMethodは先述した通りです。
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 
 
