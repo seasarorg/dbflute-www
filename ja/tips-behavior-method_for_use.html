@@ -40,75 +40,139 @@ BehaviorのMethodの用途別概要を記述します。
 //                                                                          Behavior - Methodの用途別概要
 //                                                                          =============================
 
+
 # -------------------------------------------------
-#                                        Entity検索
-#                                        ----------
+#                                      Select Count
+#                                      ------------
 
-  ConditionBeanによるEntity検索：
+<b>ConditionBeanによるCount検索：</b>
 
-    → delegateSelectEntity()
+    → selectSimpleCount()
+
+      もし、引数のConditionBeanに fetchFirst()やFetchPage()などが呼び出されていて
+      ConditionBeanのFetchScope設定が有効な場合、このMethodはその設定を無視して処理します。
+      例えば、342件取得できるはずのConditionBeanの検索条件にfetchFirst(20)/fetchPage(5)と設定されていた場合
+      このConditionBeanを selectSimpleCount(cb); で呼び出すと、342件が取得されます。
+
+        ※DBFluteの独自用語として、このことを IgnoreFetchScope と言います。
+
+
+
+# -------------------------------------------------
+#                                     Select Entity
+#                                     -------------
+
+
+<b>ConditionBeanによるEntity検索：</b>
+
+    → selectSimpleEntity()
 
       該当の条件にHITするRecordが無い場合はNullが戻ります。
+      該当の条件にHITするRecordが複数件の場合は例外が発生します。
 
 
-  ConditionBeanによる「nullを期待しない」Entity検索：
+<b>ConditionBeanによる「nullを期待しない」Entity検索：</b>
 
     → selectEntityWithDeletedCheck();
 
+      該当の条件にHITするRecordが無い場合は例外が発生します。
+      該当の条件にHITするRecordが複数件の場合は例外が発生します。
 
-  PrimaryKeyによる「nullを期待しない」Entity検索：
+
+<b>PrimaryKeyによる「nullを期待しない」Entity検索：</b>
 
     → selectByPKValueWithDeletedCheck();
 
+      selectEntityWithDeletedCheck()の引数がPrimaryKeyになったものです。
+      オーバーロードは利用せずに、明示的にMethod名を変えています。
 
-  PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：
+
+<b>PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：</b>
 
     → selectForUpdateByPKValueWithDeletedCheck()
 
+      selectByPKValueWithDeletedCheck()に更新Lockを付与したものです。
+
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+delegateSelectEntity()を直接呼び出すことはお奨めしません。
+delegateSelectEntity()はS2DaoのMethodをそのまま呼び出しています。
+S2Dao仕様では、該当条件に複数件HITする場合に先頭の一件目を戻すようになっています。
+これは便利な時もありますが、思わぬBUGを生み出すこともあります。
+
+なので、安全のためにBehaviorが提供するEntity検索Methodは、全て複数件HIT時に例外を発生させます。
+もし、「明示的に複数件HITする中での先頭の一件が欲しい」という要件がある場合は、
+以下のようにConditionBeanを設定して下さい。
+
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - 
+    LdBookCB cb = new LdBookCB();
+    cb.query().setXxx...(xxx);
+    cb.query().addOrderBy_Xxx_Asc();
+    <b>fetchFirst(1);</b> // ☆
+    LdBook entity = bhv.selectSimpleEntity(cb);
+    - - - - - -/
+
+すると、複数件HITする条件の中のSortされた上での一件目が取得できます。
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
 
 # -------------------------------------------------
-#                                          List検索
-#                                          --------
-
-  ConditionBeanによるList検索：
-
-    → delegateSelectList()
+#                                       Select List
+#                                       -----------
 
 
-  ConditionBeanによる「ListResultBeanを戻り値とした」List検索：
+<b>ConditionBeanによるList検索：</b>
+
+    → selectSimpleList()
+
+      戻り値：java.util.List
+
+
+<b>ConditionBeanによる「ListResultBeanを戻り値とした」List検索：</b>
 
     → selectList()
 
+      戻り値：ListResultBean
 
-  ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：
+
+<b>ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：</b>
 
     → selectPage()
 
+      戻り値：PagingResultBean
+
+
 
 # -------------------------------------------------
-#                                              登録
-#                                              ----
+#                                     Entity Insert
+#                                     -------------
 
-  通常の登録：
+<b>通常の登録：</b>
 
     → delegateInsert()
 
       該当のRecordが既に存在する場合は一意制約違反のSQLExceptionが発生します。
 
 
-  なければ登録、あれば更新：
+<b>なければ登録、あれば更新：</b>
 
     → insertOrUpdateAfterSelect()
 
 
-  なければ登録、あれば更新｛更新Lock付き｝：
+<b>なければ登録、あれば更新｛更新Lock付き｝：</b>
 
     → insertOrUpdateAfterSelectForUpdate()
 
 
-＜更新＞
 
-  通常の更新：
+# -------------------------------------------------
+#                                     Entity Update
+#                                     -------------
+
+<b>通常の更新：</b>
 
     → delegateUpdate()
 
@@ -127,7 +191,7 @@ BehaviorのMethodの用途別概要を記述します。
         0件更新となり更新に失敗します(S2Daoの仕様)。
 
 
-  一旦Selectしてから更新：
+<b>一旦Selectしてから更新：</b>
 
     → updateAfterSelect()
 
@@ -146,7 +210,7 @@ BehaviorのMethodの用途別概要を記述します。
         引数のEntityは、...(S2Dao-1.0.39以前の記述と同様)
 
 
-  更新Lock付きで一旦Selectしてから更新：
+<b>更新Lock付きで一旦Selectしてから更新：</b>
 
     → updateAfterSelectForUpdate()
 
