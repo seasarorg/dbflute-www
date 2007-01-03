@@ -37,8 +37,27 @@ BehaviorのMethodの用途別概要を記述します。
 
 
 // ======================================================================================================
-//                                                                          Behavior - Methodの用途別概要
-//                                                                          =============================
+//                                                                            Behavior - 用途別Method概要
+//                                                                                  =====================
+
+# -------------------------------------------------
+#                                        とりあえず
+#                                        ----------
+
+とりあえずは、bhv.selectS...まで書けば、おおよそ勘で利用できるSimpleなMethodが補完されるはずです。
+
+  selectSimpleCount();
+  selectSimpleEntity();
+  selectSimpleList();
+  ...
+
+
+また、bhv.delegate...まで書けば、Daoに定義されているMethodへのDelegate-Methodが補完されるはずです。
+
+  delegateInsert()
+  delegateUpdate()
+  ...
+
 
 
 # -------------------------------------------------
@@ -65,7 +84,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>ConditionBeanによるEntity検索：</b>
 
-    → selectSimpleEntity()
+    → <b>selectSimpleEntity()</b>
 
       該当の条件にHITするRecordが無い場合はNullが戻ります。
       該当の条件にHITするRecordが複数件の場合は例外が発生します。
@@ -73,7 +92,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>ConditionBeanによる「nullを期待しない」Entity検索：</b>
 
-    → selectEntityWithDeletedCheck();
+    → <b>selectEntityWithDeletedCheck()</b>
 
       該当の条件にHITするRecordが無い場合は例外が発生します。
       該当の条件にHITするRecordが複数件の場合は例外が発生します。
@@ -81,7 +100,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>PrimaryKeyによる「nullを期待しない」Entity検索：</b>
 
-    → selectByPKValueWithDeletedCheck();
+    → <b>selectByPKValueWithDeletedCheck()</b>
 
       selectEntityWithDeletedCheck()の引数がPrimaryKeyになったものです。
       オーバーロードは利用せずに、明示的にMethod名を変えています。
@@ -89,7 +108,7 @@ BehaviorのMethodの用途別概要を記述します。
 
 <b>PrimaryKeyによる「更新Lock付きでnullを期待しない」Entity検索：</b>
 
-    → selectForUpdateByPKValueWithDeletedCheck()
+    → <b>selectForUpdateByPKValueWithDeletedCheck()</b>
 
       selectByPKValueWithDeletedCheck()に更新Lockを付与したものです。
 
@@ -126,21 +145,21 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>ConditionBeanによるList検索：</b>
 
-    → selectSimpleList()
+    → <b>selectSimpleList()</b>
 
       戻り値：java.util.List
 
 
 <b>ConditionBeanによる「ListResultBeanを戻り値とした」List検索：</b>
 
-    → selectList()
+    → <b>selectList()</b>
 
       戻り値：ListResultBean
 
 
 <b>ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：</b>
 
-    → selectPage()
+    → <b>selectPage()</b>
 
       戻り値：PagingResultBean
 
@@ -152,20 +171,23 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>通常の登録：</b>
 
-    → delegateInsert()
+    → <b>delegateInsert()</b>
 
       該当のRecordが既に存在する場合は一意制約違反のSQLExceptionが発生します。
 
 
 <b>なければ登録、あれば更新：</b>
 
-    → insertOrUpdateAfterSelect()
+    → <b>insertOrUpdateAfterSelect()</b>
+
+      主に外部SystemからのDataを夜間に取り込むBatchなどで利用される。
 
 
 <b>なければ登録、あれば更新｛更新Lock付き｝：</b>
 
-    → insertOrUpdateAfterSelectForUpdate()
+    → <b>insertOrUpdateAfterSelectForUpdate()</b>
 
+      主に外部SystemからのDataを夜間に取り込むBatchなどで利用される。
 
 
 # -------------------------------------------------
@@ -174,7 +196,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>通常の更新：</b>
 
-    → delegateUpdate()
+    → <b>delegateUpdate()</b>
 
       S2Dao-1.0.39以前：
         Entityに定義されている全てのColumnがUpdate文のSet句に指定されます。
@@ -193,7 +215,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>一旦Selectしてから更新：</b>
 
-    → updateAfterSelect()
+    → <b>updateAfterSelect()</b>
 
       S2Dao-1.0.39以前：
         Entityに定義されている全てのColumnがUpdate文のSet句に指定されます。
@@ -212,7 +234,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 <b>更新Lock付きで一旦Selectしてから更新：</b>
 
-    → updateAfterSelectForUpdate()
+    → <b>updateAfterSelectForUpdate()</b>
 
       ForUpdateが付いただけで、それ以外の動きはupdateAfterSelect()と同様です。
 

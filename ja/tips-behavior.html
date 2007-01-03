@@ -126,15 +126,15 @@ Setter-Injectionされるので、DaoSelectorのSetterを用意してDaoSelector
 
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                Methodの用途別概要
+                  用途別Method概要
                 _/_/_/_/_/_/_/_/_/
 
-<a href="tips-behavior-method_for_use.html">Methodの用途別概要</a> をご覧下さい。
+<a href="tips-behavior-method_for_use.html">Behaviorの用途別Method概要</a> をご覧下さい。
 
 
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                  Methodの詳細説明
+                        Method詳細
                 _/_/_/_/_/_/_/_/_/
 
 
@@ -170,9 +170,9 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public int delegateSelectCountIgnoreFetchScope(LdBookCB cb) {
+    public int delegateSelectCount(LdBookCB cb) {
         assertConditionBeanNotNull(cb);
-        return getMyDao().selectCountIgnoreFetchScope(cb);
+        return getMyDao().selectCount(cb);
     }
     - - - - - - - - /
 
@@ -288,8 +288,145 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
     // =====================================================================================
-    //                                                                          Basic Select
-    //                                                                          ============
+    //                                                                    Basic Select Count
+    //                                                                    ==================
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Select simple count by condition-bean.
+     * 
+     * If the argument 'condition-bean' is effective about fetch-scope,
+     * this method invoke select count ignoring the fetch-scope.
+     * 
+     * @param cb Condition-bean. This condition-bean should not be set up about fetch-scope. (NotNull)
+     * @return Selected count. (NotNull)
+     */
+    public int selectSimpleCount(LdBookCB cb) {
+        assertConditionBeanNotNull(cb);
+        return delegateSelectCount(cb);
+    }
+    - - - - - - - - /
+
+        ConditionBeanによるCount検索です。
+        もし、引数のConditionBeanに fetchFirst()やFetchPage()などが呼び出されていて
+        ConditionBeanのFetchScope設定が有効な場合、このMethodはその設定を無視して処理します。
+        例えば、342件取得できるはずのConditionBeanの検索条件にfetchFirst(20)/fetchPage(5)と設定されていた場合
+        このConditionBeanを selectSimpleCount(cb); で呼び出すと、342件が取得されます。
+
+
+    // =====================================================================================
+    //                                                                   Basic Select Entity
+    //                                                                   ===================
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Select simple entity by condition-bean.
+     * 
+     * @param cb Condition-bean. (NotNull)
+     * @return Selected entity. (Nullalble)
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
+     */
+    public LdBook selectSimpleEntity(LdBookCB cb) {
+        assertConditionBeanNotNull(cb);
+        final java.util.List&lt;LdBook&gt; ls = delegateSelectList(cb);
+        if (ls.isEmpty()) {
+            return null;
+        }
+        assertRecordHasBeenSelectedAsOne(ls, cb.toString());
+        return (LdBook)ls.get(0);
+    }
+    - - - - - - - - /
+
+        ConditionBeanによるEntity検索です。
+        該当の条件で検索結果が0件の場合は、nullが戻ります。
+        該当の条件で検索結果が複数件の場合は、専用の例外が発生します。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Select entity by condition-bean with deleted check.
+     * 
+     * @param cb Condition-bean. (NotNull)
+     * @return Selected entity. (NotNull)
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
+     */
+    public LdBook selectEntityWithDeletedCheck(LdBookCB cb) {
+        assertConditionBeanNotNull(cb);
+        final java.util.List&lt;LdBook&gt; ls = delegateSelectList(cb);
+        assertRecordHasNotBeenDeleted(ls, cb.toString());
+        assertRecordHasBeenSelectedAsOne(ls, cb.toString());
+        return currentEntity;
+    }
+    - - - - - - - - /
+
+        ConditionBeanによる削除されたか否かをCheckするEntity検索です(nullを期待しない検索)。
+        該当の条件で検索結果が0件の場合は、専用の例外が発生します。
+        該当の条件で検索結果が複数件の場合は、専用の例外が発生します。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /*
+     * Select entity by primary-key with deleted check.
+     * 
+     * @param primaryKey
+     * @return Selected entity. (NotNull)
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
+     */
+    public LdBook selectByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
+        LdBook entity = new LdBook();
+        entity.setBookId(bookId);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        return selectEntityWithDeletedCheck(cb);
+    }
+    - - - - - - - - /
+
+        PrimaryKeyを引数として削除されたか否かをCheckするEntity検索です。
+        PrimaryKeyの存在しないTableでは作成されません。
+
+
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    /*
+     * Select entity for update by primary-key with deleted check.
+     * 
+     * @param primaryKey
+     * @return Selected entity. (NotNull)
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
+     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
+     */
+    public LdBook selectForUpdateByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
+        LdBook entity = new LdBook();
+        entity.setBookId(bookId);
+        final LdBookCB cb = newMyConditionBean();
+        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
+        cb.lockForUpdate();
+        return selectEntityWithDeletedCheck(cb);
+    }
+    - - - - - - - - /
+
+        PrimaryKeyを引数として削除されたか否かをCheckする更新Lock付きのEntity検索です。
+        PrimaryKeyの存在しないTableでは作成されません。
+
+
+    // =====================================================================================
+    //                                                                     Basic Select List
+    //                                                                     =================
+    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /**
+     * Select simple list.
+     * 
+     * @param cb Condition-bean. (NotNull)
+     * @return Selected list. (NotNull)
+     */
+    public java.util.List<LdBook> selectSimpleList(LdBookCB cb) {
+        assertConditionBeanNotNull(cb);
+        return delegateSelectList(cb);
+    }
+    - - - - - - - - /
+
+        ConditionBeanによるList検索です。
+
 
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     public LdListResultBean&lt;LdBook&gt; selectList(LdBookCB cb) {
@@ -352,55 +489,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         selectPage(LdBookCB cb);と同様です。
         こちらは、Invokerを指定して、Paging検索時の挙動を独自に変更することができます。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Select entity by condition-bean with deleted check.
-     * 
-     * @param cb Condition-bean. (NotNull)
-     * @return Entity that is selected from database by select-for-update. (NotNull)
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     */
-    public LdBook selectEntityWithDeletedCheck(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        dbflute.ldb.exentity.LdBook currentEntity = delegateSelectEntity(cb);
-        assertRecordHasNotBeenDeleted(currentEntity, cb.toString());
-        return currentEntity;
-    }
-    - - - - - - - - /
-
-        削除されたか否かをCheckする一件検索です(nullを期待しない検索)。
-        該当の条件で検索結果が1件で無い場合は、専用の例外が発生します。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdBook selectByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
-        LdBook entity = new LdBook();
-        entity.setBookId(bookId);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        return selectEntityWithDeletedCheck(cb);
-    }
-    - - - - - - - - /
-
-        PrimaryKeyを引数として削除されたか否かをCheckする一件検索です。
-        PrimaryKeyの存在しないTableでは作成されません。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdBook selectForUpdateByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
-        LdBook entity = new LdBook();
-        entity.setBookId(bookId);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        cb.lockForUpdate();
-        return selectEntityWithDeletedCheck(cb);
-    }
-    - - - - - - - - /
-
-        PrimaryKeyを引数として削除されたか否かをCheckする更新Lock付きの一件検索です。
-        PrimaryKeyの存在しないTableでは作成されません。
 
 
     // =====================================================================================
