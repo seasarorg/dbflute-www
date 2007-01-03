@@ -229,8 +229,77 @@ build.propertiesにて以上の設定を行うとInterceptorが作成されま�
 //                   Interceptorの関連付け
 //                   ---------------------
 
+[DBFlute-0.4.0以降]
+
 Interceptorが作成されましたので、これをInsertやUpdateのMethodに関連付けなければなりません。
-DefaultではどのMethodにも関連付けられませんので、build.propertiesで指定する必要があります。
+Defaultでは BehaviorのMethodに対して関連付けられます。それで問題なければ何も考える必要はありませんので、
+ここの説明は読み飛ばしていただいて構いません。
+
+明示的に指定する or DaoのMethodに対して関連付けたい場合は、以下のPropertyを指定してください。
+
+
+    ex) Behaviorに対して関連付ける場合
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnSetupInterceptorAspectPoint = behavior
+    - - - - - - - - - -/
+
+        ↓↓↓
+
+    ex) BOOKをINSERTする場合 {Behavior経由}
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBook entity = new LdBook();
+    entity.setBookId(bookId);
+    entity.setBookName(bookName);
+    final LdBookBhv bhv = getMyBhv();
+    bhv.delegateInsert(entity); // Interceptorが動いてCommonColumnには値が自動設定される。
+    - - - - - - - - - -/
+
+
+    ex) Daoに対して関連付ける場合
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    torque.commonColumnSetupInterceptorAspectPoint = dao
+    - - - - - - - - - -/
+
+        ↓↓↓
+
+    ex) BOOKをINSERTする場合 {Dao経由}
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final LdBook entity = new LdBook();
+    entity.setBookId(bookId);
+    entity.setBookName(bookName);
+    final LdBookDao dao = getMyDao();
+    dao.insert(entity); // Interceptorが動いてCommonColumnには値が自動設定される。
+    - - - - - - - - - -/
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+※DBFlute-0.4.0よりこの部分の指定方法が変わっています。
+  下位互換のために DBFlute-0.4.0 でも後述する[DBFlute-0.3.2以前]のやり方でも動作するように
+  しています。isAvailableCommonColumnSetupInterceptorToBehavior/Daoが指定されている場合は、
+  そちらが優先されるようになっています。
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+Behaviorに関連付けるかDaoに関連付けるかの選択は、各Projectの判断に任させます。
+
+作者は Behavior に関連付けることをお奨めします。
+
+Daoを直接呼び出されるとCommonColumnには値が設定されないですが、その場合は「UpdateやInsertは
+必ずBehavior経由で行うこと」をProjectの方針とします。
+
+もし、Daoに設定してしまうと、いざCommonColumnに対して特殊な値を設定したい場合があった時に
+何も出来なくなってしまいます。
+
+もちろん、これは作者の個人的な思いなので、各Projectにて最適な判断をお願いします。
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
+
+
+[DBFlute-0.3.2以前]
+
+Interceptorが作成されましたので、これをInsertやUpdateのMethodに関連付けなければなりません。
+DefaultではどのMethodに対しても関連付けられませんので、build.propertiesで指定する必要があります。
 
 Behaviorの｛delegateXxx()｝に関連付ける場合は、以下のPropertyをtrueにします。
 
@@ -266,19 +335,6 @@ Daoの｛insert() / update() / delete() / create() / modify() / remove()｝に�
     - - - - - - - - - -/
 
 
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-Behaviorに関連付けるかDaoに関連付けるかの選択は、各Projectの判断に任させます。
-
-作者は Behavior に関連付けることをお奨めします。
-
-Daoを直接呼び出されるとCommonColumnには値が設定されないですが、その場合は「UpdateやInsertは
-必ずBehavior経由で行うこと」をProjectの方針とします。
-
-もし、Daoに設定してしまうと、いざCommonColumnに対して特殊な値を設定したい場合があった時に
-何も出来なくなってしまいます。
-
-もちろん、これは作者の個人的な思いなので、各Projectにて最適な判断をお願いします。
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
