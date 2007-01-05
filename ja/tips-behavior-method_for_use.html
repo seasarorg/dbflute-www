@@ -107,7 +107,7 @@ S2Dao仕様では、該当条件に複数件HITする場合に先頭の一件目
     final LdBookCB cb = new LdBookCB();
     cb.query().setXxx...(xxx);
     cb.query().addOrderBy_Xxx_Asc();
-    <b>fetchFirst(1);</b> // ☆
+    <b>cb.fetchFirst(1);</b> // ☆
     final LdBook entity = bhv.selectEntity(cb);
     - - - - - -/
 
@@ -126,6 +126,17 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     → <b>selectList()</b>
 
       ReturnType: ListResultBean (implements java.util.List)
+
+      ListResultBeanは、java.util.Listをimplementsしているため、通常のListとして扱うことが可能です。
+      ListResultBeanである必要がないときあるときに関わらず、「一覧検索は一律このMethodを利用する」でOKです。
+
+        ☆このように記述可能です。
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        final ListResultBean&lt;LdBook&gt; ls = bhv.selectList(cb);
+        for (LdBook entity : ls) {
+            entity.getXxx...
+        }
+        - - - - - - - - - -/
 
 
 <b>ConditionBeanによる「PagingResultBeanを戻り値とした」Paging検索：</b>
