@@ -485,14 +485,23 @@ Pagingで検索する画面は、複雑なSQLになりがちです。なので�
 
         FetchScope(Paging)をしない場合に該当の条件でHITする件数を取得するSQLを用意します。
 
-
+    ex) PagingのSQL｛Oracleの場合｝
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    select *
+      from (select BOOK_ID, BOOK_NAME, ...
+              from BOOK
+             where ...(色々複雑な条件...)
+           ) book
+     where rownum &gt; /*$pb.pageStartIndex*/80
+       and rownum &lt= /*$pb.pageEndIndex*/100
+    - - - - - -/
 
     ex) PagingのSQL｛MySQLの場合｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     select BOOK_ID, BOOK_NAME, ...
       from BOOK
      where ...(色々複雑な条件...)
-     limit /*$pb.pageStartIndex*/4, /*$pb.fetchSize*/9
+     limit /*$pb.pageStartIndex*/80, /*$pb.fetchSize*/20
     - - - - - -/
 
     ex) PagingのSQL｛SQLServerの場合｝
