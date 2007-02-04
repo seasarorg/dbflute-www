@@ -72,7 +72,7 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
 <img height="340" width="720" src="images/dbflute_ldb_text_erd.jpg" alt="">
 </a>
 
-    1. Where句に指定する条件で{=}以外の演算子をサポート
+    1. Where句に指定する条件で{=}以外の演算子もサポート
 
         {=, &gt;, &lt;, &gt;=, &lt;=, Like, is null, is not null, in(), not in()}
         全てAND条件によって接合される。
@@ -101,6 +101,34 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         <b>cb.query().setGenreCode_InScope(targetLs);</b>// ☆Point
         final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
         - - - - - - - - -/
+
+        「同じColumnの同じ演算子」に対する条件設定は基本的に上書きです。呼び出した分条件が付くことはありません。
+          ex) cb.query().setBookId_Equal(new BigDecimal(1));
+              cb.query().setBookId_Equal(new BigDecimal(2));// 2の値で上書き → 1の値の条件は上書きされる
+        これは、例えばEqualとかGreaterThanとかの条件を同じColumnの同じ演算子に対して複数指定する意味はないためです。
+        NotEqualに関しては複数指定する意味が存在しますが、NotInScopeを利用することに代替できるのでやはり上書き仕様です。
+        但し、下記で説明するLikeSearchだけは複数条件設定可能の仕様になっています。それはそのような要件が存在するからです。
+
+        ex) BOOKに対してBOOK_NAMEに'S2Dao100%ガッツ'が含まれている(中間一致)ものを検索
+            '100%'の'%'はWildCardとしては扱わず、'|'をEscape文字として'%'をEscapeする。
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // select ...
+        //   from BOOK book
+        //  where book.BOOK_NAME like '%S2Dao100|%ガッツ%' escape '|'
+        // 
+        final LdBookCB cb = new LdBookCB();
+        <b>final LdLikeSearchOption option = new LdLikeSearchOption().likeContain().escapeByPipeLine();</b>
+        <b>cb.query().setBookName_LikeSearch("S2Dao100%ガッツ", option);</b>// ☆Point
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+        - - - - - - - - -/
+
+        PrefixSearchとLikeSearchの違い：
+        PrefixSearchはOption指定無しの単純な前方一致のLike検索です。
+        LikeSearchはOption指定必須で前方一致/後方一致/中間一致指定そしてEscape指定が可能なLike検索です。
+        LikeSearchでPrefixSearchと同じ条件は実現可能です。ex) new LdLikeSearchOption().likePrefix()
+        PrefixSearchの存在意義は薄いかもしれませんが、業務で利用するほとんどはPrefixSearchで
+        事足りる場合が多いため、よく使われるMethodとして単純な引数1つの前方一致専用Methodを用意しています。
+          ※「単にLikeSearchが後からできただけでしょ」っていう厳しい突っ込みももちろんあります。
 
 
     2. OrderBy句に指定するColumn & {Asc or Desc}のDynamic指定をサポート
