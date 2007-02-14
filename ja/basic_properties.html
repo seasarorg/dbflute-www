@@ -268,8 +268,8 @@ torque.projectPrefix        = Ld
 #   daoDiconFileName: (NotRequired - Default 'dbflute.dicon')
 #     The file name of dao dicon. (Required)
 #
-#   jdbcDiconResourceName: (NotRequired - Default 'jdbc.dicon')
-#     The resource name of JDBC dicon.
+#   j2eeDiconResourceName: (NotRequired - Default 'j2ee.dicon')
+#     The resource name of J2EE dicon.
 #
 #   requiredTxComponentName: (NotRequired - Default Java:'requiredTx' C#:'LocalRequiredTx')
 #     The component name of 'requiredTx'-component.
@@ -337,18 +337,44 @@ torque.originalBehaviorAspectMap = map:{}
         誤動作する可能性があるからです(S2Dao.jar内のdao.diconを読んでしまう)。
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    {jdbcDiconResourceName}は、jdbc.diconのResource名です。
-    dao.diconの中で宣言されるjdbc.diconへのinclude-pathとなります。
-    Default値の「jdbc.dicon」で問題なければ未指定で構いません。
+    {j2eeDiconResourceName}は、j2ee.diconのResource名です。
+    dao.diconの中で宣言されるj2ee.diconへのinclude-pathとなります。
+    Default値の「j2ee.dicon」で問題なければ未指定で構いません。
 
-      ※jdbc.diconは、DBFluteは自動生成対象外です。各Projectにて準備して下さい。
-        その各Projectで準備されたjdbc.diconに対する参照をdao.diconに設定するためにこのPropertyが存在します。
+      ※j2ee.diconは、DBFluteは自動生成対象外です。各Projectにて準備して下さい。
+        S2Containerのjar内部に存在するj2ee.diconを利用する場合は、j2ee.diconが参照するjdbc.diconを
+        用意してください。
 
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         DBFlute-0.3.2まではDefault値が'j2ee.dicon'でした。
         また、j2eeDiconResourceNameはdeprecateされました(書けば正常に動作します)。
         詳しくはこちら → <a href="./switch-032to040.html">DBFlute-0.3.2 to 0.4.0</a>
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+	<b>
+	DBFlute-0.4.2以降について
+	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+	　　注意点：
+	　　　[DBFLUTE-51]の「j2eeDiconResourceのDefault値をj2ee.diconに戻す。」
+	　　　対象：j2eeDiconResourceをbuild.propertiesに指定せずにデフォルト値の「jdbc.dicon」を利用されている方
+	　　　作者が勘違いして、jdbc.diconをデフォルト値にとるようにしてしまいましたが、
+	　　　S2の標準では Seasarのjarの内部に j2ee.dicon が存在していて、それが jdbc.dicon をincludeしているため、
+	　　　基本、dbflute.diconからは j2ee.dicon をincludeすれば独自で作成したjdbc.diconが読み込まれることになります。
+	　　　S2の標準に従うために、真に申し訳御座いませんが、デフォルト値を「j2ee.dicon」に戻させて頂きます。
+	　　　　→ 参考 - [Seasar-user:6168] DBFluteの０．４．０以降の設定について
+	　　　　→ 参考 - <a href="http://s2container.seasar.org/ja/stdDicon.html#list">こちら</a>
+	　　
+	　　　既にデフォルト値のjdbc.diconを利用している方：
+	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用できる方＞
+	　　　　　 jdbc.diconに定義されている「S2Containerのjar内部に存在するj2ee.diconと重複するComponent」の定義を
+	　　　　　 削除して下さい。そうすると、dbflute.dicon → j2ee.dicon → jdbc.dicon という参照関係が成立します。
+	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用しない方＞
+	　　　　　 お手数ですが、build.propertiesにj2eeDiconResourceNameプロパティで明示的に「jdbc.dicon」とするか、
+	　　　　　 既存の「jdbc.dicon」を「j2ee.dicon」に名前を変更するようにお願いします。
+	　　
+	　　ご迷惑お掛けしました。
+	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+	</b>
 
     {requiredTxComponentName}は、jdbc.diconで定義されるrequiredTxのComponent名です。
     Default値の「Java:requiredTx/C#:LocalRequiredTx」で問題なければ未指定で構いません。

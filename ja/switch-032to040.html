@@ -102,6 +102,29 @@ build.propertiesに「j2eeDiconResourceNameを省略して利用している方�
     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 
 
+	DBFlute-0.4.2以降について
+	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+	　　注意点：
+	　　　[DBFLUTE-51]の「j2eeDiconResourceのDefault値をj2ee.diconに戻す。」
+	　　　対象：j2eeDiconResourceをbuild.propertiesに指定せずにデフォルト値の「jdbc.dicon」を利用されている方
+	　　　作者が勘違いして、jdbc.diconをデフォルト値にとるようにしてしまいましたが、
+	　　　S2の標準では Seasarのjarの内部に j2ee.dicon が存在していて、それが jdbc.dicon をincludeしているため、
+	　　　基本、dbflute.diconからは j2ee.dicon をincludeすれば独自で作成したjdbc.diconが読み込まれることになります。
+	　　　S2の標準に従うために、真に申し訳御座いませんが、デフォルト値を「j2ee.dicon」に戻させて頂きます。
+	　　　　→ 参考 - [Seasar-user:6168] DBFluteの０．４．０以降の設定について
+	　　　　→ 参考 - <a href="http://s2container.seasar.org/ja/stdDicon.html#list">こちら</a>
+	　　
+	　　　既にデフォルト値のjdbc.diconを利用している方：
+	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用できる方＞
+	　　　　　 jdbc.diconに定義されている「S2Containerのjar内部に存在するj2ee.diconと重複するComponent」の定義を
+	　　　　　 削除して下さい。そうすると、dbflute.dicon → j2ee.dicon → jdbc.dicon という参照関係が成立します。
+	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用しない方＞
+	　　　　　 お手数ですが、build.propertiesにj2eeDiconResourceNameプロパティで明示的に「jdbc.dicon」とするか、
+	　　　　　 既存の「jdbc.dicon」を「j2ee.dicon」に名前を変更するようにお願いします。
+	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+
+
 # --------------------------------------------------------
 #                                       isVersionAfter1040
 #                                       ------------------
