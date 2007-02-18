@@ -258,17 +258,17 @@ torque.projectPrefix        = Ld
 #                                                             _/_/
 
 # /---------------------------------------------------------------------------
-# [DaoDicon Information]
-#   daoDiconNamespace: (NotRequired - Default 'dbflute')
-#     The namespace of dao dicon.
+# [DBFluteDicon Information]
+#   dbfluteDiconNamespace: (NotRequired - Default 'dbflute')
+#     The namespace of dbflute dicon.
 #
-#   daoDiconPackageName: (NotRequired - Default '')
-#     The package name of dao dicon.
+#   dbfluteDiconPackageName: (NotRequired - Default '')
+#     The package name of dbflute dicon.
 #
-#   daoDiconFileName: (NotRequired - Default 'dbflute.dicon')
-#     The file name of dao dicon. (Required)
+#   dbfluteDiconFileName: (NotRequired - Default 'dbflute.dicon')
+#     The file name of dbflute dicon. (Required)
 #
-#   j2eeDiconResourceName: (NotRequired - Default 'j2ee.dicon')
+#   j2eeDiconResourceName: (NotRequired - Default Java:'j2ee.dicon' C#:'ado.dicon')
 #     The resource name of J2EE dicon.
 #
 #   requiredTxComponentName: (NotRequired - Default Java:'requiredTx' C#:'LocalRequiredTx')
@@ -277,12 +277,16 @@ torque.projectPrefix        = Ld
 #   requiresNewTxComponentName: (NotRequired - Default Java:'requiresNewTx' C#:'LocalRequiresNewTx')
 #     The component name of 'requiresNewTx'-component.
 #
-#   daoDiconOtherIncludeDefinitionMap: (NotRequired - Default 'map:{}')
-#     The definition map of dao-dicon's include path.
+#   dbfluteDiconBeforeJ2eeIncludeDefinitionMap: (NotRequired - Default 'map:{}')
+#     The definition map of dbflute dicon include path before j2ee including.
+#     ex) map:{ dbflute/jdbc-xxx.dicon = dummy }
+#
+#   dbfluteDiconOtherIncludeDefinitionMap: (NotRequired - Default 'map:{}')
+#     The definition map of dbflute dicon other include path.
 #     ex) map:{ dbflute/common.dicon = dummy }
 #
 #   originalDaoComponentMap: (NotRequired - Default 'map:{}')
-#     The map of the original dao component.
+#     The map of the original dbflute component.
 #     If componentName have '*' as prefix, the component should be Dao.
 #     ex) map:{ \
 #             ; *bookAuthorDao = map:{ className=dbflute.ldb.nongenerate.dao.BookAuthorDao } \
@@ -291,23 +295,25 @@ torque.projectPrefix        = Ld
 #
 #   originalBehaviorAspectMap: (NotRequired - Default 'map:{}')
 #     The map of the original behavior aspect.
-#     ex) map:{ shopIdConditionAppendInterceptor = map:{ \
-#                   className=MspadminBiz.Dao.Original.ShopIdConditionAppendInterceptor \
-#                   ; pointcut=DelegateRead.*, DelegateSelect.* \
+#     ex) map:{ interceptorName = map:{ \
+#                   className=org.seasar.dbflute.InterceptorClassName \
+#                   ; pointcut=selectList.*, selectEntity.* \
 #               } \
 #         }
 #
 #   *Attension:
-#      It is necessary that main dicon of application includes dao dicon.
+#      It is necessary that main dicon of application includes dbflute dicon.
+#      ex) App dicon includes dbflute dicon.
 #
-torque.daoDiconNamespace            = dbflute
-torque.daoDiconPackageName          = ../resources
-torque.daoDiconFileName             = dbflute-ldb.dicon
-torque.jdbcDiconResourceName        = jdbc-ldb.dicon
+torque.dbfluteDiconNamespace        = dbflute
+torque.dbfluteDiconPackageName      = ../resources
+torque.dbfluteDiconFileName         = dbflute-ldb.dicon
+torque.j2eeDiconResourceName        = jdbc-ldb.dicon
 torque.requiredTxComponentName      = requiredTx
 torque.requiresNewTxComponentName   = requiresNewTx
-torque.daoDiconOtherIncludeDefinitionMap = map:{}
-torque.originalDaoComponentMap = map:{ \
+torque.dbfluteDiconBeforeJ2eeIncludeDefinitionMap = map:{ dbflute/jdbc-xxx.dicon = dummy }
+torque.dbfluteDiconOtherIncludeDefinitionMap = map:{ dbflute/common.dicon = dummy }
+torque.originalDBFluteComponentMap = map:{ \
              ; *libraryDetailDao = map:{ className=dbflute.ldb.nongenerate.dao.LibraryDetailDao } \
              ; blackListHandler  = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
          }
@@ -317,17 +323,25 @@ torque.originalBehaviorAspectMap = map:{}
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     diconの設定に関するPropertyです。
 
-    {daoDiconNamespace}は、dao.diconのnamespaceです。
+    {dbfluteDiconNamespace}は、dbflute.diconのnamespaceです。
     Default値の「dbflute」で問題なければ未指定で構いません。
 
-    {daoDiconPackageName}は、dao.diconの出力先です。
+      ※daoDiconNamespaceと記述しても永遠に同じ動作をします。
+        同時に存在する場合はdbfluteDiconNamespaceが優先されます。
+
+
+    {dbfluteDiconPackageName}は、dbflute.diconの出力先です。
     Default値の「Sourceの出力先Directory直下(src/main/javaなど)」で問題なければ未指定で構いません。
     もし、別の場所に出力させたいのであれば「../resources」というように相対Pathで指定します。
     (上記のLDBの場合は、一般的なdiconの配置先src/main/resourcesに出力されるように指定しています)
-    また、Test用Projectなどが存在して、もう一つ全く同じdao.diconを別の場所に出力したいという場合は、
+    また、Test用Projectなどが存在して、もう一つ全く同じdbflute.diconを別の場所に出力したいという場合は、
     ';'で区切ってもう一つPathを指定することで可能です。ex) ../resources; ../../test/resources
 
-    {daoDiconFileName}は、dao.diconのFile名です。
+      ※daoDiconPackageNameと記述しても永遠に同じ動作をします。
+        同時に存在する場合はdbfluteDiconPackageNameが優先されます。
+
+
+    {dbfluteDiconFileName}は、dbflute.diconのFile名です。
     Default値の「dbflute.dicon」で問題なければ未指定で構いません。
 
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -336,6 +350,10 @@ torque.originalBehaviorAspectMap = map:{}
         既にS2DaoのJarの中に含まれており、Projectを細かく分けて参照した際に
         誤動作する可能性があるからです(S2Dao.jar内のdao.diconを読んでしまう)。
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+      ※daoDiconFileNameと記述しても永遠に同じ動作をします。
+        同時に存在する場合はdbfluteDiconFileNameが優先されます。
+
 
     {j2eeDiconResourceName}は、j2ee.diconのResource名です。
     dao.diconの中で宣言されるj2ee.diconへのinclude-pathとなります。
@@ -373,29 +391,71 @@ torque.originalBehaviorAspectMap = map:{}
 	　　　　　 既存の「jdbc.dicon」を「j2ee.dicon」に名前を変更するようにお願いします。
 	　　
 	　　ご迷惑お掛けしました。
+	　　
+	　　今後、j2eeDiconResourceNameでもjdbcDiconResourceNameでもどちらでも指定しても永遠に同じ動作をします。
 	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	</b>
+
 
     {requiredTxComponentName}は、jdbc.diconで定義されるrequiredTxのComponent名です。
     Default値の「Java:requiredTx/C#:LocalRequiredTx」で問題なければ未指定で構いません。
 
+
     {requiresNewTxComponentName}は、jdbc.diconで定義されるrequiresNewTxのComponent名です。
     Default値の「Java:requiresNewTx/C#:LocalRequiresNewTx」で問題なければ未指定で構いません。
 
-    {daoDiconOtherIncludeDefinitionMap}は、dao.diconでj2ee.dicon以外の別のDiconをIncludeしたい場合に利用します。
-    dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
-    特に何もなければ未指定で構いません。
 
-    {originalDaoComponentMap}は、dao.diconに独自のComponentを登録したい場合に利用します。
-    dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
+    {dbfluteDiconBeforeJ2eeIncludeDefinitionMap}は、dbflute.diconでj2ee.dicon以外の別のDiconを
+    Includeしたい場合に利用します。
+    dbflute.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
+    特に何もなければ未指定で構いません。
+    j2ee.diconの宣言よりも下の行に出力されるため、S2ContainerがComponentの探索を行う際に
+    S2Containerの動作仕様によりj2ee.diconよりも後に評価されます。
+    mapのKey値にdbflute.diconにincludeされる(されたい)diconのResourceNameを記述します。
+    Value値は利用していませんので'dummy'とお書き下さい。(将来の拡張領域の予定)
+
+      ※daoDiconBeforeJ2eeIncludeDefinitionMapと記述しても永遠に同じ動作をします。
+        同時に存在する場合はdbfluteDiconBeforeJ2eeIncludeDefinitionMapが優先されます。
+
+      ※S2ContainerのXInclude機能を利用することにより、このPropertyを利用しなくても同様の動きを
+        実現することが可能です。XIncludeはComponentだけをかき集めますので、「include部分だけをOverrideする」
+        ようなことが可能になります。詳しくは<a href="http://s2container.seasar.org/ja/xinclude.html">こちら</a>
+        (但し、Xerces-2.7.0 以上が必須であることにご注意下さい)
+
+
+    {dbfluteDiconOtherIncludeDefinitionMap}は、dbflute.diconでj2ee.dicon以外の別のDiconを
+    Includeしたい場合に利用します。
+    dbflute.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
+    特に何もなければ未指定で構いません。
+    j2ee.diconの宣言よりも下の行に出力されるため、S2ContainerがComponentの探索を行う際に
+    S2Containerの動作仕様によりj2ee.diconよりも後に評価されます。
+    mapのKey値にdbflute.diconにincludeされる(されたい)diconのResourceNameを記述します。
+    Value値は利用していませんので'dummy'とお書き下さい。(将来の拡張領域の予定)
+
+      ※daoDiconOtherIncludeDefinitionMapと記述しても永遠に同じ動作をします。
+        同時に存在する場合はdbfluteDiconOtherIncludeDefinitionMapが優先されます。
+
+      ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
+
+
+    {originalDBFluteComponentMap}は、dbflute.diconに独自のComponentを登録したい場合に利用します。
+    dbflute.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     手動で作成されたDaoはこれを利用して登録します。ComponentNameにPrefixとして'*'を付けるとDaoとして認識されます。
     特に何もなければ未指定で構いません。
 
-    {originalBehaviorAspectMap}は、dao.diconに独自のBehaviorAspect(Interceptor)を登録したい場合に利用します。
+      ※originalDaoComponentMapと記述しても永遠に同じ動作をします。
+        同時に存在する場合はoriginalDBFluteComponentMapが優先されます。
+
+      ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
+
+
+    {originalBehaviorAspectMap}は、dbflute.diconに独自のBehaviorAspect(Interceptor)を登録したい場合に利用します。
     dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     特に何もなければ未指定で構いません。
 
-    ※Applicationが利用するxxx.diconがdao.diconをIncludeする必要があります。
+
+    ※Applicationが利用するxxx.diconがdbflute.diconをIncludeする必要があります。
+      例えば、app.diconがdbflute.diconをincludeするのが一般的です。
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 

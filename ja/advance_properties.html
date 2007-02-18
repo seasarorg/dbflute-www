@@ -222,7 +222,6 @@ torque.additionalForeignKeyMap = map:{ \
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                                 Source Reduction
 #                                                         _/_/_/_/
-(DBFlute-0.4.0より)
 
 # /---------------------------------------------------------------------------
 # [Make Deprecated] (NotRequired - Default 'true')
@@ -237,6 +236,8 @@ torque.isMakeDeprecated = false
 
     自動生成されるSourceの量を減らすためにも、DeprecatedのMethodをどうしても利用しなければ
     ならない理由が無い限り、この設定をfalseにすることをお奨めします。
+
+    (DBFlute-0.4.0より)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -258,6 +259,8 @@ torque.isMakeConditionQueryNumericArgumentLong = true
 
     但し、ただこれだけのことでConditionQueryのSource量が膨張してしまうのは、TradeOffが大きいような気も
     します。CompileのSpeedを優先する場合はこの設定をfalseにすることをお奨めします。
+
+    (DBFlute-0.4.0より)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -277,7 +280,47 @@ torque.isMakeBehaviorForUpdate = false
 
     また、「時々ForUpdateすることがある」場合でも、ConditionBeanでForUpdateすることは可能なので、
     Behaviorに生成されるSelectForUpdate関連のMethodが不要であれば、遠慮なくfalseにしてOKです。
+
+    (DBFlute-0.4.0より)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+# _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#                                                   Other Property
+#                                                         _/_/_/_/
+
+# /---------------------------------------------------------------------------
+# [DaoMethodLazyInitializing] (NotRequired - Default 'true')
+#   [true]
+#     S2Dao initialize per dao method.
+#
+#   [false]
+#     S2Dao initialize per dao interface(default behavior).
+#
+torque.isAvailableDaoMethodLazyInitializing = true
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    S2Daoの初回Access時の初期化処理をDaoのMethod単位で行うかInterface単位で行うかを選択します。
+
+    S2DaoはDefaultでInterface単位で初期化します。すると、JUnitなどで自動Testを行う場合、
+    1Methodの実行のためにInterfaceの全てMethodを初期化するのでTest全体の実行が遅くなります。
+    それがいやな場合は、このPropertyをtrueにすることによって、呼び出したMethodのみ初期化される
+    ようになります。
+
+    ★TODO: ｛2007/02/18｝
+    DBFluteでの実験的な機能となります。
+    Release時(というか結合Test前など)にはS2DaoのDefault(このPropertyをfalse)にすることを
+    お奨めします。いずれ、generateし直さなくてもdbflute.diconのある場所を変えれば
+    動きが変わるようにしたいと思っています。
+    また、効果があるようであればS2Dao自身にこのOption機能を付けても良いかと考えております。
+
+    ※まだJava版のみの対応です。｛2007/02/18｝
+
+    (DBFlute-0.4.2より)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 </pre>
 </p>
