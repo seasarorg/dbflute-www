@@ -488,12 +488,14 @@ Pagingで検索する画面は、複雑なSQLになりがちです。なので�
     ex) PagingのSQL｛Oracleの場合｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     select *
-      from (select BOOK_ID, BOOK_NAME, ...
-              from BOOK
-             where ...(色々複雑な条件...)
-           ) book
-     where rownum &gt; /*$pb.pageStartIndex*/80
-       and rownum &lt= /*$pb.pageEndIndex*/100
+      from (select book.*, rownum as rn
+              from (select BOOK_ID, BOOK_NAME, ...
+                      from BOOK
+                     where ...(色々複雑な条件...)
+                   ) book
+           )
+     where rn &gt; /*$pb.pageStartIndex*/80
+       and rn &lt= /*$pb.pageEndIndex*/100
     - - - - - -/
 
     ex) PagingのSQL｛MySQLの場合｝
