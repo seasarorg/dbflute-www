@@ -69,13 +69,14 @@ DBFluteには、S2Daoの“外だしSQL”(SQLファイル)から、それに対
 //                                      Sql2Entityの処理
 //                                      ----------------
 
-Client-Directoryに用意されている「sql2entity.bat」を実行すると以下のような処理が実行されます。
+Client-Directoryに用意されている「<b>sql2entity.bat</b>」を実行すると以下のような処理が実行されます。
+
 
     1. 'exdao'以下(ExtendedDao)のDirectoryに存在する'.sql'ファイルを読み込む。
 
       ex) LdBookDao_selectBookCollectionStatistic.sql
       /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      --#BookCollectionStatistic#
+      <b>--#BookCollectionStatistic#</b>
       select book.BOOK_ID
            , book.BOOK_NAME
            , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
@@ -87,26 +88,24 @@ Client-Directoryに用意されている「sql2entity.bat」を実行すると�
       ;
       - - - - - - - - - -/
 
+
     2. '.sql'の中に'--#entityName#'と記載されているものを対象にSQLを実行する。
+
+      SQLだけではどうしても自動生成するEntityName(Class名)は推測できませんので、
+      '--#'と'#'の間に存在する文字列をEntityNameとし、その文字列が存在する'.sql'だけを対象として実行します。
+      (全ての'.sql'が新たなEntityを必要とするわけではないので、EntityNameの有無でそれを区別します)
+
+      '-- #'というように空白が一つ空いても構いません(２つ以上はダメ)。{MySQL対応}
+        → MySQLの場合は、逆に空白が空いていないといけません。
+           文法上「--」がCommentではなく「--(空白)」で初めてCommentと認識されるようです。
+           (MySQL-5.0.x にて確認)
+
 
     3. 結果のResultSetのMetaDataから、ColumnNameとColumnTypeを取得する。
 
+
     4. CustomizeEntityを自動生成する。
 
-
-※「2」に関して、SQLだけではどうしても自動生成するEntityName(Class名)は推測できませんので、
-  '--#'と'#'の間に存在する文字列をEntityNameとし、その文字列が存在する'.sql'だけを対象として実行します。
-  (全ての'.sql'が新たなEntityを必要とするわけではないので、EntityNameの有無でそれを区別します)
-
-
-※'-- #'というように空白が一つ空いても構いません(２つ以上はダメ)。{MySQL対応}
-
-  → MySQLの場合は、逆に空白が空いていないといけません。
-     文法上「--」がCommentではなく「--(空白)」で初めてCommentと認識されるようです。
-     (MySQL-5.0.x にて確認)
-
-
-※同時に“外だしSQL”が設定されたTest値でしっかり動作するかのTestにもなります。
 
 
 // -----------------------------------------------------
@@ -120,7 +119,7 @@ exdaoのどれかのDaoにMethodを追加します。
 
     ex) LdBookDaoにBookCollectionStatisticを検索するMethodを定義
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public java.util.List&lt;LdBookCollectionStatistic&gt; selectBookCollectionStatistic(String bookName);
+    <b>public java.util.List&lt;LdBookCollectionStatistic&gt; selectBookCollectionStatistic(String bookName);</b>
     - - - - - - - - - -/
 
 Entity検索 → 戻り値の型にCustomizeEntityを指定する。
@@ -133,13 +132,6 @@ Array検索  → ArrayのElementの型にCustomizeEntityを指定する。
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 本来、S2Dao-1.0.XXは「1Daoに付き1Entity」なのですが、DBFluteがS2Daoを拡張して上記の利用方法を可能としました。
 (拡張は、DaoMetaDataImplを継承拡張しているだけなので、利用するS2Daoのjarは公式Siteから手に入るものでOKです)
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-★TODO: これは、S2Dao-1.0.Xに含めても良い機能ではないかと思っています。{2006/11/06現在}
-        Java版に関してはS2Dao-1.1がReleaseされるまでのつなぎの拡張なので要検討ではありますが、
-        C#版に関しては対応しても良いのではと思っています。
-        このDBFluteで実績を付けてから提案なり検討していきたいと思います。
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 制限としては、JDK-1.4を利用される場合はListのElement指定ができないため、List検索ではこの方式は利用できません。
 その場合(JDK-1.4)は、Arrayの戻り値を使うようにして下さい
@@ -201,8 +193,8 @@ PrimaryKeyを設定するとEntityにてPrimaryKeyを識別することができ
 
     ex) LdBookDao.selectBookCollectionStatistic()の'.sql'
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    --#BookCollectionStatistic#
-    --*BOOK_ID*
+    <b>--#BookCollectionStatistic#</b>
+    <b>--*BOOK_ID*</b>
     select book.BOOK_ID
          , book.BOOK_NAME
          , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
@@ -231,13 +223,13 @@ SQLへ渡すParameter(引数)の数が多くなりがちです。
 
     ex) LdBookDao.selectBookCollectionStatistic()の'.sql'
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    --#BookCollectionStatistic#
-    --*BOOK_ID*
-
+    <b>--#BookCollectionStatistic#</b>
+    <b>--*BOOK_ID*</b>
+    <b>
     --!BookCollectionStatisticPmb!
     --!!java.math.BigDecimal bookId!!
     --!!String bookName!!
-
+    </b>
     select book.BOOK_ID
          , book.BOOK_NAME
          , (select count(*) from COLLECTION where BOOK_ID = book.BOOK_ID) as COLLECTION_COUNT
