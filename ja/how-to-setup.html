@@ -68,6 +68,11 @@ Setupの方法を記述します。
         ex) DBFLUTE_HOME = C:\java\dbflute-1.0
 
 
+    ※Projectに適応する場合に有効な別のやり方が存在します。
+      このページの一番下の【Project固有DBFlute】の欄をご覧下さい。
+
+
+
 # -------------------------------------------
 #                            Client-Directory
 #                            ----------------
@@ -192,6 +197,51 @@ Setupの方法を記述します。
 環境変数'ANT_OPTS'を追加して、'-Xmx256M'を設定します。
 ※これはDBFluteの機能ではなくANTの機能です。
 
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+【Project固有DBFlute】
+
+複数Projectを兼務していて、一つのPCで違ったVersionのDBFluteを利用したい場合は、
+DBFLUTE_HOMEをPCの固定の環境変数として設定するのではなく、
+ClientDirectoryの「_project.bat」に以下のような設定を追加することで実現できます。
+
+    set DBFLUTE_HOME = (そのProjectで利用するDBFluteのDirectory)
+
+これは、開発者が多いProject、かつ、GenerateやSql2Entityを各開発者自身が実行するProjectなどにも有効です。
+VersionUpの度に各開発者がLocalPC上のDBFluteを最新にする必要がなくなります。
+(Projectで誰か一人がVersion管理System上にDBFluteを配置するだけで良くなる。)
+
+
+例えば以下のようなDirectory構成
+
+  xxxproject
+      |
+      +- .settings
+      |
+      +- dbflute                   // DBFluteのClientDirectory
+      |     |
+      |     |
+      |     +- log
+      |     +- output
+      |     +- playsql
+      |     +- schema
+      |     +- _project.bat ☆
+      |     +- ...
+      |
+      +- mydbflute                 // DBFlute本体の格納場所
+      |     |
+      |     +- dbflute-0.4.4       // 古いVersionはいずれ削除してもよい。
+      |     +- dbflute-0.4.5
+      |     +- ...                 // _project.batには最新のDBFluteを設定しておく。
+      | 
+      +- src/main/java
+      +- src/main/resources
+      +- ...
+      ...
+
+
+☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
 
 
 </pre>
