@@ -46,7 +46,7 @@ DBFlute-0.4.3 から DBFlute-0.4.4 へ移行する際の注意点を記述しま
 # ---------------------------------------------------
 #                                        [DBFLUTE-74]
 #                                        ------------
-以下の条件に“全て”あてはまる方は「ある設定」の追加をお願いします。
+以下の条件に“全て”あてはまる方に関係します。
 
 
 A. Java版を利用している。
@@ -60,38 +60,19 @@ KeyPointは「projectPrefix」です。
 build-xxx.propertiesに「torque.projectPrefix = Ld」と設定すると
 全てのClassのClass名の先頭に「Ld」が付加されます。
 
-今まではprojectPrefixを付けても、「dbflute.diconに定義されるBehaviorのComponent名」
+DBFlute-0.4.3 までは、projectPrefixを付けても、「dbflute.diconに定義されるBehaviorのComponent名」
 にはそのprojectPrefixは付加されませんでした。
-
-なので、LdBookBhvというBehaviorClassが存在している場合、
-
-    protected LdBookBhv bookBhv;
-    public void setBookBhv(LdBookBhv bookBhv) {
-        this.bookBhv = bookBhv;
-    }
-
-という書き方で、SetterInjectionされていました。
-
 
 DBFlute-0.4.4 では、projectPrefixが設定されていたら、
 「dbflute.diconに定義されるBehaviorのComponent名」にもprojectPrefixを付与します。
-
-なので、上記の例は以下のようになります。
-
-    protected LdBookBhv ldBookBhv;
-    public void setLdBookBhv(LdBookBhv ldBookBhv) {
-        this.ldBookBhv = ldBookBhv;
-    }
-
-これは、
 
 [Seasar-user:7068] Re: [DBFlute] 複数ＤＢアクセス時のallcommonについて
 
 による修正です。
 
 
-無論、今まで「ABCD」の条件に当てはまる方がいる場合に、それまでのProgramを修正するのは大変です。
-なので、今まで通りの振る舞いをするPropertyを用意しています。
+もし、このことによって不都合が発生する方がいらっしゃいましたら、
+今まで通りの振る舞いをするPropertyを用意していますので以下を設定して下さい。
 
 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
 torque.isAppendProjectSuffixToComponentName = false
