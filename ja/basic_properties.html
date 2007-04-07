@@ -233,22 +233,47 @@ torque.isAvailableGenerics = true
 #                                                   _/_/_/_/_/_/_/
 
 # /---------------------------------------------------------------------------
-# [ProjectPrefix]
+# [PrefixAndSuffix]
 #
-#   projectPrefix: (NotRequired - Default '')
+#   projectPrefix: (NotRequired - Default null)
 #     If the property is 'Ld', all class names are 'LdXxx'.
 #
-torque.projectPrefix        = Ld
+#   isAppendProjectSuffixToComponentName: (NotRequired - Default 'true')
+#     Default value is true.
+#     [true]
+#       The component name of bhv and dao have the prefix of project.
+#
+#     [false]
+#       Non.
+#
+torque.projectPrefix		= Ld
+torque.isAppendProjectSuffixToComponentName = true
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Class名の前後に付加する文字列の指定です。
+    <b>[projectPrefix]</b>は、Class名の前後に付加する文字列の指定です。
 
     {projectPrefix}は、すべてのClass名の最初に「XX」を付けたいという場合に利用します。
     Projectなどで、統一される場合に有効です。そうでない場合は未指定でOKです。
 
+    また、DBFluteで複数DB対応する場合に有効です。
+    複数DB対応する場合は、RootPackageを変えた２つのDBFluteClass群を作成します。
+    その場合、互いのallcommon内に同名Classが作成されてしまいますので、
+    互いに別のprojectPrefixを付けることで明確に違いを付ける事ができます。
+
+    など、DBFlute-0.4.4以降では、このprojectPrefixはdbflute.diconに登録される
+    BehaviorのComponent名にも付与されます。
+
     【注意】
     InnerClassに関しては、このPrefixは付与されません。
+
+
+    <b>[isAppendProjectSuffixToComponentName]</b>は、DBFlute-0.4.3 以前を利用されてして、
+    projectPrefixがdbflute.diconに登録されるBehaviorのComponent名にも付与されたくない方の
+    ためのPropertyです。falseにすることによって、DBFlute-0.4.3 以前と同様の判定になります。
+
+    詳しくはこちら↓
+    <a href="./migration/migrate-043to044.html">DBFlute-0.4.3 から 0.4.4 への移行時の注意</a>
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -301,6 +326,13 @@ torque.projectPrefix        = Ld
 #               } \
 #         }
 #
+#   isAvailableBehaviorRequiresNewTx: (NotRequired - Default true)
+#     Is available the behavior setting about requiresNewTx in dbflute.dicon?
+#
+#   isAvailableBehaviorRequiredTx: (NotRequired - Default true)
+#     Is available the behavior setting about requiredTx in dbflute.dicon?
+#
+#
 #   *Attension:
 #      It is necessary that main dicon of application includes dbflute dicon.
 #      ex) App dicon includes dbflute dicon.
@@ -318,19 +350,21 @@ torque.originalDBFluteComponentMap = map:{ \
              ; blackListHandler  = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
          }
 torque.originalBehaviorAspectMap = map:{}
+torque.isAvailableBehaviorRequiresNewTx = true
+torque.isAvailableBehaviorRequiredTx = true
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     diconの設定に関するPropertyです。
 
-    {dbfluteDiconNamespace}は、dbflute.diconのnamespaceです。
+    <b>{dbfluteDiconNamespace}</b>は、dbflute.diconのnamespaceです。
     Default値の「dbflute」で問題なければ未指定で構いません。
 
       ※daoDiconNamespaceと記述しても永遠に同じ動作をします。
         同時に存在する場合はdbfluteDiconNamespaceが優先されます。
 
 
-    {dbfluteDiconPackageName}は、dbflute.diconの出力先です。
+    <b>{dbfluteDiconPackageName}</b>は、dbflute.diconの出力先です。
     Default値の「Sourceの出力先Directory直下(src/main/javaなど)」で問題なければ未指定で構いません。
     もし、別の場所に出力させたいのであれば「../resources」というように相対Pathで指定します。
     (上記のLDBの場合は、一般的なdiconの配置先src/main/resourcesに出力されるように指定しています)
@@ -341,7 +375,7 @@ torque.originalBehaviorAspectMap = map:{}
         同時に存在する場合はdbfluteDiconPackageNameが優先されます。
 
 
-    {dbfluteDiconFileName}は、dbflute.diconのFile名です。
+    <b>{dbfluteDiconFileName}</b>は、dbflute.diconのFile名です。
     Default値の「dbflute.dicon」で問題なければ未指定で構いません。
 
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -377,7 +411,7 @@ torque.originalBehaviorAspectMap = map:{}
 	　　　対象：j2eeDiconResourceをbuild.propertiesに指定せずにデフォルト値の「jdbc.dicon」を利用されている方
 	　　　作者が勘違いして、jdbc.diconをデフォルト値にとるようにしてしまいましたが、
 	　　　S2の標準では Seasarのjarの内部に j2ee.dicon が存在していて、それが jdbc.dicon をincludeしているため、
-	　　　基本、dbflute.diconからは j2ee.dicon をincludeすれば独自で作成したjdbc.diconが読み込まれることになります。
+	　　　基本、dbflute.diconからはj2ee.diconをincludeすれば独自で作成したjdbc.diconが読み込まれることになります。
 	　　　S2の標準に従うために、真に申し訳御座いませんが、デフォルト値を「j2ee.dicon」に戻させて頂きます。
 	　　　　→ 参考 - [Seasar-user:6168] DBFluteの０．４．０以降の設定について
 	　　　　→ 参考 - <a href="http://s2container.seasar.org/ja/stdDicon.html#list">こちら</a>
@@ -452,6 +486,14 @@ torque.originalBehaviorAspectMap = map:{}
     {originalBehaviorAspectMap}は、dbflute.diconに独自のBehaviorAspect(Interceptor)を登録したい場合に利用します。
     dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     特に何もなければ未指定で構いません。
+
+    {isAvailableBehaviorRequiresNewTx}は、dbflute.diconに登録されているBehaviorの
+    requiresNewTxの設定を有効にするか否かを判定します。
+    ※DBFlute-0.4.4から
+
+    {isAvailableBehaviorRequiredTx}は、dbflute.diconに登録されているBehaviorの
+    requiredTxの設定を有効にするか否かを判定します。
+    ※DBFlute-0.4.4から
 
 
     ※Applicationが利用するxxx.diconがdbflute.diconをIncludeする必要があります。

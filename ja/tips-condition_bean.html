@@ -462,7 +462,7 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         final LdCollectionCB cb = new LdCollectionCB();
         <b>cb.limitSelect_PKOnly();</b>// ☆Point
         cb.query().queryCollectionStatus().setCollectionStatusCode_Equal_OUT();
-        java.util.List&lt;LdCollection&gt; ls = dao.selectList(cb);
+        final java.util.List&lt;LdCollection&gt; ls = dao.selectList(cb);
         for (LdCollectionCB entity : ls) {
             final BigDecimal collectionId = entity.getCollectionId();
         }
@@ -472,6 +472,30 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         タイプセーフにCodeの条件を指定できる。詳しくは<a href="./tips-classification.html">こちら</a>
 
 
+    11. 同じTable間のUnionが可能。
+
+        「互いに同じTableであること」限定のUnionが可能です。※DBFlute-0.4.4から
+        これにより、「複合主キーのInScope」・「or条件」を代替することが可能です。
+
+        ex) 「BookNameの'S2Dao'前方一致のもの」もしくは「BookIdが'3'のもの」
+             そして、Author結合してBookNameの降順に。
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        final LdBookCB cb = new LdBookCB();
+        cb.setupSelect_Author();
+        cb.query().setBookName_PrefixSearch("S2Dao");
+        {
+            <b>final LdBookCB unionCB = new LdBookCB();</b>
+            <b>unionCB.query().setBookId_Equal(new BigDecimal(3));</b>
+        }
+        <b>cb.union(unionCB.query());</b>
+        cb.query().addOrderBy_BookName_Desc();
+        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+        - - - - - - - - -/
+
+        - BaseのConditionBeanにUnionのConditionBeanを登録する。
+        - Select句やOrderBy句はBaseのConditionBeanにて指定したものが採用される。
+        - cb.setupSelect_Xxx()は、cb.union()実行前に呼び出すこと。
+        - UnionAllがしたい場合は、cb.unionAll()を利用すること。
 
 </pre>
 </p>
