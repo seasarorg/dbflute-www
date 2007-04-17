@@ -87,7 +87,7 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         final LdBookCB cb = new LdBookCB();
         <b>cb.query().setBookName_PrefixSearch("S2Dao");</b>// ☆Point - '%'は内部で自動的に付与される
         <b>cb.query().setGenreCode_IsNotNull();</b>// ☆Point
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
         - - - - - - - - -/
 
         ex) BOOKに対してGENRE_CODEが{'NOVEL', 'HOW-TO-BOOK'}のものを検索
@@ -99,7 +99,7 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         final LdBookCB cb = new LdBookCB();
         final java.util.List targetLs = java.util.Arrays.asList(new String[]{"NOVEL", "HOW-TO-BOOK"});
         <b>cb.query().setGenreCode_InScope(targetLs);</b>// ☆Point
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
         - - - - - - - - -/
 
         「同じColumnの同じ演算子」に対する条件設定は基本的に上書きです。呼び出した分条件が付くことはありません。
@@ -119,48 +119,10 @@ ConditionBeanのPolicyについては、<a href="./condition_bean_policy.html">C
         final LdBookCB cb = new LdBookCB();
         <b>final LdLikeSearchOption option = new LdLikeSearchOption().likeContain().escapeByPipeLine();</b>
         <b>cb.query().setBookName_LikeSearch("S2Dao100%ガッツ", option);</b>// ☆Point
-        final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
+        final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
         - - - - - - - - -/
 
-        PrefixSearchとLikeSearchの違い：
-        PrefixSearchはOption指定無しの単純な前方一致のLike検索です。
-        LikeSearchはOption指定必須で前方一致/後方一致/中間一致指定そしてEscape指定が可能なLike検索です。
-        LikeSearchでPrefixSearchと同じ条件は実現可能です。ex) new LdLikeSearchOption().likePrefix()
-        PrefixSearchの存在意義は薄いかもしれませんが、業務で利用するほとんどはPrefixSearchで
-        事足りる場合が多いため、よく使われるMethodとして単純な引数1つの前方一致専用Methodを用意しています。
-          ※「単にLikeSearchが後からできただけでしょ」っていう厳しい突っ込みももちろんあります。
-
-        【LikeSearchOptionについて】
-        {一致の振舞い}
-          likeXxx()を呼び出すことで、一致の振舞い{前方一致/中間一致など}を選択できます。
-            likeContain() → 中間一致検索 ※Wildcardは自動付与
-            likePrefix()  → 前方一致検索 ※Wildcardは自動付与
-            likeSuffix()  → 後方一致検索 ※Wildcardは自動付与
-        {Escape処理}
-          escapeByXxx()を呼び出すことで、Escape処理(column like 'xxx' escape 'x')を付与できます。
-            escapeByPipeLine()  → Escapse文字はPipeLine  '|'
-            escapeByAtMark()    → Escapse文字はAtMark    '@'
-            escapeBySlash()     → Escapse文字はSlash     '/'
-            escapeByBackSlash() → Escapse文字はBackSlash '\'
-        {Split処理}
-          splitByXxx()を呼び出すことで、引数のvalueをSplitして複数のAND条件として付与できます。
-            ex)splitBySpace()
-              引数が“aaa bbb”ならば、生成される条件は「column like 'aaa' and column like 'bbb'」
-            splitBySpace()                    → 半角空白をDelimiterとしてSplit
-            splitBySpaceContainsDoubleByte()  → 全角空白と半角空白をDelimiterとしてSplit
-            splitByPipeLine()                 → PipeLine'|'をDelimiterとしてSplit
-            ※それぞれ引数'int splitLimitCount'を指定すると、Splitした場合に先頭のsplitLimitCount件だけを有効とする
-        {Case処理}
-          toUpperCase() → 引数のvalueを大文字に変換して条件を作成
-          toLowerCase() → 引数のvalueを大文字に変換して条件を作成
-        {SingleByte処理}
-          toSingleByteSpace()              → 引数のvalueの全角空白を半角空白に変換
-          toSingleByteAlphabetNumber()     → 引数のvalueのAlphabetと数字を半角に変換
-          toSingleByteAlphabetNumberMark() → 引数のvalueのAlphabetと数字と記号を半角に変換
-        {Local:Japanese処理}
-          localJapanese().toDoubleByteKatakana() → 引数のvalueの半角カタカナを全角カタカナに変換
-          localJapanese().removeLastLongVowel()  → 引数のvalueの末尾の延ばし文字“ー”を除去
-            ex) 引数のvalueが“オーダー”ならば“オーダ”で検索する。
+        <a href="./tips-condition_bean_comparison.html">その他比較条件について</a>
 
 
     2. OrderBy句に指定するColumn & {Asc or Desc}のDynamic指定をサポート

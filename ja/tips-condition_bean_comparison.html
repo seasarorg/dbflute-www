@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- don't edit start -->
+<head>
+<title>Seasar - DI Container with AOP - </title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link href="seasar_b.css" type="text/css" rel="stylesheet" media="screen" />
+<link href="seasar_p.css" type="text/css" rel="stylesheet" media="print" />
+<script src="seasar_b.js" type="text/JavaScript" language="JavaScript"></script>
+</head>
+<body onload="preload('ja')">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="left"><tr>
+<td align="left" valign="top" width="780"><table width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr><td colspan="7"><img height="5" width="780" src="images/top01_b.gif" alt=""></td></tr>
+<tr><td><img height="117" width="235" src="images/top02_b.gif" alt="Seasar"></td>
+<td colspan="3"><img height="117" width="289" src="images/top03.gif" alt="DI Container with AOP"></td>
+<td colspan="3"><img height="117" width="256" src="images/spacer.gif" alt=""></td>
+</tr><tr><td rowspan="2"><img src="images/top04.gif" alt="" height="49" width="235"></td>
+<td><a href="http://www.seasar.org/index.html"><img src="images/menu01_b_ja.gif" height="30" width="78" border="0" alt="" id="menu01" onmouseover="swap(1)" onmouseout="restore(1)"></a></td>
+<td><a href="http://www.seasar.org/projects.html"><img src="images/menu02_b_ja.gif" height="30" width="101" border="0" alt="" id="menu02" onmouseover="swap(2)" onmouseout="restore(2)"></a></td>
+<td><a href="http://www.seasar.org/products.html"><img src="images/menu03_b_ja.gif" height="30" width="110" border="0" alt="" id="menu03" onmouseover="swap(3)" onmouseout="restore(3)"></a></td>
+<td><a href="http://www.seasar.org/resources.html"><img src="images/menu04_b_ja.gif" height="30" width="113" border="0" alt="" id="menu04" onmouseover="swap(4)" onmouseout="restore(4)"></a></td>
+<td><img src="images/menu05_b_ja.gif" height="30" width="109" border="0" alt="" id="menu05" onmouseover="swap(5)" onmouseout="restore(5)"></td>
+<td><img height="30" width="34" src="images/menu06.gif" alt=""></td></tr><tr>
+<td colspan="6"><img height="19" width="545" src="images/spacer.gif" alt=""></td></tr></table>
+<table  width="780" border="0" cellspacing="0" cellpadding="0" class="white">
+<tr align="left" valign="top"><td width="14"><img height="14" width="14" src="images/spacer.gif" alt=""></td><td width="740" class="main">
+<!-- don't edit end -->
+<!-- document start -->
+<p>
+<a href="index.html">to Top</a>
+<p><b>
+ConditionBeanの比較条件の種類について記述します。
+<p></b>
+<pre>
+
+// ======================================================================================================
+//                                                                                                 FromTo
+//                                                                                                 ======
+{DBFlute-0.4.5より}
+
+範囲検索において、終了日の扱いというのはとても「バグりやすい」部分です。
+日付を足す処理や、ミリ秒を落とす処理や、演算子（<, <=）の選択など。
+
+
+例えば、検索画面にて日付のFromとToを入力するような場合(時分秒無し)、
+大抵、入力されたToの「その日一日まるまる」が対象となります。
+それを画面入力値そのままでSQLに渡すとそれが対象外になってしまいます(０時０分０秒のみ対象となる)。
+
+FromTo検索は上記のような検索の場合に以下のように記述可能です。
+
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final java.util.Date fromDate = [画面入力値そのまま]
+    final java.util.Date toDate = [画面入力値そのまま]
+    final LdBookCB cb = new LdBookCB();
+    <b>cb.query().setUTime_FromTo(fromDate, toDate, new LdFromToOption().compareAsDate());</b>// ☆Point!
+    final List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    - - - - - - - - -/
+
+こうすると、
+[fromDateの時分秒が切り捨てられたもの] &lt;= U_TIME &lt; [toDateの時分秒が切り捨てして＋一日]
+という条件になってSQLが発行されます。
+
+これにて演算子の選択ミスや日付操作ミスは無くなります。
+
+
+第１引数のfromDateがnullの場合はtoDateだけの条件が作成され、その逆もまたしかりです。
+両方ともnullの場合は、その条件作成は無視されます。
+
+「setUTime_FromTo(fromDate, null, new LdFromToOption())」 → 通常のGreaterEqualと全く同じ条件
+「setUTime_FromTo(fromDate, null, new LdFromToOption().greaterThan())」 → 通常のGreaterThanと全く同じ条件
+「setUTime_FromTo(null, toDate, new LdFromToOption())」 → 通常のLessEqualと全く同じ条件
+「setUTime_FromTo(null, toDate, new LdFromToOption().lessThan())」 → 通常のLessThanと全く同じ条件
+
+このように、FromToだけでGreaterEqual/GreaterThan/LessEqual/LessThanを全て実現可能です。
+ただし、可読性が少々悪いので、そのような場合は素直にGreaterThanなどを利用することをお奨めします。
+
+もし、少しでもCompileスピードを速めたいという場合には、全ての日付の比較にはFromToを必ず使うように決めて、
+includeQueryMap 機能を使ってGreaterEqual/GreaterThan/LessEqual/LessThanのMethodを全て削除するという
+やり方もあります。(各Projectの方針で決めてください)
+
+
+
+// ======================================================================================================
+//                                                                                             LikeSearch
+//                                                                                             ==========
+{DBFlute-0.4.4より}
+
+Optionつきで様々なLike検索を実現できます。
+
+    ex) BOOKに対してBOOK_NAMEに'S2Dao100%ガッツ'が含まれている(中間一致)ものを検索
+        '100%'の'%'はWildCardとしては扱わず、'|'をEscape文字として'%'をEscapeする。
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // select ...
+    //   from BOOK book
+    //  where book.BOOK_NAME like '%S2Dao100|%ガッツ%' escape '|'
+    // 
+    final LdBookCB cb = new LdBookCB();
+    <b>final LdLikeSearchOption option = new LdLikeSearchOption().likeContain().escapeByPipeLine();</b>
+    <b>cb.query().setBookName_LikeSearch("S2Dao100%ガッツ", option);</b>// ☆Point
+    final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    - - - - - - - - -/
+
+PrefixSearchとLikeSearchの違い：
+PrefixSearchはOption指定無しの単純な前方一致のLike検索です。
+LikeSearchはOption指定必須で前方一致/後方一致/中間一致指定そしてEscape指定が可能なLike検索です。
+LikeSearchでPrefixSearchと同じ条件は実現可能です。ex) new LdLikeSearchOption().likePrefix()
+PrefixSearchの存在意義は薄いかもしれませんが、業務で利用するほとんどはPrefixSearchで
+事足りる場合が多いため、よく使われるMethodとして単純な引数1つの前方一致専用Methodを用意しています。
+  ※「単にLikeSearchが後からできただけでしょ」っていう厳しい突っ込みももちろんあります。
+
+【LikeSearchOptionについて】
+{一致の振舞い}
+  likeXxx()を呼び出すことで、一致の振舞い{前方一致/中間一致など}を選択できます。
+    likeContain() → 中間一致検索 ※Wildcardは自動付与
+    likePrefix()  → 前方一致検索 ※Wildcardは自動付与
+    likeSuffix()  → 後方一致検索 ※Wildcardは自動付与
+{Escape処理}
+  escapeByXxx()を呼び出すことで、Escape処理(column like 'xxx' escape 'x')を付与できます。
+    escapeByPipeLine()  → Escapse文字はPipeLine  '|'
+    escapeByAtMark()    → Escapse文字はAtMark    '@'
+    escapeBySlash()     → Escapse文字はSlash     '/'
+    escapeByBackSlash() → Escapse文字はBackSlash '\'
+{Split処理}
+  splitByXxx()を呼び出すことで、引数のvalueをSplitして複数のAND条件として付与できます。
+    ex)splitBySpace()
+      引数が“aaa bbb”ならば、生成される条件は「column like 'aaa' and column like 'bbb'」
+    splitBySpace()                    → 半角空白をDelimiterとしてSplit
+    splitBySpaceContainsDoubleByte()  → 全角空白と半角空白をDelimiterとしてSplit
+    splitByPipeLine()                 → PipeLine'|'をDelimiterとしてSplit
+    ※それぞれ引数'int splitLimitCount'を指定すると、Splitした場合に先頭のsplitLimitCount件だけを有効とする
+{Case処理}
+  toUpperCase() → 引数のvalueを大文字に変換して条件を作成
+  toLowerCase() → 引数のvalueを大文字に変換して条件を作成
+{SingleByte処理}
+  toSingleByteSpace()              → 引数のvalueの全角空白を半角空白に変換
+  toSingleByteAlphabetNumber()     → 引数のvalueのAlphabetと数字を半角に変換
+  toSingleByteAlphabetNumberMark() → 引数のvalueのAlphabetと数字と記号を半角に変換
+{Local:Japanese処理}
+  localJapanese().toDoubleByteKatakana() → 引数のvalueの半角カタカナを全角カタカナに変換
+  localJapanese().removeLastLongVowel()  → 引数のvalueの末尾の延ばし文字“ー”を除去
+    ex) 引数のvalueが“オーダー”ならば“オーダ”で検索する。
+
+</pre>
+</p>
+
+<!-- document end -->
+</html>
