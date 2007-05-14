@@ -291,6 +291,30 @@ torque.isMakeBehaviorForUpdate = false
 #                                                         _/_/_/_/
 
 # /---------------------------------------------------------------------------
+# [OtherConnectionDaoInitialization]
+#   isAvailableOtherConnectionDaoInitialization: (NotRequired - Default 'false')
+#     this property is valid only when isVersionAfter1040 is true.
+#
+#   *{Java Only}
+#
+torque.isAvailableOtherConnectionDaoInitialization = false
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    S2Daoの初期化時のDatabaseMetaData取得処理に利用するConnectionをTransactionとは別のConnection
+    を利用するか否かを選択します。
+
+    Sybase利用時にて報告されています。(2007/05/15)
+    DatabaseMetaData取得処理にてTransactionが有効になっていると、「DDL in tran」例外が発生します。
+    どうやら内部にてtempdbに対して一時Tableを作成しているようです。
+    このように、DatabaseMetaData取得処理がTransaction内だと不都合がある場合にtrueにします。
+
+    (DBFlute-0.4.7より)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+# /---------------------------------------------------------------------------
 # [DaoMethodLazyInitializing] (NotRequired - Default 'false')
 #   [true]
 #     S2Dao initialize per dao method.
@@ -323,6 +347,36 @@ torque.isAvailableDaoMethodLazyInitializing = true
     (DBFlute-0.4.2より)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+
+# /---------------------------------------------------------------------------
+# [NonPrimaryKeyWritable] (NotRequired - Default 'false')
+#   [true]
+#     Generate writable method at Non PrimaryKey Table.
+#
+#   [false]
+#     Non.
+#
+#   *{Java Only}
+#
+torque.isAvailableNonPrimaryKeyWritable = true
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    PrimaryKeyの存在しないTable or Viewにおいて、更新系のMethodを作成するか否かを選択します。
+    Defaultでは「作成しない」となります。
+
+    S2Daoは、PrimaryKeyの存在しないTableに対してSQL自動生成機能を利用してのInsert/Update/Deleteは
+    できない仕様となっております(内部でPrimaryKey情報を利用して処理するため)。
+
+    DBFluteでは、SQL-Annotationにベタっと書いたSQLで実現します。
+
+    ★TODO: ｛2007/05/15｝
+    実現の複雑さの都合により、InsertのみSupportしています。
+    UpdateやDeleteに関しては、VersionNoやTimestampなどの絡みで少々実現が(現段階では)困難です。
+
+    (DBFlute-0.4.7より)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 </pre>
 </p>
