@@ -52,7 +52,7 @@ ConditionBeanにおいて、「先頭の何件を取得する」という条件�
     final LdBookCB cb = new LdBookCB();
     cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
     cb.query().addOrderBy_RTime_Desc();
-    cb.fetchFirst(50);
+    <b>cb.fetchFirst(50);</b>
     final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
     - - - - - - - - -/
 
@@ -64,7 +64,7 @@ ConditionBeanにおいて、「先頭の何件を取得する」という条件�
     final LdBookCB cb = new LdBookCB();
     cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
     cb.query().addOrderBy_RTime_Desc();
-    cb.fetchScope(80, 20);// 80件目飛ばして20件を取得(81件目から100件目)
+    <b>cb.fetchScope(80, 20);// 80件目飛ばして20件を取得(81件目から100件目)</b>
     final java.util.List&lt;LdBook&gt; ls = dao.selectList(cb);
     - - - - - - - - -/
 
@@ -90,12 +90,12 @@ ConditionBeanにおいて、「PageSizeを何件として指定したPageを検�
     final LdBookCB cb = new LdBookCB();
     cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
     cb.query().addOrderBy_RTime_Desc();
-    cb.fetchFirst(20);// PageSizeの設定
-    cb.fetchPage(1);// 1-20
+    <b>cb.fetchFirst(20);// PageSizeの設定</b>
+    <b>cb.fetchPage(1);// 1-20</b>
     final java.util.List&lt;LdBook&gt; lsFirstPage = dao.selectList(cb);
-    cb.fetchPage(2);// 21-40
+    <b>cb.fetchPage(2);// 21-40</b>
     final java.util.List&lt;LdBook&gt; lsSecoundPage = dao.selectList(cb);
-    cb.fetchPage(3);// 41-60
+    <b>cb.fetchPage(3);// 41-60</b>
     final java.util.List&lt;LdBook&gt; lsThirdPage = dao.selectList(cb);
     - - - - - - - - -/
 
@@ -113,14 +113,14 @@ DBFluteには、Pagingの結果を管理するObjectが用意されています�
     final LdBookCB cb = new LdBookCB();
     cb.query().queryAuthor().setAuthorAge_GreaterEqual(30);
     cb.query().addOrderBy_RTime_Desc();
-    cb.fetchFirst(20);// PageSizeの設定
-    cb.fetchPage(1);// 1-20
+    <b>cb.fetchFirst(20);// PageSizeの設定</b>
+    <b>cb.fetchPage(1);// 1-20</b>
     final LdPagingResultBean&lt;LdBook&gt; rbFirstPage = bhv.selectPage(cb);
-    cb.fetchPage(2);// 21-40
+    <b>cb.fetchPage(2);// 21-40</b>
     final LdPagingResultBean&lt;LdBook&gt; rbSecondPage = bhv.selectPage(cb);
-    cb.fetchPage(3);// 41-60
+    <b>cb.fetchPage(3);// 41-60</b>
     final LdPagingResultBean&lt;LdBook&gt; rbThirdPage = bhv.selectPage(cb);
-    cb.fetchPage(4);// 61-76
+    <b>cb.fetchPage(4);// 61-76</b>
     final LdPagingResultBean&lt;LdBook&gt; rbFourthPage = bhv.selectPage(cb);
 
     // ***************************************
@@ -202,145 +202,180 @@ DBFluteには、Pagingの結果を管理するObjectが用意されています�
     - - - - - - - - -/
 
 
-もし総Page数が100件以上など膨大な場合に、画面にて全てのPage番号のLinkを表示するのは
-あまり格好良くありません。その場合に「ある限られたPage番号のみ」を表示することがよくあります。
+もし総Page数が100件以上など膨大な場合に、画面にて全てのPage番号のLinkを表示するのはあまり格好良くありません。
+
+    [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29... 次のPageへ]
+
+その場合に「ある限られたPage番号のみ」を表示することがよくあります。
 
 PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 2 Pattern用意しています。
 (他にPatternがあるようでしたら相談して下さい)
 
 
-｛PageRange｝
+<b>｛PageRange｝</b>
+
+    [1 2 3 <b>4</b> 5 6 7 8 9 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+                                                      - [前へ 16 17 18 19 20 <b>21</b> 22]
+      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
 
     ex) 「ある限られたPage番号」は現在のPage番号の前後1Pageとした場合
-        ※一般的には、前後5Pageとか前後10Pageとかが基本です。(例は総Page数が少ないので前後1Pageとします)
-        ※これらは、設定されたPageRangeSizeとPaging結果を基に都度算出します。
+        ※一般的には、前後5Pageとか前後10Pageとかが基本です。
+        ※これらは、設定されたPageRangeSizeとPaging結果を基に都度算出します。(PageRangeSizeの設定を忘れずに)
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // **********************
+    // 「1」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後5Pageとする
+    <b>rbFirstPage.setPageRangeSize(5);</b>
+
+    // 該当するPageRangeのPage番号の配列
+    assertEquals(new int[]{<b>1</b>,2,3,4,5,6}, rbFirstPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 1Page目より前はないのでFalse
+    assertFalse(rbFirstPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 7Page目があるのでTrue
+    assertTrue(rbFirstPage.isExistNextPageRange());
+
+    // **********************
+    // 「4」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後5Pageとする
+    <b>rbSecondPage.setPageRangeSize(5);</b>
+
+    // 該当するPageRangeのPage番号の配列
+    assertEquals(new int[]{1,2,3,<b>4</b>,5,6,7,8,9}, rbSecondPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 1Page目より前は無いのでFalse
+    assertFalse(rbSecondPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 10Page目があるのでTrue
+    assertTrue(rbSecondPage.isExistNextPageRange());
+
+    // **********************
+    // 「13」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後5Pageとする
+    <b>rbThirdPage.setPageRangeSize(5);</b>
+
+    // 該当するPageRangeのPage番号の配列
+    assertEquals(new int[]{8,9,10,11,12,<b>13</b>,14,15,16,17,18}, rbThirdPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 7Page目はあるのでTrue
+    assertTrue(rbThirdPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 19Page目はあるのでTrue
+    assertTrue(rbThirdPage.isExistNextPageRange());
+
+    // **********************
+    // 「21」Page目のPageRange
+    // **********************
+    // PageRangeSizeは現在のPage番号の前後5Pageとする
+    <b>rbFourthPage.setPageRangeSize(5);</b>
+
+    // 該当するPageRangeのPage番号の配列
+    assertEquals(new int[]{16,17,18,19,20,<b>21</b>,22}, rbFourthPage.getCurrentPageRangePageNumberArray());
+
+    // 前のPageRangeがあるか否か → 15Page目はあるのでTrue
+    assertTrue(rbFourthPage.isExistPrePageRange());
+
+    // 次のPageRangeがあるか否か → 23Page目以降はないのでFalse
+    assertFalse(rbFourthPage.isExistNextPageRange());
+    - - - - - - - - -/
+
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    [1 2 3 <b>4</b> 5 6 7 8 9 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+                                                      - [前へ 16 17 18 19 20 <b>21</b> 22]
+      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+
+    ではなく
+
+    [1 2 3 <b>4</b> 5 6 7 8 9 10 11 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+                                                      - [前へ 12 13 14 15 16 17 18 19 20 <b>21</b> 22]
+      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+
+    とする場合は以下のように指定することで実現可能です。
+
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // **********************
     // 「1」Page目のPageRange
     // **********************
     // PageRangeSizeは現在のPage番号の前後1Pageとする
-    rbFirstPage.setPageRangeSize(1);
-
-    // 該当するPageRangeのPage番号の配列 → 1,2
-    assertEquals(new int[]{1,2}, rbFirstPage.getCurrentPageRangePageNumberArray());
-
-    // 前のPageRangeがあるか否か → 1Page目より前はないのでFalse
-    assertFalse(rbFirstPage.isExistPrePageRange());
-
-    // 次のPageRangeがあるか否か → 3Page目があるのでTrue
-    assertTrue(rbFirstPage.isExistNextPageRange());
-
-    // **********************
-    // 「2」Page目のPageRange
-    // **********************
-    // PageRangeSizeは現在のPage番号の前後1Pageとする
-    rbSecondPage.setPageRangeSize(1);
-
-    // 該当するPageRangeのPage番号の配列 → 1,2,3
-    assertEquals(new int[]{1,2,3}, rbSecondPage.getCurrentPageRangePageNumberArray());
-
-    // 前のPageRangeがあるか否か → 1Page目より前は無いのでFalse
-    assertFalse(rbSecondPage.isExistPrePageRange());
-
-    // 次のPageRangeがあるか否か → 4Page目があるのでTrue
-    assertTrue(rbSecondPage.isExistNextPageRange());
-
-    // **********************
-    // 「3」Page目のPageRange
-    // **********************
-    // PageRangeSizeは現在のPage番号の前後1Pageとする
-    rbThirdPage.setPageRangeSize(1);
-
-    // 該当するPageRangeのPage番号の配列 → 2,3,4
-    assertEquals(new int[]{2,3,4}, rbThirdPage.getCurrentPageRangePageNumberArray());
-
-    // 前のPageRangeがあるか否か → 1Page目はあるのでTrue
-    assertTrue(rbThirdPage.isExistPrePageRange());
-
-    // 次のPageRangeがあるか否か → 5Page目はないのでFalse
-    assertFalse(rbThirdPage.isExistNextPageRange());
-
-    // **********************
-    // 「4」Page目のPageRange
-    // **********************
-    // PageRangeSizeは現在のPage番号の前後1Pageとする
-    rbFourthPage.setPageRangeSize(1);
-
-    // 該当するPageRangeのPage番号の配列 → 3,4
-    assertEquals(new int[]{3,4}, rbFourthPage.getCurrentPageRangePageNumberArray());
-
-    // 前のPageRangeがあるか否か → 2Page目はあるのでTrue
-    assertTrue(rbFourthPage.isExistPrePageRange());
-
-    // 次のPageRangeがあるか否か → 5Page目以降はないのでFalse
-    assertTrue(rbFourthPage.isExistNextPageRange());
+    final PageRangeOption option = new PageRangeOption();
+    option.setPageRangeSize(1);
+    <b>option.setFillLimit(true);// ☆Point!</b>
+    rbFirstPage.setPageRangeSize(option);
     - - - - - - - - -/
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
-｛PageGroup｝
+<b>｛PageGroup｝</b>
+
+    [1 2 3 <b>4</b> 5 6 7 8 9 10 次へ] - [前へ 11 12 <b>13</b> 14 15 16 17 18 19 20 次へ] - [前へ <b>21</b> 22]
+      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
 
     ex) 「ある限られたPage番号」は2Page毎のGroupとする場合
-        ※一般的には、5Page/10Pageとかが基本です。(例は総Page数が少ないので2Page毎のGroupとします)
-        ※これらは、設定されたPageGroupSizeとPaging結果を基に都度算出します。
+        ※一般的には、5Page/10Pageとかが基本です。
+        ※これらは、設定されたPageGroupSizeとPaging結果を基に都度算出します。(PageGroupSizeの設定を忘れずに)
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // **********************
     // 「1」Page目のPageGroup
     // **********************
-    // PageGroupSizeは2Page毎のGroupとする
-    rbFirstPage.setPageGroupSize(2);
+    // PageGroupSizeは10Page毎のGroupとする
+    <b>rbFirstPage.setPageGroupSize(10);</b>
 
-    // 該当するPageGroupのPage番号の配列 → 1,2
-    assertEquals(new int[]{1,2}, rbFirstPage.getCurrentPageGroupPageNumberArray()));
+    // 該当するPageGroupのPage番号の配列
+    assertEquals(new int[]{<b>1</b>,2,3,4,5,6,7,8,9,10}, rbFirstPage.getCurrentPageGroupPageNumberArray()));
 
     // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
     assertFalse(rbFirstPage.isExistPrePageGroup());
 
-    // 次のPageGroupがあるか否か → 3Page目があるのでTrue
+    // 次のPageGroupがあるか否か → 11Page目があるのでTrue
     assertTrue(rbFirstPage.isExistNextPageGroup());
-
-    // **********************
-    // 「2」Page目のPageGroup
-    // **********************
-    // PageGroupSizeは2Page毎のGroupとする
-    rbSecondPage.setPageGroupSize(2);
-
-    // 該当するPageGroupのPage番号の配列 → 1,2
-    assertEquals(new int[]{1,2}, rbSecondPage.getCurrentPageGroupPageNumberArray()));
-
-    // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
-    assertFalse(rbSecondPage.isExistPrePageGroup());
-
-    // 次のPageGroupがあるか否か → 3Page目があるのでTrue
-    assertTrue(rbSecondPage.isExistNextPageGroup());
-
-    // **********************
-    // 「3」Page目のPageGroup
-    // **********************
-    // PageGroupSizeは2Page毎のGroupとする
-    rbThirdPage.setPageGroupSize(2);
-
-    // 該当するPageGroupのPage番号の配列 → 3,4
-    assertEquals(new int[]{3,4}, rbThirdPage.getCurrentPageGroupPageNumberArray()));
-
-    // 前のPageGroupがあるか否か → 2Page目より前があるのでTrue
-    assertTrue(rbThirdPage.isExistPrePageGroup());
-
-    // 次のPageGroupがあるか否か → 5Page目以降はないのでFalse
-    assertFalse(rbThirdPage.isExistNextPageGroup());
 
     // **********************
     // 「4」Page目のPageGroup
     // **********************
-    // PageGroupSizeは2Page毎のGroupとする
-    rbThirdPage.setPageGroupSize(2);
+    // PageGroupSizeは10Page毎のGroupとする
+    <b>rbSecondPage.setPageGroupSize(10);</b>
 
-    // 該当するPageGroupのPage番号の配列 → 3,4
-    assertEquals(new int[]{3,4}, rbFourthPage.getCurrentPageGroupPageNumberArray()));
+    // 該当するPageGroupのPage番号の配列
+    assertEquals(new int[]{1,2,3,<b>4</b>,5,6,7,8,9,10}, rbSecondPage.getCurrentPageGroupPageNumberArray()));
 
-    // 前のPageGroupがあるか否か → 2Page目より前があるのでTrue
+    // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
+    assertFalse(rbSecondPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 11Page目があるのでTrue
+    assertTrue(rbSecondPage.isExistNextPageGroup());
+
+    // **********************
+    // 「13」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは10Page毎のGroupとする
+    <b>rbThirdPage.setPageGroupSize(10);</b>
+
+    // 該当するPageGroupのPage番号の配列
+    assertEquals(new int[]{11,12,<b>13</b>,14,15,16,17,18,19,20}, rbThirdPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 10Page目より前があるのでTrue
+    assertTrue(rbThirdPage.isExistPrePageGroup());
+
+    // 次のPageGroupがあるか否か → 21Page目があるのでTrue
+    assertTrue(rbThirdPage.isExistNextPageGroup());
+
+    // **********************
+    // 「21」Page目のPageGroup
+    // **********************
+    // PageGroupSizeは10Page毎のGroupとする
+    <b>rbThirdPage.setPageGroupSize(10);</b>
+
+    // 該当するPageGroupのPage番号の配列
+    assertEquals(new int[]{<b>21</b>,22}, rbFourthPage.getCurrentPageGroupPageNumberArray()));
+
+    // 前のPageGroupがあるか否か → 20Page目より前があるのでTrue
     assertTrue(rbFourthPage.isExistPrePageGroup());
 
-    // 次のPageGroupがあるか否か → 5Page目以降はないのでFalse
+    // 次のPageGroupがあるか否か → 23Page目以降はないのでFalse
     assertFalse(rbFourthPage.isExistNextPageGroup());
     - - - - - - - - -/
 
