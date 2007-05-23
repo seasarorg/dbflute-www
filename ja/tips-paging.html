@@ -204,7 +204,7 @@ DBFluteには、Pagingの結果を管理するObjectが用意されています�
 
 もし総Page数が100件以上など膨大な場合に、画面にて全てのPage番号のLinkを表示するのはあまり格好良くありません。
 
-    [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29... 次のPageへ]
+    [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29...]
 
 その場合に「ある限られたPage番号のみ」を表示することがよくあります。
 
@@ -214,9 +214,10 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
 
 <b>｛PageRange｝</b>
 
-    [1 2 3 <b>4</b> 5 6 7 8 9 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
-                                                      - [前へ 16 17 18 19 20 <b>21</b> 22]
-      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+    [4]Page目を選択  - [1 2 3 <b>4</b> 5 6 7 8 9 次へ]
+    [13]Page目を選択 - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+    [21]Page目を選択 - [前へ 16 17 18 19 20 <b>21</b> 22]
+    ※最大22Pageまでとして
 
     ex) 「ある限られたPage番号」は現在のPage番号の前後1Pageとした場合
         ※一般的には、前後5Pageとか前後10Pageとかが基本です。
@@ -229,7 +230,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbFirstPage.setPageRangeSize(5);</b>
 
     // 該当するPageRangeのPage番号の配列
-    assertEquals(new int[]{<b>1</b>,2,3,4,5,6}, rbFirstPage.getCurrentPageRangePageNumberArray());
+    final int[] expectedFirstArray = new int[]{<b>1</b>,2,3,4,5,6};
+    assertEquals(expectedFirstArray, rbFirstPage.getCurrentPageRangePageNumberArray());
 
     // 前のPageRangeがあるか否か → 1Page目より前はないのでFalse
     assertFalse(rbFirstPage.isExistPrePageRange());
@@ -244,7 +246,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbSecondPage.setPageRangeSize(5);</b>
 
     // 該当するPageRangeのPage番号の配列
-    assertEquals(new int[]{1,2,3,<b>4</b>,5,6,7,8,9}, rbSecondPage.getCurrentPageRangePageNumberArray());
+    final int[] expectedSecondArray = new int[]{1,2,3,<b>4</b>,5,6,7,8,9};
+    assertEquals(expectedSecondArray, rbSecondPage.getCurrentPageRangePageNumberArray());
 
     // 前のPageRangeがあるか否か → 1Page目より前は無いのでFalse
     assertFalse(rbSecondPage.isExistPrePageRange());
@@ -259,7 +262,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbThirdPage.setPageRangeSize(5);</b>
 
     // 該当するPageRangeのPage番号の配列
-    assertEquals(new int[]{8,9,10,11,12,<b>13</b>,14,15,16,17,18}, rbThirdPage.getCurrentPageRangePageNumberArray());
+    final int[] expectedThirdArray = new int[]{8,9,10,11,12,<b>13</b>,14,15,16,17,18};
+    assertEquals(expectedThirdArray, rbThirdPage.getCurrentPageRangePageNumberArray());
 
     // 前のPageRangeがあるか否か → 7Page目はあるのでTrue
     assertTrue(rbThirdPage.isExistPrePageRange());
@@ -274,7 +278,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbFourthPage.setPageRangeSize(5);</b>
 
     // 該当するPageRangeのPage番号の配列
-    assertEquals(new int[]{16,17,18,19,20,<b>21</b>,22}, rbFourthPage.getCurrentPageRangePageNumberArray());
+    final int[] expectedThirdArray = new int[]{16,17,18,19,20,<b>21</b>,22};
+    assertEquals(expectedThirdArray, rbFourthPage.getCurrentPageRangePageNumberArray());
 
     // 前のPageRangeがあるか否か → 15Page目はあるのでTrue
     assertTrue(rbFourthPage.isExistPrePageRange());
@@ -284,15 +289,17 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     - - - - - - - - -/
 
     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    [1 2 3 <b>4</b> 5 6 7 8 9 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
-                                                      - [前へ 16 17 18 19 20 <b>21</b> 22]
-      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+    [4]Page目を選択  - [1 2 3 <b>4</b> 5 6 7 8 9 次へ]
+    [13]Page目を選択 - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+    [21]Page目を選択 - [前へ 16 17 18 19 20 <b>21</b> 22]
+    ※最大22Pageまでとして
 
     ではなく
 
-    [1 2 3 <b>4</b> 5 6 7 8 9 10 11 次へ] - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
-                                                      - [前へ 12 13 14 15 16 17 18 19 20 <b>21</b> 22]
-      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+    [4]Page目を選択  - [1 2 3 <b>4</b> 5 6 7 8 9 10 11 次へ]
+    [13]Page目を選択 - [前へ 8 9 10 11 12 <b>13</b> 14 15 16 17 18 次へ]
+    [21]Page目を選択 - [前へ 12 13 14 15 16 17 18 19 20 <b>21</b> 22]
+    ※最大22Pageまでとして
 
     とする場合は以下のように指定することで実現可能です。
 
@@ -311,8 +318,10 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
 
 <b>｛PageGroup｝</b>
 
-    [1 2 3 <b>4</b> 5 6 7 8 9 10 次へ] - [前へ 11 12 <b>13</b> 14 15 16 17 18 19 20 次へ] - [前へ <b>21</b> 22]
-      → ([4]Page目を選択) - ([13]Page目を選択) - ([21]Page目を選択) ※最大22Pageまでとして
+    [4]Page目を選択  - [1 2 3 <b>4</b> 5 6 7 8 9 10 11 次へ]
+    [13]Page目を選択 - [前へ 11 12 <b>13</b> 14 15 16 17 18 19 20 次へ]
+    [21]Page目を選択 - [前へ <b>21</b> 22]
+    ※最大22Pageまでとして
 
     ex) 「ある限られたPage番号」は2Page毎のGroupとする場合
         ※一般的には、5Page/10Pageとかが基本です。
@@ -325,7 +334,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbFirstPage.setPageGroupSize(10);</b>
 
     // 該当するPageGroupのPage番号の配列
-    assertEquals(new int[]{<b>1</b>,2,3,4,5,6,7,8,9,10}, rbFirstPage.getCurrentPageGroupPageNumberArray()));
+    final int[] expectedFirstArray = new int[]{<b>1</b>,2,3,4,5,6,7,8,9,10};
+    assertEquals(expectedFirstArray, rbFirstPage.getCurrentPageGroupPageNumberArray()));
 
     // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
     assertFalse(rbFirstPage.isExistPrePageGroup());
@@ -340,7 +350,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbSecondPage.setPageGroupSize(10);</b>
 
     // 該当するPageGroupのPage番号の配列
-    assertEquals(new int[]{1,2,3,<b>4</b>,5,6,7,8,9,10}, rbSecondPage.getCurrentPageGroupPageNumberArray()));
+    final int[] expectedSecondArray = new int[]{1,2,3,<b>4</b>,5,6,7,8,9,10};
+    assertEquals(expectedSecondArray, rbSecondPage.getCurrentPageGroupPageNumberArray()));
 
     // 前のPageGroupがあるか否か → 1Page目より前はないのでFalse
     assertFalse(rbSecondPage.isExistPrePageGroup());
@@ -355,7 +366,8 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     <b>rbThirdPage.setPageGroupSize(10);</b>
 
     // 該当するPageGroupのPage番号の配列
-    assertEquals(new int[]{11,12,<b>13</b>,14,15,16,17,18,19,20}, rbThirdPage.getCurrentPageGroupPageNumberArray()));
+    final int[] expectedThirdArray = new int[]{11,12,<b>13</b>,14,15,16,17,18,19,20};
+    assertEquals(expectedThirdArray, rbThirdPage.getCurrentPageGroupPageNumberArray()));
 
     // 前のPageGroupがあるか否か → 10Page目より前があるのでTrue
     assertTrue(rbThirdPage.isExistPrePageGroup());
@@ -367,10 +379,11 @@ PagingResultBeanは、「ある限られたPage番号」を算出するLogicを 
     // 「21」Page目のPageGroup
     // **********************
     // PageGroupSizeは10Page毎のGroupとする
-    <b>rbThirdPage.setPageGroupSize(10);</b>
+    <b>rbFourthPage.setPageGroupSize(10);</b>
 
     // 該当するPageGroupのPage番号の配列
-    assertEquals(new int[]{<b>21</b>,22}, rbFourthPage.getCurrentPageGroupPageNumberArray()));
+    final int[] expectedFourthArray = new int[]{<b>21</b>,22};
+    assertEquals(expectedFourthArray, rbFourthPage.getCurrentPageGroupPageNumberArray()));
 
     // 前のPageGroupがあるか否か → 20Page目より前があるのでTrue
     assertTrue(rbFourthPage.isExistPrePageGroup());
