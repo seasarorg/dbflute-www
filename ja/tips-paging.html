@@ -479,7 +479,7 @@ Pagingで検索する画面は、複雑なSQLになりがちです。なので�
 
 
 
-    ex) ExBehaviorの独自Method
+    ex) ExBehaviorの独自Method {例として'xxxDate'を絞込み条件のParameterとする}
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     public PagingResultBean&lt;LdBook&gt; selectPageXxx(final SimplePagingBean pb, final Timestamp xxxDate) {
         assertObjectNotNull("pb", pb);
@@ -512,7 +512,7 @@ Pagingで検索する画面は、複雑なSQLになりがちです。なので�
 
 
 
-    ex) ExDaoの独自Method
+    ex) ExDaoの独自Method {例として'xxxDate'を絞込み条件のParameterとする}
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     public int selectCountXxx(Timestamp xxxDate);
 
@@ -563,28 +563,43 @@ Pagingで検索する画面は、複雑なSQLになりがちです。なので�
         Paging検索のSQLを用意します。
         DBによってPagingの方法が異なります。
 
+    TODO: 書き途中...様々なDBの書き方を追加すること。＆動的OrderByの利用方法
 
 
+
+// --------------------------------------------------------
+//                    ParameterBeanとSimplePagingBeanの連携
+//                    -------------------------------------
     *** @Hint ***
     ParameterBeanをSimplePagingBeanの継承Classとして利用することが可能です。
 
-    ex) 呼び出し側のProgram記述例
-    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    final LdBookCollectionStatisticPmb pmb = new LdBookCollectionStatisticPmb();
-    pmb.fetchFirst(3);// pageSizeは'3'
-    pmb.fetchPage(2);// pageNumberは'2'
-    pmb.setBookName("S2Dao");
-    java.util.List&lt;LdBookCollectionStatistic&gt; ls = dao.selectBookCollectionStatistic(pmb);
-    - - - - - - - - - -/
+      ex) <b>--!BookCollectionStatisticPmb extends SPB!</b>
+          ※詳しくは、<a href="./tips-sql2entity.html">Tips: Sql2Entity</a> をご覧下さい。
 
-    詳しくは、<a href="./tips-sql2entity.html">Tips: Sql2Entity</a> をご覧下さい。
+    ParameterBeanとSimplePagingBeanの連携を利用すると、ExBehaviorでの実装は以下のようになります。
 
+    ex) ExBehaviorの独自Method
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public PagingResultBean&lt;LdBook&gt; selectPageXxx(final LdBookCollectionStatisticPmb pmb) {
+        assertObjectNotNull("pb", pb);
 
+        final SelectPageCallback&lt;LdBook&gt; callback = new SelectPageCallback&lt;LdBook&gt;() {
+            public PagingBean getPagingBean() {
+                return pmb; // ☆ParameterBean自体がPagingBeanのInterfaceをImplementしているためこのままpmbを指定すればよい
+            }
 
+            public int selectCountIgnoreFetchScope() {
+                return getMyDao().selectCountXxx(pmb);
+            }
 
+            public List&lt;LdBook&gt; selectListWithFetchScope() {
+                return getMyDao().selectPageXxx(pmb);
+            }
+        };
+        return new SelectPageSimpleInvoker&lt;LdBook&gt;(this).invokeSelectPage(callback);
+    }
+    - - - - - -/
 
-
-    TODO: 書き途中...様々なDBの書き方を追加すること。＆動的OrderByの利用方法
 
 
 
