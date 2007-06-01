@@ -121,14 +121,16 @@ TSV/CSVが既に該当Tableの構造と一致する場合に、File名とOption�
 
     ex) Method処理説明｛AbstractBehaviorWritable｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public TokenFileReflectionResult reflectTokenFile(final String filename
-                                             , final TokenFileReflectionOption tokenFileReflectionOption
-                                             ) throws java.io.FileNotFoundException, java.io.IOException {
+    public TokenFileReflectionResult reflectTokenFile(String filename
+                                                    , TokenFileReflectionOption tokenFileReflectionOption
+                                                    ) throws java.io.FileNotFoundException
+                                                           , java.io.IOException {
         assertStringNotNullAndNotTrimmedEmpty("filename", filename);
         assertObjectNotNull("tokenFileReflectionOption", tokenFileReflectionOption);
 
         final String encoding = tokenFileReflectionOption.getEncoding();
         final String delimiter = tokenFileReflectionOption.getDelimiter();
+        final boolean interruptIfError = tokenFileReflectionOption.isInterruptIfError();
         assertStringNotNullAndNotTrimmedEmpty("encoding", encoding);
         assertObjectNotNull("delimiter", delimiter);
 
@@ -160,7 +162,7 @@ TSV/CSVが既に該当Tableの構造と一致する場合に、File名とOption�
                     // Increment successCount of result object.
                     result.incrementSuccessCount();
                 } catch (RuntimeException e) {
-                    if (tokenFileReflectionOption.isInterruptIfError()) {
+                    if (interruptIfError) {
                         throw e;
                     }
                     final TokenFileReflectionFailure failure = new TokenFileReflectionFailure();
