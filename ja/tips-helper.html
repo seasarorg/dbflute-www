@@ -319,6 +319,53 @@ makeFromRowList()の処理は以下のようになっています。
     }
     - - - - - - - - - -/
 
+
+
+この機能を利用した処理が既にBehaviorの中に存在します。
+
+interface BehaviorReadable
+    TokenFileOutputResult outputTokenFile(ConditionBean cb
+                                        , String filename
+                                        , TokenFileOutputOption tokenFileOutputOption
+                                        ) throws java.io.FileNotFoundException
+                                               , java.io.IOException;
+
+このMethodは、指定されたConditionBeanで検索して取得したDataをTSV/CSVに出力します。
+出力したいTSV/CSVが該当Tableの構造と一致する場合は、ConditionBeanとFile名とOptionを指定するだけで出力することが可能です。
+(Header情報として1行目にColumn名が出力されます)
+
+    ex) Method処理説明｛AbstractBehaviorReadable｝ ※FileMakingSimpleFacade.makeFromRowList()の利用例
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public TokenFileOutputResult outputTokenFile(ConditionBean cb
+                                               , String filename
+                                               , TokenFileOutputOption tokenFileOutputOption
+                                               ) throws java.io.FileNotFoundException
+                                                      , java.io.IOException {
+        assertConditionBeanNotNull(cb);
+        assertStringNotNullAndNotTrimmedEmpty("filename", filename);
+        assertObjectNotNull("tokenFileOutputOption", tokenFileOutputOption);
+
+        final java.util.List&lt;Entity&gt; ls = readList(cb);
+        java.util.List&lt;java.util.List&lt;String&gt;&gt; rowList = new java.util.ArrayList&lt;java.util.List&lt;String&gt;&gt;();
+        for (java.util.Iterator ite = ls.iterator(); ite.hasNext(); ) {
+            final Entity entity = (Entity)ite.next();
+            final java.util.List&lt;String&gt; valueList = getDBMeta().extractColumnStringValueList(entity);
+            rowList.add(valueList);
+        }
+        final FileMakingSimpleFacade fileMakingSimpleFacade = new FileMakingSimpleFacadeImpl();
+        final FileMakingOption fileMakingOption = new FileMakingOption();
+        final FileMakingHeaderInfo fileMakingHeaderInfo = new FileMakingHeaderInfo();
+        fileMakingHeaderInfo.setColumnNameList(getDBMeta().getColumnDbNameList());
+        fileMakingOption.setFileMakingHeaderInfo(fileMakingHeaderInfo);
+        fileMakingOption.setEncoding(tokenFileOutputOption.getEncoding());
+        fileMakingOption.setDelimiter(tokenFileOutputOption.getDelimiter());
+        fileMakingSimpleFacade.makeFromRowList(filename, rowList, fileMakingOption);
+        final TokenFileOutputResult tokeFileOutputResult = new TokenFileOutputResult();
+        tokeFileOutputResult.setSelectedList(ls);
+        return tokeFileOutputResult;
+    }
+    - - - - - - - - - -/
+
 </pre>
 </p>
 
