@@ -39,9 +39,9 @@ Helperの利用方法を記述します。
 // ======================================================================================================
 //                                                                                              FileToken
 //                                                                                              =========
+{DBFlute-0.4.8より}
 
 [allcommon.helper.token.file]
-
 TSV/CSV-FileのInput/Output操作が可能です。
 
 
@@ -55,8 +55,9 @@ interface FileToken
                 , FileTokenizingOption fileTokenizingOption
                 ) throws java.io.FileNotFoundException, java.io.IOException;
 
+    ex) 呼び出し側実装説明
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // 【Callback処理】の作成
+    // 【Callback処理の作成】
     final FileTokenizingCallback callback = new FileTokenizingCallback() {
         public void handleRowResource(FileTokenizingRowResource rowResource) {
             // nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
@@ -118,66 +119,204 @@ interface BehaviorWritable
 TSV/CSVが既に該当Tableの構造と一致する場合に、File名とOptionを指定するだけで取り込むことが可能です。
 (Header情報として1行目にColumn名が存在することが前提)
 
+    ex) Method処理説明｛AbstractBehaviorWritable｝
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assertStringNotNullAndNotTrimmedEmpty("filename", filename);
-    assertObjectNotNull("tokenFileReflectionOption", tokenFileReflectionOption);
+    public TokenFileReflectionResult reflectTokenFile(final String filename
+                                             , final TokenFileReflectionOption tokenFileReflectionOption
+                                             ) throws java.io.FileNotFoundException, java.io.IOException {
+        assertStringNotNullAndNotTrimmedEmpty("filename", filename);
+        assertObjectNotNull("tokenFileReflectionOption", tokenFileReflectionOption);
 
-    final String encoding = tokenFileReflectionOption.getEncoding();
-    final String delimiter = tokenFileReflectionOption.getDelimiter();
-    assertStringNotNullAndNotTrimmedEmpty("encoding", encoding);
-    assertObjectNotNull("delimiter", delimiter);
+        final String encoding = tokenFileReflectionOption.getEncoding();
+        final String delimiter = tokenFileReflectionOption.getDelimiter();
+        assertStringNotNullAndNotTrimmedEmpty("encoding", encoding);
+        assertObjectNotNull("delimiter", delimiter);
 
-    // Initialize result object!
-    final TokenFileReflectionResult result = new TokenFileReflectionResult();
-    final java.util.List&lt;TokenFileReflectionFailure&gt; failureList
-                             = new java.util.ArrayList&lt;TokenFileReflectionFailure&gt;();
-    result.setTokenFileReflectionFailureList(failureList);
+        // Initialize result object!
+        final TokenFileReflectionResult result = new TokenFileReflectionResult();
+        final java.util.List&lt;TokenFileReflectionFailure&gt; failureList
+                                 = new java.util.ArrayList&lt;TokenFileReflectionFailure&gt;();
+        result.setTokenFileReflectionFailureList(failureList);
 
+        final FileTokenizingCallback callback = new FileTokenizingCallback() {
+            public void handleRowResource(FileTokenizingRowResource rowResource) {
+                final FileTokenizingHeaderInfo headerInfo = rowResource.getFileTokenizingHeaderInfo();
+                final java.util.List&lt;String&gt; columnNameList = headerInfo.getColumnNameList();
+                final java.util.List&lt;String&gt; valueList = rowResource.getValueList();
+
+                // Set up columnNameList of result object.
+                if (result.getColumnNameList() == null) {
+                    result.setColumnNameList(columnNameList);
+                }
+
+                Entity entity = null;
+                try {
+                    // Create entity by the list of value composed of String.
+                    entity = createEntityByStringValueList(columnNameList, valueList);
+
+                    // Create or modify as non-strict.
+                    doCreateOrUpdateNonstrict(entity);
+
+                    // Increment successCount of result object.
+                    result.incrementSuccessCount();
+                } catch (RuntimeException e) {
+                    if (tokenFileReflectionOption.isInterruptIfError()) {
+                        throw e;
+                    }
+                    final TokenFileReflectionFailure failure = new TokenFileReflectionFailure();
+                    failure.setColumnNameList(columnNameList);
+                    failure.setValueList(valueList);
+                    failure.setRowString(rowResource.getRowString());
+                    failure.setRowNumber(rowResource.getRowNumber());
+                    failure.setLineNumber(rowResource.getLineNumber());
+                    if (entity != null) {
+                        failure.setEntity(entity);
+                    }
+                    failure.setException(e);
+                    failureList.add(failure);
+                }
+            }
+        };
+        final FileTokenizingOption option = new FileTokenizingOption();
+        option.setEncoding(encoding);
+        option.setDelimiter(delimiter);
+        final FileToken fileToken = new FileTokenImpl();
+        fileToken.tokenize(filename, callback, option);
+        return result;
+    }
+    - - - - - - - - - -/
+
+
+
+// -------------------------------------------------
+//                                            Output
+//                                            ------
+
+interface FileToken
+    void make(String filename
+                , FileMakingCallback fileMakingCallback
+                , FileMakingOption fileMakingOption
+                ) throws java.io.FileNotFoundException, java.io.IOException;
+
+    ex) 呼び出し側実装説明
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // 【Callback処理の作成】
     final FileTokenizingCallback callback = new FileTokenizingCallback() {
-        public void handleRowResource(FileTokenizingRowResource rowResource) {
-            final FileTokenizingHeaderInfo headerInfo = rowResource.getFileTokenizingHeaderInfo();
-            final java.util.List&lt;String&gt; columnNameList = headerInfo.getColumnNameList();
-            final java.util.List&lt;String&gt; valueList = rowResource.getValueList();
+        public FileMakingRowResource getRowResource() {
+            // nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+            // Fileに書き込む1行(1Row)の情報を戻す独自処理をここで実装する。
+            // 要件次第でDBから取得したり、別のFileから取得したり、などなど自由に実装すること。
+            // - - - - - - - - - - - - - - - - - - 
+            // Header情報を取得｛1行目のColumnName｝
+            final FileMakingRowResource rowResource = new FileMakingRowResource();
 
-            // Set up columnNameList of result object.
-            if (result.getColumnNameList() == null) {
-                result.setColumnNameList(columnNameList);
-            }
+            // Fileに書き込む1行(1Row)の値Listを作成
+            // 要件次第で作成すること。
+            final java.util.List&lt;String&gt; valueList = new java.util.ArrayList&lt;String&gt;();
+            valueList.add(aaa);
+            valueList.add(bbb);
+            valueList.add(ccc);
+            ...
 
-            Entity entity = null;
-            try {
-                // Create entity by the list of value composed of String.
-                entity = createEntityByStringValueList(columnNameList, valueList);
+            // RowResourceにvalueListを設定
+            rowResource.setValueList(valueList);
 
-                // Create or modify as non-strict.
-                doCreateOrUpdateNonstrict(entity);
-
-                // Increment successCount of result object.
-                result.incrementSuccessCount();
-            } catch (RuntimeException e) {
-                if (tokenFileReflectionOption.isInterruptIfError()) {
-                    throw e;
-                }
-                final TokenFileReflectionFailure failure = new TokenFileReflectionFailure();
-                failure.setColumnNameList(columnNameList);
-                failure.setValueList(valueList);
-                failure.setRowString(rowResource.getRowString());
-                failure.setRowNumber(rowResource.getRowNumber());
-                failure.setLineNumber(rowResource.getLineNumber());
-                if (entity != null) {
-                    failure.setEntity(entity);
-                }
-                failure.setException(e);
-                failureList.add(failure);
-            }
+            // RowResourceを戻す
+            // - - - - - - - - - -
+            // 処理を終了させる場合は、nullを返すこと。
+            // return null;
+            // - - - - - - - - - -
+            return rowResource;
+            // nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
         }
     };
+
+    // 【Optionの指定】｛ここでは「Tab区切りでUTF-8で改行がLFのFile」であることを指定｝
     final FileTokenizingOption option = new FileTokenizingOption();
-    option.setEncoding(encoding);
-    option.setDelimiter(delimiter);
+    option.delimitateByTab().encodeAsUTF8().separateLf();
+
+    // 1行目に出力するColumn名のListを設定
+    // これは任意｛1行目のColumn名が不要な場合はこの処理は不要｝
+    final FileMakingHeaderInfo headerInfo = new FileMakingHeaderInfo();
+    headerInfo.setColumnNameList(columnNameList);
+    option.setFileMakingHeaderInfo(headerInfo);
+
+    // 【FileTokenの生成】
+    // StatelessなClassなので、Diconに登録してSingletonにしても構わない。
     final FileToken fileToken = new FileTokenImpl();
-    fileToken.tokenize(filename, callback, option);
-    return result;
+
+    // 【実行！】 → Callback処理が1行(1Row)書き込み毎に呼び出される
+    <b>fileToken.make("/tmp/tmp.tsv", callback, option);</b>
+    - - - - - - - - - -/
+
+
+上記は、OutOfMemory対策を考慮に入れたInterfaceになっております。
+ですが、
+「もう件数はそんなに多くないので一気に'List&lt;List&lt;String&gt;&gt;'に詰めて吐き出したい！」
+と言う場合に以下のようなSimpleなFacadeが存在します。
+
+interface FileMakingSimpleFacade
+    void makeFromRowList(final String filename
+                       , final java.util.List&lt;java.util.List&lt;String&gt;&gt; rowList
+                       , final FileMakingOption fileMakingOption
+                       ) throws java.io.FileNotFoundException, java.io.IOException;
+
+    ex) 呼び出し側実装説明
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    final java.util.List&lt;java.util.List&lt;String&gt;&gt; rowList
+                                    = new java.util.ArrayList&lt;java.util.List&lt;String&gt;&gt;();
+    final java.util.List&lt;String&gt; valueList = new java.util.ArrayList&lt;String&gt;();
+    valueList.add(aaa);
+    valueList.add(bbb);
+    valueList.add(ccc);
+    rowList.add(valueList);// 1行目
+    valueList.add(ddd);
+    valueList.add(eee);
+    valueList.add(fff);
+    rowList.add(valueList);// 2行目
+    ...
+
+    // 【SimpleFacadeの生成】
+    // StatelessなClassなので、Diconに登録してSingletonにしても構わない。
+    final FileMakingSimpleFacade simpleFacade = new FileMakingSimpleFacadeImpl();
+
+    // 【Optionの指定】｛ここでは「Tab区切りでUTF-8で改行がLFのFile」であることを指定｝
+    final FileTokenizingOption option = new FileTokenizingOption();
+    option.delimitateByTab().encodeAsUTF8().separateLf();
+
+    // 1行目に出力するColumn名のListを設定
+    // これは任意｛1行目のColumn名が不要な場合はこの処理は不要｝
+    final FileMakingHeaderInfo headerInfo = new FileMakingHeaderInfo();
+    headerInfo.setColumnNameList(columnNameList);
+    option.setFileMakingHeaderInfo(headerInfo);
+
+    <b>simpleFacade.makeFromRowList("/tmp/tmp.tsv", rowList, option);</b>
+    - - - - - - - - - -/
+
+
+makeFromRowList()の処理は以下のようになっています。
+
+    ex) Method処理説明｛FileMakingSimpleFacadeImpl｝ ※FileToken.make()の利用例
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    public void makeFromRowList(final String filename
+                              , final java.util.List&lt;String&gt;&gt; rowList
+                              , final FileMakingOption fileMakingOption
+                              ) throws java.io.FileNotFoundException, java.io.IOException;
+        final FileMakingCallback fileMakingCallback = new FileMakingCallback() {
+            protected int rowCount = 0;
+            public FileMakingRowResource getRowResource() {
+                ++rowCount;
+                if (rowList.size() &lt; rowCount) {
+                    return null;// The End!
+                }
+                final java.util.List&lt;String&gt; valueList = (java.util.List&lt;String&gt;)rowList.get(rowCount - 1);
+                final FileMakingRowResource fileMakingRowResource = new FileMakingRowResource();
+                fileMakingRowResource.setValueList(valueList);
+                return fileMakingRowResource;
+            }
+        };
+        _fileToken.make(filename, fileMakingCallback, fileMakingOption);
+    }
     - - - - - - - - - -/
 
 </pre>
