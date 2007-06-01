@@ -49,14 +49,14 @@ TSV/CSV-FileのInput/Output操作が可能です。
 //                                             Input
 //                                             -----
 
-  FileToken.tokenize(String filename
-                   , FileTokenizingCallback fileTokenizingCallback
-                   , FileTokenizingOption fileTokenizingOption);
+interface FileToken
+    void tokenize(String filename
+                , FileTokenizingCallback fileTokenizingCallback
+                , FileTokenizingOption fileTokenizingOption
+                ) throws java.io.FileNotFoundException, java.io.IOException;
 
-    ex) 
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    // Callback処理の作成
+    // 【Callback処理】の作成
     final FileTokenizingCallback callback = new FileTokenizingCallback() {
         public void handleRowResource(FileTokenizingRowResource rowResource) {
             // nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
@@ -94,17 +94,91 @@ TSV/CSV-FileのInput/Output操作が可能です。
         }
     };
 
-    // Optionの指定｛ここでは「Tab区切りでUTF-8のFile」であることを指定｝
+    // 【Optionの指定】｛ここでは「Tab区切りでUTF-8のFile」であることを指定｝
     final FileTokenizingOption option = new FileTokenizingOption();
     option.delimitateByTab().encodeAsUTF8();
 
-    // FileTokenの生成
+    // 【FileTokenの生成】
+    // StatelessなClassなので、Diconに登録してSingletonにしても構わない。
     final FileToken fileToken = new FileTokenImpl();
 
-    // 実行！ → Callback処理が1行(1Row)読み込み毎に呼び出される
+    // 【実行！】 → Callback処理が1行(1Row)読み込み毎に呼び出される
     <b>fileToken.tokenize("/tmp/tmp.tsv", callback, option);</b>
     - - - - - - - - - -/
 
+
+この機能を利用した処理が既にBehaviorの中に存在します。
+
+interface BehaviorWritable
+    TokenFileReflectionResult reflectTokenFile(final String filename
+                                             , final TokenFileReflectionOption tokenFileReflectionOption
+                                             ) throws java.io.FileNotFoundException, java.io.IOException;
+
+このMethodは、指定されたTSV/CSVを読み込んで該当Tableに反映処理(createOrUpdate)を行います。
+TSV/CSVが既に該当Tableの構造と一致する場合に、File名とOptionを指定するだけで取り込むことが可能です。
+(Header情報として1行目にColumn名が存在することが前提)
+
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    assertStringNotNullAndNotTrimmedEmpty("filename", filename);
+    assertObjectNotNull("tokenFileReflectionOption", tokenFileReflectionOption);
+
+    final String encoding = tokenFileReflectionOption.getEncoding();
+    final String delimiter = tokenFileReflectionOption.getDelimiter();
+    assertStringNotNullAndNotTrimmedEmpty("encoding", encoding);
+    assertObjectNotNull("delimiter", delimiter);
+
+    // Initialize result object!
+    final TokenFileReflectionResult result = new TokenFileReflectionResult();
+    final java.util.List&lt;TokenFileReflectionFailure&gt; failureList
+                             = new java.util.ArrayList&lt;TokenFileReflectionFailure&gt;();
+    result.setTokenFileReflectionFailureList(failureList);
+
+    final FileTokenizingCallback callback = new FileTokenizingCallback() {
+        public void handleRowResource(FileTokenizingRowResource rowResource) {
+            final FileTokenizingHeaderInfo headerInfo = rowResource.getFileTokenizingHeaderInfo();
+            final java.util.List&lt;String&gt; columnNameList = headerInfo.getColumnNameList();
+            final java.util.List&lt;String&gt; valueList = rowResource.getValueList();
+
+            // Set up columnNameList of result object.
+            if (result.getColumnNameList() == null) {
+                result.setColumnNameList(columnNameList);
+            }
+
+            Entity entity = null;
+            try {
+                // Create entity by the list of value composed of String.
+                entity = createEntityByStringValueList(columnNameList, valueList);
+
+                // Create or modify as non-strict.
+                doCreateOrUpdateNonstrict(entity);
+
+                // Increment successCount of result object.
+                result.incrementSuccessCount();
+            } catch (RuntimeException e) {
+                if (tokenFileReflectionOption.isInterruptIfError()) {
+                    throw e;
+                }
+                final TokenFileReflectionFailure failure = new TokenFileReflectionFailure();
+                failure.setColumnNameList(columnNameList);
+                failure.setValueList(valueList);
+                failure.setRowString(rowResource.getRowString());
+                failure.setRowNumber(rowResource.getRowNumber());
+                failure.setLineNumber(rowResource.getLineNumber());
+                if (entity != null) {
+                    failure.setEntity(entity);
+                }
+                failure.setException(e);
+                failureList.add(failure);
+            }
+        }
+    };
+    final FileTokenizingOption option = new FileTokenizingOption();
+    option.setEncoding(encoding);
+    option.setDelimiter(delimiter);
+    final FileToken fileToken = new FileTokenImpl();
+    fileToken.tokenize(filename, callback, option);
+    return result;
+    - - - - - - - - - -/
 
 </pre>
 </p>
