@@ -368,6 +368,62 @@ interface BehaviorReadable
     }
     - - - - - - - - - -/
 
+
+// ======================================================================================================
+//                                                                                              LineToken
+//                                                                                              =========
+{DBFlute-0.4.8より}
+
+[allcommon.helper.token.line]
+区切り文字の分解・作成が可能です。
+
+
+// -------------------------------------------------
+//                                        Tokenizing
+//                                        ----------
+
+interface LineToken
+    java.util.List&lt;String&gt; tokenize(String lineString, LineTokenizingOption lineTokenizingOption);
+
+    ex) 呼び出し側実装説明
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // 【Optionの指定】｛ここでは「Tab区切りで両端のDoubleQuotationをTrimする」を指定｝
+    final LineTokenizingOption option = new LineTokenizingOption();
+    option.delimitateByTab().trimDoubleQuotation();
+
+    // 【LineTokenの生成】
+    // StatelessなClassなので、Diconに登録してSingletonにしても構わない。
+    final LineToken lineToken = new LineTokenImpl();
+
+    // 【実行！】
+    // valueList には、{aaa, bbb, ccc, ddd, eee} が格納される。
+    <b>final java.util.List&lt;String&gt; valueList = fileToken.tokenize("aaa\tbbb\tccc\t\"ddd\"\teee", option);</b>
+    - - - - - - - - - -/
+
+
+// -------------------------------------------------
+//                                            Making
+//                                            ------
+
+interface LineToken
+    String make(java.util.List&lt;String&gt; valueList, LineMakingOption lineMakingOption);
+
+    ex) 呼び出し側実装説明
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // 【Optionの指定】｛ここでは「Tab区切りで両端をDoubleQuotationで囲う」を指定｝
+    final LineMakingOption option = new LineMakingOption();
+    option.delimitateByTab().quoteByDoubleQuotation();
+
+    // 【LineTokenの生成】
+    // StatelessなClassなので、Diconに登録してSingletonにしても構わない。
+    final LineToken lineToken = new LineTokenImpl();
+
+    // 【実行！】
+    // valueList には、{aaa, bbb, ccc, ddd, eee} が格納されている場合は、
+    // 戻り値として "\"aaa\"\t\"bbb\"\t\"ccc\"\t\"ddd\"\t\"eee\"} が戻される。
+    <b>final String lineString = fileToken.make(valueList, option);</b>
+    - - - - - - - - - -/
+
 </pre>
 </p>
 
