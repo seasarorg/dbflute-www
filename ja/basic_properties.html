@@ -45,15 +45,19 @@ build.propertiesの基本設定(BasicProperties)について記述します。
 # -------------------------------------------------------------------
 #  P R O J E C T
 # -------------------------------------------------------------------
-# (Required)
-
+# @FirstProperty
+# @Required
 torque.project = ldb
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Project名です。｛必須｝
 
-    基本的に、build-XXX.propertiesのXXXの部分と_project.bat内の定数「MY_PROJECT_NAME」の値を
-    このProject名と同じ値にする必要があります。
+    さらに、以下の値をこのProject名と同じ値にする必要があります。
+
+      * * * * * * * * * * * * * * * * * * * * * * * * 
+      o build-XXX.propertiesのXXXの部分
+      o _project.bat内の定数「MY_PROJECT_NAME」の値
+      * * * * * * * * * * * * * * * * * * * * * * * * 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -67,8 +71,8 @@ torque.project = ldb
 #   axion, cloudscape, db2, db2400, hypersonic, interbase, mssql,
 #   mysql, oracle, postgresql, sapdb, sybase, firebird, derby
 # -------------------------------------------------------------------
-# (Required)
-
+# @FirstProperty
+# @Required
 torque.database = derby
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,10 +88,11 @@ torque.database = derby
 # -------------------------------------------------------------------
 #  T A R G E T  L A N G U A G E
 # -------------------------------------------------------------------
-# (NotRequired - Default 'java')
+# (Default 'java')
 #   The target language. Your possible choices are:
 #     java, csharp
-
+# -------------------------------------------------------------------
+# @FirstProperty
 torque.targetLanguage = java
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -106,10 +111,25 @@ torque.targetLanguage = java
 #                                                            Basic
 #                                                         _/_/_/_/
 # /---------------------------------------------------------------------------
-# [OutputDirectory]
-#   torque.java.dir: (NotRequired - Default '')
+# [Output Directory]
+#   java.dir: (Default '../src/main/java')
 #     The base output directory.
 #
+#     If this value is '../src/main/java' and your project stype is under maven,
+#     you don't need to set up this property!
+#
+#     {project}
+#         |
+#         |-dbflute_ldb
+#         |       |-build-ldb.properties
+#         |       |-...
+#         |
+#         |-src/main/java         // *Here!
+#         |-src/main/resources
+#         |-...
+#
+#
+# @FirstProperty
 torque.java.dir = ../src/main/java
 # ----------------/
 
@@ -118,6 +138,10 @@ torque.java.dir = ../src/main/java
 
     絶対Pathと相対Pathが利用できます。
     絶対Pathは、Local環境のDirectory構造をProjectで統一していない場合はお奨めしません。
+
+    ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    DBFlute-0.5.0 より Default値が'../src/main/java'となりました。
+    ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -126,22 +150,35 @@ torque.java.dir = ../src/main/java
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                                           Naming
 #                                                         _/_/_/_/
-
 # /---------------------------------------------------------------------------
-# [JavaNameOfTableSameAsDbName] (NotRequired - Default 'false')
-#   [true]
-#     Java name of table is same as db name.
-#       ex) If the table name is 'OrderDetail', then the java name is 'OrderDetail'.
+# [Naming]
+#   isJavaNameOfTableSameAsDbName: (Default 'false')
+#     [true]
+#       Java name of table is same as db name.
+#         ex) If the table name is 'OrderDetail', then the java name is 'OrderDetail'.
+# 
+#     [false]
+#         ex) If the table name is 'ORDER_DETAIL', then the java name is 'OrderDetail'.
+#         ex) If the table name is 'OrderDetail', then the java name is 'Orderdetail'.
 #
-#   [false]
-#       ex) If the table name is 'ORDER_DETAIL', then the java name is 'OrderDetail'.
-#       ex) If the table name is 'OrderDetail', then the java name is 'Orderdetail'.
+#   isJavaNameOfColumnSameAsDbName: (Default 'false')
+#     [true]
+#       Java name of column is same as db name.
+#         ex) If the table name is 'OrderDetail', then the java name is 'OrderDetail'.
+# 
+#     [false]
+#         ex) If the table name is 'ORDER_DETAIL', then the java name is 'OrderDetail'.
+#         ex) If the table name is 'OrderDetail', then the java name is 'Orderdetail'.
 #
-torque.isJavaNameOfTableSameAsDbName = false
+# @FirstProperty
+#torque.isJavaNameOfTableSameAsDbName = false
+#
+# @FirstProperty
+#torque.isJavaNameOfColumnSameAsDbName = false
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Table名をClass名などで利用するときの命名Ruleです。
+    <b>{JavaNameOfTableSameAsDbName}</b>は、Table名をClass名などで利用するときの命名Ruleです。
 
     Table名が'ORDER_DETAIL' or 'order_detail'というような'_'繋がりの場合は、falseでOKです。(消してOKです)
     Table名が'OrderDetail'というようなClass名で利用したい名前と同じ場合は、trueでOKです。
@@ -158,25 +195,9 @@ torque.isJavaNameOfTableSameAsDbName = false
      単語の2文字目以降をtoLowerするか否かを示します)
 
     ※極力、DatabaseのTable名は規則正しいものでお願いします。
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-
-# /---------------------------------------------------------------------------
-# [JavaNameOfColumnSameAsDbName] (NotRequired - Default 'false')
-#   [true]
-#     Java name of column is same as db name.
-#       ex) If the table name is 'OrderDetail', then the java name is 'OrderDetail'.
-#
-#   [false]
-#       ex) If the table name is 'ORDER_DETAIL', then the java name is 'OrderDetail'.
-#       ex) If the table name is 'OrderDetail', then the java name is 'Orderdetail'.
-#
-torque.isJavaNameOfColumnSameAsDbName = false
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Column名をClass名などで利用するときの命名Ruleです。
+    <b>{isJavaNameOfColumnSameAsDbName}</b>は、Column名をClass名などで利用するときの命名Ruleです。
 
     {isJavaNameOfTableSameAsDbName}と同様です。
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -184,14 +205,16 @@ torque.isJavaNameOfColumnSameAsDbName = false
 
 
 # /---------------------------------------------------------------------------
-# [Behavior] (NotRequired - Default 'false')
-#   [true]
-#     Behavior classes are generated.
+# [Behavior]
+#   isAvailableBehaviorGeneration: (Default 'true')
+#     [true]
+#       Behavior classes are generated.
+# 
+#     [false]
+#       Behavior classes are not generated.
+#       And proerties about behavior are invalid.
 #
-#   [false]
-#     Behavior classes are not generated.
-#     And proerties about behavior are invalid.
-#
+# @FirstProperty
 torque.isAvailableBehaviorGeneration = true
 # ----------------/
 
@@ -201,21 +224,27 @@ torque.isAvailableBehaviorGeneration = true
     Behaviorは、DBFluteが提供する目玉商品の一つです。
     よほど使わないという理由がない限り、trueであることをお奨めします。
     (別に後でfalseにしても構わないので...)
+
+    ★★★★★★★★★★★★★★★★★★★★★★★★★
+    DBFlute-0.5.0 より Default値がtrueとなります。
+    ★★★★★★★★★★★★★★★★★★★★★★★★★
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 
 # /---------------------------------------------------------------------------
-# [Generics] (NotRequired - Default 'true')
-#   Default value is true.
-#   [true]
-#     Use Generics.
-#
-#   [false]
-#     Non.
+# [Generics]
+#   isAvailableGenerics: (Default 'true')
+#     Default value is true.
+#       [true]
+#         Use Generics.
+# 
+#       [false]
+#         Non.
 #
 #   *{Java Only}
 #
+# @FirstProperty
 torque.isAvailableGenerics = true
 # ----------------/
 
@@ -229,25 +258,15 @@ torque.isAvailableGenerics = true
 
 
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-#                                                    ProjectPrefix
-#                                                   _/_/_/_/_/_/_/
-
+#                                                           Prefix
+#                                                         _/_/_/_/
 # /---------------------------------------------------------------------------
 # [PrefixAndSuffix]
-#
-#   projectPrefix: (NotRequired - Default null)
+#   projectPrefix: (Default null)
 #     If the property is 'Ld', all class names are 'LdXxx'.
 #
-#   isAppendProjectSuffixToComponentName: (NotRequired - Default 'true')
-#     Default value is true.
-#     [true]
-#       The component name of bhv and dao have the prefix of project.
-#
-#     [false]
-#       Non.
-#
+# @FirstProperty
 torque.projectPrefix		= Ld
-torque.isAppendProjectSuffixToComponentName = true
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -266,14 +285,6 @@ torque.isAppendProjectSuffixToComponentName = true
 
     【注意】
     InnerClassに関しては、このPrefixは付与されません。
-
-
-    <b>[isAppendProjectSuffixToComponentName]</b>は、DBFlute-0.4.3 以前を利用されてして、
-    projectPrefixがdbflute.diconに登録されるBehaviorのComponent名にも付与されたくない方の
-    ためのPropertyです。falseにすることによって、DBFlute-0.4.3 以前と同様の判定になります。
-
-    詳しくはこちら↓
-    <a href="./migration/migrate-043to044.html">DBFlute-0.4.3 から 0.4.4 への移行時の注意</a>
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -281,55 +292,58 @@ torque.isAppendProjectSuffixToComponentName = true
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                                            Dicon
 #                                                             _/_/
-
 # /---------------------------------------------------------------------------
 # [DBFluteDicon Information]
-#   dbfluteDiconNamespace: (NotRequired - Default 'dbflute')
+#   dbfluteDiconNamespace: (Default 'dbflute')
 #     The namespace of dbflute dicon.
 #
-#   dbfluteDiconPackageName: (NotRequired - Default '')
+#   dbfluteDiconPackageName: (Default '../resources')
 #     The package name of dbflute dicon.
 #
-#   dbfluteDiconFileName: (NotRequired - Default 'dbflute.dicon')
+#   dbfluteDiconFileName: (Default 'dbflute.dicon')
 #     The file name of dbflute dicon. (Required)
 #
-#   j2eeDiconResourceName: (NotRequired - Default Java:'j2ee.dicon' C#:'ado.dicon')
+#   j2eeDiconResourceName: (Default Java:'j2ee.dicon' C#:'ado.dicon')
 #     The resource name of J2EE dicon.
 #
-#   requiredTxComponentName: (NotRequired - Default Java:'requiredTx' C#:'LocalRequiredTx')
+#   requiredTxComponentName: (Default Java:'requiredTx' C#:'LocalRequiredTx')
 #     The component name of 'requiredTx'-component.
 #
-#   requiresNewTxComponentName: (NotRequired - Default Java:'requiresNewTx' C#:'LocalRequiresNewTx')
+#   requiresNewTxComponentName: (Default Java:'requiresNewTx' C#:'LocalRequiresNewTx')
 #     The component name of 'requiresNewTx'-component.
 #
-#   dbfluteDiconBeforeJ2eeIncludeDefinitionMap: (NotRequired - Default 'map:{}')
+#   dbfluteDiconBeforeJ2eeIncludeDefinitionMap: (Default 'map:{}')
 #     The definition map of dbflute dicon include path before j2ee including.
 #     ex) map:{ dbflute/jdbc-xxx.dicon = dummy }
 #
-#   dbfluteDiconOtherIncludeDefinitionMap: (NotRequired - Default 'map:{}')
+#   dbfluteDiconOtherIncludeDefinitionMap: (Default 'map:{}')
 #     The definition map of dbflute dicon other include path.
 #     ex) map:{ dbflute/common.dicon = dummy }
 #
-#   originalDaoComponentMap: (NotRequired - Default 'map:{}')
+#   originalDBFluteComponentMap: (Default 'map:{}')
 #     The map of the original dbflute component.
 #     If componentName have '*' as prefix, the component should be Dao.
-#     ex) map:{ \
-#             ; *bookAuthorDao = map:{ className=dbflute.ldb.nongenerate.dao.BookAuthorDao } \
-#             ; blackListHandler = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
-#         }
+#       ex) map:{ \
+#               ; *bookAuthorDao = map:{ \
+#                   className=org.seasar.dbflute........dao.BookAuthorDao \
+                } \
+#               ; blackListHandler = map:{ \
+                    className=org.seasar.dbflute........nongenerate.handler.BlackListHandlerImpl \
+                } \
+#           }
 #
-#   originalBehaviorAspectMap: (NotRequired - Default 'map:{}')
+#   originalBehaviorAspectMap: (Default 'map:{}')
 #     The map of the original behavior aspect.
-#     ex) map:{ interceptorName = map:{ \
-#                   className=org.seasar.dbflute.InterceptorClassName \
+#       ex) map:{ interceptorName = map:{ \
+#                     className=org.seasar.dbflute.InterceptorClassName \
 #                   ; pointcut=selectList.*, selectEntity.* \
 #               } \
-#         }
+#           }
 #
-#   isAvailableBehaviorRequiresNewTx: (NotRequired - Default true)
+#   isAvailableBehaviorRequiresNewTx: (Default true)
 #     Is available the behavior setting about requiresNewTx in dbflute.dicon?
 #
-#   isAvailableBehaviorRequiredTx: (NotRequired - Default true)
+#   isAvailableBehaviorRequiredTx: (Default true)
 #     Is available the behavior setting about requiredTx in dbflute.dicon?
 #
 #
@@ -337,6 +351,7 @@ torque.isAppendProjectSuffixToComponentName = true
 #      It is necessary that main dicon of application includes dbflute dicon.
 #      ex) App dicon includes dbflute dicon.
 #
+# @FirstProperty
 torque.dbfluteDiconNamespace        = dbflute
 torque.dbfluteDiconPackageName      = ../resources
 torque.dbfluteDiconFileName         = dbflute-ldb.dicon
@@ -374,6 +389,10 @@ torque.isAvailableBehaviorRequiredTx = true
       ※daoDiconPackageNameと記述しても永遠に同じ動作をします。
         同時に存在する場合はdbfluteDiconPackageNameが優先されます。
 
+        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        DBFlute-0.5.0 より Default値が'../resources'となります。
+        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
 
     <b>{dbfluteDiconFileName}</b>は、dbflute.diconのFile名です。
     Default値の「dbflute.dicon」で問題なければ未指定で構いません。
@@ -389,7 +408,7 @@ torque.isAvailableBehaviorRequiredTx = true
         同時に存在する場合はdbfluteDiconFileNameが優先されます。
 
 
-    {j2eeDiconResourceName}は、j2ee.diconのResource名です。
+    <b>{j2eeDiconResourceName}</b>は、j2ee.diconのResource名です。
     dao.diconの中で宣言されるj2ee.diconへのinclude-pathとなります。
     Default値の「j2ee.dicon」で問題なければ未指定で構いません。
 
@@ -403,39 +422,12 @@ torque.isAvailableBehaviorRequiredTx = true
         詳しくはこちら → <a href="./switch-032to040.html">DBFlute-0.3.2 to 0.4.0</a>
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-	<b>
-	DBFlute-0.4.2以降について
-	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-	　　注意点：
-	　　　[DBFLUTE-51]の「j2eeDiconResourceのDefault値をj2ee.diconに戻す。」
-	　　　対象：j2eeDiconResourceをbuild.propertiesに指定せずにデフォルト値の「jdbc.dicon」を利用されている方
-	　　　作者が勘違いして、jdbc.diconをデフォルト値にとるようにしてしまいましたが、
-	　　　S2の標準では Seasarのjarの内部に j2ee.dicon が存在していて、それが jdbc.dicon をincludeしているため、
-	　　　基本、dbflute.diconからはj2ee.diconをincludeすれば独自で作成したjdbc.diconが読み込まれることになります。
-	　　　S2の標準に従うために、真に申し訳御座いませんが、デフォルト値を「j2ee.dicon」に戻させて頂きます。
-	　　　　→ 参考 - [Seasar-user:6168] DBFluteの０．４．０以降の設定について
-	　　　　→ 参考 - <a href="http://s2container.seasar.org/ja/stdDicon.html#list">こちら</a>
-	　　
-	　　　既にデフォルト値のjdbc.diconを利用している方：
-	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用できる方＞
-	　　　　　 jdbc.diconに定義されている「S2Containerのjar内部に存在するj2ee.diconと重複するComponent」の定義を
-	　　　　　 削除して下さい。そうすると、dbflute.dicon → j2ee.dicon → jdbc.dicon という参照関係が成立します。
-	　　　　＜S2Containerのjar内部に存在するj2ee.diconを利用しない方＞
-	　　　　　 お手数ですが、build.propertiesにj2eeDiconResourceNameプロパティで明示的に「jdbc.dicon」とするか、
-	　　　　　 既存の「jdbc.dicon」を「j2ee.dicon」に名前を変更するようにお願いします。
-	　　
-	　　ご迷惑お掛けしました。
-	　　
-	　　今後、j2eeDiconResourceNameでもjdbcDiconResourceNameでもどちらでも指定しても永遠に同じ動作をします。
-	　　★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-	</b>
 
-
-    {requiredTxComponentName}は、jdbc.diconで定義されるrequiredTxのComponent名です。
+    <b>{requiredTxComponentName}</b>は、jdbc.diconで定義されるrequiredTxのComponent名です。
     Default値の「Java:requiredTx/C#:LocalRequiredTx」で問題なければ未指定で構いません。
 
 
-    {requiresNewTxComponentName}は、jdbc.diconで定義されるrequiresNewTxのComponent名です。
+    <b>{requiresNewTxComponentName}</b>は、jdbc.diconで定義されるrequiresNewTxのComponent名です。
     Default値の「Java:requiresNewTx/C#:LocalRequiresNewTx」で問題なければ未指定で構いません。
 
 
@@ -483,7 +475,7 @@ torque.isAvailableBehaviorRequiredTx = true
       ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
 
 
-    {originalBehaviorAspectMap}は、dbflute.diconに独自のBehaviorAspect(Interceptor)を登録したい場合に利用します。
+    {originalBehaviorAspectMap}は、dbflute.diconに独自のBehaviorAspect(Interceptor)を登録します。
     dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     特に何もなければ未指定で構いません。
 
@@ -505,50 +497,38 @@ torque.isAvailableBehaviorRequiredTx = true
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                                          Package
 #                                                             _/_/
-
 # /---------------------------------------------------------------------------
 # [EntityDao Package]
-#    packageBase: (NotRequired - Default '')
+#    packageBase: (Default '')
 #      The base directory of package.
-#
-#        ex) packageBase = dbflute.ldb, baseCommonPackage = xxx.yyy.allcommon, ...
-#              baseCommonPackage       = dbflute.ldb.xxx.yyy.allcommon
-#              ...
 #
 #      *If this property is specified and other package properties is not specified, 
 #       Then The packages of generated class are as follows:
 #
-#        ex) packageBase = dbflute.ldb
-#              baseCommonPackage       --> dbflute.ldb.allcommon
-#              baseBehaviorPackage     --> dbflute.ldb.bsbhv
-#              baseDaoPackage          --> dbflute.ldb.bsdao
-#              baseEntityPackage       --> dbflute.ldb.bsentity
-#              conditionBeanPackage    --> dbflute.ldb.cbean
-#              extendedBehaviorPackage --> dbflute.ldb.exbhv
-#              extendedDaoPackage      --> dbflute.ldb.exdao
-#              extendedEntityPackage   --> dbflute.ldb.exentity
+#        ex) packageBase = org.seasar.dbflute.example.dbflute.ldb
+#              baseCommonPackage       --> org.seasar.dbflute.example.dbflute.ldb.allcommon
+#              baseBehaviorPackage     --> org.seasar.dbflute.example.dbflute.ldb.bsbhv
+#              baseDaoPackage          --> org.seasar.dbflute.example.dbflute.ldb.bsdao
+#              baseEntityPackage       --> org.seasar.dbflute.example.dbflute.ldb.bsentity
+#              conditionBeanPackage    --> org.seasar.dbflute.example.dbflute.ldb.cbean
+#              extendedBehaviorPackage --> org.seasar.dbflute.example.dbflute.ldb.exbhv
+#              extendedDaoPackage      --> org.seasar.dbflute.example.dbflute.ldb.exdao
+#              extendedEntityPackage   --> org.seasar.dbflute.example.dbflute.ldb.exentity
 #
 #      *If this property is not specified, you should specify the other package properties.
 #
 #
-#    baseCommonPackage:       (NotRequired - Default Java:'allcommon' C#:'allcommon')
-#    baseBehaviorPackage:     (NotRequired - Default Java:'bsbhv'     C#:'bsbhv')
-#    baseDaoPackage:          (NotRequired - Default Java:'bsdao'     C#:'bsdao')
-#    baseEntityPackage:       (NotRequired - Default Java:'bsentity'  C#:'bsentity')
-#    conditionBeanPackage:    (NotRequired - Default Java:'cbean'     C#:'cbean')
-#    extendedBehaviorPackage: (NotRequired - Default Java:'exbhv'     C#:'exbhv')
-#    extendedDaoPackage:      (NotRequired - Default Java:'exdao'     C#:'exdao')
-#    extendedEntityPackage:   (NotRequired - Default Java:'exentity'  C#:'exentity')
+#    baseCommonPackage:       (Default Java:'allcommon' C#:'allcommon')
+#    baseBehaviorPackage:     (Default Java:'bsbhv'     C#:'bsbhv')
+#    baseDaoPackage:          (Default Java:'bsdao'     C#:'bsdao')
+#    baseEntityPackage:       (Default Java:'bsentity'  C#:'bsentity')
+#    conditionBeanPackage:    (Default Java:'cbean'     C#:'cbean')
+#    extendedBehaviorPackage: (Default Java:'exbhv'     C#:'exbhv')
+#    extendedDaoPackage:      (Default Java:'exdao'     C#:'exdao')
+#    extendedEntityPackage:   (Default Java:'exentity'  C#:'exentity')
 #
-torque.packageBase              = dbflute.ldb
-#torque.baseCommonPackage       = dbflute.ldb.allcommon
-#torque.baseBehaviorPackage     = dbflute.ldb.bsbhv
-#torque.baseDaoPackage          = dbflute.ldb.bsdao
-#torque.baseEntityPackage       = dbflute.ldb.bsentity
-#torque.conditionBeanPackage    = dbflute.ldb.cbean
-#torque.extendedBehaviorPackage = dbflute.ldb.exbhv
-#torque.extendedDaoPackage      = dbflute.ldb.exdao
-#torque.extendedEntityPackage   = dbflute.ldb.exentity
+# @FirstProperty
+torque.packageBase              = org.seasar.dbflute.example.dbflute.ldb
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -569,16 +549,44 @@ torque.packageBase              = dbflute.ldb
 
 
 
+# _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+#                                                 S2Dao Adjustment
+#                                                     _/_/_/_/_/_/
+# /---------------------------------------------------------------------------
+# [S2Dao Version]
+#   s2daoVersion: (Default [The latest version])
+#
+# @JavaOnly
+torque.s2daoVersion = 1.0.43
+# ----------------/
+
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    対応するS2DaoのVersionを指定します。
+
+    以下のVersion移行において、S2Dao自身の内部構造が変わってしまっているため、
+    DBFluteに「S2DaoのどのVersionに対応するClassを自動生成するのか？」を伝える必要があります。
+
+      * * * * * * * * * * * * *
+      S2Dao-1.0.39 から 1.0.40
+      S2Dao-1.0.42 から 1.0.43
+      * * * * * * * * * * * * *
+
+    それがこのPropertyです。
+    基本的には、DBFluteをReleaseした時点でのS2Daoの最新VersionがDefault値です。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
 # =======================================================================================
 #                                                                           for JDBC task
 #                                                                           =============
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # [Database Informaition]
 # 
-#   * * * * * * * * * * * * * * * * * * * * * * * * * *
-#   You shuold use '../dfprop/databaseInfoMap.dfprop'
+#   * * * * * * * * * * * * * * * * * * * * * * * * *
+#   You shuold use './dfprop/databaseInfoMap.dfprop'
 #   Look the file!
-#   * * * * * * * * * * * * * * * * * * * * * * * * * * 
+#   * * * * * * * * * * * * * * * * * * * * * * * * *
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## @FirstProperty
 ##torque.database.driver		= org.apache.derby.jdbc.EmbeddedDriver
@@ -612,35 +620,49 @@ torque.packageBase              = dbflute.ldb
 
 
 
-# Target database types: (NotNull - list:{TABLE;VIEW;...})
-#   Default value is 'list:{TABLE;VIEW}'.
+# /---------------------------------------------------------------------------
+# [Target Database Object]
+#   database.type.list: (Default 'list:{TABLE;VIEW}')
 #
-torque.database.type.list = list:{TABLE;VIEW}
+#   table.except.list: (NotNull 'list:{}')
+#     Unnecessary tables.
+#
+#     For example, if you want to except the table that the name starts with 'D_',
+#     you should set this property as follows:
+#       ex) list:{prefix:D_}
+#
+#     And other example:
+#       ex) list:{prefix:D_; suffix:_Test; sysobjects; dtproperties}
+#
+#   table.target.list: (Default 'list:{}' --> All tables are target)
+#     Target tables.
+#     If this property is empty-list, the property of [Unnecessary tables] is valid.
+#
+#     For example, if you want to contains the table that the name starts with 'D_',
+#     you should set this property as follows:
+#       ex) list:{prefix:D_}
+# 
+#     And other example:
+#       ex) list:{prefix:D_; suffix:_Test; sysobjects; dtproperties}
+# 
+#     If the table defined at this property is defined at [Unnecessary tables] too,
+#     the table is target of generating.
+#
+# @FirstProperty
+#torque.database.type.list = list:{TABLE;VIEW}
+#torque.table.except.list = list:{}
+#torque.table.target.list = list:{}
+# ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    JDBC-Taskの情報取得対象のObjectの定義です。
+    <b>{database.type.list}</b>は、JDBC-Taskの情報取得対象のObjectの定義です。
 
     ほとんどの場合は、Default値で問題ありません。
     たまーに、「TableへのAccessは全てALIAS経由で行う」という感じのProjectがあります。
     そのときは、list:{ALIAS}と指定します。(作者がDB2のProjectで体験しました)
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-
-# Unnecessary tables: (NotNull - list:{TABLE_HINT;TABLE_HINT})
-#   Default value is empty-list.
-#
-#   For example, if you want to except the table that the name starts with 'D_',
-#   you should set this property as follows:
-#     ex) list:{prefix:D_}
-#
-#   And other example:
-#     ex) list:{prefix:D_; suffix:_Test; sysobjects; dtproperties}
-#
-torque.table.except.list = list:{}
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    JDBC-Taskの情報取得対象の除外Tableの指定です。
+    <b>{table.except.list}</b>は、JDBC-Taskの情報取得対象の除外Tableの指定です。
 
     「このTableは自動生成しなくていい！」というTableがあったらこちらを指定します。
     たまーに、Database内部のSystemTableが取得できてしまうDatabaseがあります。
@@ -649,28 +671,9 @@ torque.table.except.list = list:{}
     指定には、前方一致・後方一致・完全一致が利用可能です。
       前方一致 → prefix:         ex) D_で始まるTableを除外    → prefix:D_
       後方一致 → suffix:         ex) _TESTで終わるTableを除外 → suffix:_TEST
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-
-# Target tables: (NotNull - list:{TABLE_HINT;TABLE_HINT})
-#   Default value is empty-list(All tables are target).
-#   If this property is empty-list, the property of [Unnecessary tables] is valid.
-#
-#   For example, if you want to contains the table that the name starts with 'D_',
-#   you should set this property as follows:
-#     ex) list:{prefix:D_}
-#
-#   And other example:
-#     ex) list:{prefix:D_; suffix:_Test; sysobjects; dtproperties}
-#
-#   If a table defined at this property is defined at [Unnecessary tables] too,
-#   the table is target of generating. (ignoring [Unnecessary tables])
-#
-torque.table.target.list = list:{}
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    JDBC-Taskの情報取得対象の対象Tableの指定です。
+    <b>{table.target.list}</b>は、JDBC-Taskの情報取得対象の対象Tableの指定です。
 
     「このTableとこのTableとこの...だけ自動生成したい！」という場合はこちらを指定します。
     もし、あるTableが除外Tableで指定されていて、かつ対象Tableでも指定されている場合は、
@@ -679,33 +682,6 @@ torque.table.target.list = list:{}
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-
-
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
-# /---------------------------------------------------------------------------
-# [S2Dao Version]
-#   isVersionAfter1040: (NotRequired - Default 'true')
-#     If your s2dao's version is greater than(or equal) S2Dao-1.0.40,
-#     this property should be true.
-#
-#   *{Java Only}
-#
-torque.isVersionAfter1040 = true
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Java版S2Dao-1.0.40以降を利用するか否かの指定です。
-
-    S2Dao-1.0.40において、DaoMetaDataImplの構造が変わりました(拡張しやすいようにRefactoringされた)。
-    それに伴って、DBFluteではS2Dao-1.0.40以降を利用しているのかどうかをどうしても判別しなければなりません。
-    もし、どうしてもS2DaoのVersionをS2Dao-1.0.40以降に上げられない人は、false に指定して下さい。
-
-    Defaultは{S2Dao-1.0.40以降}です。
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
