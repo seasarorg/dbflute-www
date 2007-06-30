@@ -50,7 +50,7 @@ Setupの方法を記述します。
 
 2. Setup Ant
 
-    Ant-1.5(以上)を以下のSiteよりDownloadし、Installして下さい。｛必須｝
+    Ant-1.6(以上)を以下のSiteよりDownloadし、Installして下さい。｛必須｝
 
         <a href="http://ant.apache.org/">Apache Ant</a>
 
@@ -59,22 +59,25 @@ Setupの方法を記述します。
 
 
 # -------------------------------------------
-#                        Environment-Variable
+#                        Environment Variable
 #                        --------------------
 3. Setup environment-variable
 
-    環境変数として{DBFLUTE_HOME}を追加します。｛必須｝
+    A. １つのPCに付き、１つのDBFlute
 
-        ex) DBFLUTE_HOME = C:\java\dbflute-1.0
+        環境変数として{DBFLUTE_HOME}を追加します。｛必須｝
+
+            ex) DBFLUTE_HOME = C:\java\dbflute-1.0
 
 
-    ※Projectに適応する場合に有効な別のやり方が存在します。
-      このページの一番下の【Project固有DBFlute】の欄をご覧下さい。
+    B. １つのProjectに付き、１つのDBFlute
 
+        ※実開発に適応する場合は、こちらを推奨します。
+          このページの一番下の【Project固有DBFlute】の欄をご覧下さい。
 
 
 # -------------------------------------------
-#                            Client-Directory
+#                            Client Directory
 #                            ----------------
 4. Locate client-directory(containing build-properties and batch-files)
 
@@ -104,8 +107,6 @@ Setupの方法を記述します。
 
     4-3. build-ldb.propertiesのFile名をbuild-[xxx].properties(xxxは任意のProject名)に変更して下さい。
 
-    ※schemaHTMLOnlyを利用する場合は、特にProject名にこだわる必要はありません。(そのままでもOK)
-
 
 # -------------------------------------------
 #                     Properties Modification
@@ -120,7 +121,7 @@ Setupの方法を記述します。
     ※JDBCの設定については → <a href="./jdbc_setting.html">JDBC Setting</a>
 
     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    j2ee.dicon(jdbc.dicon)の設定にて、Component定義を以下のように差し替えてください。
+    jdbc.diconの設定にて、Component定義を以下のように差し替えてください。
     これにより、Paging検索周りの機能が有効になります。
     (C#版は'FetchNarrowingResultSetFactory'のみ)
 
@@ -132,7 +133,7 @@ Setupの方法を記述します。
     component class="xxx.allcommon.s2dao.S2DaoStatementFactory"
     component class="xxx.allcommon.s2dao.FetchNarrowingResultSetFactory"
 
-      ※注意：j2ee.dicon(jdbc.dicon)は自動生成対象外です。(dao.dicon(dbflute.dicon)は自動生成)
+      ※注意：jdbc.diconは自動生成対象外です。(dbflute.diconは自動生成)
     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
@@ -213,13 +214,13 @@ VersionUpの度に各開発者がLocalPC上のDBFluteを最新にする必要が
 (Projectで誰か一人がVersion管理System上にDBFluteを配置するだけで良くなる。)
 
 
-例えば以下のようなDirectory構成
+以下のようなDirectory構成を推奨します。
 
   xxxproject
       |
       +- .settings
       |
-      +- dbflute                   // DBFluteのClientDirectory
+      +- dbflute_[dbname]          // DBFluteのClientDirectory
       |     |
       |     |
       |     +- dfprop              // build-xxx.propertiesのDB接続情報や'map:{}'系Propertyを外だしできる
@@ -232,8 +233,8 @@ VersionUpの度に各開発者がLocalPC上のDBFluteを最新にする必要が
       |
       +- mydbflute                 // DBFlute本体の格納場所
       |     |
-      |     +- dbflute-0.4.4       // 古いVersionはいずれ削除してもよい。
-      |     +- dbflute-0.4.5
+      |     +- dbflute-0.5.1       // 古いVersionはいずれ削除してもよい。
+      |     +- dbflute-0.5.2
       |     +- ...                 // _project.batには最新のDBFluteを設定しておく。
       | 
       +- src/main/java
@@ -241,6 +242,8 @@ VersionUpの度に各開発者がLocalPC上のDBFluteを最新にする必要が
       +- ...
       ...
 
+
+  ※この構成であれば、build-xxx.propertiesの設定もDefault値で済むことが多くなり楽になります。
 
 ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
 
