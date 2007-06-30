@@ -35,14 +35,9 @@ Setupの方法を記述します。
 <p></b>
 <pre>
 
-
 # /============================================================================
-#                                                             Setup Environment
-#                                                             =================
-
-# -------------------------------------------
-#                                  Java & Ant
-#                                  ----------
+#                                                                    Java & Ant
+#                                                                    ==========
 1. Setup JRE
 
     SunのPageよりJRE-5.0(以上)をDownloadし、Installして下さい。｛必須｝
@@ -58,64 +53,117 @@ Setupの方法を記述します。
     さらに、環境変数{Path}に%ANT_HOME%\binを追加します。
 
 
-# -------------------------------------------
-#                        Environment Variable
-#                        --------------------
-3. Setup environment-variable
+# /============================================================================
+#                                                                       DBFlute
+#                                                                       =======
+3. Locate DBFlute
 
-    A. １つのPCに付き、１つのDBFlute
+    DownloadしたDBFluteを解凍して、任意の場所へ配置。
 
-        環境変数として{DBFLUTE_HOME}を追加します。｛必須｝
+    ※以下のDirectoryに配置することを強く推奨します。
 
-            ex) DBFLUTE_HOME = C:\java\dbflute-1.0
+      ex) DBFlute-0.5.2の場合：
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        xxxproject
+            |
+            +- .settings
+            |
+            +- dbflute_[dbname]          // DBFluteのClientDirectory ※後述
+            |     |
+            |     |
+            |     +- dfprop
+            |     +- log
+            |     +- output
+            |     +- playsql
+            |     +- schema
+            |     +- _project.bat ☆
+            |     +- build-[dbname].properties
+            |     +- ...
+            |
+            +- mydbflute                 // DBFlute本体の格納場所
+            |     |
+            |     +- dbflute-0.5.2       // <b>☆ここ</b>
+            | 
+            +- src/main/java
+            +- src/main/resources
+            +- ...
+            ...
+        - - - - - - - - - -/
 
 
-    B. １つのProjectに付き、１つのDBFlute
+# /============================================================================
+#                                                      DBFlute Client Directory
+#                                                      ========================
+4. Locate client directory(containing build-properties and batch-files)
 
-        ※実開発に適応する場合は、こちらを推奨します。
-          このページの一番下の【Project固有DBFlute】の欄をご覧下さい。
-
-
-# -------------------------------------------
-#                            Client Directory
-#                            ----------------
-4. Locate client-directory(containing build-properties and batch-files)
-
-    4-1. %DBFLUTE_HOME%/etc/client_directory-templateのDirectoryに、実行Directory(Client-Directory)の
+    4-1. %DBFLUTE_HOME%/etc/client_directory-templateのDirectoryに、実行Directory(Client Directory)の
          Templateがあります。任意のTemplateをCopyし、LocalPCの任意の場所に配置して下さい。
 
-        ※一般にbuild-propertiesやbatch-filesは各ProjectのVersion管理に含めたいので、それを考慮して配置します。
-        ※Templateは、以下のようになっています。
+         ※以下のDirectoryに配置することを強く推奨します。
 
-            - fullProperties:
-                全てのPropertyが記述されています。
-                DBFluteを使い慣れていて、最初からFULL機能をじっくり考えるために
-                一個一個のPropertyを精査していく場合は、これをお奨めします。
+           ex) DBFlute-0.5.2の場合：
+             /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+             xxxproject
+                 |
+                 +- .settings
+                 |
+                 +- dbflute_[dbname]          // <b>☆ここ</b>
+                 |     |
+                 |     |
+                 |     +- dfprop
+                 |     +- log
+                 |     +- output
+                 |     +- playsql
+                 |     +- schema
+                 |     +- _project.bat/.sh
+                 |     +- build-[dbname].properties
+                 |     +- ...
+                 |
+                 +- mydbflute                 // DBFlute本体の格納場所
+                 |     |
+                 |     +- dbflute-0.5.2
+                 | 
+                 +- src/main/java
+                 +- src/main/resources
+                 +- ...
+                 ...
+              - - - - - - - - - -/
 
-            - minimumProperties:
-                最低限のPropertyが記述されています。
-                とりあえず自動生成をしてみてその後徐々に機能を追加していく場合は、
-                これをお奨めします。<b>｛DBFlute初心者の方はこれ｝</b>
-                (準備されているAnt-Taskはfullと同様です)
+          ※Templateは、以下の２つが存在します。(大抵の方にはminimumPropertiesを利用することを推奨)
 
-            - otherORMapper:
-                他のO/R-Mapperを利用されている方のための最低限のPropertyのみが記述されています。
-                ｛SchemaHTML-Task or Sql2Entity-Task｝だけを利用される方はこれをお利用してください。
-                (DBの種類やDBの接続先などを設定するだけですぐに利用可能です)
+              - fullProperties:
+                  全てのPropertyが記述されています。
+                  DBFluteを<b>かなり</b>使い慣れていて、最初からFULL機能をじっくり考えるために
+                  一個一個のPropertyを精査していく場合は、これをお奨めします。
 
-    4-2. _project.batの「MY_PROJECT_NAME」変数の値を任意のProject名に変更して下さい。
+              - minimumProperties:
+                  最低限のPropertyが記述されています。
+                  とりあえず自動生成をしてみてその後徐々に機能を追加していく場合は、
+                  これをお奨めします。<b>｛DBFlute初心者の方はこれ｝</b>
+                  (準備されているAnt-Taskはfullと同様です)
 
-    4-3. build-ldb.propertiesのFile名をbuild-[xxx].properties(xxxは任意のProject名)に変更して下さい。
+    4-2. _project.bat/.shの「MY_PROJECT_NAME」変数の値を[dbname]に変更して下さい。
+
+    4-3. build-minimumProperties.propertiesのFile名をbuild-[dbname].propertiesに変更して下さい。
+
+    ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    4-4. _project.bat/.shの「DBFLUTE_HOME」変数の値を設定して下さい。
+         (CommentOutされているのを外して下さい)
+
+             ex) DBFluteの配置場所が「xxxproject/mydbflute/dbflute-0.5.2」の場合：
+               /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+               set DBFLUTE_HOME = ../mydbflute/dbflute-0.5.2
+               - - - - - - - - - -/
+    ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 
-# -------------------------------------------
-#                     Properties Modification
-#                     -----------------------
+# /============================================================================
+#                                                                    Properties
+#                                                                    ==========
 5. Modify build-properties
 
-    各Propertyの詳細は%DBFLUTE_HOME%/etc/client_directory-template/fullPropertiesの
-    build-ldb.properties内に記述されている各PropertyのCommentを参考にして下さい。
-    (NotRequiredのPropertyはDefault値で事足りるならば消しても構いません)
+    まず「自動生成する前に必ず設定すべきもの」だけを設定します。
+    build-[dbflute].propertiesに「@FirstProperty」というMark付いているものが該当します。
 
     ※基本設定については   → <a href="./basic_properties.html">Basic Properties</a>
     ※JDBCの設定については → <a href="./jdbc_setting.html">JDBC Setting</a>
@@ -142,10 +190,10 @@ Setupの方法を記述します。
 #                              --------------
 6. Execute task of JDBC and Generate
 
-    6-1. jdbc.batを実行します。./schema以下にproject-schema-xxx.xmlが作成されていたら成功です。
+    6-1. jdbc.bat/.shを実行します。./schema以下にproject-schema-xxx.xmlが作成されていたら成功です。
             →中はDBのSchema情報がXML形式で記述されています。
 
-    6-2. generate.batを実行します。Propertyにて指定した出力DirectoryにSourceが作成されていたら成功です。
+    6-2. generate.bat/.shを実行します。Propertyにて指定した出力DirectoryにSourceが作成されていたら成功です。
 
     ※実行するJavaのVersionに注意してください。
       例えば、DBFluteが“Java-5.0”でCompileされていて、実行がJDK-1.4の場合はExceptionになります。
@@ -185,8 +233,6 @@ Setupの方法を記述します。
     Projectの要件に合わせて、最適なPropertyを設定していきます。
 
 
-
-
 # -------------------------------------------
 #                                       Other
 #                                       -----
@@ -197,55 +243,6 @@ Setupの方法を記述します。
 その場合は、ANTのHeapSize指定をして下さい。
 環境変数'ANT_OPTS'を追加して、'-Xmx256M'を設定します。
 ※これはDBFluteの機能ではなくANTの機能です。
-
-
-
-☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
-【Project固有DBFlute】
-
-複数Projectを兼務していて、一つのPCで違ったVersionのDBFluteを利用したい場合は、
-DBFLUTE_HOMEをPCの固定の環境変数として設定するのではなく、
-ClientDirectoryの「_project.bat」に以下のような設定を追加することで実現できます。
-
-    set DBFLUTE_HOME = (そのProjectで利用するDBFluteのDirectory)
-
-これは、開発者が多いProject、かつ、GenerateやSql2Entityを各開発者自身が実行するProjectなどにも有効です。
-VersionUpの度に各開発者がLocalPC上のDBFluteを最新にする必要がなくなります。
-(Projectで誰か一人がVersion管理System上にDBFluteを配置するだけで良くなる。)
-
-
-以下のようなDirectory構成を推奨します。
-
-  xxxproject
-      |
-      +- .settings
-      |
-      +- dbflute_[dbname]          // DBFluteのClientDirectory
-      |     |
-      |     |
-      |     +- dfprop              // build-xxx.propertiesのDB接続情報や'map:{}'系Propertyを外だしできる
-      |     +- log
-      |     +- output
-      |     +- playsql
-      |     +- schema
-      |     +- _project.bat ☆
-      |     +- ...
-      |
-      +- mydbflute                 // DBFlute本体の格納場所
-      |     |
-      |     +- dbflute-0.5.1       // 古いVersionはいずれ削除してもよい。
-      |     +- dbflute-0.5.2
-      |     +- ...                 // _project.batには最新のDBFluteを設定しておく。
-      | 
-      +- src/main/java
-      +- src/main/resources
-      +- ...
-      ...
-
-
-  ※この構成であれば、build-xxx.propertiesの設定もDefault値で済むことが多くなり楽になります。
-
-☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
 
 
 </pre>
