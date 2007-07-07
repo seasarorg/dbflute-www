@@ -243,10 +243,10 @@ Behavior (Option)
     Behaviorはステートレスなオブジェクトで、singletonとしてdao.diconに定義されます。
 
     ex) BOOKのBehaviorに定義されている主なMethod：
-    - LdListResultBean selectList(LdBookCB cb); // ConditionBeanによる検索の結果をResultBeanにて取得
-    - LdPagingResultBean selectPage(LdBookCB cb); // ConditionBeanによるPaging検索の結果をResultBeanにて取得
-    - LdBook selectEntityWithDeletedCheck(LdBookCB cb); // ConditionBeanによる一意検索を存在Check付きで取得
-    - int insertOrUpdateAfterSelectForUpdate(LdBook entity); // 新規ならInsert、既存ならUpdate
+    - ListResultBean selectList(BookCB cb); // ConditionBeanによる検索の結果をResultBeanにて取得
+    - PagingResultBean selectPage(BookCB cb); // ConditionBeanによるPaging検索の結果をResultBeanにて取得
+    - Book selectEntityWithDeletedCheck(BookCB cb); // ConditionBeanによる一意検索を存在Check付きで取得
+    - int insertOrUpdateAfterSelect(LdBook entity); // 新規ならInsert、既存ならUpdate
 
 
 CommonColumn (Option)
@@ -256,20 +256,6 @@ CommonColumn (Option)
     これの利用により、呼び出し側では共通列に現在日時を格納したりSessionからLoginIDを取得して格納したりする共通作業を
     実装する必要がありません。
     <a href="./tips-common_column.html">Tips: CommonColumn</a>
-
-QueryTimeout
-
-    SQLのTimeout設定です。Propertyで指定することができます。
-    意外にS2Daoを利用する場合、気軽にこの設定が指定できません。(PreparedStatementを隠蔽しているため)
-    DBFluteではS2Daoの拡張Classにてこの設定を行います。
-
-
-SqlParameterBean
-
-    “外だしSQL”を利用する際に、SQLへのParameterが多くなるCaseがあります。
-    その場合、Methodの引数が膨大になってしまうため、引数ObjectとしてDTOを利用することが多いと思われます。
-    そのDTOをまた手動で作成するのは面倒なので、PropertyにてBeanの名称と構成する列と型を指定することにより
-    自動生成します。それをSqlParameterBeanと呼んでいます。
 
 
 AdditionalForeignKey
@@ -287,12 +273,6 @@ AdditionalForeignKey
                 ; localColumnName =(local側キー列名)   ; foreignColumnName =(外部参照する列名) \
             } \
         }
-
-
-OriginalDaoComponent
-
-    色々な事情でDaoを手動で作成した場合に、そのDaoをdao.diconに登録できます。
-    例えば、既にProjectの資産としてDaoが存在していた場合などはこれを利用することでDBFluteのDaoと共存できます。
 
 
 他にも細かい機能は存在しますが、ここでの紹介はこのくらいにしておきます。
