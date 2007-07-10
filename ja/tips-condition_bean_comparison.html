@@ -44,7 +44,7 @@ ConditionBeanの比較条件について記述します。
 日付を足す処理や、時分秒を落とす処理や、演算子（&lt;, &lt;=）の選択など。
 
 
-検索画面にて日付のFromとToを入力するような場合(時分秒無し)、大抵入力されたToの「その日一日まるまる」が対象となります。
+検索画面にて日付のFromとToを入力するような場合(時分秒無し)、入力されたToの「その日一日まるまる」は検索対象となります。
 
   ex) ユーザ入力において、開始日が「４月１５日」で終了日が「４月１８日」の場合、
       検索対象となって欲しい範囲は「４月１５日０時０分０秒」から「４月１８日２３時５９分５９秒」です。
@@ -57,9 +57,9 @@ FromTo検索は上記のような検索の場合に以下のように記述可�
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     final java.util.Date fromDate = [画面入力値そのまま]
     final java.util.Date toDate = [画面入力値そのまま]
-    final LdBookCB cb = new LdBookCB();
-    <b>cb.query().setUTime_FromTo(fromDate, toDate, new LdFromToOption().compareAsDate());</b>// ☆Point!
-    final List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    final BookCB cb = new BookCB();
+    <b>cb.query().setUTime_FromTo(fromDate, toDate, new FromToOption().compareAsDate());</b>// ☆Point!
+    final List&lt;Book&gt; ls = bhv.selectList(cb);
     - - - - - - - - -/
 
 こうすると、
@@ -72,10 +72,10 @@ FromTo検索は上記のような検索の場合に以下のように記述可�
 第１引数のfromDateがnullの場合はtoDateだけの条件が作成され、その逆もまたしかりです。
 両方ともnullの場合は、その条件作成は無視されます。
 
-「setUTime_FromTo(fromDate, null, new LdFromToOption())」 → 通常のGreaterEqualと全く同じ条件
-「setUTime_FromTo(fromDate, null, new LdFromToOption().greaterThan())」 → 通常のGreaterThanと全く同じ条件
-「setUTime_FromTo(null, toDate, new LdFromToOption())」 → 通常のLessEqualと全く同じ条件
-「setUTime_FromTo(null, toDate, new LdFromToOption().lessThan())」 → 通常のLessThanと全く同じ条件
+「setUTime_FromTo(fromDate, null, new FromToOption())」 → 通常のGreaterEqualと全く同じ条件
+「setUTime_FromTo(fromDate, null, new FromToOption().greaterThan())」 → 通常のGreaterThanと全く同じ条件
+「setUTime_FromTo(null, toDate, new FromToOption())」 → 通常のLessEqualと全く同じ条件
+「setUTime_FromTo(null, toDate, new FromToOption().lessThan())」 → 通常のLessThanと全く同じ条件
 
 このように、FromToだけでGreaterEqual/GreaterThan/LessEqual/LessThanを全て実現可能です。
 ただし、可読性が少々悪いので、そのような場合は素直にGreaterThanなどを利用することをお奨めします。
@@ -88,20 +88,20 @@ includeQueryMap 機能を使ってGreaterEqual/GreaterThan/LessEqual/LessThanの
      ex) fromDate:{2007/04/10 08:24:53} toDate:{2007/04/16 14:36:29}
 
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-       new LdFromToOption().compareAsDate(); 
+       new FromToOption().compareAsDate(); 
          --&gt; column &gt;= '2007/04/10 00:00:00' and column &lt; '2007/04/17 00:00:00'
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-       new LdFromToOption(); 
+       new FromToOption(); 
          --&gt; column &gt;= '2007/04/10 08:24:53' and column &lt;= '2007/04/16 14:36:29'
 
-       new LdFromToOption().greaterThan(); 
+       new FromToOption().greaterThan(); 
          --&gt; column &gt; '2007/04/10 08:24:53' and column &lt;= '2007/04/16 14:36:29'
 
-       new LdFromToOption().lessThan(); 
+       new FromToOption().lessThan(); 
          --&gt; column &gt;= '2007/04/10 08:24:53' and column &lt; '2007/04/16 14:36:29'
 
-       new LdFromToOption().greaterThan().lessThan(); 
+       new FromToOption().greaterThan().lessThan(); 
          --&gt; column &gt; '2007/04/10 08:24:53' and column &lt; '2007/04/16 14:36:29'
 
 
@@ -120,16 +120,16 @@ Optionつきで様々なLike検索を実現できます。
     //   from BOOK book
     //  where book.BOOK_NAME like '%S2Dao100|%ガッツ%' escape '|'
     // 
-    final LdBookCB cb = new LdBookCB();
-    <b>final LdLikeSearchOption option = new LdLikeSearchOption().likeContain().escapeByPipeLine();</b>
+    final BookCB cb = new BookCB();
+    <b>final LikeSearchOption option = new LikeSearchOption().likeContain().escapeByPipeLine();</b>
     <b>cb.query().setBookName_LikeSearch("S2Dao100%ガッツ", option);</b>// ☆Point
-    final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    final java.util.List&lt;Book&gt; ls = bhv.selectList(cb);
     - - - - - - - - -/
 
 PrefixSearchとLikeSearchの違い：
 PrefixSearchはOption指定無しの単純な前方一致のLike検索です。
 LikeSearchはOption指定必須で前方一致/後方一致/中間一致指定そしてEscape指定が可能なLike検索です。
-LikeSearchでPrefixSearchと同じ条件は実現可能です。ex) new LdLikeSearchOption().likePrefix()
+LikeSearchでPrefixSearchと同じ条件は実現可能です。ex) new LikeSearchOption().likePrefix()
 PrefixSearchの存在意義は薄いかもしれませんが、業務で利用するほとんどはPrefixSearchで
 事足りる場合が多いため、よく使われるMethodとして単純な引数1つの前方一致専用Methodを用意しています。
   ※「単にLikeSearchが後からできただけでしょ」っていう厳しい突っ込みももちろんあります。
