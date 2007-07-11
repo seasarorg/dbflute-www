@@ -40,431 +40,190 @@ Behaviorについて記述します。
 //                                                                                               Behavior
 //                                                                                               ========
 
-# ------------------------------------------------
-#                                What is behavior?
-#                                -----------------
+# ----------------------------------------------------------
+#                                          What is behavior?
+#                                          -----------------
 
-Dataの振舞いを定義するObjectです。
-
-ある画面「S1」でTable「T1」に対して行う処理を、とある画面「S2」においても行う場合は、
-それは、「T1」のBehaviorにMethodを定義して「S1」と「S2」から再利用できるようにします。
-そのうち、「T1」への同じ処理が含まれる「S3」が出てくるかもしれません。
-そのときは、Behaviorに定義した呼べばよいだけです。
-
-再利用をどのような基準で行うかはProjectによって様々ですが、DBFluteではこのような領域を用意しています。
-また、Behaviorに上記のような独自のMethodを定義しなくても、GenerateされたSuperClassのBehaviorには
-便利なMethodが数多く存在します。それを利用するだけでも十分価値があります。
+Behaviorとは
 
 
+Layer-Architecture的な考え
 
-# ------------------------------------------------
-#                              How to use behavior
-#                              -------------------
+  → <b>Dao-LayerのFacade</b>
 
-Behaviorは、dao.diconにてInterfaceを持たないClassとしてComponent登録されます。
+
+Rich-Domain-Architecture的な考え
+
+  → <b>Dataの振舞いを定義するObject</b>
+
+
+もう少し砕けた言い方をすると、<b>「DaoとEntityの定番処理」</b>を行うObjectと言えます。
+
+S2DaoのDaoは実質的にSQLの実行しかできませんが、実際の業務アプリでは、
+“整合性Check”や“Paging処理”などの<b>Dataを扱った定番処理</b>を行わなければなりません。
+それらの定番処理をDBFluteで自動生成したものがBehaviorとなります。
+昨今のArchitectureにおける実際の責務としては、まさしく<b>「Dao-LayerのFacade」</b>と言えるでしょう。
+
+他のO/R-Mapperで似た位置付けを挙げるならば、
+「Hibernateで言うDao」、「Torqueで言うPeer」に相当します。
+
+
+# ----------------------------------------------------------
+#                                      The merit of behavior
+#                                      ---------------------
+
+先に挙げた“Paging処理”を例にとって比較します。
+
+Paging処理は一般的に以下のような処理になります。
+
+    1. Paging条件無しの時の全件Record数の検索 → select count(*) from xxx
+    2. Paging条件ありでの検索 → select ... from xxx limit 20 offset 40
+    3. {1}と{2}の結果から総Page数や次Page存在判定などの計算
+
+こういった処理の再利用を解決します。
+
+  {Behaviorを利用しない}
+    呼び出し側が{1}-{2}-{3}の処理を手続き的に行います。
+    Daoを使って{1}と{2}を実行し、{3}の処理を呼び出し側が自分で行います。
+    その辺の処理の再利用を自分で考える必要があります。
+
+      ex) BOOK一覧のPaging検索
+      /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      final BookDao bookDao = [...DaoのInstanceを取得]
+      final BookCB cb = new BookCB();
+      [...ConditionBean(条件)の設定]
+      cb.fetchFirst(20); // 1PageのSizeは20件
+      cb.fetchFirst(3);  // 3Page目を検索したい
+      <b>final int allRecordCount = bookDao.selectCount(cb); // {1}の処理を実行</b>
+      <b>final java.util.List&lt;Book&gt; bookList = bookDao.selectList(cb); // {2}の処理を実行</b>
+      <b>[...結果から計算] // {3}の処理を実行 ※ここが大変(Bugも生みやすい)</b>
+
+      // Paging結果のHandling
+      <b>[...Pagingの結果情報がバラバラなので必要に応じて独自のDTOにまとめる] // ※ここも面倒である</b>
+      - - - - - - - - - -/
+
+  {Behaviorを利用する}
+    {1}-{2}-{3}の処理を自動生成された一行のMethod呼び出しで完了します。
+    こういったApplication依存でない<b>「DaoとEntityの定番処理」</b>の再利用が既に解決されています。
+
+      ex) BOOK一覧のPaging検索 -- selectPage()
+      /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      final BookBhv bookBhv = [...BehaviorのInstanceを取得]
+      final BookCB cb = new BookCB();
+      [...ConditionBean(条件)の設定]
+      cb.fetchFirst(20); // 1PageのSizeは20件
+      cb.fetchFirst(3);  // 3Page目を検索したい
+      <b>final PagingResultBean&lt;Book&gt; bookResult = bookBhv.selectPage(cb); // {1}-{2}-{3}の処理を実行</b>
+
+      // Paging結果のHandling
+      <b>[...単一ObjectのbookResultからPaging結果に関する全ての情報が取得できる]</b>
+      - - - - - - - - - -/
+
+
+また、BehaviorもEntityやDaoと同様にGenerationGapになっているため、Application独自の処理を
+実装することも可能です。該当のTableが持つ固有のLogic(Dataの振舞い)をBehaviorに実装し、
+複数のProcess(画面やBatchなど)で利用するLogicの再利用を解決することが可能です。
+
+
+# ----------------------------------------------------------
+#                                        How to use behavior
+#                                        -------------------
+
+Behaviorは、dbflute.diconにてInterfaceを持たないClassとしてComponent登録されます。
 Interfaceを持たないため、Setter-Injectionされるか否かはS2ContainerのVersionに依存します。
 
-Interfaceを持たないComponentもSetter-InjectionされるVersionの場合は、
-利用したいBehaviorのComponentのNameをProperty名としてSetterを用意すればInjectionされます。
+利用したいBehaviorのComponentNameと同名のSetterを用意すればInjectionされます。
 
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     public class Xxx {
-        public void setBookBhv(LdBookBhv bookBhv) {
+        public void setBookBhv(BookBhv bookBhv) {
             this.bookBhv = bookBhv;
         }
         public void executeXxx() {
-            final LdBook entity = LdBook();
+            final Book entity = Book();
             entity.setBookId(123);
             entity.setBookName("xxx");
-            this.bookBhv.insertOrUpdateAfterSelect(entity);
+            this.bookBhv.insertOrUpdate(entity);
         }
     }
     - - - - - - - - /
 
 
-そうでない場合は、S2ContainerからgetComponentするか、もしくは、DaoSelectorなるComponentから
-BehaviorのInstanceを取得します。
-DaoSelectorは、全てのDaoとBehaviorへの参照を保持しています。DaoSelector自体がComponent登録されているため、
-Setter-Injectionされるので、DaoSelectorのSetterを用意してDaoSelectorからBehaviorを取得します。
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public class Xxx {
-        public void setDaoSelector(LdDaoSelector daoSelector) {
-            this.daoSelector = daoSelector;
-        }
-        public void executeXxx() {
-            final LdBook entity = LdBook();
-            entity.setBookId(123);
-            entity.setBookName("xxx");
-            final LdBookBhv bhv = (LdBookBhv)this.daoSelector.getWBhv(LdBookBhv.class);
-            bhv.insertOrUpdateAfterSelect(entity);
-        }
-    }
-    - - - - - - - - /
-
-
-
-# -------------------------------------------------
-#          What kind of methods does behavior have?
-#          ----------------------------------------
-
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                  用途別Method概要
-                _/_/_/_/_/_/_/_/_/
+# ----------------------------------------------------------
+#                   What kind of methods does behavior have?
+#                   ----------------------------------------
 
 <a href="tips-behavior-method_for_use.html">Behaviorの用途別Method概要</a> をご覧下さい。
 
 
 
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                        Method詳細
-                _/_/_/_/_/_/_/_/_/
+# ---------------------------------------------------------
+#                               The other merit of behavior
+#                               ---------------------------
+
+BehaviorはS2Daoの“クセ”を隠蔽します。
+
+冒頭で挙げた“整合性Check”というのがそれに該当します。
 
 
+【ParameterのCheck】
+Parameterに対する整合性Checkを掛けることができます。
 
-TODO: 以下書き途中です。。。
+  {Behaviorを利用しない}
+    S2DaoのDaoは、Interfaceのみが存在していて、Methodが呼び出された後の処理に対して
+    Applicationで手を加えることが一切できません。(やるとなったらInterceptorになってしまう)
+    なので、ParameterのNullCheckなど呼び出し側が随時やる必要があります。
 
-
-
-
-    // =====================================================================================
-    //                                                                    Basic Select Count
-    //                                                                    ==================
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Select count by condition-bean.
-     * 
-     * If the argument 'condition-bean' is effective about fetch-scope,
-     * this method invoke select count ignoring the fetch-scope.
-     * 
-     * @param cb Condition-bean. This condition-bean should not be set up about fetch-scope. (NotNull)
-     * @return Selected count. (NotNull)
-     */
-    public int selectCount(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return delegateSelectCount(cb);
-    }
-    - - - - - - - - /
-
-        ConditionBeanによるCount検索です。
-        もし、引数のConditionBeanに fetchFirst()やFetchPage()などが呼び出されていて
-        ConditionBeanのFetchScope設定が有効な場合、このMethodはその設定を無視して処理します。
-        例えば、342件取得できるはずのConditionBeanの検索条件にfetchFirst(20)/fetchPage(5)と設定されていた場合
-        このConditionBeanを selectCount(cb); で呼び出すと、342件が取得されます。
+  {Behaviorを利用する}
+    Behaviorで自動生成されたMethodは引数の厳密なCheckとDebug用Messageを格納した例外発生を行います。
+    呼び出し側がMethod呼び出し前にCheckしたり、Debugしづらい例外が発生してしまうことはありません。
 
 
-    // =====================================================================================
-    //                                                                   Basic Select Entity
-    //                                                                   ===================
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Select entity by condition-bean.
-     * 
-     * @param cb Condition-bean. (NotNull)
-     * @return Selected entity. (Nullalble)
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
-     */
-    public LdBook selectEntity(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        final java.util.List&lt;LdBook&gt; ls = delegateSelectList(cb);
-        if (ls.isEmpty()) {
-            return null;
-        }
-        assertRecordHasBeenSelectedAsOne(ls, cb.toString());
-        return (LdBook)ls.get(0);
-    }
-    - - - - - - - - /
+【戻り値の整合性Check】
+1件を期待しているのに複数件HITしてしまった場合の扱いが違います。
 
-        ConditionBeanによるEntity検索です。
-        該当の条件で検索結果が0件の場合は、nullが戻ります。
-        該当の条件で検索結果が複数件の場合は、専用の例外が発生します。
+  {Behaviorを利用しない}
+    S2DaoのDaoの“戻り値がEntity型の1件検索Method(selectEntity())”は、
+    S2Daoの仕様として「SQLが複数件数を返してきた場合は最初の1件を返す」となっています。
+    実開発においては、「例外にして欲しい」と思うところです。
+    (1件を期待しているのに複数件だったら既に条件かDataかどこかにBUGあるため)
 
+  {Behaviorを利用する}
+    1件を期待しているのに複数件だったら専用の例外になります。
+    もし最初の1件を検索したい場合は、Paging機能で先頭の1件だけを指定して検索すれば実現できます。
 
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Select entity by condition-bean with deleted check.
-     * 
-     * @param cb Condition-bean. (NotNull)
-     * @return Selected entity. (NotNull)
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
-     */
-    public LdBook selectEntityWithDeletedCheck(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        final java.util.List&lt;LdBook&gt; ls = delegateSelectList(cb);
-        assertRecordHasNotBeenDeleted(ls, cb.toString());
-        assertRecordHasBeenSelectedAsOne(ls, cb.toString());
-        return currentEntity;
-    }
-    - - - - - - - - /
+      ex) BOOKの1件検索 -- selectEntity()
+      /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      final BookBhv bookBhv = [...BehaviorのInstanceを取得]
+      final BookCB cb = new BookCB();
+      [...ConditionBean(条件)の設定]
+      final Book book = bookBhv.selectEntity(cb); // NullCheckが行われる。
+      - - - - - - - - - -/
 
-        ConditionBeanによる削除されたか否かをCheckするEntity検索です(nullを期待しない検索)。
-        該当の条件で検索結果が0件の場合は、専用の例外が発生します。
-        該当の条件で検索結果が複数件の場合は、専用の例外が発生します。
+また、既に絶対1件HITすることが前提の検索Methodが存在します。
+
+  {Behaviorを利用しない}
+    また、S2DaoのDaoの“戻り値がEntity型の1件検索Method(selectEntity())”は0件HIT時にnullを返します。
+    実開発においては、「既に絶対1件HITすることが前提」で検索することがかなり多いです。
+    そのとき、呼び出し側がいちいち戻り値をNullCheckするのは面倒ですし、Checkせずに
+    Data不備でnullが帰ってきて、NullPointerExceptionが発生するのも効率が悪いです。
+
+  {Behaviorを利用する}
+    0件取得時にDebug用Messageを格納した例外発生を行います。
+
+      ex) BOOKの1件検索 -- selectEntityWithDeletedCheck()
+      /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      final BookBhv bookBhv = [...BehaviorのInstanceを取得]
+      final BookCB cb = new BookCB();
+      [...ConditionBean(条件)の設定]
+      final Book book = bookBhv.selectEntityWithDeletedCheck(cb); // 戻り値のNullCheckが行われる。
+      assertNotNull(book); // bookがnullになることは絶対にない
+      - - - - - - - - - -/
 
 
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /*
-     * Select entity by primary-key with deleted check.
-     * 
-     * @param primaryKey
-     * @return Selected entity. (NotNull)
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
-     */
-    public LdBook selectByPKValueWithDeletedCheck(java.math.BigDecimal bookId) {
-        LdBook entity = new LdBook();
-        entity.setBookId(bookId);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        return selectEntityWithDeletedCheck(cb);
-    }
-    - - - - - - - - /
-
-        PrimaryKeyを引数として削除されたか否かをCheckするEntity検索です。
-        PrimaryKeyの存在しないTableでは作成されません。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    /*
-     * Select entity by primary-key with deleted check for update .
-     * 
-     * @param primaryKey
-     * @return Selected entity. (NotNull)
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasOverlappedException
-     */
-    public LdBook selectByPKValueWithDeletedCheckForUpdate(java.math.BigDecimal bookId) {
-        LdBook entity = new LdBook();
-        entity.setBookId(bookId);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        cb.lockForUpdate();
-        return selectEntityWithDeletedCheck(cb);
-    }
-    - - - - - - - - /
-
-        PrimaryKeyを引数として削除されたか否かをCheckする更新Lock付きのEntity検索です。
-        PrimaryKeyの存在しないTableでは作成されません。
-
-
-    // =====================================================================================
-    //                                                                     Basic Select List
-    //                                                                     =================
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdListResultBean&lt;LdBook&gt; selectList(LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return new ResultBeanBuilder&lt;LdBook&gt;(this).buildListResultBean(cb, delegateSelectList(cb));
-    }
-    - - - - - - - - /
-
-        指定されたConditionBeanで条件にHITする検索結果をListResultBeanの形で戻します。
-          →ListResultBeanは、以下の要素を保持します。
-              - 検索したTable名
-              - 総件数
-              - 検索結果(List)
-              - OrderBy情報
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    public LdPagingResultBean&lt;LdBook&gt; selectPage(final LdBookCB cb) {
-        assertConditionBeanNotNull(cb);
-        return selectPage(cb, new SelectPageSimpleInvoker&lt;LdBook&gt;(this));
-    }
-    - - - - - - - - /
-
-        指定されたConditionBeanで条件にHITするPagingの検索結果をPageResultBeanの形で戻します。
-          →PageResultBeanは、以下の要素を保持します。
-              - 検索したTable名 ｛ListResultBean継承｝
-              - 総件数          ｛ListResultBean継承｝
-              - 検索結果(List)  ｛ListResultBean継承｝
-              - OrderBy情報     ｛ListResultBean継承｝
-              - 1Page当たりのSize
-              - 現在のPage番号
-              - 総Page数
-              - その他
-
-            ※PageResultBeanは非常に便利なObjectです。参考｛<a href="./tips-paging.html">Tips: Paging</a>｝
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Select page.
-     * 
-     * @param cb Condition-bean. (NotNull)
-     * @param invoker Select-page-invoker (NotNull)
-     * @return Selected page as first page. (NotNull)
-     */
-    public LdPagingResultBean&lt;LdBook&gt; selectPage(final LdBookCB cb, SelectPageInvoker&lt;LdBook&gt; invoker) {
-        assertConditionBeanNotNull(cb);
-        final SelectPageCallback&lt;LdBook&gt; pageCallback = new SelectPageCallback&lt;LdBook&gt;() {
-            public LdPagingBean getPagingBean() { return cb; }
-            public int selectCountIgnoreFetchScope() {
-                return delegateSelectCountIgnoreFetchScope(cb);
-            }
-            public java.util.List&lt;LdBook&gt; selectList() {
-                return delegateSelectList(cb);
-            }
-        };
-        return invoker.invokeSelectPage(pageCallback);
-    }
-    - - - - - - - - /
-
-        selectPage(LdBookCB cb);と同様です。
-        こちらは、Invokerを指定して、Paging検索時の挙動を独自に変更することができます。
-
-
-    // =====================================================================================
-    //                                                                         Load Refferer
-    //                                                                         =============
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Load refferer of collectionList.
-     * 
-     * @param ls Entity list of main table. (NotNull)
-     */
-    public void loadCollectionList(java.util.List&lt;LdBook&gt; ls) {
-        LdBook entity = new LdBook();
-        entity.setBookId(bookId);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        cb.lockForUpdate();
-        return selectEntityWithDeletedCheck(cb);
-    }
-    - - - - - - - - /
-
-        こちらに関しては、<a href="./tips-behavior-one_to_many_loading.html">Tips: Behavior - one-to-many loading</a> をご覧下さい。
-
-
-    // =====================================================================================
-    //                                                                          Basic Update
-    //                                                                          ============
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Insert or update after select.
-     * {update: modified only}
-     * 
-     * @param entity Entity. This must contain primary-key value at least(Except use identity). (NotNull)
-     * @return Updated count.
-     */
-    public int insertOrUpdateAfterSelect(LdBook entity) {
-        assertEntityNotNull(entity);
-        if (!entity.hasPrimaryKeyValue()) {
-            return delegateInsert(entity);
-        }
-        LdBook currentEntity = null;
-        try {
-            final LdBookCB cb = newMyConditionBean();
-            cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-            currentEntity = selectEntityWithDeletedCheck(cb);
-        } catch (dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException e) {
-            return delegateInsert(entity);
-        }
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        mergeEntity(entity, currentEntity);
-        return delegateUpdate(currentEntity);
-    }
-    - - - - - - - - /
-
-        「なければInsert、あればUpdate」します。
-        外部Systemから夜間にDataを取り込む場合などに利用されます。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Update after select.
-     * 
-     * @param entity Entity. This must contain primary-key value at least. (NotNull)
-     * @return Updated count.
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     */
-    public int updateAfterSelect(LdBook entity) {
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        final LdBook currentEntity = selectEntityWithDeletedCheck(cb);
-        mergeEntity(entity, currentEntity);
-        return delegateUpdate(currentEntity);
-    }
-    - - - - - - - - /
-
-        一旦Selectしてから更新をします。
-
-          1. 引数のEntityのPrimaryKeyに該当するRecordを検索する。
-          2. 検索結果のEntityに対して、引数のEntityでSetterの呼ばれた列の値を反映させる。
-          3. 更新する。
-
-        ＜引数のEntity＞
-        PrimaryKeyの値＋更新したい列の値だけを格納していれば良いです。
-          →newしたEntityにPrimaryKeyと更新したい列の値をSetすればOKです。
-
-        ＜Update文のSet句＞
-        Update文のSet句には、引数のEntityでSetterの呼ばれた列だけが指定されます(S2Dao-1.0.40より)。
-
-        ＜排他制御＞
-        引数のEntityにVersionNoやTimestampが指定されていない場合は、存在Checkで取得したDB上の値を
-        そのままS2Daoに渡します。つまりその場合は、実質的な排他制御は行われません(0.x秒単位の排他制御は行われる)。
-        排他制御を必要としない更新の場合は、このMethodを使うと便利です。
-          → delegateUpdate()でVersionNoやTimestampを指定しないと更新に失敗する(S2Daoの仕様)。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Insert or update after select-for-update.
-     * {update: modified only}
-     * 
-     * @param entity Entity. This must contain primary-key value at least. (NotNull)
-     * @return Updated count.
-     */
-    public int insertOrUpdateAfterSelectForUpdate(LdBook entity) {
-        assertEntityNotNull(entity);
-        if (!entity.hasPrimaryKeyValue()) {
-            return delegateInsert(entity);
-        }
-        LdBook currentEntity = null;
-        try {
-            final LdBookCB cb = newMyConditionBean();
-            cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-            cb.lockForUpdate();
-            currentEntity = selectEntityWithDeletedCheck(cb);
-        } catch (dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException e) {
-            return delegateInsert(entity);
-        }
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        mergeEntity(entity, currentEntity);
-        return delegateUpdate(entity);
-    }
-    - - - - - - - - /
-
-        先述した insertOrUpdateAfterSelect() のForUpdate版です。
-
-
-    / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /**
-     * Update after select-for-update.
-     * 
-     * @param entity Entity. This must contain primary-key value at least. (NotNull)
-     * @return Updated count.
-     * @exception dbflute.ldb.allcommon.exception.LdRecordHasAlreadyBeenDeletedException
-     */
-    public int updateAfterSelectForUpdate(LdBook entity) {
-        assertEntityNotNullAndHasPrimaryKeyValue(entity);
-        final LdBookCB cb = newMyConditionBean();
-        cb.acceptPrimaryKeyMapString(entity.extractPrimaryKeyMapString());
-        cb.lockForUpdate();
-        final LdBook currentEntity = selectEntityWithDeletedCheck(cb);
-        mergeEntity(entity, currentEntity);
-        return delegateUpdate(currentEntity);
-    }
-    - - - - - - - - /
-
-        先述した updateAfterSelect() のForUpdate版です。
-
-
-
+これらはちょっとした実装補助ではありますが、10人20人と開発者が増えれば増えるほど効果を発揮します。
+「このちょっとした実装補助が無いためにDebugに時間を掛けてしまった」なんてことは避けたいと考えます。
+(呼び出し側はBehaviorのみ利用し、S2DaoのDaoを直接参照しないことを推奨)
 
 </pre>
 </p>

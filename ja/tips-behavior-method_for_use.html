@@ -93,7 +93,6 @@ BehaviorのMethodの用途別概要を記述します。
 
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
 delegateSelectEntity()を直接呼び出すことはお奨めしません。
 delegateSelectEntity()はS2DaoのMethodをそのまま呼び出しています。
 S2Dao仕様では、該当条件に複数件HITする場合に先頭の一件目を戻すようになっています。
@@ -108,11 +107,13 @@ S2Dao仕様では、該当条件に複数件HITする場合に先頭の一件目
     cb.query().setXxx...(xxx);
     cb.query().addOrderBy_Xxx_Asc();
     <b>cb.fetchFirst(1);</b> // ☆
-    final LdBook entity = bhv.selectEntity(cb);
+    final Book entity = bookBhv.selectEntity(cb);
     - - - - - -/
 
 すると、複数件HITする条件の中のSortされた上での一件目が取得できます。
 
+delegateXxx()がpublicメソッドである理由は、Interceptorを仕掛けるためです。
+将来的にprotectedにする可能性もあります。InternalなMethodという認識でいて下さい。
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
@@ -132,8 +133,8 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         ☆このように記述可能です。
         /- - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        final ListResultBean&lt;LdBook&gt; ls = bhv.selectList(cb);
-        for (LdBook entity : ls) {
+        final ListResultBean&lt;LdBook&gt; bookList = bookBhv.selectList(cb);
+        for (Book entity : bookList) {
             entity.getXxx...
         }
         - - - - - - - - - -/
@@ -208,94 +209,11 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         現時点でJava版のみのSupportとなります。また、DBFlute-0.4.4以降限定です。
 
 
-<b>一旦Selectしてから更新：</b>
+<b>なければ登録あれば制限なしの更新：</b>
 
-    → <b>updateAfterSelect()</b>
-
-        EntityのSetterが呼び出されたColumnだけがUpdate文のSet句に指定されます。
-        0件更新時は例外が発生します。
-
-        引数のEntityは、newして値をSetしたもので構いません。
-        但し、VersionNoやTimestampをEntityに設定している場合で、引数のEntityのそれらの値が null の場合は、
-        DB上の値そのままを排他制御に利用するため、実質的な排他制御が行われずに更新されます。
-        (逆に排他制御をしたくない場合はこのMethodを使うと良いかと思います)
-
-        【注意】(2007/01/04)
-        C#版S2Daoは、Update文のSet句に全てのColumnが指定されます。
-        しかし、一旦SelectしたEntityに引数のEntityの値をMergeするため、
-        引数のEntityは、newして値をSetしたもので構いません。
-        なのでC#版では、一律updateAfterSelect()を利用することをお奨めします。
-
-
-<b>なければ登録あれば更新：</b>
-
-    → <b>insertOrUpdateAfterSelect()</b>
+    → <b>insertOrUpdateNonStrict()</b>
 
       主に外部SystemからのDataを夜間に取り込むBatchなどで利用されます。
-
-
-<b>一旦Selectしてから更新｛更新Lock付き｝：</b>
-
-    → <b>updateAfterSelectForUpdate()</b>
-
-      ForUpdateが付いただけで、それ以外の動きはupdateAfterSelect()と同様です。
-
-
-<b>なければ登録あれば更新｛更新Lock付き｝：</b>
-
-    → <b>insertOrUpdateAfterSelectForUpdate()</b>
-
-      ForUpdateが付いただけで、それ以外の動きはinsertOrUpdateAfterSelect()と同様です。
-      主に外部SystemからのDataを夜間に取り込むBatchなどで利用されます。
-
-
-
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-【注意】(2007/04/04)
-DBFlute-0.4.4より updateNonstrict()がSupportされたため、
-以下の文章は微妙に古い記事となります。
-ただ、updateNonstrict()は現時点でJava版のみのSupportであり、
-またDBFlute-0.4.4以降限定なのでそれに当てはまらない場合は以下の文章は有効です。
-
-
-
-検索と登録に関しては特に迷うところはないかと思いますが、
-更新は複雑なためどのMethodを使えば良いのか迷います。
-
-Projectによって様々ではありますが、以下の点を割り切りできるならば、
-基本的に updateAfterSelect() のみを利用すれば良いかと思います。
-(大人数で開発する時などProgramerを迷わせないために「これを使う」と決めてしまう)
-
-
-  A. VersionNo or Timestampを引数のEntityにSetし忘れた場合は、
-     排他制御がされない。(排他制御を強制しない)
-
-  B. Update前にSelectするCost。
-
-  C. Update前にSelectは更新Lockなし。
-
-
-「A」に関して割り切れない場合は、やはりupdate()を利用して下さい。
-updateAfterSelect()は排他制御が業務要件的に不要である場合にだけ利用して下さい。
-
-「B」に関して割り切れない場合は、やはりupdate()を利用して下さい。
-updateAfterSelect()は排他制御が業務要件的に不要である場合にだけ利用して下さい。
-
-「C」に関して割り切れない場合は、updateAfterSelectForUpdate()を利用して下さい。
-
-
-
-#
-# 別の視点からの判断基準の一つ：
-#
-# もし、排他制御の結果として、「そのRecordが他の人に削除されたのか更新されたのか」
-# を区別して扱いたい場合は、updateAfterSelect() or updateAfterSelectForUpdate()
-# を利用しなければなりません。(update()ではその区別は付けられない)
-#
-
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
 
 
 
@@ -306,18 +224,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 <b>通常の削除：</b>
 
     → <b>delete()</b>
-
-
-
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
-Method名が「delegate...」で始まっているMethodは極力外側のClassから呼び出さない
-ことをお奨めします。(現状、ASPECTを掛けるためにpublicになっている...)
-
-delegate...() を利用しなくても要件を満たすMethodは先述した通りです。
-
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 
 
