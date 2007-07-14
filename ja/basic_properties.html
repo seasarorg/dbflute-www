@@ -320,26 +320,6 @@ torque.projectPrefix		= Ld
 #     The definition map of dbflute dicon other include path.
 #     ex) map:{ dbflute/common.dicon = dummy }
 #
-#   originalDBFluteComponentMap: (Default 'map:{}')
-#     The map of the original dbflute component.
-#     If componentName have '*' as prefix, the component should be Dao.
-#       ex) map:{ \
-#               ; *bookAuthorDao = map:{ \
-#                   className=org.seasar.dbflute........dao.BookAuthorDao \
-                } \
-#               ; blackListHandler = map:{ \
-                    className=org.seasar.dbflute........nongenerate.handler.BlackListHandlerImpl \
-                } \
-#           }
-#
-#   originalBehaviorAspectMap: (Default 'map:{}')
-#     The map of the original behavior aspect.
-#       ex) map:{ interceptorName = map:{ \
-#                     className=org.seasar.dbflute.InterceptorClassName \
-#                   ; pointcut=selectList.*, selectEntity.* \
-#               } \
-#           }
-#
 #   isAvailableBehaviorRequiresNewTx: (Default true)
 #     Is available the behavior setting about requiresNewTx in dbflute.dicon?
 #
@@ -360,11 +340,6 @@ torque.requiredTxComponentName      = requiredTx
 torque.requiresNewTxComponentName   = requiresNewTx
 torque.dbfluteDiconBeforeJ2eeIncludeDefinitionMap = map:{ dbflute/jdbc-xxx.dicon = dummy }
 torque.dbfluteDiconOtherIncludeDefinitionMap = map:{ dbflute/common.dicon = dummy }
-torque.originalDBFluteComponentMap = map:{ \
-             ; *libraryDetailDao = map:{ className=dbflute.ldb.nongenerate.dao.LibraryDetailDao } \
-             ; blackListHandler  = map:{ className=dbflute.ldb.nongenerate.handler.BlackListHandlerImpl } \
-         }
-torque.originalBehaviorAspectMap = map:{}
 torque.isAvailableBehaviorRequiresNewTx = true
 torque.isAvailableBehaviorRequiredTx = true
 # ----------------/
@@ -463,21 +438,22 @@ torque.isAvailableBehaviorRequiredTx = true
 
       ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
 
-
+    @deprecated
     {originalDBFluteComponentMap}は、dbflute.diconに独自のComponentを登録したい場合に利用します。
     dbflute.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     手動で作成されたDaoはこれを利用して登録します。ComponentNameにPrefixとして'*'を付けるとDaoとして認識されます。
     特に何もなければ未指定で構いません。
-
-      ※originalDaoComponentMapと記述しても永遠に同じ動作をします。
-        同時に存在する場合はoriginalDBFluteComponentMapが優先されます。
-
       ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
+      ★昨今のSeasarの機能から、これを利用せずとも実現が可能なことと、もともと必要性が薄いことから
+        非推奨とさせて頂きます。もし、「そんなことはない！」という方がいらっしゃいましたらご連絡下さい。
 
-
+    @deprecated
     {originalBehaviorAspectMap}は、dbflute.diconに独自のBehaviorAspect(Interceptor)を登録します。
     dao.diconは自動生成なので、手動で修正しても後に上書きされてしまうため、このPropertyが存在します。
     特に何もなければ未指定で構いません。
+      ★昨今のSeasarの機能から、これを利用せずとも実現が可能なことと、もともと必要性が薄いことから
+        非推奨とさせて頂きます。もし、「そんなことはない！」という方がいらっしゃいましたらご連絡下さい。
+
 
     {isAvailableBehaviorRequiresNewTx}は、dbflute.diconに登録されているBehaviorの
     requiresNewTxの設定を有効にするか否かを判定します。
