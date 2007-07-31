@@ -44,10 +44,29 @@ DBFlute-0.5.3 から DBFlute-0.5.4 へ移行する際の注意点を記述しま
 #                                                                           DBFlute-0.5.4
 #                                                                           =============
 
-特に移行時の注意点はありません。
+特に環境的な移行時の注意点はありません。
 
 
+但し、Sql2EntityのBUG修正のお知らせがあります。
 
+Sql2Entityにおいて、内部的な処理を一つ変えました。
+MetaDataからColumn名を取得するのに、ResultSetMetaData#getColumnName()を利用していたのを
+ResultSetMetaData#getColumnLabel()を使うようにしました。
+(getColumnLabel()がnullを戻した場合はgetColumnName()を使う)
+
+「select xxx as yyy from zzz」というSQLを書いた場合に、
+ここでは本来'yyy'が採用されて欲しいのに'yyy'ではなく'xxx'が採用されてしまう可能性がありました。
+
+これはDatabase(JDBC)に依存しますが、
+MySQLやApache Derbyに関してはgetColumnName()もgetColumnLabel()も
+'yyy'を戻すため、どちらの仕様でも全く変わりません。
+明確に検証はできないですが、ほとんどのDatabaseではそのように振舞うかもしれません。
+ただ、S2DaoがEntityのMappingで利用するのはgetColumnLabel()なので、
+論理的にはSql2EntityもgetColumnLabel()を使うべきだと判断しました。
+
+もし万が一、getColumnName()を採用してもらわないと困るというな状況が発生した場合、
+build-xxx.propertiesに「torque.isSql2EntityUseColumnNameNotLabel = true」を追加すれば
+以前と同じようにgetColumnName()だけを利用するような動きになります。
 
 
 
