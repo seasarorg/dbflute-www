@@ -61,13 +61,10 @@ ResultSetMetaData#getColumnName()からResultSetMetaData#getColumnLabel()に変�
 「select xxx as yyy from zzz」というSQLを書いた場合に、
 ここでは本来'yyy'が採用されて欲しいのに'yyy'ではなく'xxx'が採用されてしまう可能性がありました。
 
-MySQLやApache Derbyに関してはgetColumnName()もgetColumnLabel()も
-'yyy'を戻すため、どちらの仕様でも全く変わりません。
-明確に検証はできないですが、ほとんどのDatabaseではそのように振舞うかもしれません。
-
+ちなみにMySQLやApache Derbyに関してはgetColumnName()もgetColumnLabel()も'yyy'を戻すため、
+どちらの仕様でも全く変わりません。
 ただ、S2DaoがEntityのMappingで利用するのはgetColumnLabel()なので、
 論理的にはSql2EntityもgetColumnLabel()を使うべきだと判断しました。
-(論理的なBUGであった)
 
 もし万が一、getColumnName()を採用してもらわないと困るというな状況が発生した場合、
 build-xxx.propertiesに「torque.isSql2EntityUseColumnNameNotLabel = true」を追加すれば
