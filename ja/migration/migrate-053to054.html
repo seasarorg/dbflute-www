@@ -47,7 +47,15 @@ DBFlute-0.5.3 から DBFlute-0.5.4 へ移行する際の注意点を記述しま
 特に環境的な移行時の注意点はありません。
 
 
+
+
 但し、Sql2EntityのBUG修正のお知らせがあります。
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Oracle・PostgreSQL・MySQL・Apache Derbyを利用されている方々は影響はありません。
+
+  → 読み飛ばしてもOKです
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 ほとんどの利用者にとっては影響の無い話になるとは思いますが、
 VersionUpの際は、Sql2Entityを流してCompileErrorなど発生しないか確認下さい。
@@ -61,61 +69,14 @@ ResultSetMetaData#getColumnName()からResultSetMetaData#getColumnLabel()に変�
 「select xxx as yyy from zzz」というSQLを書いた場合に、
 ここでは本来'yyy'が採用されて欲しいのに'yyy'ではなく'xxx'が採用されてしまう可能性がありました。
 
-ちなみにMySQLやApache Derbyに関してはgetColumnName()もgetColumnLabel()も'yyy'を戻すため、
-どちらの仕様でも全く変わりません。
+ちなみにOracle・PostgreSQL・MySQL・Apache Derbyに関しては
+getColumnName()もgetColumnLabel()も'yyy'を戻すため、どちらの仕様でも全く変わりません。
 ただ、S2DaoがEntityのMappingで利用するのはgetColumnLabel()なので、
 論理的にはSql2EntityもgetColumnLabel()を使うべきだと判断しました。
 
 もし万が一、getColumnName()を採用してもらわないと困るというな状況が発生した場合、
 build-xxx.propertiesに「torque.isSql2EntityUseColumnNameNotLabel = true」を追加すれば
 以前と同じようにgetColumnName()だけを利用するような動きになります。
-
-
-
-
-☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
-【VersionUp-TIPS】
-VersionUp時の運用についてのTIPSをここで紹介しておきます。
-(DBFluteのVersionに関係なく以下の方法でOKです)
-
-
-DBFluteの奨める「Project固有DBFlute」の構成を採用している場合：
-  → <a href="../how-to-setup.html">How-to-Setupを参考</a>
-
-
-  xxxproject
-      |
-      +- .settings
-      |
-      +- dbflute_[dbname]          // DBFluteのProjectDirectory
-      |     |
-      |     |
-      |     +- dfprop              // build-xxx.propertiesのDB接続情報や'map:{}'系Propertyを外だしできる
-      |     +- log
-      |     +- output
-      |     +- playsql
-      |     +- schema
-      |     +- _project.bat ☆
-      |     +- ...
-      |
-      +- mydbflute                 // DBFlute本体の格納場所
-      |     |
-      |     +- dbflute-0.4.4       // 古いVersionはいずれ削除してもよい。
-      |     +- dbflute-0.4.5
-      |     +- ...                 // _project.batには最新のDBFluteを設定しておく。
-      | 
-      +- src/main/java
-      +- src/main/resources
-      +- ...
-      ...
-
-
-1. DownloadしたDBFluteを解凍して、mydbflute以下に配置(dbflute-0.5.3)します。
-2. _project.bat (or _project.sh) の DBFLUTE_HOME の指すVersionを 0.5.3 にする。
-3. jdbc.bat / generate.bat を実行する。
-☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
-
-
 
 </pre>
 </p>
