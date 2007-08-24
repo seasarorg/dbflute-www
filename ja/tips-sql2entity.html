@@ -66,13 +66,59 @@ DBFluteには、S2Daoの“外だしSQL”(SQLファイル)から、それに対
 
 
 // -----------------------------------------------------
+//                                  Sql2Entityの利用手順
+//                                  --------------------
+
+利用者は以下のような手順でSql2Entityを利用します。
+
+    1. {.sql}をexdao(ExtendedDao)配下のDirectoryに作成。
+
+         o その時のFile名は、S2Daoの規約に従うこと。
+         o DaoはそのSQLあ一番関連であろうTableのDaoを選ぶこと。
+         o SQLのCommentとして、以下のように生成するEntityのClass名を記述すること。
+
+        ex) BookDao_selectBookCollectionStatistic.sql (CustomizeEntityの生成)
+        /- - - - - - - - - - - - - - - - - - - - - - - -
+        <b>--#BookCollectionStatistic#</b>
+        select book.BOOK_ID
+             , book.BOOK_NAME
+             ...
+        - - - - - - - - - -/
+
+        ex) BookDao_selectBookCollectionStatistic.sql (ParameterBeanの生成)
+        /- - - - - - - - - - - - - - - - - - - - - - - -
+        <b>--!BookCollectionStatisticPmb!</b>
+        <b>--!!java.math.BigDecimal bookId!!</b>
+        <b>--!!String bookName!!</b>
+        select book.BOOK_ID
+             , book.BOOK_NAME
+             ...
+        - - - - - - - - - -/
+
+
+    2. ./dbflute_[project]/sql2entity.bat(sh)を実行。
+
+         o CommandのConsoleにLogが表示されるのでErrorが無いことを確認すること。
+
+
+    3. 該当のDao-Interfaceに、その{.sql}を呼び出すMethodを追加。
+
+        ex) BookDaoにBookCollectionStatisticを検索するMethodを定義
+        /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        @OutsideSql
+        <b>java.util.List&lt;BookCollectionStatistic&gt;
+                    selectBookCollectionStatistic(BookCollectionStatisticPmb pmb);</b>
+        - - - - - - - - - -/
+
+
+// -----------------------------------------------------
 //                                      Sql2Entityの処理
 //                                      ----------------
 
 Client-Directoryに用意されている「<b>sql2entity.bat</b>」を実行すると以下のような処理が実行されます。
 
 
-    1. 'exdao'以下(ExtendedDao)のDirectoryに存在する'.sql'ファイルを読み込む。
+    1. exdao(ExtendedDao)配下のDirectoryに存在する'.sql'ファイルを読み込む。
 
       ex) LdBookDao_selectBookCollectionStatistic.sql
       /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,6 +133,9 @@ Client-Directoryに用意されている「<b>sql2entity.bat</b>」を実行す�
        order by COLLECTION_COUNT desc
       ;
       - - - - - - - - - -/
+
+      ※Sourceの出力先が「../src/main/java」の場合に限り「../src/main/resources」配下も対象とする。
+        この場合は両方のexdao配下を探しにいく。
 
 
     2. '.sql'の中に'--#entityName#'と記載されているものを対象にSQLを実行する。
@@ -121,17 +170,26 @@ Client-Directoryに用意されている「<b>sql2entity.bat</b>」を実行す�
 exdaoのどれかのDaoにMethodを追加します。
 (どのDao(Table)に定義するかは、検索するSQLとTableの関連性から適切に(適当に)決めてください)
 
-    ex) LdBookDaoにBookCollectionStatisticを検索するMethodを定義
+    ex) BookDaoにBookCollectionStatisticを検索するMethodを定義
     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    <b>public java.util.List&lt;LdBookCollectionStatistic&gt; selectBookCollectionStatistic(String bookName);</b>
+    @OutsideSql
+    <b>java.util.List&lt;BookCollectionStatistic&gt; selectBookCollectionStatistic(String bookName);</b>
     - - - - - - - - - -/
 
-Entity検索 → 戻り値の型にCustomizeEntityを指定する。
-List検索   → ListのElementの型(Generics)にCustomizeEntityを指定する。
-Array検索  → ArrayのElementの型にCustomizeEntityを指定する。
+  Entity検索 → 戻り値の型にCustomizeEntityを指定する。
+  List検索   → ListのElementの型(Generics)にCustomizeEntityを指定する。
+  Array検索  → ArrayのElementの型にCustomizeEntityを指定する。
 
 すると、S2Dao内部で検索結果がMappingされるEntityが、DaoのBean-Annotationに指定されたEntityではなく、
 戻り値に指定されたCustomizeEntityに差し替えられます。(上記の例だと「LdBookCollectionStatistic」)
+
+
+    ※OutsideSql-Annotationは外だしSQLのときに「できるだけ」付けておいた方がいいです。
+      SpellMissやDeployMissなどで{.sql}が見つけれらなかった場合に
+      専用のMessageを積んだExceptionが発生されるようになります。
+      (これを付けないとS2DaoのDefaultの挙動で誤動作して原因がわかりにくくなります)
+      (ごめんなさい、JDK-1.4にはありません)
+
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 本来、S2Dao-1.0.XXは「1Daoに付き1Entity」なのですが、DBFluteがS2Daoを拡張して上記の利用方法を可能としました。
@@ -139,13 +197,15 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 制限としては、JDK-1.4を利用される場合はListのElement指定ができないため、List検索ではこの方式は利用できません。
 その場合(JDK-1.4)は、Arrayの戻り値を使うようにして下さい
+
+
+#
+# 追記(2007/08/24)：
+# S2Daoでも独自DTOを戻り地にすることが可能になりました。
+# が、特にDBFluteでの利用は何も変わりません。
+#
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-
-[S2Dao-1.1.XX] (Java)
-
-Method単位でEntityを指定できるので、既存のexdaoのどれかのDaoにMethodを追加して下さい。
-(どのDao(Table)に定義するかは、検索するSQLとTableの関連性から適切に(適当に)決めてください)
 
 
 // -----------------------------------------------------
@@ -174,10 +234,10 @@ Directory構成などの縛りが発生したときに
          }
     - - - - - - - - - -/
 
-sqlDirectory    ： '.sql'を探すDirectoryを指定することができます。
-isPlainEntity   ： trueの場合、DBFluteに依存しないPlainなEntityを作成します。
-outputDirectory ： 自動生成Classを出力するDirectoryです。(このDirectory以下にPackage構成が展開されます)
-packageString   ： 自動生成ClassのPackageです。
+  sqlDirectory    ： '.sql'を探すDirectoryを指定することができます。
+  isPlainEntity   ： trueの場合、DBFluteに依存しないPlainなEntityを作成します。
+  outputDirectory ： 自動生成Classを出力するDirectoryです。(このDirectory以下にPackage構成が展開されます)
+  packageString   ： 自動生成ClassのPackageです。
 
 _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 DBFluteは特に利用していないがS2Daoを利用していてSql2Entityの機能を利用したいという方は、
@@ -194,8 +254,9 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 PrimaryKeyを設定することができます。
 
-PrimaryKeyを設定するとEntityにてPrimaryKeyを識別することができ、extractPrimaryKeyMapString()やhasPrimaryKeyValue()
-などのMethodを利用することができます。(設定されていないと、全てのColumnの複合PrimaryKeyと判断される)
+PrimaryKeyを設定するとEntityにてPrimaryKeyを識別することができ、extractPrimaryKeyMapString()や
+hasPrimaryKeyValue()などのMethodを利用することができます。
+(設定されていないと、全てのColumnの複合PrimaryKeyと判断される)
 また、equals()がPrimaryKeyを基準に判定されるようになります。
 
   ※無茶苦茶便利なのかと言われると、そこまでは...って感じではありますが...
