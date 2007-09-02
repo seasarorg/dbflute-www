@@ -69,7 +69,7 @@ torque.project = ldb
 # the SQL for your Torque project. Your possible choices are:
 #
 #   axion, cloudscape, db2, db2400, hypersonic, interbase, mssql,
-#   mysql, oracle, postgresql, sapdb, sybase, firebird, derby
+#   mysql, oracle, postgresql, sapdb, sybase, firebird, derby, h2
 # -------------------------------------------------------------------
 # @FirstProperty
 # @Required
@@ -205,34 +205,6 @@ torque.java.dir = ../src/main/java
 
 
 # /---------------------------------------------------------------------------
-# [Behavior]
-#   isAvailableBehaviorGeneration: (Default 'true')
-#     [true]
-#       Behavior classes are generated.
-# 
-#     [false]
-#       Behavior classes are not generated.
-#       And proerties about behavior are invalid.
-#
-# @FirstProperty
-torque.isAvailableBehaviorGeneration = true
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Behaviorと言われるClassを生成するか否かです。
-
-    Behaviorは、DBFluteが提供する目玉商品の一つです。
-    よほど使わないという理由がない限り、trueであることをお奨めします。
-    (別に後でfalseにしても構わないので...)
-
-    ★★★★★★★★★★★★★★★★★★★★★★★★★
-    DBFlute-0.5.0 より Default値がtrueとなります。
-    ★★★★★★★★★★★★★★★★★★★★★★★★★
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-# /---------------------------------------------------------------------------
 # [Generics]
 #   isAvailableGenerics: (Default 'true')
 #     Default value is true.
@@ -293,59 +265,37 @@ torque.projectPrefix		= Ld
 #                                                            Dicon
 #                                                             _/_/
 # /---------------------------------------------------------------------------
-# [DBFluteDicon Information]
-#   dbfluteDiconNamespace: (Default 'dbflute')
+# [Dicon Basic Information]
+#   dbfluteDiconNamespace: (Default Java:'dbflute' CSharp:'DBFlute')
 #     The namespace of dbflute dicon.
 #
-#   dbfluteDiconPackageName: (Default '../resources')
+#   dbfluteDiconPackageName: (Default Java:'../resources' CSharp:'../source/${topNamespace}/Resources')
 #     The package name of dbflute dicon.
 #
-#   dbfluteDiconFileName: (Default 'dbflute.dicon')
+#   dbfluteDiconFileName: (Default Java:'dbflute.dicon' CSharp:'DBFlute.dicon')
 #     The file name of dbflute dicon. (Required)
 #
-#   j2eeDiconResourceName: (Default Java:'j2ee.dicon' C#:'ado.dicon')
+#   j2eeDiconResourceName: (Default Java:'j2ee.dicon' CSharp:'Ado.dicon')
 #     The resource name of J2EE dicon.
-#
-#   requiredTxComponentName: (Default Java:'requiredTx' C#:'LocalRequiredTx')
-#     The component name of 'requiredTx'-component.
-#
-#   requiresNewTxComponentName: (Default Java:'requiresNewTx' C#:'LocalRequiresNewTx')
-#     The component name of 'requiresNewTx'-component.
-#
-#   dbfluteDiconBeforeJ2eeIncludeDefinitionMap: (Default 'map:{}')
-#     The definition map of dbflute dicon include path before j2ee including.
-#     ex) map:{ dbflute/jdbc-xxx.dicon = dummy }
-#
-#   dbfluteDiconOtherIncludeDefinitionMap: (Default 'map:{}')
-#     The definition map of dbflute dicon other include path.
-#     ex) map:{ dbflute/common.dicon = dummy }
-#
-#   isAvailableBehaviorRequiresNewTx: (Default true)
-#     Is available the behavior setting about requiresNewTx in dbflute.dicon?
-#
-#   isAvailableBehaviorRequiredTx: (Default true)
-#     Is available the behavior setting about requiredTx in dbflute.dicon?
-#
 #
 #   *Attension:
 #      It is necessary that main dicon of application includes dbflute dicon.
 #      ex) App dicon includes dbflute dicon.
 #
 # @FirstProperty
-torque.dbfluteDiconNamespace        = dbflute
-torque.dbfluteDiconPackageName      = ../resources
-torque.dbfluteDiconFileName         = dbflute-ldb.dicon
-torque.j2eeDiconResourceName        = jdbc-ldb.dicon
-torque.requiredTxComponentName      = requiredTx
-torque.requiresNewTxComponentName   = requiresNewTx
-torque.dbfluteDiconBeforeJ2eeIncludeDefinitionMap = map:{ dbflute/jdbc-xxx.dicon = dummy }
-torque.dbfluteDiconOtherIncludeDefinitionMap = map:{ dbflute/common.dicon = dummy }
-torque.isAvailableBehaviorRequiresNewTx = true
-torque.isAvailableBehaviorRequiredTx = true
+#torque.dbfluteDiconNamespace		= dbflute
+#torque.dbfluteDiconPackageName		= ../resources
+#torque.dbfluteDiconFileName		= dbflute.dicon
+#torque.j2eeDiconResourceName		= j2ee.dicon
 # ----------------/
 
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    diconの設定に関するPropertyです。
+    diconの基本的な設定に関するPropertyです。
+
+    「@FirstProperty」が付いています。
+    大抵の場合はほとんどDefault値でOKかと思われますが、
+    念のため(最初の１回目の)自動生成の前に確認をしておくことをお奨めします。
+
 
     <b>{dbfluteDiconNamespace}</b>は、dbflute.diconのnamespaceです。
     Default値の「dbflute」で問題なければ未指定で構いません。
@@ -391,19 +341,47 @@ torque.isAvailableBehaviorRequiredTx = true
         S2Containerのjar内部に存在するj2ee.diconを利用する場合は、j2ee.diconが参照するjdbc.diconを
         用意してください。
 
-        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        DBFlute-0.3.2まではDefault値が'j2ee.dicon'でした。
-        また、j2eeDiconResourceNameはdeprecateされました(書けば正常に動作します)。
-        詳しくはこちら → <a href="./switch-032to040.html">DBFlute-0.3.2 to 0.4.0</a>
-        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    ※Applicationが利用するxxx.diconがdbflute.diconをIncludeする必要があります。
+      例えば、app.diconがdbflute.diconをincludeするのが一般的です。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-    <b>{requiredTxComponentName}</b>は、jdbc.diconで定義されるrequiredTxのComponent名です。
-    Default値の「Java:requiredTx/C#:LocalRequiredTx」で問題なければ未指定で構いません。
 
+# /---------------------------------------------------------------------------
+# [Dicon Adjustment Information]
+#
+#   requiredTxComponentName: (Default Java:'requiredTx' CSharp:'LocalRequiredTx')
+#     The component name of 'requiredTx'-component.
+#
+#   requiresNewTxComponentName: (Default Java:'requiresNewTx' CSharp:'LocalRequiresNewTx')
+#     The component name of 'requiresNewTx'-component.
+#
+#   dbfluteDiconBeforeJ2eeIncludeDefinitionMap: (Default 'map:{}')
+#     The definition map of dbflute dicon include path before j2ee including.
+#     ex) map:{ dbflute/jdbc-xxx.dicon = dummy }
+#
+#   dbfluteDiconOtherIncludeDefinitionMap: (Default 'map:{}')
+#     The definition map of dbflute dicon other include path.
+#     ex) map:{ dbflute/common.dicon = dummy }
+#
+#
+#torque.requiredTxComponentName		= requiredTx
+#torque.requiresNewTxComponentName	= requiresNewTx
+#torque.dbfluteDiconBeforeJ2eeIncludeDefinitionMap = map:{ dbflute/jdbc-xxx.dicon = dummy }
+#torque.dbfluteDiconOtherIncludeDefinitionMap = map:{ dbflute/common.dicon = dummy }
+#
+# @Deprecated
+#torque.isAvailableBehaviorRequiresNewTx = false
+#torque.isAvailableBehaviorRequiredTx = false
+# ----------------/
 
-    <b>{requiresNewTxComponentName}</b>は、jdbc.diconで定義されるrequiresNewTxのComponent名です。
-    Default値の「Java:requiresNewTx/C#:LocalRequiresNewTx」で問題なければ未指定で構いません。
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    diconの設定を調整するPropertyです。
+
+    こちらは「@FirstProperty」が付いていません。
+    大抵の場合は特に気にせず自動生成してもOKかと思われます。
+    必要になったらそのときに追加して再自動生成すればOKです。
 
 
     {dbfluteDiconBeforeJ2eeIncludeDefinitionMap}は、dbflute.diconでj2ee.dicon以外の別のDiconを
@@ -437,35 +415,6 @@ torque.isAvailableBehaviorRequiredTx = true
         同時に存在する場合はdbfluteDiconOtherIncludeDefinitionMapが優先されます。
 
       ※dbfluteDiconBeforeJ2eeIncludeDefinitionMapと同様にS2ContainerのXInclude機能の利用で代替できます。
-
-
-    {isAvailableBehaviorRequiresNewTx}は、dbflute.diconに登録されているBehaviorの
-    requiresNewTxの設定を有効にするか否かを判定します。
-    ※DBFlute-0.4.4から
-
-        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        DBFlute-0.6.0 より Default値が'false'となります。
-        余計なAOPがPerformanceを悪くする可能性があるためです。
-        この機能に対するNeedsも今までほとんど無く、Dicon初期化時の解析が
-        遅くなるだけでしたので、このように致しました。
-        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
-
-    {isAvailableBehaviorRequiredTx}は、dbflute.diconに登録されているBehaviorの
-    requiredTxの設定を有効にするか否かを判定します。
-    ※DBFlute-0.4.4から
-
-        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-        DBFlute-0.6.0 より Default値が'false'となります。
-        余計なAOPがPerformanceを悪くする可能性があるためです。
-        この機能に対するNeedsも今までほとんど無く、Dicon初期化時の解析が
-        遅くなるだけでしたので、このように致しました。
-        ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
-
-
-    ※Applicationが利用するxxx.diconがdbflute.diconをIncludeする必要があります。
-      例えば、app.diconがdbflute.diconをincludeするのが一般的です。
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -494,14 +443,14 @@ torque.isAvailableBehaviorRequiredTx = true
 #      *If this property is not specified, you should specify the other package properties.
 #
 #
-#    baseCommonPackage:       (Default Java:'allcommon' C#:'allcommon')
-#    baseBehaviorPackage:     (Default Java:'bsbhv'     C#:'bsbhv')
-#    baseDaoPackage:          (Default Java:'bsdao'     C#:'bsdao')
-#    baseEntityPackage:       (Default Java:'bsentity'  C#:'bsentity')
-#    conditionBeanPackage:    (Default Java:'cbean'     C#:'cbean')
-#    extendedBehaviorPackage: (Default Java:'exbhv'     C#:'exbhv')
-#    extendedDaoPackage:      (Default Java:'exdao'     C#:'exdao')
-#    extendedEntityPackage:   (Default Java:'exentity'  C#:'exentity')
+#    baseCommonPackage:       (Default Java:'allcommon' C#:'Allcommon')
+#    baseBehaviorPackage:     (Default Java:'bsbhv'     C#:'BsBhv')
+#    baseDaoPackage:          (Default Java:'bsdao'     C#:'BsDao')
+#    baseEntityPackage:       (Default Java:'bsentity'  C#:'BsEntity')
+#    conditionBeanPackage:    (Default Java:'cbean'     C#:'CBean')
+#    extendedBehaviorPackage: (Default Java:'exbhv'     C#:'ExBhv')
+#    extendedDaoPackage:      (Default Java:'exdao'     C#:'ExDao')
+#    extendedEntityPackage:   (Default Java:'exentity'  C#:'ExEntity')
 #
 # @FirstProperty
 torque.packageBase              = org.seasar.dbflute.example.dbflute.ldb
@@ -512,15 +461,6 @@ torque.packageBase              = org.seasar.dbflute.example.dbflute.ldb
 
     {packageBase}は、すべてのPackage設定のBaseのPathとなります。
     他のそれぞれのPackage設定にはDefault値がありますので、それで問題なければこのPropertyのみ設定でOKです。
-
-    【C#版ご利用の方へ注意】
-    DBFluteの基本方針は、Package名は小文字始まりです。
-    申し訳ありませんが、C#版においてもそのようになります。
-    ここのPropertyで 'DBFlute.Ldb.Allcommon', 'DBFlute.Ldb.Bsbhv', '...'というように指定することで
-    大文字始まりのNamespaceを実現することは可能ですが、AllcommonやBsdao以下のDBFluteが付加する
-    cbean/customizeなどのNamespaceは小文字始まりとなります。
-    将来的に修正されるかもしれませんが、現状(2006/12/30時点)ではこのような動作となります。
-    ご了承下さい。
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -532,6 +472,7 @@ torque.packageBase              = org.seasar.dbflute.example.dbflute.ldb
 # [S2Dao Version]
 #   s2daoVersion: (Default [The latest version])
 #
+# @FirstProperty
 # @JavaOnly
 torque.s2daoVersion = 1.0.43
 # ----------------/
@@ -543,8 +484,9 @@ torque.s2daoVersion = 1.0.43
     DBFluteに「S2DaoのどのVersionに対応するClassを自動生成するのか？」を伝える必要があります。
 
       * * * * * * * * * * * * *
-      S2Dao-1.0.39 から 1.0.40
       S2Dao-1.0.42 から 1.0.43
+      S2Dao-1.0.45 から 1.0.46
+      S2Dao-1.0.46 から 1.0.47
       * * * * * * * * * * * * *
 
     それがこのPropertyです。
