@@ -1,7 +1,9 @@
 
-http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:3
 
-http://dbflute.sandbox.seasar.org/view/role_of_dbflute/index.html?goto=1
+http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:1:6
+http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:2:24
+http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=2:23
+http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=3:57
 
 
 
