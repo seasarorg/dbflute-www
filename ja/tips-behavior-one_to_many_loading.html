@@ -88,56 +88,56 @@ DBFluteでは、これに対し以下のようなApproachで対応します。
         - 本の名前が'S2Dao'で始まるものを対象とする。
         - 本の名前の昇順で取得する。
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    final LdBookCB cb = new LdBookCB();
+    final BookCB cb = new BookCB();
     cb.setupSelect_Author();
     cb.setupSelect_Publisher();
     cb.query().setBookName_Prefix("S2Dao");
     cb.query().addOrderBy_BookName_Asc();
 
-    final LdBookBhv bhv = ... // Behavior-Componentを取得
+    final BookBhv bhv = ... // Behavior-Componentを取得
 
     // BOOKの検索
-    final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    final java.util.List&lt;Book&gt; ls = bhv.selectList(cb);
 
     // BOOKに紐付くCOLLECTIONの検索・関連付け
     bhv.loadCollectionList(ls);
 
-    for (LdBook entity : ls) {
-        final java.util.List reffererList = entity.getCollectionList();
-        assertNotNull(reffererList);
+    for (Book entity : ls) {
+        final java.util.List refererList = entity.getCollectionList();
+        assertNotNull(refererList);
     }
     - - - - - - - - /
 
-また、第2引数にてReffererのOrderBy条件や絞り込み条件などを指定することが可能です。
+また、第2引数にてRefererのOrderBy条件や絞り込み条件などを指定することが可能です。
 
     ex) 上記の例の条件に加え、
          - COLLECTIONのSTATUSが'WAT'(入荷待ち)でないもので絞り込む。
          - COLLECTIONをARRIVAL_DATE(到着日)の降順で並べる。
     / - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    final LdBookCB cb = new LdBookCB();
+    final BookCB cb = new BookCB();
     cb.setupSelect_Author();
     cb.setupSelect_Publisher();
     cb.query().setBookName_Prefix("S2Dao");
     cb.query().addOrderBy_BookName_Asc();
 
-    final LdBookBhv bhv = ... // Behavior-Componentを取得
+    final BookBhv bhv = ... // Behavior-Componentを取得
 
     // BOOKの検索
-    final java.util.List&lt;LdBook&gt; ls = bhv.selectList(cb);
+    final java.util.List&lt;Book&gt; ls = bhv.selectList(cb);
 
     // BOOKに紐付くCOLLECTIONの検索・関連付け
     // COLLECTIONの条件に、「STATUSが'WAT'(入荷待ち)でないもの」と「ARRIVAL_DATE(到着日)の降順」を追加
-    final LdCollectionBhv.CBSetupper cbSetupper = new LdCollectionBhv.CBSetupper() {
-        public void setup(LdCollectionCB cb) {
+    final ConditionBeanSetupper&lt;CollectionCB&gt; setupper = new ConditionBeanSetupper&lt;CollectionCB&gt;() {
+        public void setup(CollectionCB cb) {
             cb.query().queryCollectionStatus().setCollectionStatusCode_NotEqual('WAT');
             cb.query().addOrderBy_ArribalDate_Desc();
         }
     };
-    bhv.loadCollectionList(ls, cbSetupper);
+    bhv.loadCollectionList(ls, setupper);
 
-    for (LdBook entity : bhv) {
-        final java.util.List reffererList = entity.getCollectionList();
-        assertNotNull(reffererList);
+    for (Book entity : bhv) {
+        final java.util.List refererList = entity.getCollectionList();
+        assertNotNull(refererList);
     }
     - - - - - - - - /
 
