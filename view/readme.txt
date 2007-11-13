@@ -1,12 +1,14 @@
 
 
-http://dbflute.sandbox.seasar.org/view/general_view/index.html
+// ExampleDB
+http://dbflute.sandbox.seasar.org/view/exampledb/index.html?goto=1
 
 // 自動生成概念図
 http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:2:41
 
 // 概念図詳細
 http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:1:6
+
 
 
 http://dbflute.sandbox.seasar.org/view/general_view/index.html?goto=1:1:6
