@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute : How to use [Outside SQL]</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>外だしSQLの実装手順</h2>
+	<p>外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。</p>
+	
+	<h3>前提</h3>
+	<p>
+		以前は、S2Daoをそのまま利用する「Daoを利用した外だしSQL」のやり方を利用していましたが、
+Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで外だしSQLを実行することが可能になりました。<br />
+(外だしSQLのみDaoを意識しなければならず、S2Daoを知らない初心者には敷居が高いという意見がありました)
+	</p>
+	<p>
+		その際、ジェネリックの利用、SQLファイルの自由度アップ、外だしSQLのページング検索の向上など、
+様々な改善が施されています。
+	</p>
+	
+	<h3>利用可能バージョン</h3>
+	<p>
+		[Java-1.4]の場合<br />
+		未実装です。<br />
+		Genericを前提とした処理のため、今後も実装予定はありません。<br />
+		「Daoを利用した伝統的な外だしSQL」をご利用下さい。
+	</p>
+	<p>
+		[Java-5.0 or Java6.0]の場合<br />
+		DBFlute-0.5.8より利用可能です。
+	</p>
+	<p>
+		[C#-2.0 or C-#3.0]<br />
+		未実装で、実装予定です。(２００８年１月頃)
+	</p>
+	
+	<h3>実装手順</h3>
+	<ol>
+		<li>
+			<h4>任意のパッケージにxxx.sqlファイルを作成する。</h4>
+			<p>ex) SQLファイルの配置</p>
+			<code>
+				sql/member/selectUnpaidSummaryMember.sql
+			</code>
+			<p>
+				SQLファイルのキャラセットはデフォルト「UTF-8」です。<br />
+				もし、その他のキャラセットを利用する場合は「torque.daoSqlFileEncoding」にて指定します。
+			</p>
+			<p>
+				C#版では、作成したSQLファイルのビルドアクションを「埋め込まれたリソース」にして下さい。<br />
+				これを設定しないと、DLL内にSQLファイルが含まれず、SQLを読み込むことができないためです。
+			</p>
+		</li>
+		<li>
+			<h4>xxx.sqlファイルにSQLを2Way-SQLで実装する。</h4>
+			<p>ex) 2Way-SQLでの実装（戻り値にCustomizeEntity・引数にParameterBeanを利用）</p>
+			<pre>
+			<code>
+    -- #UnpaidSummaryMember#
+
+    -- !UnpaidSummaryMemberPmb!
+    -- !!Integer memberId!!
+    -- !!String memberName!!
+    -- !!String memberStatusCode!!
+    -- !!boolean unpaidMemberOnly!!
+
+    select member.MEMBER_ID
+         , member.MEMBER_NAME
+         , (select sum(purchase.PURCHASE_PRICE)
+              from PURCHASE purchase
+             where purchase.MEMBER_ID = member.MEMBER_ID
+               and purchase.PAYMENT_COMPLETE_FLG = 0
+           ) as UNPAID_PRICE_SUMMARY
+         , memberStatus.MEMBER_STATUS_NAME
+      from MEMBER member
+        left outer join MEMBER_STATUS memberStatus
+          on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+     /*BEGIN*/where
+       /*IF pmb.memberId != null*/member.MEMBER_ID = /*pmb.memberId*/3/*END*/
+       /*IF pmb.memberName != null*/and member.MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
+       /*IF pmb.memberStatusCode != null*/and member.MEMBER_STATUS_CODE = /*pmb.memberStatusCode*/'FML'/*END*/
+       /*IF pmb.unpaidMemberOnly*/
+       and exists (select 'yes'
+                     from PURCHASE purchase
+                    where purchase.MEMBER_ID = member.MEMBER_ID
+                      and purchase.PAYMENT_COMPLETE_FLG = 0
+           )
+       /*END*/
+     /*END*/
+     order by UNPAID_PRICE_SUMMARY desc, member.MEMBER_ID asc
+			</code>
+			</pre>
+		</li>
+		<li>
+			<h4>Sql2Entityを実行する。</h4>
+			<p>※戻り値にCustomizeEntity・引数にParameterBeanを利用している場合。</p>
+			<p>
+				Sql2Entity実行後は、IDE上で「プロジェクトの更新」をして下さい。自動生成されたクラスがIDEに認識されます。
+			</p>
+			<p>
+				Sql2Entityに関しては<a href="../tips-sql2entity.html">こちら</a>
+			</p>
+		</li>
+		<li>
+			<h4>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する</h4>
+			<p>ex) List検索のテスト実装｛条件：名前が'ス'で始まる正式会員であること｝</p>
+			<pre>
+			<code>
+    public void test_outsideSql_selectUnpaidSummaryMember_Tx() throws Exception {
+        // ## Arrange ##
+        // SQLのパス
+        String path = "sql/member/selectUnpaidSummaryMember.sql";
+
+        // 検索条件
+        UnpaidSummaryMemberPmb pmb = new UnpaidSummaryMemberPmb();
+        pmb.setMemberName("ス");
+        pmb.setMemberStatusCode(ClassificationDefinition.CODE_MemberStatus_Formalized);
+
+        // 戻り値Entityの型
+        Class&gt;UnpaidSummaryMember&lt; entityType = UnpaidSummaryMember.class;
+
+        // ## Act ##
+        // SQL実行！
+        List&gt;UnpaidSummaryMember&lt; resultList = memberBhv.outsideSql().selectList(path, pmb, entityType);
+
+        // ## Assert ##
+        assertNotSame("テストの成立のため１件以上は必ずあること: " + resultList.size(), 0, resultList.size());
+        log("{UnpaidSummaryMember}");
+        for (UnpaidSummaryMember entity : resultList) {
+            final Integer memberId = entity.getMemberId();
+            final String memberName = entity.getMemberName();
+            final Integer unpaidPriceSummary = entity.getUnpaidPriceSummary();
+            final String memberStatusName = entity.getMemberStatusName();
+            log("    " + memberId + " - " + memberName + " - " + unpaidPriceSummary + " - " + memberStatusName);
+            assertNotNull(memberId);
+            assertNotNull(memberName);
+            // SQLでnullを除去してないため、未払いのない会員はnullがありえる。
+            // assertNotNull(unpaidPriceSummary);
+            assertNotNull(memberStatusName);
+        }
+    }
+			</code>
+			</pre>
+			<p>ex) 実行ログ｛条件：名前が'ス'で始まる正式会員であること｝</p>
+			<pre>
+			<code>
+    DEBUG (S2DaoInterceptor#traceMethod():185) - /===============================================================================
+    DEBUG (S2DaoInterceptor#traceMethod():186) -                                                       OutsideSqlDao.selectList()
+    DEBUG (S2DaoInterceptor#traceMethod():187) -                                                       =========================/
+    DEBUG (S2DaoInterceptor#traceMethod():195) - OutsideSql: sql/member/selectUnpaidSummaryMember.sql
+    DEBUG (S2DaoInterceptor#traceSqlCommand():428) - SqlCommand Initialization Cost: [00m00s547ms]
+    DEBUG (Logger#debug():105) - -- #UnpaidSummaryMember#
+
+    -- !UnpaidSummaryMemberPmb!
+    -- !!Integer memberId!!
+    -- !!String memberName!!
+    -- !!String memberStatusCode!!
+    -- !!java.sql.Timestamp purchaseDatetimeFrom!!
+    -- !!java.sql.Timestamp purchaseDatetimeTo!!
+    -- !!boolean unpaidMemberOnly!!
+
+    select member.MEMBER_ID
+         , member.MEMBER_NAME
+         , (select sum(purchase.PURCHASE_PRICE)
+              from PURCHASE purchase
+             where purchase.MEMBER_ID = member.MEMBER_ID
+               
+               
+               and purchase.PAYMENT_COMPLETE_FLG = 0
+           ) as UNPAID_PRICE_SUMMARY
+         , memberStatus.MEMBER_STATUS_NAME
+      from MEMBER member
+        left outer join MEMBER_STATUS memberStatus
+          on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+     where
+       
+       member.MEMBER_NAME like 'ス' || '%'
+       and member.MEMBER_STATUS_CODE = 'FML'
+       
+     
+     order by UNPAID_PRICE_SUMMARY desc
+    DEBUG (S2DaoInterceptor#traceReturn():463) - ===========/ [00m00s625ms - Selected list: 2 first={4,スタンコビッチ,5100,正式会員}]
+    DEBUG (S2DaoInterceptor#traceReturn():480) -  
+    DEBUG (AppTestBase#log():69) - {UnpaidSummaryMember}
+    DEBUG (AppTestBase#log():69) -     4 - スタンコビッチ - 5100 - 正式会員
+    DEBUG (AppTestBase#log():69) -     1 - ストイコビッチ - null - 正式会員
+			</code>
+			</pre>
+			<p>外だしSQLの機能一覧のドキュメントは作成中です。</p>
+		</li>
+	</ol>
+	
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
