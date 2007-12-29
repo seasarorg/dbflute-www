@@ -55,6 +55,18 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 	</p>
 	
 	<h3>実装手順</h3>
+	<p>
+		[概要]
+	</p>
+	<ol>
+		<li>任意のパッケージにxxx.sqlファイルを作成する。</li>
+		<li>xxx.sqlファイルにSQLを2Way-SQLで実装する。</li>
+		<li>Sql2Entityを実行する。</li>
+		<li>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</li>
+	</ol>
+	<p>
+		[詳細]
+	</p>
 	<ol>
 		<li>
 			<h4>任意のパッケージにxxx.sqlファイルを作成する。</h4>
@@ -64,11 +76,11 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 			</code>
 			<p>
 				SQLファイルは、以下のディレクトリ配下に配置して下さい。<br />
-				<ol>
+				<ul>
 					<li>Java版 ： 「../src/main/resources」</li>
 					<li>C#版 ： 「../source」</li>
 					<p>※「../」はDBFluteクライアントディレクトリからの相対パスを示します。</p>
-				</ol>
+				</ul>
 				もし、「torque.java.dir」にて独自の自動生成クラス出力先を設定している場合は、
 				その指定したディレクトリ配下に配置するようにして下さい。<br />
 				「torque.java.dir」に関して詳しくはこちら(★工事中)<br />
@@ -86,10 +98,14 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 		<li>
 			<h4>xxx.sqlファイルにSQLを2Way-SQLで実装する。</h4>
 			<p>
-				ex) 2Way-SQLでの実装（戻り値にCustomizeEntity・引数にParameterBeanを利用）<br />
-				※例題は“理解し易さ”を考慮して簡単なSQLとなっております。
+			ポイントは以下の通りです：
+				<ul>
+					<li>Sql2Entityの宣言を行う。</li>
+					<li>引数のParameterBeanへの参照は、「pmb」という変数名を利用することを習慣とする。</li>
+					<li>SQLコメント規約はS2Daoとほぼ同じである。一部拡張に関して詳しくはこちら(★工事中)</li>
+				</ul>
 			</p>
-			<pre>
+			<pre>ex) 2Way-SQLでの実装（戻り値にCustomizeEntity・引数にParameterBeanを利用）
 			<code>
 -- #SimpleMember#
 
@@ -112,6 +128,7 @@ select member.MEMBER_ID
  order by member.MEMBER_ID asc
 			</code>
 			</pre>
+			※例題は“理解し易さ”を考慮して簡単なSQLとなっております。
 		</li>
 		<li>
 			<h4>Sql2Entityを実行する。</h4>
@@ -125,73 +142,88 @@ select member.MEMBER_ID
 		</li>
 		<li>
 			<h4>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</h4>
+			<p>
+			ポイントは以下の通りです：
+				<ul>
+					<li>BehaviorのoutsideSql()メソッドの後、「selectList()」メソッドを呼び出す。</li>
+					<p>
+						→ 該当の外だしSQLにおいて一番基点となるテーブルのBehaviorを利用するのを習慣とする。<br />
+					</p>
+					<li>引数として「SQLのパス」・「ParameterBean」・「戻り値の型」を指定する。</li>
+					<p>
+						→ 「SQLのパス(path)」は必須。<br />
+						→ 「ParameterBean(pmb)」はSQLに渡す引数が無い場合は不要。<br />
+						→ 「戻り値の型(entityType)」は必須。<br />
+					</p>
+				</ul>
+			</p>
 			<p>ex) リスト検索のテスト実装｛条件：名前が'ス'で始まる会員であること｝</p>
 			<pre>
 			<code>
-    public void test_outsideSql_selectSimpleMember_Tx() throws Exception {
-        // ## Arrange ##
-        // SQLのパス
-        final String path = "sql/member/selectSimpleMember.sql";
+public void test_outsideSql_selectSimpleMember_Tx() throws Exception {
+    // ## Arrange ##
+    // SQLのパス
+    final String path = "sql/member/selectSimpleMember.sql";
 
-        // 検索条件
-        final SimpleMemberPmb pmb = new SimpleMemberPmb();
-        pmb.setMemberName("ス");
+    // 検索条件
+    final SimpleMemberPmb pmb = new SimpleMemberPmb();
+    pmb.setMemberName("ス");
 
-        // 戻り値Entityの型
-        final Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
+    // 戻り値Entityの型
+    final Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
 
-        // ## Act ##
-        // SQL実行！
-        final List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList(path, pmb, entityType);
+    // ## Act ##
+    // SQL実行！
+    final List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList(path, pmb, entityType);
 
-        // ## Assert ##
-        assertNotSame("テストの成立のため１件以上は必ずあること: " + resultList.size(), 0, resultList.size());
-        log("{SimpleMember}");
-        for (SimpleMember entity : resultList) {
-            final Integer memberId = entity.getMemberId();
-            final String memberName = entity.getMemberName();
-            final String memberStatusName = entity.getMemberStatusName();
-            log("    " + memberId + " - " + memberName + " - " + memberStatusName);
-            assertNotNull(memberId);
-            assertNotNull(memberName);
-            assertNotNull(memberStatusName);
-            assertTrue("The memberName should start with 'ス': " + memberName, memberName.startsWith("ス"));
-        }
+    // ## Assert ##
+    assertNotSame("テストの成立のため１件以上は必ずあること: " + resultList.size(), 0, resultList.size());
+    log("{SimpleMember}");
+    for (SimpleMember entity : resultList) {
+        final Integer memberId = entity.getMemberId();
+        final String memberName = entity.getMemberName();
+        final String memberStatusName = entity.getMemberStatusName();
+        log("    " + memberId + " - " + memberName + " - " + memberStatusName);
+        assertNotNull(memberId);
+        assertNotNull(memberName);
+        assertNotNull(memberStatusName);
+        assertTrue("The memberName should start with 'ス': " + memberName, memberName.startsWith("ス"));
     }
+}
 			</code>
 			</pre>
 			<p>ex) 実行ログ｛条件：名前が'ス'で始まる会員であること｝</p>
 			<pre>
 			<code>
-    (S2DaoInterceptor#traceMethod():201) - /===============================================================================
-    (S2DaoInterceptor#traceMethod():202) -                                                       OutsideSqlDao.selectList()
-    (S2DaoInterceptor#traceMethod():203) -                                                       =========================/
-    (S2DaoInterceptor#traceMethod():211) - OutsideSql: sql/member/selectSimpleMember.sql
-    (S2DaoInterceptor#traceSqlCommand():444) - SqlCommand Initialization Cost: [00m02s156ms]
-    (Logger#debug():105) - -- #SimpleMember#
-    
-    -- !SimpleMemberPmb!
-    -- !!Integer memberId!!
-    -- !!String memberName!!
-    
-    select member.MEMBER_ID
-         , member.MEMBER_NAME
-         , memberStatus.MEMBER_STATUS_NAME
-    
-      from MEMBER member
-        left outer join MEMBER_STATUS memberStatus
-          on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
-     where
-       
-       member.MEMBER_NAME like 'ス' || '%'
-       
-     
-     order by member.MEMBER_ID asc
-    (S2DaoInterceptor#traceReturn():479) - ===========/ [00m02s484ms - Selected list: 2 first={1,ストイコビッチ,正式会員}]
-    (S2DaoInterceptor#traceReturn():496) -  
-    (AppTestBase#log():69) - {SimpleMember}
-    (AppTestBase#log():69) -     1 - ストイコビッチ - 正式会員
-    (AppTestBase#log():69) -     4 - スタンコビッチ - 正式会員
+(S2DaoInterceptor#traceMethod():201) - /===============================================================================
+(S2DaoInterceptor#traceMethod():202) -                                                       OutsideSqlDao.selectList()
+(S2DaoInterceptor#traceMethod():203) -                                                       =========================/
+(S2DaoInterceptor#traceMethod():211) - OutsideSql: sql/member/selectSimpleMember.sql
+(S2DaoInterceptor#traceSqlCommand():444) - SqlCommand Initialization Cost: [00m02s156ms]
+(Logger#debug():105) - -- #SimpleMember#
+
+-- !SimpleMemberPmb!
+-- !!Integer memberId!!
+-- !!String memberName!!
+
+select member.MEMBER_ID
+     , member.MEMBER_NAME
+     , memberStatus.MEMBER_STATUS_NAME
+
+  from MEMBER member
+    left outer join MEMBER_STATUS memberStatus
+      on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+ where
+   
+   member.MEMBER_NAME like 'ス' || '%'
+   
+ 
+ order by member.MEMBER_ID asc
+(S2DaoInterceptor#traceReturn():479) - ===========/ [00m02s484ms - Selected list: 2 first={1,ストイコビッチ,正式会員}]
+(S2DaoInterceptor#traceReturn():496) -  
+(AppTestBase#log():69) - {SimpleMember}
+(AppTestBase#log():69) -     1 - ストイコビッチ - 正式会員
+(AppTestBase#log():69) -     4 - スタンコビッチ - 正式会員
 			</code>
 			</pre>
 			<p>外だしSQLの機能一覧のドキュメントは作成中です。</p>
@@ -199,7 +231,12 @@ select member.MEMBER_ID
 	</ol>
 	<h3>様々な外だしSQL</h3>
 	<p>
-		外だしSQLのページング検索は<a href="./paging.html">こちら</a>
+		<ul>
+			<li>外だしSQLのエンティティ検索は<a href="./entity.html">こちら(★工事中)</a></li>
+			<li>外だしSQLのページング検索は<a href="./paging.html">こちら</a></li>
+			<li>外だしSQLのカーソル検索は<a href="./cursor.html">こちら(★工事中)</a></li>
+			<li>外だしSQLの動的バインド変数検索は<a href="./dynamic.html">こちら(★工事中)</a></li>
+		</ul>
 	</p>
 	
 <!-- __content-end__ --></div>
