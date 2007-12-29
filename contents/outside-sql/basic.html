@@ -37,7 +37,6 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 		その際、ジェネリックの利用、SQLファイルの自由度アップ、外だしSQLのページング検索の向上など、
 様々な改善が施されています。
 	</p>
-	
 	<h3>利用可能バージョン</h3>
 	<p>
 		[Java-1.4]の場合<br />
@@ -55,6 +54,14 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 	</p>
 	
 	<h3>実装手順</h3>
+	<p>
+		[説明の前に]<br />
+		外だしSQLは基本として利用頻度の一番高い「リスト検索(一覧検索)」を取り上げます。<br />
+		「１件検索」や「ページング検索」に関してはこのページの最後にリンクがあります。<br />
+		<br />
+		また、例題は“理解し易さ”を考慮して簡単なSQLとなっております。<br />
+		(実際にはConditionBeanで実現できるレベルのSQLとなっています)
+	</p>
 	<p>
 		[概要]
 	</p>
@@ -154,11 +161,11 @@ select member.MEMBER_ID
 					<p>
 						→ 該当の外だしSQLにおいて一番基点となるテーブルのBehaviorを利用するのを習慣とする。<br />
 					</p>
-					<li>引数として「SQLのパス」・「ParameterBean」・「戻り値の型」を指定する。</li>
+					<li>引数として「SQLのパス」・「ParameterBean」・「戻り値Entityの型」を指定する。</li>
 					<p>
 						→ 「SQLのパス(path)」は必須。<br />
 						→ 「ParameterBean(pmb)」はSQLに渡す引数が無い場合は不要。<br />
-						→ 「戻り値の型(entityType)」は必須。<br />
+						→ 「戻り値Entityの型(entityType)」は必須。<br />
 					</p>
 				</ul>
 			</p>
@@ -231,13 +238,18 @@ select member.MEMBER_ID
 (AppTestBase#log():69) -     4 - スタンコビッチ - 正式会員
 			</code>
 			</pre>
-			<p>外だしSQLの機能一覧のドキュメントは作成中です。</p>
+			<p>
+				SQL上のSelect句の指定カラムを１つにして、戻り値Entityの型としてStringやIntegerを指定することも可能です。
+			</p>
+			<pre><code>
+final List&lt;String&gt; valueList = memberBhv.outsideSql().selectList(path, pmb, String.class);
+			</code></pre>
 		</li>
 	</ol>
 	<h3>様々な外だしSQL</h3>
 	<p>
 		<ul>
-			<li>外だしSQLのエンティティ検索は<a href="./entity.html">こちら(★工事中)</a></li>
+			<li>外だしSQLの一件検索は<a href="./entity.html">こちら</a></li>
 			<li>外だしSQLのページング検索は<a href="./paging.html">こちら</a></li>
 			<li>外だしSQLのカーソル検索は<a href="./cursor.html">こちら(★工事中)</a></li>
 			<li>外だしSQLの動的バインド変数検索は<a href="./dynamic.html">こちら(★工事中)</a></li>
