@@ -8,7 +8,7 @@
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
-	<title>DBFlute : How to use [Outside SQL]</title>
+	<title>DBFlute : Outside SQL</title>
 </head>
 <body>
 
@@ -24,7 +24,7 @@
 	</div>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>外だしSQLの実装手順</h2>
+	<h2>外だしSQLの基本</h2>
 	<p>外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。</p>
 	
 	<h3>前提</h3>
@@ -63,8 +63,20 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 				sql/member/selectSimpleMember.sql
 			</code>
 			<p>
+				SQLファイルは、以下のディレクトリ配下に配置して下さい。<br />
+				<ol>
+					<li>Java版 ： 「../src/main/resources」</li>
+					<li>C#版 ： 「../source」</li>
+					<p>※「../」はDBFluteクライアントディレクトリからの相対パスを示します。</p>
+				</ol>
+				もし、「torque.java.dir」にて独自の自動生成クラス出力先を設定している場合は、
+				その指定したディレクトリ配下に配置するようにして下さい。<br />
+				「torque.java.dir」に関して詳しくはこちら(★工事中)<br />
+			</p>
+			<p>
 				SQLファイルのキャラセットはデフォルト「UTF-8」です。<br />
-				もし、その他のキャラセットを利用する場合は「torque.daoSqlFileEncoding」にて指定します。
+				もし、その他のキャラセットを利用する場合は「torque.daoSqlFileEncoding」にて指定します。<br />
+				「torque.daoSqlFileEncoding」に関して詳しくはこちら(★工事中)
 			</p>
 			<p>
 				C#版では、作成したSQLファイルのビルドアクションを「埋め込まれたリソース」にして下さい。<br />
@@ -79,31 +91,31 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 			</p>
 			<pre>
 			<code>
-    -- #SimpleMember#
-    
-    -- !SimpleMemberPmb!
-    -- !!Integer memberId!!
-    -- !!String memberName!!
-    
-    select member.MEMBER_ID
-         , member.MEMBER_NAME
-         , memberStatus.MEMBER_STATUS_NAME
-    /*END*/
-      from MEMBER member
-        left outer join MEMBER_STATUS memberStatus
-          on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
-     /*BEGIN*/where
-       /*IF pmb.memberId != null*/member.MEMBER_ID = /*pmb.memberId*/3/*END*/
-       /*IF pmb.memberName != null*/and member.MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
-       /*END*/
-     /*END*/
-     order by member.MEMBER_ID asc
+-- #SimpleMember#
+
+-- !SimpleMemberPmb!
+-- !!Integer memberId!!
+-- !!String memberName!!
+
+select member.MEMBER_ID
+     , member.MEMBER_NAME
+     , memberStatus.MEMBER_STATUS_NAME
+/*END*/
+  from MEMBER member
+    left outer join MEMBER_STATUS memberStatus
+      on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+ /*BEGIN*/where
+   /*IF pmb.memberId != null*/member.MEMBER_ID = /*pmb.memberId*/3/*END*/
+   /*IF pmb.memberName != null*/and member.MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
+   /*END*/
+ /*END*/
+ order by member.MEMBER_ID asc
 			</code>
 			</pre>
 		</li>
 		<li>
 			<h4>Sql2Entityを実行する。</h4>
-			<p>※戻り値にCustomizeEntity・引数にParameterBeanを利用している場合。</p>
+			<p>※戻り値にCustomizeEntity・引数にParameterBeanを利用している場合</p>
 			<p>
 				Sql2Entity実行後は、IDE上で「プロジェクトの更新」をして下さい。自動生成されたクラスがIDEに認識されます。
 			</p>
@@ -112,8 +124,8 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 			</p>
 		</li>
 		<li>
-			<h4>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する</h4>
-			<p>ex) List検索のテスト実装｛条件：名前が'ス'で始まる会員であること｝</p>
+			<h4>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</h4>
+			<p>ex) リスト検索のテスト実装｛条件：名前が'ス'で始まる会員であること｝</p>
 			<pre>
 			<code>
     public void test_outsideSql_selectSimpleMember_Tx() throws Exception {
@@ -185,7 +197,10 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 			<p>外だしSQLの機能一覧のドキュメントは作成中です。</p>
 		</li>
 	</ol>
-	
+	<h3>様々な外だしSQL</h3>
+	<p>
+		外だしSQLにおけるページング検索については<a href="./paging.html">こちら</a>
+	</p>
 	
 <!-- __content-end__ --></div>
 
