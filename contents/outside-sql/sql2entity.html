@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute : Outside SQL : Sql2Entity</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>Sql2Entity</h2>
+	<p>
+		このような開発が可能になります。
+		<ol>
+			<li>SQLファイルにSQLを実装する。</li>
+			<li>SQLから対応するEntityを自動生成する。</li>
+			<li>SQLを実行する。</li>
+		</ol>
+	</p>
+	<p>
+		外だしSQLで利用する戻り値の型は、テーブルと１対１で生成されたDomainEntityでなく、そのSQL独自の構造を持ったEntityであって欲しい場合が多々あります。<br />
+		そのEntityを手動で作成するのはまた面倒であり、かつ、プロパティ名とSQLで定義したカラム名が食い違ってしまうバグも発生します。<br />
+		そこで、Sql2EntityはSQL文そのものから定義すべきプロパティ名を導出し自動生成し、そのような問題を解決します。<br />
+		手動作成の面倒な点もなくなり、入力ミスなどによる名称定義の食い違いでのバグも一切なくなります。<br />
+		Sql2Entityで作ったそのSQL独自の構造を持ったEntityのことを「CustomizeEntity」と呼びます。
+	</p>
+	<p>
+		SQLへ渡す引数は実開発ではかなり多くなりがちです。引数につらつら並べるのは可読性がよくありません。<br />
+		そこで、Sql2EntityはSQLへ渡す引数オブジェクトも自動生成します。<br />
+		Sql2Entityで作ったSQLへ渡す引数オブジェクトのことを「ParameterBean」と呼びます。
+	</p>
+	<h3>Sql2Entityの実行方法</h3>
+	<p>
+		Sql2Entityは、DBFluteのANTタスクの一つです。<br />
+		DBFluteクライアントディレクトリのsql2entity.bat(.sh)を起動することで、Sql2Entityを実行できます。<br />
+		実行されると、Sql2Entity対象のSQLファイルを探して処理をします。<br />
+		SQLファイルの配置先などの仕様に関して詳しくは<a href="./basic.html">こちら</a>
+	</p>
+	<h3>CustomizeEntityの生成手順</h3>
+	<p>
+	[概要]
+	<ol>
+		<li>CustomizeEntityのクラス指定</li>
+		<li>Sql2Entityの実行</li>
+	</ol>
+	</p>
+	<p>
+	[詳細]
+	</p>
+	<ol>
+		<li>
+			<h4>CustomizeEntityのクラス指定</h4>
+			<p>
+				外だしSQLにて、生成したいCustomizeEntityのクラス名を「-- #クラス名#」という形式で指定します。<br />
+				<pre><code>
+-- #SimpleMember#
+
+select ...
+  from ...
+				</code></pre>
+			</p>
+			<p>
+				「--#」というように空白なしでも動作しますが、DBによっては例外になってしまう場合があるのでご注意下さい(MySQL)。<br />
+				また、SQL文の後ろに宣言しないとDBによって例外になってしまうこともありますのでご注意下さい(DB2)。<br />
+			</p>
+			<p>
+				このとき、SQL文は必ず「2WAY-SQL」で実装する必要があります。(2WAY-SQLに関して詳しくはこちら(★工事中))<br />
+				Sql2Entityは、そのSQLを実際にDBで実行することでメタ情報を取得し、CustomizeEntityを生成するためです。<br />
+			</p>
+			<p>
+				必須指定ではありませんが、CustomizeEntityにPK情報(ユニークになるカラム)を指定することも可能です。
+				<pre><code>
+-- #SimpleMember#
+-- *memberId*
+
+select ...
+  from ...
+				</code></pre>
+				複数カラムでユニークになる場合は、「-- *memberId, xxxDate*」というようにカンマ区切りで指定します。<br />
+			</p>
+			<p>
+				PK情報を指定しておくと、生成されるCustomizeEntityのequals()メソッドが、そのPK情報を利用します。<br />
+				ユニークになるカラムだけで比較をするようになります。<br />
+				また、その他PK情報を利用したユーティリティメソッドにおいて、そのCustomizeEntityが利用可能になります。<br />
+				必須ではありませんが、そのSQLのユニーク性を明示しておくのは良いことです。<br />
+			</p>
+		</li>
+		<li>
+			<h4>Sql2Entityの実行</h4>
+			<p>
+				これでSql2Entityを実行すれば、指定したクラス名のCustomizeEntityが「exentity.customize」パッケージ配下に生成されます。<br />
+				文法ミスなどでSQL文の実行自体が例外になってしまう場合は、SQL文を修正して再度実行します。
+			</p>
+			</ol>
+		</li>
+	</ol>
+	<h3>ParameterBeanの生成手順</h3>
+	<ol>
+		<li>
+			<h4>ParameterBeanのクラス指定</h4>
+			<p>
+				外だしSQLにて、生成したいParameterBeanのクラス名を「-- !クラス名!」という形式で指定します。<br />
+				<pre><code>
+-- !SimpleMemberPmb!
+
+select ...
+  from ...
+				</code></pre>
+			</p>
+			<p>
+				「--」コメントの注意点ならびに「2WAY-SQL」であることの注意点に関しては「CustomizeEntity」のときと同じです。
+			</p>
+			<h4>ParameterBeanのプロパティ指定</h4>
+			<p>
+				外だしSQLにて、ParameterBeanに定義するプロパティの型と名前を「-- !!クラス名!!」という形式で指定します。
+				<pre><code>
+-- !SimpleMemberPmb!
+-- !!Integer memberId!!
+-- !!String memberName!!
+
+select ...
+  from ...
+				</code></pre>
+			</p>
+			<p>
+				型で自動解決されないものは明示的にパッケージ名も付与する必要があります。(例えばjava.util.Dateなど)<br />
+			</p>
+			<p>
+				ページング検索をしたい場合は、クラス指定のクラス名の後ろに「 extends SPB」を付与します。<br />
+				すると、ParameterBeanがSimplePagingBeanを継承するようなります。
+				<pre><code>
+-- !SimpleMemberPmb extends SPB!
+-- !!Integer memberId!!
+-- !!String memberName!!
+
+select ...
+  from ...
+				</code></pre>
+			</p>
+			<p>
+				外だしSQLのページング検索に関して詳しくは<a href="./paging.html">こちら</a><br />
+			</p>
+		</li>
+		<li>
+			<h4>Sql2Entityの実行</h4>
+			<p>
+				これでSql2Entityを実行すれば、指定したクラス名のCustomizeEntityが「exdao.pmbean」パッケージ配下に生成されます。<br />
+				文法ミスなどでSQL文の実行自体が例外になってしまう場合は、SQL文を修正して再度実行します。
+			</p>
+			</ol>
+		</li>
+	</ol>
+
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
