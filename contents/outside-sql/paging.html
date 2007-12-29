@@ -28,9 +28,11 @@
 	<p>外だしSQLでもページング検索が可能です。</p>
 	<h3>前提</h3>
 	<p>
-		ページング検索には、大きく３つの処理が存在します。<br />
+		ここで言うページング検索とは、以下の３つの処理を行うことを前提とします。<br />
 		「ページングなし件数取得」・「ページング実データ検索」・「ページング結果計算処理」<br />
 		詳しくはこちら(★工事中)<br />
+		<br />
+		「ページング実データ検索のみ」のページング検索は、上記で定義したページング検索に包含されるものとして文中で補足を入れるにとどめています。<br />
 		<br />
 		さらに、外だしSQLのページング検索では「自動ページング(autoPaging)」・「手動ページング(manualPaging)」という２つの手法が存在します。<br />
 		<ol>
@@ -58,6 +60,7 @@
 			<h4>xxx.sqlファイルにページング検索SQLを2Way-SQLで実装する。</h4>
 			<p>
 				この２つの処理は１つのSQLでIFコメントを利用して実現します。<br />
+				<br />
 				ポイントは以下の通りです：
 				<ol>
 					<li>ParameterBeanの宣言に「 extends SPB」を付与する。</li>
@@ -73,6 +76,7 @@
 					<li>Select句を「/*IF pmb.isPaging()*/」で囲って「-- ELSE select count(*)」を付与する。</p>
 					<p>
 						→ 「カラム列挙」と「count(*)」とを切り替えることが可能になる。
+						→ 「ページング実データ検索のみ」の場合は不要。
 					</p>
 					<pre><code>
 /*IF pmb.isPaging()*/
@@ -89,6 +93,7 @@ select member.MEMBER_ID
 						→ 「/*$pmb.pageStartIndex*/」で検索対象ページの開始を示すインデックス(0オリジン)を指定可能。<br />
 						→ 「/*$pmb.pageEndIndex*/」で検索対象ページの終了を示すインデックス(0オリジン)を指定可能。<br />
 						→ ページング絞りの条件の記述方法はDBによって異なるので注意(バインド変数コメントが利用できるか否かも含む)。
+						→ 「ページング実データ検索のみ」の場合は「/*IF pmb.isPaging()*/」での囲い込みが不要。
 					</p>
 					<pre>ex) H2<code>
  /*IF pmb.isPaging()*/
@@ -116,6 +121,7 @@ select base.*, rownum as rn
 					<li>「ページングなし件数取得」で不要な結合やソート指定「/*IF pmb.isPaging()*/」で囲う。</li>
 					<p>
 						→ これはパフォーマンス考慮のため。
+						→ 「ページング実データ検索のみ」の場合は不要。
 					</p>
 					<pre><code>
  /*IF pmb.isPaging()*/
@@ -174,7 +180,7 @@ select member.MEMBER_ID
 		<li>
 			<h4>Sql2Entityを実行する。</h4>
 			<p>
-				このステップは、<a href="./howto.html">外だしSQLの実装手順</a>で書いてあることと特に変わりはありません。<br />
+				このステップは、<a href="./basic.html">外だしSQLの基本</a>で書いてあることと特に変わりはありません。<br />
 			</p>
 			<p>
 				Sql2Entityに関しては<a href="../../ja/tips-sql2entity.html">こちら</a>
@@ -183,8 +189,9 @@ select member.MEMBER_ID
 		<li>
 			<h4>selectPage()メソッドを利用してページング検索を実装する。</h4>
 			<p>
-			BehaviorのoutsideSql()メソッドを利用しながらも、ページング条件の指定やページング結果計算処理(PagingResultBean)は、
-			ConditionBeanを利用したページング検索のときと同じです。<br />
+			BehaviorのoutsideSql()メソッドを利用しながらも、ページング条件の指定やページング結果計算処理(PagingResultBean)は、ConditionBeanを利用したページング検索のときと同じです。<br />
+			PagingResultBeanに関して詳しくは<a href="../paging/basic.html">こちら</a><br />
+			<br />
 			ポイントは以下の通りです：
 				<ol>
 					<li>BehaviorのoutsideSql()メソッドの後、「autoPaging()」・「manualPaging()」メソッドのどちらかを呼び出す。</li>
@@ -193,7 +200,8 @@ select member.MEMBER_ID
 					</p>
 					<li>「autoPaging()」・「manualPaging()」メソッドの後、selectPage()を呼び出す。</li>
 					<p>
-						→ 戻り値がPagingResultBeanで、ParameterBeanの引数の型がPagingBeanインターフェース。
+						→ 戻り値がPagingResultBeanで、ParameterBeanの引数の型がPagingBeanインターフェース。<br />
+						→ 「ページング実データ検索のみ」の場合は代わりにselectList()を利用。
 					</p>
 					<pre>ex) 自動ページング(autoPaging)<code>
 final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
