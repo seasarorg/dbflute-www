@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute : Outside SQL</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>外だしSQLとは？</h2>
+	<p>
+		外だしSQLとは、外部テキストファイルに記載されたSQL文をアプリケーションから実行する機能のことを言います。<br />
+	</p>
+	<p>
+		単にSQL文を実行するだけでなく、アプリケーションで導出される動的なパラメータを参照し、<br />
+		SQL上で「分岐(IF文)」指定・「バインド変数」指定などを行うことが可能です。<br />
+		<pre>ex) アプリで指定された会員IDがnullじゃなければ、その会員IDで等値条件(テスト値：3)<code>
+/*IF pmb.memberId != null*/MEMBER_ID = /*pmb.memberId*/3/*END*/
+		</code></pre>
+		これらは「SQL構文のコメント」として表現されています。<br />
+		よって、DBFluteではこれらコメントのことを「パラメータコメント」と呼びます。<br />
+	</p>
+	<p>
+		さらに、バインド変数指定時にはテスト値を含めることが可能なため、外だしSQLはアプリケーションでもSQLツールでもどちらでも実行可能です。
+		記述したSQLはアプリケーションを起動することなく、SQLツールでそのSQLの文法の確認ができます。
+		これは非常に大きなメリットであり、開発者はSQLの実装に集中できます。
+		プログラム上で文字列でSQLを埋め込んで生成していたときは、アプリケーションを実行するまでそのSQLが正しいかどうかを確認することができませんでした。
+		結局実行すると「右カッコがありません」と怒られ再度修正し、アプリケーションを再起動してまた試します。
+		その繰り返しが本当に時間を費やすものでした。
+		外だしSQLならその時間は非常に短いです。SQLツールで簡単に実行できてしまうからです。
+		この「アプリケーション・SQLツールの両方で実行可能」なSQLのことを「2Way-SQL」と呼びます。
+		<pre>ex) 2Way-SQLでの実装 (アプリケーション・SQLツールの両方で実行可能)
+		<code>
+/*IF pmb.isPaging()*/
+select member.MEMBER_ID
+     , member.MEMBER_NAME
+     , (select sum(purchase.PURCHASE_PRICE)
+          from PURCHASE purchase
+         where purchase.MEMBER_ID = member.MEMBER_ID
+           and purchase.PAYMENT_COMPLETE_FLG = 0
+       ) as UNPAID_PRICE_SUMMARY
+     , memberStatus.MEMBER_STATUS_NAME
+-- ELSE select count(*)
+/*END*/
+  from MEMBER member
+    /*IF pmb.isPaging()*/
+    left outer join MEMBER_STATUS memberStatus
+      on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+    /*END*/
+ /*BEGIN*/where
+   /*IF pmb.memberId != null*/member.MEMBER_ID = /*pmb.memberId*/3/*END*/
+   /*IF pmb.memberName != null*/and member.MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
+   /*IF pmb.memberStatusCode != null*/and member.MEMBER_STATUS_CODE = /*pmb.memberStatusCode*/'FML'/*END*/
+   /*IF pmb.unpaidMemberOnly*/
+   and exists (select 'yes'
+                 from PURCHASE purchase
+                where purchase.MEMBER_ID = member.MEMBER_ID
+                  and purchase.PAYMENT_COMPLETE_FLG = 0
+       )
+   /*END*/
+ /*END*/
+ /*IF pmb.isPaging()*/
+ order by UNPAID_PRICE_SUMMARY desc, member.MEMBER_ID asc
+ /*END*/
+		</code>
+		</pre>
+	</p>
+	<p>
+		これらは、S2Daoと呼ばれるフレームワークにおける「SQLファイル」とほぼ同義です。<br />
+		DBFluteはS2Daoに大きなヒントを得ています(そもそも内部的にS2Daoを利用しています)。
+	</p>
+	<p>
+		利用上の役割としては、ConditionBeanでは実現できない複雑で非定型なSQLを対象とします。<br />
+		複雑な副問い合わせやGroupBy、SQL関数の利用などといったSQLを記述することが可能です。
+	</p>
+
+	<h2>リンク</h2>
+	<p>
+		<ul>
+			<li>外だしSQLの基本については<a href="./basic.html">こちら</a></li>
+			<li>外だしSQLの一件検索については<a href="./entity.html">こちら</a></li>
+			<li>外だしSQLのページング検索については<a href="./paging.html">こちら</a></li>
+			<li>外だしSQLのカーソル検索については<a href="./cursor.html">こちら</a></li>
+			<li>外だしSQLの動的バインド変数検索については<a href="./dynamic.html">こちら</a></li>
+		</ul>	
+	</p>
+
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>

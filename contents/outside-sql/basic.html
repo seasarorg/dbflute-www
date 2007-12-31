@@ -25,13 +25,16 @@
 </div>
 <div id="content"><!-- __content-start__ -->
 	<h2>外だしSQLの基本</h2>
-	<p>外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。</p>
-	
+	<p>
+		そもそも外だしSQLとは？については<a href="./about.html">こちら</a>
+	</p>
+
 	<h3>前提</h3>
 	<p>
-		以前は、S2Daoをそのまま利用する「Daoを利用した外だしSQL」のやり方を利用していましたが、
-Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで外だしSQLを実行することが可能になりました。<br />
-(外だしSQLのみDaoを意識しなければならず、S2Daoを知らない初心者には敷居が高いという意見がありました)
+		外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。<br />
+		以前は、S2Daoをそのまま利用する「Daoを利用した外だしSQL」のやり方を利用していましたが、<br />
+		Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで外だしSQLを実行することが可能になりました。<br />
+		(外だしSQLのみDaoを意識しなければならず、S2Daoを知らない初心者には敷居が高いという意見がありました)
 	</p>
 	<p>
 		その際、ジェネリックの利用、SQLファイルの自由度アップ、外だしSQLのページング検索の向上など、
@@ -39,18 +42,21 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 	</p>
 	<h3>利用可能バージョン</h3>
 	<p>
-		[Java-1.4]の場合<br />
-		未実装です。<br />
-		Genericを前提とした処理のため、今後も実装予定はありません。<br />
-		「Daoを利用した伝統的な外だしSQL」をご利用下さい。
-	</p>
-	<p>
-		[Java-5.0 or Java6.0]の場合<br />
-		DBFlute-0.5.8より利用可能です。
-	</p>
-	<p>
-		[C#-2.0 or C-#3.0]<br />
-		DBFlute-0.5.8より利用可能です。
+		<ul>
+			<li>
+				[Java-1.4]の場合
+				<p>
+					→ 未実装です。Genericを前提とした処理のため、今後も実装予定はありません。<br />
+					→ 「Daoを利用した伝統的な外だしSQL」をご利用下さい。
+				</p>
+			</li>
+			<li>
+				[Java-5.0 or Java6.0 or C#-2.0 or C-#3.0]の場合
+				<p>
+					→ DBFlute-0.5.8より利用可能です。
+				</p>
+			</li>
+		</ul>
 	</p>
 	<h3>説明の前に</h3>
 	<p>
@@ -60,9 +66,17 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 		また、例題は“理解し易さ”を考慮して簡単なSQLとなっております。<br />
 		(実際にはConditionBeanで実現できるレベルのSQLとなっています)
 	</p>
-	<h3>実装手順</h3>
+	<h3>実装手順（概要）</h3>
 	<p>
-		[概要]
+		外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。
+		<pre>ex) 条件として会員名称に'ス'を指定して外だしSQL実行<code>
+final SimpleMemberPmb pmb = new SimpleMemberPmb();
+pmb.setMemberName("ス");
+final List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList("sql/member/xxx.sql", pmb, SimpleMember.class);
+		</code></pre>
+	</p>
+	<p>
+		実装の流れは以下のようになります：
 	</p>
 	<ol>
 		<li>任意のパッケージにxxx.sqlファイルを作成する。</li>
@@ -70,9 +84,7 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 		<li>Sql2Entityを実行する。</li>
 		<li>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</li>
 	</ol>
-	<p>
-		[詳細]
-	</p>
+	<h3>実装手順（詳細）</h3>
 	<ol>
 		<li>
 			<h4>任意のパッケージにxxx.sqlファイルを作成する。</h4>
@@ -89,12 +101,12 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 				</ul>
 				もし、「torque.java.dir」にて独自の自動生成クラス出力先を設定している場合は、
 				その指定したディレクトリ配下に配置するようにして下さい。<br />
-				「torque.java.dir」に関して詳しくはこちら(★工事中)<br />
+				「torque.java.dir」についてはこちら(★工事中)<br />
 			</p>
 			<p>
 				SQLファイルのキャラセットはデフォルト「UTF-8」です。<br />
 				もし、その他のキャラセットを利用する場合は「torque.daoSqlFileEncoding」にて指定します。<br />
-				「torque.daoSqlFileEncoding」に関して詳しくはこちら(★工事中)
+				「torque.daoSqlFileEncoding」についてはこちら(★工事中)
 			</p>
 			<p>
 				C#版では、作成したSQLファイルのビルドアクションを「埋め込まれたリソース」にして下さい。<br />
@@ -107,18 +119,8 @@ Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで�
 			ポイントは以下の通りです：
 				<ul>
 					<li>Sql2Entityの宣言を行う。</li>
-					<p>
-						基本的に「戻り値EntityとしてCustomizeEntity」・「引数BeanとしてParameterBean」を利用する。<br />
-						戻り値EntityにDomainEntityを利用することも可能なので、その場合はCustomizeEntityは不要となる。<br />
-						また、引数が１つもないSQLやMapParameterBeanを利用する場合はParameterBeanも不要となる。<br />
-						(但し、実際の開発において、CustomizeEntityとParameterBeanの利用が必要なSQLが多い)
-					</p>
 					<li>引数のParameterBeanへの参照は、「pmb」という変数名を利用することを習慣とする。</li>
-					<li>SQLコメントの文法はS2Daoとほぼ同じである。(一部拡張あり)</li>
-					<p>
-						→ SQLコメントの文法に関して詳しくはこちら(★工事中)<br />
-						→ C#版だとコメント内で利用するプロパティ名の先頭が大文字であることに注意。
-					</p>
+					<li>パラメータコメントを利用する。パラメータコメントについては<a href="./pmcomment.html">こちら</a></li>
 				</ul>
 			</p>
 			<pre>ex) 2Way-SQLでの実装（戻り値にCustomizeEntity・引数にParameterBeanを利用）
@@ -148,7 +150,7 @@ select member.MEMBER_ID
 		<li>
 			<h4>Sql2Entityを実行する。</h4>
 			<p>
-				Sql2Entityに関して詳しくは<a href="./sql2entity.html">こちら</a><br />
+				Sql2Entityについては<a href="./sql2entity.html">こちら</a><br />
 			</p>
 		</li>
 		<li>
@@ -248,11 +250,15 @@ final List&lt;String&gt; valueList = memberBhv.outsideSql().selectList(path, pmb
 	<h3>様々な外だしSQL</h3>
 	<p>
 		<ul>
-			<li>外だしSQLの一件検索は<a href="./entity.html">こちら</a></li>
-			<li>外だしSQLのページング検索は<a href="./paging.html">こちら</a></li>
-			<li>外だしSQLのカーソル検索は<a href="./cursor.html">こちら</a></li>
-			<li>外だしSQLの動的バインド変数検索は<a href="./dynamic.html">こちら(★工事中)</a></li>
+			<li>外だしSQLの一件検索については<a href="./entity.html">こちら</a></li>
+			<li>外だしSQLのページング検索については<a href="./paging.html">こちら</a></li>
+			<li>外だしSQLのカーソル検索については<a href="./cursor.html">こちら</a></li>
+			<li>外だしSQLの動的バインド変数検索については<a href="./dynamic.html">こちら</a></li>
 		</ul>	
+	</p>
+	<h3>パラメータコメント</h3>
+	<p>
+		パラメータコメントについては<a href="./pmcomment.html">こちら
 	</p>
 	
 <!-- __content-end__ --></div>

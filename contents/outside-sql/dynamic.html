@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute : Outside SQL : Dynamic Binding</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>外だしSQLの動的バインド変数検索</h2>
+	<p>
+		明示的にメソッドを指定することで、埋め込み変数コメント内にバインド変数コメントを埋め込むことが可能です。<br />
+	</p>
+	<h3>実装方法</h3>
+	<p>
+		outsideSql()メソッドの後、「dynamicBinding()」メソッドを呼び出します。<br />
+		この機能はメソッドを限定せずに、通常通り様々なメソッドが利用できます。<br />
+	</p>
+	<pre><code>
+final List&lt;SimpleMember&gt; memberList = memberBhv.outsideSql().dynamicBinding().selectList(path, pmb, entityType);
+	</code></pre>
+	<pre><code>
+memberBhv.outsideSql().dynamicBinding().cursorHandling().selectCursor(path, pmb, entityType);
+	</code></pre>
+	<p>
+		このように実装することで、埋め込み変数コメント内のバインド変数コメントがきっちり解析されるようになります。<br />
+		主には不定数の条件(の文字列)をプログラム上で生成する場合に利用します。
+	</p>
+	<p>
+		外だしSQLは基本的に静的なため、そのような不定数の条件には実は弱いのです。<br />
+		１つの開発プロジェクト内で１回使うか全く使わないかくらいの頻度かと思いますが、いざってときに役に立ちます。<br />
+		バインド変数コメントを利用しなければこの機能を使わなくても不定数条件のSQLは実現できますが、<br />
+		その場合はSQLインジェクション対策を自前で施さなければなりません。それはあまり現実的ではありません。
+	</p>
+	<p>
+		デメリットとしては、ほんのわずかだけパフォーマンスが落ちます。<br />
+		それは、バインド変数コメントを動的解析しているからです。<br />
+		通常は、バインド変数コメントはアプリケーションが起動してから一番最初のアクセス時に解析され、<br />
+		その後は解析済みのキャッシュを利用します。<br />
+		埋め込み変数コメント内のバインド変数コメントはその恩恵に与れません。
+	</p>
+
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
