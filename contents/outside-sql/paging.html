@@ -27,13 +27,16 @@
 	<h2>外だしSQLのページング検索</h2>
 	<p>外だしSQLでもページング検索が可能です。</p>
 	<h3>前提</h3>
+	<h4>ページング検索とは？</h4>
 	<p>
 		ここで言うページング検索とは、以下の３つの処理を行うことを前提とします。<br />
 		「ページングなし件数取得」・「ページング実データ検索」・「ページング結果計算処理」<br />
 		詳しくは<a href="../paging/basic.html">こちら</a><br />
 		<br />
-		「ページング実データ検索のみ」のページング検索は、上記で定義したページング検索に包含されるものとして文中で補足を入れるにとどめています。<br />
-		<br />
+		「ページング実データ検索のみ」のページング検索は、上記で定義したページング検索に包含されるものとして文中で補足を入れるにとどめています。
+	</p>
+	<h4>ページング検索の２つの手法</h4>
+	<p>
 		さらに、外だしSQLのページング検索では「自動ページング(autoPaging)」・「手動ページング(manualPaging)」という２つの手法が存在します。<br />
 		<ol>
 			<li>自動ページング(autoPaging) ： ResultSetのすっ飛ばしを利用するページング</li>
@@ -44,19 +47,29 @@
 			→ 厳密なパフォーマンスを考慮したい場合は、こちらの手法が良い。
 		</ol>
 	</p>
+	<h4>バグ報告</h4>
+	<p>
+		自動ページング(autoPaging)に関して、DBFlute-0.5.8にてバグが存在しておりDBの種類によっては利用できません。<br />
+		DBFlute-0.5.9にて解決され、正常に動作しております。
+	</p>
+	<h3>実装概要</h3>
+	<p>
+		ページング検索のSQLを作成し、autoPaging()/manualPaging()から「selectPage()」を実行します。<br />
+		引数のParameterBeanは、PagingBeanインターフェースの実装クラスである必要があります。
+		<pre>ex) 自動ページング(autoPaging)<code>
+final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+		</code></pre>
+	</p>
+	<p>
+		実装の流れは以下の通りです：
+		<ol>
+			<li>任意のパッケージにxxx.sqlファイルを作成する。</li>
+			<li>xxx.sqlファイルにページング検索SQLを2Way-SQLで実装する。</li>
+			<li>Sql2Entityを実行する。</li>
+			<li>selectPage()メソッドを利用してページング検索を実装する。</li>
+		</ol>
+	</p>
 	<h3>実装手順</h3>
-	<p>
-		[概要]
-	</p>
-	<ol>
-		<li>任意のパッケージにxxx.sqlファイルを作成する。</li>
-		<li>xxx.sqlファイルにページング検索SQLを2Way-SQLで実装する。</li>
-		<li>Sql2Entityを実行する。</li>
-		<li>selectPage()メソッドを利用してページング検索を実装する。</li>
-	</ol>
-	<p>
-		[詳細]
-	</p>
 	<ol>
 		<li>
 			<h4>任意のパッケージにxxx.sqlファイルを作成する。</h4>
