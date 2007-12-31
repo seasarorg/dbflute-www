@@ -24,25 +24,15 @@
 	</div>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>外だしSQLのLikeSearch</h2>
+	<h2>外だしSQLの曖昧検索</h2>
 	<p>
 		外だしSQLでもConditionBeanで利用しているLikeSearchOptionが利用可能です。<br />
 	</p>
-	<h3>前提</h3>
-	<h4>LikeSearchOptionの利用可能バージョン</h4>
 	<p>
-		<ul>
-			<li>
-				[Java-1.4]の場合 → 未実装です。今後も実装予定はありません
-			</li>
-			<li>
-				[Java-5.0 or Java6.0]の場合 → DBFlute-0.5.9より利用可能です。
-			</li>
-			<li>
-				[C#-2.0 or C-#3.0]の場合 → 未実装です。実装予定あり。
-			</li>
-		</ul>
+		LikeSearchOptionを利用しなくても曖昧検索は可能ですが、一致の方向(前方、中間、後方)を動的に決定したり、<br />
+		エスケープ処理を施したりする場合には、LikeSearchOptionはとても有効です。
 	</p>
+	<h3>前提</h3>
 	<h4>LikeSearchOptionなしでの実装方法</h4>
 	<p>
 		SQL上にて、「||」演算子や「+」演算子を利用して、ワイルドカードを固定で書きます。
@@ -74,9 +64,10 @@ where MEMBER_NAME like /*pmb.memberName*/'テスト値' || '%' escape '|'
 		ConditionBeanで利用しているLikeSearchOptionをそのまま利用することが可能です。
 	</p>
 	<p>
-		まず、ParameterBeanの宣言にて、該当のプロパティに「:like」という「Likeオプション」を付与します。<br />
-		ワイルドカードはテスト値に含めます。(アプリケーション実行時に内部的に付与されるため)
-		<pre>ex) 会員名称プロパティにLikeマークを付与<code>
+		まず、ParameterBeanの宣言にて、該当のプロパティに「:like」という「Likeオプション」を指定します。<br />
+		(ParameterBeanの「Likeオプション」については<a href="./sql2entity.html">こちら</a>)<br />
+		そして、ワイルドカードはテスト値に含めます。(アプリケーション実行時に内部的に付与されるため)
+		<pre>ex) 会員名称プロパティにLikeオプションを指定<code>
 -- #OptionMember#
 
 -- !OptionMemberPmb!
