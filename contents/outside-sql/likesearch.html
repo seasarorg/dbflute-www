@@ -8,7 +8,7 @@
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
-	<title>DBFlute : Outside SQL : Like Option</title>
+	<title>DBFlute : Outside SQL : Like Search</title>
 </head>
 <body>
 
@@ -24,13 +24,12 @@
 	</div>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>外だしSQLのLikeオプション</h2>
+	<h2>外だしSQLのLikeSearch</h2>
 	<p>
-		外だしSQLでもConditionBeanのLikeSearchOptionが利用可能です。<br />
-		その機能はオプションとして装備されており、そのオプションのことを「外だしSQLのLikeオプション」と呼びます。
+		外だしSQLでもConditionBeanで利用しているLikeSearchOptionが利用可能です。<br />
 	</p>
 	<h3>前提</h3>
-	<h4>Likeオプションの利用可能バージョン</h4>
+	<h4>LikeSearchOptionの利用可能バージョン</h4>
 	<p>
 		<ul>
 			<li>
@@ -44,7 +43,7 @@
 			</li>
 		</ul>
 	</p>
-	<h4>Likeオプションなしでの実装方法</h4>
+	<h4>LikeSearchOptionなしでの実装方法</h4>
 	<p>
 		SQL上にて、「||」演算子や「+」演算子を利用して、ワイルドカードを固定で書きます。
 		<pre><code>
@@ -52,9 +51,9 @@ where MEMBER_NAME like /*pmb.memberName*/'テスト値' || '%'
 		</code></pre>
 		アプリケーションで指定された条件値に対して、SQL実行時にDB側でワイルドカードが付与されて曖昧検索となります。<br />
 	</p>
-	<h4>Likeオプションなしだと...</h4>
+	<h4>LikeSearchOptionなしだと...</h4>
 	<p>
-		Likeオプションなしでの実装のデメリットとしては、曖昧検索の一致の方向(前方、中間、後方)が固定になってしまうということです。<br />
+		LikeSearchOptionなしでの実装のデメリットとしては、曖昧検索の一致の方向(前方、中間、後方)が固定になってしまうということです。<br />
 		もし、一致の方向を動的に決定するような要件があった場合はこの方法は利用できません(画面で選択するなど)。<br />
 		アプリケーション側でワイルドカードを付与することになるでしょう。
 	</p>
@@ -70,14 +69,14 @@ where MEMBER_NAME like /*pmb.memberName*/'テスト値' || '%' escape '|'
 	<p>
 		無論、要件的に「一致の方向は固定」・「エスケープはしない」というのであればこの方法で全然問題ありません。
 	</p>
-	<h3>Likeオプションの実装方法</h3>
+	<h3>LikeSearchOption利用での実装方法</h3>
 	<p>
-		ConditionBeanで利用しているLikeSearchOptionをそのまま利用することが可能になります。
+		ConditionBeanで利用しているLikeSearchOptionをそのまま利用することが可能です。
 	</p>
 	<p>
-		まず、ParameterBeanの宣言にて、該当のプロパティに「:like」というオプションを付与します。<br />
+		まず、ParameterBeanの宣言にて、該当のプロパティに「:like」という「Likeオプション」を付与します。<br />
 		ワイルドカードはテスト値に含めます。(アプリケーション実行時に内部的に付与されるため)
-		<pre>ex) 会員名称プロパティにLikeオプションを付与<code>
+		<pre>ex) 会員名称プロパティにLikeマークを付与<code>
 -- #OptionMember#
 
 -- !OptionMemberPmb!
