@@ -33,13 +33,15 @@
 			<li>SQLを実行する。</li>
 		</ol>
 	</p>
+	<h4>CustomizeEntity</h4>
 	<p>
-		外だしSQLで利用する戻り値の型は、テーブルと１対１で生成されたDomainEntityでなく、そのSQL独自の構造を持ったEntityであって欲しい場合が多々あります。<br />
-		そのEntityを手動で作成するのはまた面倒であり、かつ、プロパティ名とSQLで定義したカラム名が食い違ってしまうバグも発生します。<br />
+		外だしSQLで利用する戻り値の型は、DomainEntityでなく、そのSQL独自の構造を持ったEntityであって欲しい場合が多々あります。<br />
+		そのEntityを手動で作成すると、面倒なのはもとより、「プロパティ名とSQLで定義したカラム名が食い違うバグ」も発生します。<br />
 		Sql2EntityはSQL文そのものから定義すべきプロパティ名を導出し自動生成し、そのような問題を解決します。<br />
 		手動作成の面倒な点もなくなり、入力ミスなどによる名称定義の食い違いでのバグも一切なくなります。<br />
 		Sql2Entityで作ったそのSQL独自の構造を持ったEntityのことを「CustomizeEntity」と呼びます。
 	</p>
+	<h4>ParameterBean</h4>
 	<p>
 		SQLへ渡す引数は実開発ではかなり多くなりがちです。引数につらつら並べるのは可読性がよくありません。<br />
 		Sql2EntityはSQLへ渡す引数オブジェクトも自動生成します。<br />
@@ -55,19 +57,9 @@
 		SQLファイルの配置先などの仕様に関して詳しくは<a href="./basic.html">こちら</a>
 	</p>
 	<p>
-		Eclipseをご利用の場合は必ず「プロジェクトの更新」を行って下さい。すると自動生成されたクラスが認識されコンパイルされます。<br />
+		Eclipseをご利用の場合はSql2Entity実行後に必ず「プロジェクトの更新」を行って下さい。<br />
 	</p>
 	<h3>CustomizeEntityの生成手順</h3>
-	<p>
-	[概要]
-	<ol>
-		<li>CustomizeEntityのクラス指定</li>
-		<li>Sql2Entityの実行</li>
-	</ol>
-	</p>
-	<p>
-	[詳細]
-	</p>
 	<ol>
 		<li>
 			<h4>CustomizeEntityのクラス指定</h4>
@@ -76,8 +68,7 @@
 				<pre><code>
 -- #SimpleMember#
 
-select ...
-  from ...
+select ... from ...
 				</code></pre>
 			</p>
 			<p>
@@ -85,8 +76,8 @@ select ...
 				また、SQL文の後ろに宣言しないとDBによって例外になってしまうこともありますのでご注意下さい(DB2)。<br />
 			</p>
 			<p>
-				このとき、SQL文は必ず「2WAY-SQL」で実装する必要があります。(2WAY-SQLに関して詳しくはこちら(★工事中))<br />
-				Sql2Entityは、そのSQLを実際にDBで実行することでメタ情報を取得し、CustomizeEntityを生成するためです。<br />
+				このとき、SQL文は必ず「2WAY-SQL(については<a href="./about.html">こちら</a>)」で実装する必要があります。<br />
+				Sql2EntityがそのSQLを実際にDBで実行することでメタ情報を取得するためです。<br />
 			</p>
 		</li>
 		<li>
@@ -97,15 +88,11 @@ select ...
 				<pre><code>
 -- #SimpleMember#
 -- *memberId*
-
-select ...
-  from ...
 				</code></pre>
 				複数カラムでユニークになる場合は、「-- *memberId, xxxDate*」というようにカンマ区切りで指定します。<br />
 			</p>
 			<p>
-				PK情報を指定しておくと、生成されるCustomizeEntityのequals()メソッドが、そのPK情報を利用します。<br />
-				ユニークになるカラムだけで比較をするようになります。<br />
+				生成されるCustomizeEntityのequals()メソッドがユニークになるカラムだけで比較をするようになります。<br />
 				また、その他PK情報を利用したユーティリティメソッドにおいて、そのCustomizeEntityが利用可能になります。<br />
 				必須ではありませんが、そのSQLのユニーク性を明示しておくのは良いことです。<br />
 			</p>
@@ -116,9 +103,6 @@ select ...
 				<pre><code>
 -- #SimpleMember#
 -- +cursor+
-
-select ...
-  from ...
 				</code></pre>
 			</p>
 		</li>
@@ -132,17 +116,6 @@ select ...
 		</li>
 	</ol>
 	<h3>ParameterBeanの生成手順</h3>
-	[概要]
-	<p>
-		<ol>
-			<li>ParameterBeanのクラス指定</li>
-			<li>ParameterBeanのプロパティ指定</li>
-			<li>Sql2Entityの実行</li>
-		</ol>
-	</p>
-	<p>
-	[詳細]
-	</p>
 	<ol>
 		<li>
 			<h4>ParameterBeanのクラス指定</h4>
@@ -151,44 +124,45 @@ select ...
 				<pre><code>
 -- !SimpleMemberPmb!
 
-select ...
-  from ...
+select ... from ...
 				</code></pre>
 			</p>
 			<p>
-				「--」コメントの注意点ならびに「2WAY-SQL」であることの注意点に関しては「CustomizeEntity」のときと同じです。
+				「--」コメントの注意点ならびに「2Way-SQL」であることの注意点に関しては「CustomizeEntity」のときと同じです。
+			</p>
+			<p>
+				ページング検索をしたい場合は、クラス指定のクラス名の後ろに「 extends SPB」を付与します。<br />
+				すると、ParameterBeanがSimplePagingBeanを継承した状態で生成されるようなります。
+				<pre><code>
+-- !SimpleMemberPmb extends SPB!
+				</code></pre>
+			</p>
+			<p>
+				外だしSQLのページング検索に関して詳しくは<a href="./paging.html">こちら</a><br />
 			</p>
 		</li>
 		<li>
 			<h4>ParameterBeanのプロパティ指定</h4>
 			<p>
-				外だしSQLにて、ParameterBeanに定義するプロパティの型と名前を「-- !!クラス名!!」という形式で指定します。
+				外だしSQLにて、ParameterBeanに定義するプロパティの型と名前を「-- !!型 プロパティ名!!」という形式で指定します。<br />
+				型で自動解決されないものは明示的にパッケージ名も付与する必要があります。(例えばjava.util.Dateなど)
 				<pre><code>
 -- !SimpleMemberPmb!
 -- !!Integer memberId!!
 -- !!String memberName!!
 
-select ...
-  from ...
+select ... from ...
 				</code></pre>
 			</p>
+			<h5>プロパティのオプション指定</h5>
 			<p>
-				型で自動解決されないものは明示的にパッケージ名も付与する必要があります。(例えばjava.util.Dateなど)<br />
-			</p>
-			<p>
-				ページング検索をしたい場合は、クラス指定のクラス名の後ろに「 extends SPB」を付与します。<br />
-				すると、ParameterBeanがSimplePagingBeanを継承するようなります。
-				<pre><code>
--- !SimpleMemberPmb extends SPB!
--- !!Integer memberId!!
--- !!String memberName!!
-
-select ...
-  from ...
+				プロパティにオプションを指定することが可能です。<br />
+				<pre>ex) 会員名称でLikeオプションを付与<code>
+-- !!String memberName:like!!
 				</code></pre>
-			</p>
-			<p>
-				外だしSQLのページング検索に関して詳しくは<a href="./paging.html">こちら</a><br />
+				すると、ParameterBeanの該当プロパティにおいて、ConditionBeanで使っているLikeSearchOptionが利用可能になります。<br />
+				曖昧検索の一致の方向(前方、中間、後方)をアプリケーションにて動的に決定する場合や、エスケープ処理を入れる場合に有効です。<br />
+				ParameterBeanでのLikeSearchOptionについては<a href="./likesearch.html">こちら</a>
 			</p>
 		</li>
 		<li>
