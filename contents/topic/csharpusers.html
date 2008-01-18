@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>C#ユーザの皆様へ</h2>
+	<h3>概要</h3>
+	C#版DBFluteを利用されるユーザの方へのメッセージがあります。<br />
+	利用上の注意点などプログラミングする上での重要な点もありますので、必ずお読みください。
+	<h3>前提</h3>
+	<p>
+		C#版DBFluteは2006年6月頃に開発されました。<br />
+		但し、そのときに作ったバージョンはジェネリックを利用しないタイプのもので、かつ、途中でメンテが滞り、<br />
+		Java版との機能差が非常に大きくなってしまいました。また、C#のジェネリックは互換性のないものであることもあり、<br />
+		C#版DBFlute自身が互換性を保ちつつ、機能差を埋めるということが非常に難しかった状況がありました。<br />
+		<br />
+		しかし、幸いC#版は利用者が少ないこともあり(いや悲しいんですけどね...)、ジェネリック版の強い要望もあり、<br />
+		ある時思い立って、互換性はなくもジェネリックに対応してJava版との機能差を(極力)埋めた新C#版を作成しました。<br />
+		2008年1月時点において、まだまだJava版との機能格差はありますが、<br />
+		「C#でもDBFlute」を目指して、2008年は機能差を埋めていく予定です。
+	</p>
+	<h3>Java版との機能差</h3>
+	<p>
+		まずは外部仕様的な面において、以下の項目がC#版では実装されていません。
+		(上から順に優先度)
+		<ul>
+			<li>ConditionBeanにて同Table間限定のUnion</li>
+			<li>ConditionBeanのPrefix/Suffix/Containを指定/Escape指定が可能なLikeSearch</li>
+			<li>ConditionBeanのSetupSelect(親結合先取得)を３階層化(現２階層)</li>
+			<li>DBMetaの細かいメタ情報利用(要は未実装なのです)</li>
+			<li>PagingResultBeanのPageGroupとPageRange</li>
+			<li>ConditionBeanの日付範囲検索の便利機能であるFromToメソッド</li>
+			<li>Behaviorのone-to-many Loadingにおける孫を取得するLoad</li>
+			<li>OutsideSqlのLikeSearchOption</li>
+			<li>ConditionBeanのtoDispaySql()メソッド</li>
+			<li>バッチ更新(S2Daoの対応が必要)</li>
+			<li>その他細かい点</li>
+		</ul>
+		そして内部仕様的な面において、以下の項目がC#版では実装されていません。
+		(上から順に優先度)
+		<ul>
+			<li>ConditionBeanで発行するSQLのテーブルのAlias名の座標化(幾つかのBUGが直る)</li>
+			<li>ConditionBeanのlockForUpdate()にてOracleのfor update of columnを利用する</li>
+			<li>メタデータを使わないようにする(S2Daoの対応が必要)</li>
+			<li>検索時マッピングの結合先処理時にリフレクションを使わない</li>
+			<li>ジェネリックをできる限り利用してソース量の削減</li>
+			<li>その他細かい点</li>
+		</ul>
+	</p>
+	<h3>Java版との仕様差</h3>
+	<p>
+		今度は、機能差ではなく仕様差です。<br />
+		ほとんどJava版と仕様は同じなのですが、どうしても言語の違いやSeasar本体の違い、ニーズの違いから<br />
+		仕様の差が発生します。以下の項目がJava版とは違うC#版の仕様です。
+		<ul>
+			<li>BehaviorのContainerとしてS2ContainerではなくQuillを使っている</li>
+			<li>クラスコメントやメソッドコメントはほとんど記載しない</li>
+			<li>ConditionBeanのIncludeAsMine()はサポートしない</li>
+			<li>OutsideSqlのフラット展開はサポートしない</li>
+			<li>バッチ更新はサポートしない(そもそもS2Daoの対応が必要)</li>
+			<li>Java版でも人気のない機能(メソッド)はサポートしない</li>
+			<li>その他細かい点</li>
+		</ul>
+		理由はそれぞれに存在します。申し訳ありませんがそれぞれの理由をここで述べるのは大変なため割愛させて頂きます。<br />
+		<br />
+		ただ、横断して影響する理由の一つとして、コンパイルスピードの考慮というのがあります。<br />
+		経験上の体感でありますが、VisualStudio2005でのコンパイルの方がEclipseでのコンパイルよりも遅く、<br />
+		開発運用上の問題がC#版の方が発生しやすいです(しやすかったです)。このことが上記の仕様差に影響しています。<br />
+		幸いC#版は利用者が少ないこともあり(いや悲しいんですけどね...)、実現するために大量のクラスが必要になる機能で、<br />
+		かつ、利用頻度の少ない機能や代替案のある機能はサポートしないようにしています。<br />
+		<br />
+		無論、将来周辺環境の改善のされ方次第では変わる可能性もあります。
+	</p>
+	<h3>Java版との実装差</h3>
+	<p>
+		今度は、仕様差ではなく実装差です。<br />
+		実際にC#ユーザの方がDBFluteで実装するときに意識する必要のある実装方法の違いです。<br />
+		実はここが一番大事ですね...早速見ていきましょう！<br />
+		<h4>メソッド名の先頭が大文字</h4>
+		これはDBFlute関係なく、JavaとC#の文化の違いです。<br />
+		ただ、VisualStudioを使っていれば補完してくれるのであまり気にする必要はないでしょう。<br />
+		リフレクションを使ってメソッド名の文字列からメソッドを呼び出す場合などに注意して下さい。
+		<pre>ex) C#版でConditionBeanを利用
+		<code>
+MemberCB cb = new MemberCB();
+cb.SetupSelect_MemberStatus();// Java: cb.setupSelect_MemberStatus();
+cb.Query().SetMemberName_PrefixSearch();// Java: cb.query().setMemberName_PrefixSearch();
+cb.FetchFirst();// Java: cb.fetchFirst();
+		</code>
+		</pre>
+		<h4>プロパティ名の先頭が大文字</h4>
+		これもDBFlute関係なく、JavaとC#の文化の違いです。<br />
+		<pre>ex) C#版でEntityの値を設定
+		<code>
+Member member = new Member();
+member.MemberId = 3;
+member.MemberName = "Billy Joel";
+		</code>
+		</pre>
+		しかし、このことに非常に気をつけるべき箇所が１つあります。<br />
+		それは、外だしSQL(OutsideSql)を利用するときのパラメータコメントです。<br />
+		外だしSQLのパラメータコメントについては<a href="../outside-sql/pmcomment.html">こちら</a><br />
+		C#版ではパラメータコメントの中で利用するプロパティ記述も先頭が大文字になります。<br />
+		(要はパラメータコメントは大文字小文字を区別していることを意味します)
+		<pre>ex) C#版でバインド変数コメントを利用
+		<code>
+where MEMBER_ID = /*pmb.MemberId*/3 -- Java: /*pmb.memberId*/
+  and MEMBER_NAME like /*pmb.MemberName*/'ス' || '%' -- Java: /*pmb.memberName*/
+  and MEMBER_STATUS_CODE in /*pmb.MemberStatusCodeList*/('FML', 'WDL') -- Java: /*pmb.memberSta...*/
+		</code>
+		</pre>
+		<h4>コールバック処理でDelegateを利用</h4>
+		これもDBFlute関係なく、JavaとC#の文法の違いです。<br />
+		<pre>ex) C#版でBehaviorのLoadReferrerを利用
+		<code>
+_memberBhv.LoadPurchaseList(memberList, delegate(PurchaseCB cb) {
+    cb.Query().SetPurchaseCount_GreaterEqual(2);
+    cb.Query().AddOrderBy_PurchaseCount_Desc();
+}
+
+// Java:
+// _memberBhv.loadPurchaseList(memberList, new ConditionBeanSetupper<PurchaseCB>() {
+//     public void setup(PurchaseCB cb) {
+//         cb.query().setPurchaseCount_GreaterEqual(2);
+//         cb.query().addOrderBy_PurchaseCount_Desc();
+//     }
+// })
+		</code>
+		</pre>
+		但し、複数メソッドのコールバックがある場合などは、Java版と同じくインターフェースを利用します。<br />
+		しかし、そのときはC#は匿名メソッドはあっても匿名クラスはないので、実装クラスを明示的に作成します。<br />
+		<h4>SQLファイルを「埋め込まれたリソース」に</h4>
+		これはC#固有(VisualStudio固有)の話で、とってもやっかいな話です。<br />
+		<br />
+		VisualStudioでSQLファイルなどのリソースファイルをDLLの中に埋め込むためには、<br />
+		そのファイルのプロパティの「ビルドアクション」を「埋め込まれたリソース」にする必要があります。<br />
+		デフォルトでは「なし」になっているので、これを怠ると実行時に「SQLファイルがありません」という例外になります。<br />
+		「ファイル名は間違ってないんだけどなぁ...何が悪いんだろう」と感じたら真っ先にこれを疑って下さい。<br />
+		今まで何人もの人がこの壁にぶち当たっています。<br />
+		<br />
+		VisualStudioの設定でデフォルトを「埋め込まれたリソース」にできないものか探したのですが見つからず。<br />
+		*.csprojに&lt;EmbeddedResource Include=”**\*.sql” /&gt;と指定することでできるようですが、<br />
+		間違ってVisualStudio上でビルドアクションをいじると展開されて設定が戻ってしまうのでいまいちです。<br />
+		何か良い方法があったら教えて頂きたいくらいです。<br />
+		<br />
+		今は気をつけて下さいとしか言いようがないのですが、DBFluteでは将来的にoutsideSqlTestタスクに<br />
+		「外だしSQLが埋め込まれたリソースになっているかどうか」をチェックする機能を付けようと考えています。
+	</p>
+	<h3>その他</h3>
+	<p>
+		<h4>ReSharperのススメ</h4>
+		これは必須ではありませんが、ReSharperをおすすめします。<br />
+		<br />
+		DBFluteのウリの一つとして、IDEの補完機能でサクサク実装することが挙げられるのですが、<br />
+		VisualStudioの補完機能はEclipseのそれに比べて遥かにストレスの溜まるものです。<br />
+		ReSharperはそれを補ってくれるVisualStudioのAdd-inです。<br />
+		ライセンス料が必要なので敷居が高いですが、あれば便利であることは間違いありません。
+		<h4>Exampleのススメ</h4>
+		C#版DBFluteのExampleの実装があります(Testを兼ねる)。<br />
+		<br />
+		こちら実装の参考になるだけでなく、気軽に自動生成されたDBFluteのクラスを実際に触ることができます。<br />
+		実際に動かすことも可能です。MySQLとMbUnitを用意して頂くことで、実際にDBアクセスが可能です。<br />
+		(dbflute-nbasic-example/readme.txtをお読みください)<br />
+		<br />
+		Subversion経由でチェックアウトが可能です。リポジトリURLは以下：<br />
+		https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-nbasic-example<br />
+		都度都度更新していますので、時折更新してみて下さい。
+		<h4>ドキュメントはJava版と同居</h4>
+		これは謝らなければならないことです。大変申し訳ありません。<br />
+		ですが、現状のメンテリソースからはどうしてもそうせざるを得ません。<br />
+		(C#版ドキュメントを作成、メンテしてくる方がいらっしゃいましたら歓迎いたします)<br />
+		<br />
+		現状(2008年1月頃)では、Java版のドキュメントから先述した実装差を考慮して読むようにして下さい。<br />
+		その中で、あまりに違う部分などについては「C#版ではこうこうこうなる」というように注釈をいれます。<br />
+		また、先述したC#版DBFluteのExampleも参考にしてみて下さい。<br />
+		<h4>更新日時：2008/01/18 Fri.</h4>
+		このページ自体を更新した場合にこの更新日時を更新していきます。<br />
+		内容が内容なだけに、今後の先述の内容が変わるかもしれません。時折チェックしてみて下さい。<br />
+	</p>
+		
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
