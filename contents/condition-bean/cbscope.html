@@ -45,10 +45,9 @@
 		<li>Group By句を使う</li>
 		<li>SQL関数を使う(select count(*)は除く)</li>
 		<li>Select句でサブクエリを使う</li>
-		<li>OneToOne以外の関連テーブルを結合</li>
 		<li>Where句のサブクエリで何にも関連(FKなど)の存在しないテーブルを使う</li>
 		<li>
-			子テーブルを{1:n}の関係のまま結合して取得したい
+			子テーブルをOneToManyの関係のまま結合して取得したい
 			<ul>
 				<li>「１発取りじゃないとダメ」でなければ、BehaviorのLoadReferrerを使ってConditionBeanで実装可能</li>
 			</ul>
@@ -88,12 +87,6 @@
 				<li>取得するカラムを基点テーブルの主キーだけに絞ることも可能</li>
 				<li>「select count(*)」も可能</li>
 			</ul>
-			<pre>ex) 会員(MEMBER)と関連する会員ステータス(MEMBER_STATUS)のカラムを取得<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberStatus();
-List&lt;Member&gt; memberList = memberBhv.selectList(cb);
-// selectCount(cb)なら「select count(*)」となる
-			</code></pre>
 		</li>
     	<li>
     		結合先カラムの値を取得
@@ -102,36 +95,26 @@ List&lt;Member&gt; memberList = memberBhv.selectList(cb);
 				<li>４階層以降であってもIncludeAsMineで基点テーブルのプロパティとして取得が可能</li>
 				<li>どんなテーブルが結合先となりうるかはFrom句の欄を参照</li>
     		</ul>
-			<pre>ex) 会員(MEMBER)と会員退会情報(MEMBER_WITHDRAWAL)と退会理由(WITHDRAWAL_REASON)のカラムを取得<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberWithdrawal().withWithdrawalReason();
-List&lt;Member&gt; memberList = memberBhv.selectList(cb);
-			</code></pre>
     	</li>
 	</ul>
 	<h5>From句</h5>
 	<ul>
 		<li>
-			結合先は必ずOneToOneの関係になるテーブルのみ
+			結合先はManyToOne/OneToOneの関係になるテーブルのみ
 			<ul>
-				<li>親テーブル</li>
-				<li>OneToOneの子テーブル</li>
-				<li>AdditionalForeignKeyのFixedConditionでOneToOneに調整した子テーブル</li>
+				<li>親テーブル(ManyToOne)
+					<ul>→ ex) 会員ステータス(MEMBER_STATUS)</ul>
+				</li>
+				<li>OneToOneの子テーブル
+					<ul>→ ex) 会員退会情報(MEMBER_WITHDRAWAL)</ul>
+				</li>
+				<li>AdditionalForeignKeyのFixedConditionでOneToOneに調整できる子テーブル
+					<ul>→ ex) 最終ログイン(MEMBER_LOGIN)</ul>
+				</li>
+				※「ex」は会員(MEMBER)が基点であることを前提としています。
 			</ul>
-			<pre>ex) 会員(MEMBER)と会員ステータス(MEMBER_STATUS)と会員退会情報(MEMBER_WITHDRAWAL)と最終ログイン(MEMBER_LOGIN)のカラムを取得<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberStatus();// 親テーブル
-cb.setupSelect_MemberWithdrawal();// OneToOneの子テーブル
-cb.setupSelect_MemberLoginAsLatest();// AdditionalForeignKeyのFixedConditionでOneToOneに調整した子テーブル
-			</code></pre>
 		</li>
-		<li>結合の指定はSelect句とWhere句の指定から全て自動で判別されるので意識する必要はない</li>
-			<pre>ex) 会員(MEMBER)と会員ステータス(MEMBER_STATUS)のカラムを取得し、会員退会情報(MEMBER_WITHDRAWAL)で絞り込み<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberStatus();// 親テーブルのカラムの取得
-cb.query().queryMemberWithdrawal().setXxx_PrefixSearch(...);// OneToOneの子テーブルで絞り込み条件
-// From句では会員ステータス(MEMBER_STATUS)と会員退会情報(MEMBER_WITHDRAWAL)が結合される
-			</code></pre>
+		<li>結合の指定はSelect句とWhere句の指定から全て自動で判別されるので明示的に指定する必要はない</li>
 		<li>結合方法は全てleft outer join限定</li>
 		<li>inner joinはできないが「where 基点FK is not null」とすることで代替可能</li>
 		<li>
@@ -139,11 +122,6 @@ cb.query().queryMemberWithdrawal().setXxx_PrefixSearch(...);// OneToOneの子テ
 			<ul>
 				<li>サブクエリ内で利用できる絞り込み条件の仕様はConditionBeanで使えるものと同様</li>
 			</ul>
-			<pre>ex) 会員退会情報(MEMBER_WITHDRAWAL)をサブクエリにて絞り込み<code>
-MemberCB cb = new MemberCB();
-cb.query().queryMemberWithdrawal().inline().setXxx_PrefixSearch(...);
-// 「MEMBER left outer join (select * from MEMBER_WITHDRAWAL where ...)」となる
-			</code></pre>
 		</li>
 	</ul>
 	<h5>Where句</h5>
