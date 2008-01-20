@@ -34,9 +34,9 @@
 		当然、「ConditionBeanでできないことはOutsideSql(外だしSQL)で」という正論に間違いはありませんが、プログラマがConditionBeanの機能を頭の中で全て抑えていることは少ないと思われます。そこで、素早く判断するための「スコープ判断の流れ」を紹介したいと思います。
 	</p>
 	<h3>スコープ判断の流れ</h3>
-	<h4>A. 明らかなOutsideSql(外だしSQL)のスコープか否かを判断</h4>
+	<h4>A. 明らかなOutsideSql(外だしSQL)か否かを判断</h4>
 	<p>
-		ConditionBeanの機能を確認する前に、まずは「明らかにOutsideSql(外だしSQL)でやるべき」と言えるものを確認していきます。こうすることで、ConditionBeanの機能を意識する前の素早い段階で判断が可能です。
+		ConditionBeanのスコープを確認する前に、まずは「明らかにOutsideSql(外だしSQL)でやるべき」と言えるものを確認していきます。こうすることで、ConditionBeanを意識する前の早い段階で判断が可能です。
 	</p>
 	<p>
 		以下に当てはまるものは確実にOutsideSql(外だしSQL)です。
@@ -55,7 +55,7 @@
 		<li>
 			別テーブル同士でのUnion/Union Allを使う
 			<ul>
-				<li>基点テーブル同士のUnion/Union AllであればConditionBeanで実装可能 {但しC#版は不可(2008年1月現在)}</li>
+				<li>基点テーブル同士のUnion/Union AllであればConditionBeanで実装可能 ※但しC#版は不可(2008年1月現在)</li>
 			</ul>
 		</li>
 		<li>Merge構文やMinus構文などを使う</li>
@@ -69,15 +69,15 @@
 			</ul>
 		</li>
 	</ul>
-	<h4>B. 機能一覧からConditionBeanのスコープか否かを判断</h4>
+	<h4>B. ConditionBeanのスコープを判断</h4>
 	<p>
-		そして、ConditionBeanの機能一覧からConditionBeanのスコープかどうか確認していきます。「明らかなOutsideSql(外だしSQL)」を通り過ぎたこの時点ではConditionBeanで実装可能である可能性が高いです。実際の実装を意識しながら確認していきましょう。
+		そして、ConditionBeanのスコープからConditionBeanで実装できるか確認していきます。
 	</p>
 	<p>
-		実際にConditionBeanを実装しながらの確認でも構いません。後に「やはりOutsideSql(外だしSQL)で実装」となっても、そのConditionBeanの実装は無駄にはなりません。それは「C」において後述しますが、近いところまで実装したConditionBeanからOutsideSql(外だしSQL)の土台となるSQLが生成できるからです。
+		「明らかなOutsideSql(外だしSQL)」を通り過ぎたこの時点ではConditionBeanで実装可能である可能性が高いです。実際にConditionBeanを実装しながらの確認でも構いません。後に「やはりOutsideSql(外だしSQL)で実装」となっても、そのConditionBeanの実装は無駄にはなりません。それは「C」において後述しますが、近いところまで実装したConditionBeanからOutsideSql(外だしSQL)の土台となるSQLが生成できるからです。
 	</p>
 	<p>
-		以下の機能で実現できるのであればConditionBeanで実装可能です。
+		以下がConditionBeanのスコープです。
 	</p>
 	<h5>Select句</h5>
 	<ul>
@@ -142,7 +142,7 @@
 				<li>基本演算子 {=, !=, &gt;, &gt;=, &lt;, &lt;=}</li>
 				<li>InScope {in ('a', 'b')}</li>
 				<li>NotInScope {not in ('a', 'b')}</li>
-				<li>Like条件(前方/後方/中間)とエスケープ {like 'S%' escape '|'}</li>
+				<li>Like条件(前方/後方/中間)とエスケープ {like 'S%' escape '|'} ※但しC#版はEscapeなし前方一致のみ(2008年1月現在)</li>
 				<li>IsNull / IsNotNull {is null / is not null}</li>
 			</ul>
 		</li>
@@ -194,7 +194,7 @@
 			<ul>
 				<li>SubSelectフェッチになる(別SQL１発で関連している子テーブルのレコードを全て取得)</li>
 				<li>子テーブルの絞り込み条件やソート条件はConditionBeanで使えるものと同様</li>
-				<li>{1:n:n}というように無限階層そして枝分かれ階層のLoadが可能 {但しC#版は不可(2008年1月現在)}</li>
+				<li>{1:n:n}というように無限階層そして枝分かれ階層のLoadが可能 ※但しC#版は不可(2008年1月現在)</li>
 			</ul>
 		</li>
 	</ul>
