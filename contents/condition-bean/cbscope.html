@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>ConditionBeanのスコープ</h2>
+	<h3>概要</h3>
+	<p>
+		DBFluteは、DBアクセスの大きな２つのやり方を提供しています。それはConditionBeanとOutsideSql(外だしSQL)です。これら２つの存在意義に関してはここでは割愛させて頂き、いざ実装するときにこの２つのどちらを利用すれば良いのかに焦点を当てます。
+	</p>
+	<h4></h4>
+	<p>
+		当然、「ConditionBeanでできないことはOutsideSql(外だしSQL)で」という正論に間違いはありませんが、プログラマがConditionBeanの機能を頭の中で全て抑えていることは少ないと思われます。そこで、素早く判断するための「スコープ判断の流れ」を紹介したいと思います。
+	</p>
+	<h3>スコープ判断の流れ</h3>
+	<h4>A. 明らかなOutsideSql(外だしSQL)のスコープか否かを判断</h4>
+	<p>
+		ConditionBeanの機能を確認する前に、まずは「明らかにOutsideSql(外だしSQL)でやるべき」と言えるものを確認していきます。こうすることで、ConditionBeanの機能を意識する前の素早い段階で判断が可能です。
+	</p>
+	<p>
+		以下に当てはまるものは確実にOutsideSql(外だしSQL)です。
+	</p>
+	<ul>
+		<li>Group By句を使う</li>
+		<li>SQL関数を使う(select count(*)は除く)</li>
+		<li>Select句でサブクエリを使う</li>
+		<li>OneToOne以外の関連テーブルを結合</li>
+		<li>Where句のサブクエリで何にも関連(FKなど)の存在しないテーブルを使う</li>
+		<li>
+			子テーブルを{1:n}の関係のまま結合して取得したい
+			<ul>
+				<li>「１発取りじゃないとダメ」でなければ、BehaviorのLoadReferrerを使ってConditionBeanで実装可能</li>
+			</ul>
+		</li>
+		<li>
+			別テーブル同士でのUnion/Union Allを使う
+			<ul>
+				<li>基点テーブル同士のUnion/Union AllであればConditionBeanで実装可能 {但しC#版は不可(2008年1月現在)}</li>
+			</ul>
+		</li>
+		<li>Merge構文やMinus構文などを使う</li>
+		<li>更新ロック以外の明示的にロック指定(DB2の「with RR」やMySQLの「lock table」など)</li>
+		<li>不要なカラムを徹底して省きたいなど(１ミリ秒でも稼ぎたい場合)</li>
+		<li>
+			カーソルで１レコードずつメモリ展開して処理したい
+			<ul>
+				<li>この場合はOutsideSqlのカーソル検索を利用</li>
+				<li>カーソル検索については<a href="../outside-sql/cursor.html">こちら</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h4>B. 機能一覧からConditionBeanのスコープか否かを判断</h4>
+	<p>
+		そして、ConditionBeanの機能一覧からConditionBeanのスコープかどうか確認していきます。「明らかなOutsideSql(外だしSQL)」を通り過ぎたこの時点ではConditionBeanで実装可能である可能性が高いです。実際の実装を意識しながら確認していきましょう。
+	</p>
+	<p>
+		実際にConditionBeanを実装しながらの確認でも構いません。後に「やはりOutsideSql(外だしSQL)で実装」となっても、そのConditionBeanの実装は無駄にはなりません。それは「C」において後述しますが、近いところまで実装したConditionBeanからOutsideSql(外だしSQL)の土台となるSQLが生成できるからです。
+	</p>
+	<p>
+		以下の機能で実現できるのであればConditionBeanで実装可能です。
+	</p>
+	<h5>Select句</h5>
+	<ul>
+		<li>
+			取得するカラムは基本的に基点テーブルの全てのカラムとSetupSelect指定されたテーブルの全てのカラム
+			<ul>
+				<li>取得するカラムを基点テーブルの主キーだけに絞ることも可能</li>
+				<li>「select count(*)」も可能</li>
+			</ul>
+			<pre>ex) 会員(MEMBER)と関連する会員ステータス(MEMBER_STATUS)のカラムを取得<code>
+MemberCB cb = new MemberCB();
+cb.setupSelect_MemberStatus();
+List&lt;Member&gt; memberList = memberBhv.selectList(cb);
+// selectCount(cb)なら「select count(*)」となる
+			</code></pre>
+		</li>
+    	<li>
+    		結合先カラムの値を取得
+    		<ul>
+    			<li>取得できる結合先は３階層まで</li>
+				<li>４階層以降であってもIncludeAsMineで基点テーブルのプロパティとして取得が可能</li>
+				<li>どんなテーブルが結合先となりうるかはFrom句の欄を参照</li>
+    		</ul>
+			<pre>ex) 会員(MEMBER)と会員退会情報(MEMBER_WITHDRAWAL)と退会理由(WITHDRAWAL_REASON)のカラムを取得<code>
+MemberCB cb = new MemberCB();
+cb.setupSelect_MemberWithdrawal().withWithdrawalReason();
+List&lt;Member&gt; memberList = memberBhv.selectList(cb);
+			</code></pre>
+    	</li>
+	</ul>
+	<h5>From句</h5>
+	<ul>
+		<li>
+			結合先は必ずOneToOneの関係になるテーブルのみ
+			<ul>
+				<li>親テーブル</li>
+				<li>OneToOneの子テーブル</li>
+				<li>AdditionalForeignKeyのFixedConditionでOneToOneに調整した子テーブル</li>
+			</ul>
+			<pre>ex) 会員(MEMBER)と会員ステータス(MEMBER_STATUS)と会員退会情報(MEMBER_WITHDRAWAL)と最終ログイン(MEMBER_LOGIN)のカラムを取得<code>
+MemberCB cb = new MemberCB();
+cb.setupSelect_MemberStatus();// 親テーブル
+cb.setupSelect_MemberWithdrawal();// OneToOneの子テーブル
+cb.setupSelect_MemberLoginAsLatest();// AdditionalForeignKeyのFixedConditionでOneToOneに調整した子テーブル
+			</code></pre>
+		</li>
+		<li>結合の指定はSelect句とWhere句の指定から全て自動で判別されるので意識する必要はない</li>
+			<pre>ex) 会員(MEMBER)と会員ステータス(MEMBER_STATUS)のカラムを取得し、会員退会情報(MEMBER_WITHDRAWAL)で絞り込み<code>
+MemberCB cb = new MemberCB();
+cb.setupSelect_MemberStatus();// 親テーブルのカラムの取得
+cb.query().queryMemberWithdrawal().setXxx_PrefixSearch(...);// OneToOneの子テーブルで絞り込み条件
+// From句では会員ステータス(MEMBER_STATUS)と会員退会情報(MEMBER_WITHDRAWAL)が結合される
+			</code></pre>
+		<li>結合方法は全てleft outer join限定</li>
+		<li>inner joinはできないが「where 基点FK is not null」とすることで代替可能</li>
+		<li>
+			結合先だけを絞り込む(結合前に絞り込む)のサブクエリ(インラインビュー)
+			<ul>
+				<li>サブクエリ内で利用できる絞り込み条件の仕様はConditionBeanで使えるものと同様</li>
+			</ul>
+			<pre>ex) 会員退会情報(MEMBER_WITHDRAWAL)をサブクエリにて絞り込み<code>
+MemberCB cb = new MemberCB();
+cb.query().queryMemberWithdrawal().inline().setXxx_PrefixSearch(...);
+// 「MEMBER left outer join (select * from MEMBER_WITHDRAWAL where ...)」となる
+			</code></pre>
+		</li>
+	</ul>
+	<h5>Where句</h5>
+	<ul>
+		<li>
+			複数条件の連結は全てAnd条件
+			<ul>
+				<li>Or句はUnionを利用することにより実現可能 {Unionの詳細はUnion句の欄を参照}</li>
+			</ul>
+		</li>
+		<li>
+			Where句条件で以下が利用可能
+			<ul>
+				<li>基本演算子 {=, !=, &gt;, &gt;=, &lt;, &lt;=}</li>
+				<li>InScope {in ('a', 'b')}</li>
+				<li>NotInScope {not in ('a', 'b')}</li>
+				<li>Like条件(前方/後方/中間)とエスケープ {like 'S%' escape '|'}</li>
+				<li>IsNull / IsNotNull {is null / is not null}</li>
+			</ul>
+		</li>
+		<li>
+			結合先カラムでの絞り込み条件(order byも含む)
+    		<ul>
+    			<li>設定できる結合先は無限階層</li>
+				<li>どんなテーブルが結合先となりうるかはFrom句の欄を参照</li>
+    		</ul>
+		</li>
+		<li>
+			定型的なサブクエリを使った条件
+			<ul>
+				<li>親テーブル(結合可能テーブル)のInScopeSubQuery {基点FK in (select 親PK from 親 where ...)}</li>
+				<li>子テーブルのInScopeSubQuery {基点PK in (select 子FK from 子 where ...)}</li>
+				<li>子テーブルのExistsSubQuery {exists (select 子PK from 子 where 子FK = 基点PK and ...)}</li>
+				<li>サブクエリ内で利用できる絞り込み条件の仕様はConditionBeanで使えるものと同様</li>
+			</ul>
+		</li>
+	</ul>
+	<h5>OrderBy句</h5>
+	<ul>
+		<li>
+			結合先カラムでのソート条件
+    		<ul>
+    			<li>設定できる結合先は無限階層</li>
+    		</ul>
+		</li>
+	</ul>
+	<h5>Union句</h5>
+	<ul>
+		<li>
+			基点テーブル同士でのUnion {但しC#版は不可(2008年1月現在)}
+    		<ul>
+    			<li>UnionAllも可能</li>
+    			<li>Unionの数は無限</li>
+    		</ul>
+		</li>
+	</ul>
+	<h5>その他</h5>
+	<ul>
+		<li>ページング検索 {limit 80, 20}</li>
+		<li>更新ロック {select ... from ... for update}</li>
+		<li>
+			子テーブルを{1:n}の関係のまま取得 {BehaviorのLoadReferrer}
+			<ul>
+				<li>SubSelectフェッチになる(別SQL１発で関連している子テーブルのレコードを全て取得)</li>
+				<li>子テーブルの絞り込み条件やソート条件はConditionBeanで使えるものと同様</li>
+				<li>{1:n:n}というように無限階層のLoadは可能 {但しC#版は不可(2008年1月現在)}</li>
+			</ul>
+		</li>
+	</ul>
+	<h4>C. やはりOutsideSql(外だしSQL)であると判断</h4>	
+	<p>
+		ここまで来たら、やはり「OutsideSql(外だしSQL)で」ということになります。
+	</p>
+	<p>
+		ここで、ちょっとした「OutsideSql(外だしSQL)」の実装支援を紹介します。	もし、この時点でConditionBeanで近いところまで実装済みであれば、それは消してはいけません。以下の手順が可能だからです。
+	</p>
+	<ol>
+		<li>ConditionBeanでできるところまでテスト実装</li>
+		<li>ConditionBeanのtoDisplaySql()の戻り値をログに出力</li>
+		<li>ログ出力されたSQL文をOutsideSql(外だしSQL)の土台として活用</li>
+	</ol>
+	<p>
+		このようにすることで、OutsideSql(外だしSQL)の実装にてSQLの構文やテーブル名、カラム名を１から書く必要はなくなり、スペルミスなどのケアレスミスもなくなります。また、判断の流れの中で実装してしまったConditionBeanは全く無駄になりません。「A」の判断で明らかなOutsideSql(外だしSQL)であると判断されてもこの手法を使うのも良いかと思われます。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>menu</h3>
+	<ul>
+		<li>工事中</li>
+	</ul>
+	<!-- 
+	<h3>自動生成をする</h3>
+	<ul>
+		<li><a href="./sample.html">タスク一覧</a></li>
+		<li><a href="./sample.html">HowToSetUp</a></li>
+		<li><a href="./sample.html">プロパティ解説</a></li>
+	</ul>
+	<h3>自動生成されたソースを使用する</h3>
+	<ul>
+		<li><a href="./sample.html">生成されるソースのクラス図</a></li>
+		<li><a href="./sample.html">ConditionBean</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanとは</a></li>
+				<li><a href="./sample.html">使い方</a></li>
+			</ul>
+		</li>
+		<li><a href="./sample.html">Behavior</a></li>
+		<li><a href="./sample.html">Paging</a>
+			<ul>
+				<li><a href="./sample.html">ConditionBeanによるPaging</a></li>
+				<li><a href="./sample.html">外だしSQLによるPaging</a></li>
+			</ul>
+		</li>
+	</ul>
+	<h3>その他</h3>
+	<ul>
+		<li><a href="./sample.html">SchemaHTML</a></li>
+		<li><a href="./sample.html">Sql2Entity</a></li>
+		<li><a href="./sample.html">用語集</a></li>
+		<li><a href="./sample.html">サンプル解説</a></li>
+	</ul>
+	-->
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
