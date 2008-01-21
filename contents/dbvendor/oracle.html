@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>DBFluteにおけるOracleの扱い</h2>
+	<h3>概要</h3>
+	<p>
+		DBFluteを利用する上でのOracleの扱いを述べます。
+	</p>
+	<p>
+		※OracleのバージョンはOracle-9i以上を前提として記載しています。
+	</p>
+	<h3>JDBCタスクで利用するJDBCドライバ</h3>
+	<p>
+		JDBCドライバは「ojdbc14.jar」を利用しています。
+	</p>
+	<h3>JDBCタスクの接続設定(./dfprop/databaseInfoMap.dfprop)</h3>
+	<p>
+		OracleにつなぐJDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
+	</p>
+	<pre>ex) Oracleに接続{port=1521} @databaseInfoMap.dfprop<code>
+map:{
+    ; driver          = oracle.jdbc.driver.OracleDriver
+    ; url             = jdbc:oracle:thin:@localhost:1521:[SID]
+    ; schema          = [schema]
+    ; user            = [dbuser]
+    ; password        = [dbpassword]
+}
+	</code></pre>
+	<h3>主キーで連番の利用</h3>
+	<p>
+		Oracleは連番生成の仕組みとしてSequenceを利用します。
+	</p>
+	<h4>DBFluteでのSequence設定</h4>
+	<p>
+		設定ファイルにテーブルとシーケンスの関連づけを行う必要があります。./dfprop/sequenceDefinitionMap.dfpropに
+	</p>
+	<pre>ex) Sequenceの設定 @sequenceDefinitionMap.dfprop<code>
+map:{
+    ; PURCHASE     = SEQ_PURCHASE
+    ; MEMBER       = SEQ_MEMBER
+    ; MEMBER_LOGIN = SEQ_MEMBER_LOGIN
+    ; PRODUCT      = SEQ_PRODUCT
+}
+	</code></pre>
+	<h4>DBFluteでのInsert時のSequence利用</h4>
+	<p>
+		Entityの主キーのプロパティに値を何も設定せずに実行すると内部的にSequenceで連番を取得して設定されます。実行後に発行された連番をそのEntityの主キーのプロパティから取得できます。
+	</p>
+	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
+Member member = new Member();
+member.setMemberName("Billy Joel");
+member.set... // その他主キー以外にプロパティに値を設定
+memberBhv.insert(member);
+Integer memberId = member.getMemberId();// 発行された連番の値を取得
+	</code></pre>
+	<p>
+		もちろん、Sequenceを明示的に取得してInsert前のEntityに設定することも可能です。Insert前にInsert予定のPKを使って何か処理をする場合に有効です(Identityではできないことです)。
+	</p>
+	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
+Member member = new Member();
+member.setMemberId(memberBhv.selectNextVal());// Sequenceを取得して主キーに設定
+member.setMemberName("Billy Joel");
+member.set... // その他主キー以外にプロパティに値を設定
+memberBhv.insert(member);
+	</code></pre>
+	<h4>補足：Create Sequence文でのSequence作成</h4>
+	<p>
+		Create Sequence文では以下のように指定します。
+	</p>
+	<pre>ex) OracleでCreate Sequence文でSequenceを作成 @DDL<code>
+CREATE SEQUENCE SEQ_PURCHASE START WITH 1000 INCREMENT BY 1;
+CREATE SEQUENCE SEQ_MEMBER START WITH 1000 INCREMENT BY 1;
+CREATE SEQUENCE SEQ_MEMBER_LOGIN START WITH 1000 INCREMENT BY 1;
+CREATE SEQUENCE SEQ_PRODUCT START WITH 1000 INCREMENT BY 1;
+	</code></pre>
+	<h3>ページングの実現方法</h3>
+	<p>
+		rownumを利用しています。
+	</p>
+	<pre>ex) ConditionBeanでページング @SQL<code>
+select *
+  from (
+select base.*, rownum as rn
+  from (
+
+    select ... from ... where ... order by ..
+
+       ) base
+       )
+ where rn > 80
+   and rn <= 100;
+	</code></pre>
+	<p>
+		OutsideSqlのManualPaging(手動ページング)を利用する場合は以下のように実装します。
+	</p>
+	<pre>ex) OutsideSqlのManualPaging(手動ページング)でページング @SQL<code>
+select *
+  from (
+select base.*, rownum as rn
+  from (
+
+    select ... from ... where ... order by ..
+
+       ) base
+       )
+ where rn > /*$pmb.pageStartIndex*/80
+   and rn <= /*$pmb.pageEndIndex*/100;
+	</code></pre>
+	<h3>OracleのCLOBを使う場合の注意点</h3>
+	<p>
+		OracleのCLOBが含まれているテーブルを検索する場合は、以下の設定をする必要があります。
+	</p>
+	<ol>
+		<li>CLOB用のValueTypeコンポーネントをjdbc.diconに設定する</li>
+		<li>該当テーブルのExEntityに設定したCLOB用のValueTypeのValueTypeアノテーションを付ける</li>
+	</ol>
+	<pre>ex) CLOB用のValueTypeコンポーネントをjdbc.diconに設定する @jdbc.dicon<code>
+&lt;component name="stringClobType" class="org.seasar.extension.jdbc.types.StringClobType" /&gt;
+	</code></pre>
+	<pre>ex) 該当テーブルのExEntityに設定したCLOB用のValueTypeのValueTypeアノテーションを付ける @ExEntity<code>
+/** 退会理由テーブルの「退会理由テキスト」プロパティにstringClobTypeを設定 */
+public static String withdrawalReasonText_VALUE_TYPE = "stringClobType";
+	</code></pre>
+	<p>
+		このようにすると、OracleのCLOBがString型で取得できるようになります。
+	</p>
+	<p>
+		2008年1月現在、上記の設定をDBFlute内部で自動で組み込むことを検討しています。そうすれば、上記のことをユーザの方々が意識をする必要がなくなります。その場合は、CLOB用のValueTypeコンポーネントはdbflute.diconに設定され、ValueTypeアノテーションはBsEntityに設定しようかと考えています。
+	</p>
+	<h3>Example</h3>
+	<p>
+		Oracleを利用したDBFluteのExampleプロジェクト(Java)が存在します。ぜひそちらを参考にしてみて下さい。
+	</p>
+	<pre>SVNリポジトリ<code>
+	https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example
+	</code></pre>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>メインコンテンツ</h3>
+	<ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DBベンダごとの扱い</a></li>
+	</ul>
+	<h3>トピックス</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">C#ユーザの皆様へ</a></li>
+	</ul>
+	<h3>その他いろいろ</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistryについて</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
