@@ -32,18 +32,69 @@
 	<p>
 		接続設定やDB特有の必須設定などについて記載されていますので、必ずお読みください。
 	</p>
-	<h3>詳細へのリンク</h3>
+	<h3>DBベンダごとの詳細へのリンク</h3>
 	<ul>
 		<li><a href="./mysql.html">MySQL</a></li>
 		<li><a href="./postgresql.html">PostgreSQL (工事中)</li>
 		<li><a href="./oracle.html">Oracle</li>
-		<li><a href="./db2.html">DB2 (工事中)</li>
+		<li><a href="./db2.html">DB2</li>
 		<li><a href="./sqlserver.html">SQLServer (工事中)</li>
 		<li><a href="./firebird.html">Firebird (工事中)</li>
 		<li><a href="./h2.html">H2 (工事中)</li>
 		<li><a href="./derby.html">Apache Derby (工事中)</li>
 	</ul>
-		
+	<h3>主キーの連番でSequenceを使うDBの場合</h3>
+	<h4>DBFluteでのSequence設定</h4>
+	<p>
+		設定ファイルにテーブルとシーケンスの関連づけを行う必要があります。./dfprop/sequenceDefinitionMap.dfpropに
+	</p>
+	<pre>ex) Sequenceの設定 @sequenceDefinitionMap.dfprop<code>
+map:{
+    ; PURCHASE     = SEQ_PURCHASE
+    ; MEMBER       = SEQ_MEMBER
+    ; MEMBER_LOGIN = SEQ_MEMBER_LOGIN
+    ; PRODUCT      = SEQ_PRODUCT
+}
+	</code></pre>
+	<h4>DBFluteでのInsert時のSequence利用</h4>
+	<p>
+		Entityの主キーのプロパティに値を何も設定せずに実行すると内部的にSequenceで連番を取得して設定されます。実行後に発行された連番をそのEntityの主キーのプロパティから取得できます。
+	</p>
+	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
+Member member = new Member();
+member.setMemberName("Billy Joel");
+member.set... // その他主キー以外にプロパティに値を設定
+memberBhv.insert(member);
+Integer memberId = member.getMemberId();// 発行された連番の値を取得
+	</code></pre>
+	<p>
+		もちろん、Sequenceを明示的に取得してInsert前のEntityに設定することも可能です。Insert前にInsert予定のPKを使って何か処理をする場合に有効です(Identityではできないことです)。
+	</p>
+	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
+Member member = new Member();
+member.setMemberId(memberBhv.selectNextVal());// Sequenceを取得して主キーに設定
+member.setMemberName("Billy Joel");
+member.set... // その他主キー以外にプロパティに値を設定
+memberBhv.insert(member);
+	</code></pre>
+	
+	<h3>主キーの連番でIdentityを使うDBの場合</h3>
+	<h4>DBFluteでのIdentity設定</h4>
+	<p>
+		特に必要ありません。DBFluteではIdentityはJDBCタスクにおいてスキーマ情報としてIdentityの情報を取得します。特別Identityを利用するためにしなければならない設定はありません。(通常S2DaoではIDアノテーションを付ける必要がある)。
+	</p>
+	<h4>DBFluteでのInsert時のIdentity利用</h4>
+	<p>
+		Entityの主キーのプロパティに値を何も設定せずに実行すると内部的に連番が発行されます。実行後に発行された連番をそのEntityの主キーのプロパティから取得できます。
+	</p>
+	<pre>ex) Identityを利用してInsert {MEMBERをInsert} @Java<code>
+Member member = new Member();
+member.setMemberName("Billy Joel");
+member.set... // その他主キー以外にプロパティに値を設定
+memberBhv.insert(member);
+Integer memberId = member.getMemberId();// 発行された連番の値を取得
+	</code></pre>
+
 <!-- __content-end__ --></div>
 
 <div id="sideBar">

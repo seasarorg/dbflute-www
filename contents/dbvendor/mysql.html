@@ -55,24 +55,13 @@ map:{
 	</p>
 	<h4>DBFluteでのIdentity設定</h4>
 	<p>
-		特に必要ありません。DBFluteではIdentityはJDBCタスクにおいてスキーマ情報としてIdentityの情報を取得します。特別Identityを利用するためにしなければならない設定はありません。(通常S2DaoではIDアノテーションを付ける必要がある)。
+		詳しくは<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でIdentityを使うDBの場合」をご覧下さい。以降はDBベンダ依存の補足です。
 	</p>
-	<h4>DBFluteでのInsert時のIdentity利用</h4>
-	<p>
-		Entityの主キーのプロパティに値を何も設定せずに実行すると内部的に連番が発行されます。実行後に発行された連番をそのEntityの主キーのプロパティから取得できます。
-	</p>
-	<pre>ex) Identityを利用してInsert {MEMBERをInsert} @Java<code>
-Member member = new Member();
-member.setMemberName("Billy Joel");
-member.set... // その他主キー以外にプロパティに値を設定
-memberBhv.insert(member);
-Integer memberId = member.getMemberId();// 発行された連番の値を取得
-	</code></pre>
-	<h4>補足：Create文でのIdentity設定</h4>
+	<h4>補足：MySQLでIdentity設定</h4>
 	<p>
 		Create文では以下のように指定します。
 	</p>
-	<pre>ex) MySQLでCreate文にIdentityを設定 {MEMBERのMEMBER_IDにIdentity} @DDL<code>
+	<pre>ex) MySQLでIdentity設定 {MEMBERのMEMBER_IDにIdentity} @DDL<code>
 CREATE TABLE MEMBER
 (
     MEMBER_ID INTEGER AUTO_INCREMENT NOT NULL,
@@ -80,11 +69,11 @@ CREATE TABLE MEMBER
     ...
 )
 	</code></pre>
-	<h4>補足：Insert文の実行後に発行された連番を取得するSQL</h4>
+	<h4>補足：MySQLでInsert文の実行後に発行された連番を取得</h4>
 	<p>
 		Insert文の実行後に発行された連番を取得するSQLは以下のようになります。DBFluteを利用している場合は内部的に発行されるので意識する必要はありません。
 	</p>
-	<pre>ex) Insert文の実行後に発行された連番を取得するSQL @SQL<code>
+	<pre>ex) MySQLでInsert文の実行後に発行された連番を取得 @SQL<code>
 select last_insert_id();
 	</code></pre>
 	<h3>ページングの実現方法</h3>

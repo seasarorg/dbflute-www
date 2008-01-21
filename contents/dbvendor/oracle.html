@@ -30,7 +30,7 @@
 		DBFluteを利用する上でのOracleの扱いを述べます。
 	</p>
 	<p>
-		※OracleのバージョンはOracle-9i以上を前提として記載しています。
+		※バージョンはOracle-9i以上を前提として記載しています。
 	</p>
 	<h3>JDBCタスクで利用するJDBCドライバ</h3>
 	<p>
@@ -38,9 +38,9 @@
 	</p>
 	<h3>JDBCタスクの接続設定(./dfprop/databaseInfoMap.dfprop)</h3>
 	<p>
-		OracleにつなぐJDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
+		ぐJDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
 	</p>
-	<pre>ex) Oracleに接続{port=1521} @databaseInfoMap.dfprop<code>
+	<pre>ex) 接続{port=1521} @databaseInfoMap.dfprop<code>
 map:{
     ; driver          = oracle.jdbc.driver.OracleDriver
     ; url             = jdbc:oracle:thin:@localhost:1521:[SID]
@@ -55,46 +55,21 @@ map:{
 	</p>
 	<h4>DBFluteでのSequence設定</h4>
 	<p>
-		設定ファイルにテーブルとシーケンスの関連づけを行う必要があります。./dfprop/sequenceDefinitionMap.dfpropに
+		詳しくは<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でSequenceを使うDBの場合」をご覧下さい。以降はDBベンダ依存の補足です。
 	</p>
-	<pre>ex) Sequenceの設定 @sequenceDefinitionMap.dfprop<code>
-map:{
-    ; PURCHASE     = SEQ_PURCHASE
-    ; MEMBER       = SEQ_MEMBER
-    ; MEMBER_LOGIN = SEQ_MEMBER_LOGIN
-    ; PRODUCT      = SEQ_PRODUCT
-}
-	</code></pre>
-	<h4>DBFluteでのInsert時のSequence利用</h4>
-	<p>
-		Entityの主キーのプロパティに値を何も設定せずに実行すると内部的にSequenceで連番を取得して設定されます。実行後に発行された連番をそのEntityの主キーのプロパティから取得できます。
-	</p>
-	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
-Member member = new Member();
-member.setMemberName("Billy Joel");
-member.set... // その他主キー以外にプロパティに値を設定
-memberBhv.insert(member);
-Integer memberId = member.getMemberId();// 発行された連番の値を取得
-	</code></pre>
-	<p>
-		もちろん、Sequenceを明示的に取得してInsert前のEntityに設定することも可能です。Insert前にInsert予定のPKを使って何か処理をする場合に有効です(Identityではできないことです)。
-	</p>
-	<pre>ex) Sequenceを利用してInsert {MEMBERをInsert} @Java<code>
-Member member = new Member();
-member.setMemberId(memberBhv.selectNextVal());// Sequenceを取得して主キーに設定
-member.setMemberName("Billy Joel");
-member.set... // その他主キー以外にプロパティに値を設定
-memberBhv.insert(member);
-	</code></pre>
-	<h4>補足：Create Sequence文でのSequence作成</h4>
+	<h4>補足：OracleでSequenceを作成</h4>
 	<p>
 		Create Sequence文では以下のように指定します。
 	</p>
-	<pre>ex) OracleでCreate Sequence文でSequenceを作成 @DDL<code>
-CREATE SEQUENCE SEQ_PURCHASE START WITH 1000 INCREMENT BY 1;
-CREATE SEQUENCE SEQ_MEMBER START WITH 1000 INCREMENT BY 1;
-CREATE SEQUENCE SEQ_MEMBER_LOGIN START WITH 1000 INCREMENT BY 1;
-CREATE SEQUENCE SEQ_PRODUCT START WITH 1000 INCREMENT BY 1;
+	<pre>ex) OracleでSequenceを作成 @DDL<code>
+CREATE SEQUENCE SEQ_MEMBER START WITH 1 INCREMENT BY 1;
+	</code></pre>
+	<h4>補足：OracleでSequenceを取得</h4>
+	<p>
+		Create Sequence文では以下のように指定します。
+	</p>
+	<pre>ex) OracleでSequenceを取得 @SQL<code>
+select SEQ_MEMBER.nextval from dual;
 	</code></pre>
 	<h3>ページングの実現方法</h3>
 	<p>
@@ -106,7 +81,7 @@ select *
 select base.*, rownum as rn
   from (
 
-    select ... from ... where ... order by ..
+    select ... from ... where ... order by ...
 
        ) base
        )
@@ -122,7 +97,7 @@ select *
 select base.*, rownum as rn
   from (
 
-    select ... from ... where ... order by ..
+    select ... from ... where ... order by ...
 
        ) base
        )
