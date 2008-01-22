@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>逆引きConditionBean</h2>
+	<h3>概要</h3>
+	<p>
+		ConditionBeanの利用方法を要件からの逆引きで説明します。
+	</p>
+	<p>
+		Exampleで利用しているデータベースに関しては、<a href="../../view/exampledb/EARoot/EA1.html">こちらのERD</a>をご覧下さい。
+	</p>
+	<h3>曖昧検索でエスケープ処理を入れたい</h3>
+	<p>
+		例えば、'100%ジュース'という文字列の条件値として中間一致の曖昧検索をするとした場合に、エスケープ処理をしないと'100%ジュース'だけでなく'100回まわってジュース一気飲み'というデータまでHITしてしまいます。これは「xxx like '%100%ジュース%'」というように「100%」の「%」もワイルドカードとして扱われてしまうためです。
+	</p>
+	<p>
+		エスケープするには以下のようにSQLである必要があります。エスケープ文字を指定して、ワイルドカードとして認識されたくない文字の前にエスケープ文字を配置します。
+	</p>
+	<pre>ex) パイプラインを使ってエスケープした中間一致検索 @SQL<code>
+where MEMBER_NAME like '%100|%ジュース%' escape '|'
+	</code></pre>
+	<p>
+		ConditionBeanでは、この「エスケープ文字の指定」と「エスケープ文字の埋め込み」を以下のように実装することが可能です。
+	</p>
+	<pre>ex) パイプラインを使ってエスケープした中間一致検索 @Java<code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberName("100%ジュース", new LikeSearchOption().likeContain().escapeByPipeLine());
+... =  memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		パイプラインだけでなく、スラッシュ、バックスラッシュ、アットマークなど用意されています(escapeByXxx())。業務で適切なエスケープ文字を選んで下さい。
+	</p>
+	<p>
+		関連：<a href="../outside-sql/likesearch.html">外だしSQLの曖昧検索</a>
+	</p>
+	<h3>子テーブル(Referrer)の条件で絞り込みたい</h3>
+	<p>
+		例えば、会員(MEMBER)の一覧画面にて、「1万以上の購入をしたことのある会員」という絞り込みをする要件があったとした場合、SQLとして以下のようになります。
+	</p>
+	<pre>ex) 「1万以上の購入をしたことのある会員」という絞り込みの検索 @SQL<code>
+ from MEMBER member
+where member.MEMBER_ID exists (
+          select purchase.MEMBER_ID
+            from PURCHASE purchase
+           where purchase.MEMBER_ID = member.MEMBER_ID
+             and purchase.PURCHASE_PRICE >= 10000
+      )
+	</code></pre>
+	<p>
+		ConditionBeanでは、以下のように実装することが可能です。
+	</p>
+	<pre>ex) 「1万以上の購入をしたことのある会員」という絞り込みの検索 @Java<code>
+MemberCB cb = new MemberCB();
+{
+    PurchaseCB purchaseSubCB = new PurchaseCB();
+    purchaseSubCB.query().setPurchasePrice_GreaterEqual(10000);
+    cb.query().setMemberId_ExistsSubQuery(purchaseSubCB.query());// SubQueryの登録
+}
+... = memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		PurchaseCBの部分で匿名の括弧'{}'で囲っているのは、単に見やすさを考慮しているだけです(必須ではありません)。
+	</p>
+	<h3>TODO: まだまだこれからどんどん書いていきます(2008/01/22)</h3>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>メインコンテンツ</h3>
+	<ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DBベンダごとの扱い</a></li>
+	</ul>
+	<h3>トピックス</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">C#ユーザの皆様へ</a></li>
+	</ul>
+	<h3>その他いろいろ</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistryについて</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
