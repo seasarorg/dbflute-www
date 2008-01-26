@@ -115,6 +115,43 @@ select *
    and rn <= /*$pmb.pageEndIndex*/100
  order by rn asc;
 	</code></pre>
+	<h3>DB2でBLOG/CLOBを使う場合の注意点 @Java</h3>
+	<p>
+		DB2のJDBCドライバでは、ResultSetTypeがScrollableの場合にBLOBを取得できない(例外発生)という報告があります。DBFluteのデフォルトはScrollableなので、そのままでBLOB/CLOBの含まれているテーブルは検索できないことになりますが、その解決方法が２つあります(DBFlute-0.6.2より)。
+	</p>
+	<p>
+		１つ目は、ConditionBeanやOutsideSqlのconfigure()メソッドでStatementConfigを指定する方法です。
+	</p>
+	<pre>ex) ConditionBeanでResultSetTypeをForwardOnlyに設定 @Java<code>
+MemberCB cb = new MemberCB();
+cb.configure(new StatementConfig().typeForwardOnly());
+... = memberBhv.selectList(cb);// ResultSetTypeはForwardOnlyで実行される
+	</code></pre>
+	<pre>ex) OutsideSqlでResultSetTypeをForwardOnlyに設定 @Java<code>
+StatementConfig config = new StatementConfig().typeForwardOnly();
+... = memberBhv.outsideSql().configure(config).selectList(...);// ResultSetTypeはForwardOnlyで実行される
+	</code></pre>
+	<p>
+		２つ目は、DBFluteの全体ConfigとしてStatementConfigを指定する方法です。すると、DBFlute全体の検索のデフォルトが全て指定された通りになります。(ここいうデフォルトはConditionBeanやOutsideSqlのconfigure()メソッドが優先されることを意味します)
+	</p>
+	<pre>ex) OutsideSqlResultSetTypeをForwardOnlyに設定 @Java<code>
+// ロックを外す
+DBFluteConfig.getInstance().unlock();
+
+// StatementConfig
+DBFluteConfig.getInstance().setDefaultStatementConfig(ew StatementConfig().typeForwardOnly());
+
+// ...Containerの初期化 ※DBFluteConfigの設定はC必ずontainer初期化前にすること
+	</code></pre>
+	<p>
+		局所的であれば、前者が推奨されます。しかし、アプリケーション全体で多くあるのであれば後者を利用して下さい。
+	</p>
+	<p>
+		後者のデメリットは、先述したページングのoffset処理の「ResultSetの読み飛ばし」が「ResultSetの空回し」になってしまうという点です。しかし、offset処理なので「1000ページ目(20000件付近)を検索」ということでない限り、ほとんどパフォーマンス劣化は気にするほどのものではないはずです。
+	</p>
+	<p>
+		どちらも使い方の詳しい実装例が、DBFluteBasicExampleにありますのでそちらぜひご覧になられて下さい。
+	</p>
 	
 <!-- __content-end__ --></div>
 
