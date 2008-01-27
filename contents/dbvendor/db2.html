@@ -34,19 +34,29 @@
 	</p>
 	<h3>JDBCタスクで利用するJDBCドライバ</h3>
 	<p>
-		JDBCドライバは「db2java.zip」を利用しています。
+		JDBCドライバは「db2jcc.jar/db2jcc_license_cu.jar(推奨)」ならびに「db2java.zip」を利用しています。
+	</p>
+	<p>
+		DBFlute-0.6.1までをご利用の方は「db2jcc.jar/db2jcc_license_cu.jar」は同梱されていませんので、ご自身でmydbflute/dbflute-0.x.x/lib/forExecute配下に配置して頂くか、「db2java.zip」の方をご利用して頂く(driver名を変える)ことになります。
 	</p>
 	<h3>JDBCタスクの接続設定(./dfprop/databaseInfoMap.dfprop)</h3>
 	<p>
 		JDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
 	</p>
-	<pre>ex) 接続{port=50000} @databaseInfoMap.dfprop<code>
+	<pre>ex) 接続{port=50000, db2jcc.jar/db2jcc_license_cu.jar利用} @databaseInfoMap.dfprop<code>
 map:{
     ; driver   = com.ibm.db2.jcc.DB2Driver
     ; url      = jdbc:db2://localhost:50000/[dbname]
     ; schema   = [dbuser-as-UpperCase]
     ; user     = [dbuser]
     ; password = [dbpassword]
+}
+	</code></pre>
+	<pre>ex) 接続{port=50000, db2java.zip利用} @databaseInfoMap.dfprop<code>
+map:{
+    ; driver   = COM.ibm.db2.jdbc.app.DB2Driver
+    ; url      = ...
+	; ...
 }
 	</code></pre>
 	<h3>主キーで連番の利用</h3>
@@ -139,7 +149,7 @@ StatementConfig config = new StatementConfig().typeForwardOnly();
 DBFluteConfig.getInstance().unlock();
 
 // StatementConfig
-DBFluteConfig.getInstance().setDefaultStatementConfig(ew StatementConfig().typeForwardOnly());
+DBFluteConfig.getInstance().setDefaultStatementConfig(new StatementConfig().typeForwardOnly());
 
 // ...Containerの初期化 ※DBFluteConfigの設定はC必ずontainer初期化前にすること
 	</code></pre>
