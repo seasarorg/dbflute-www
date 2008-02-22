@@ -36,9 +36,12 @@
 	<p>
 		JDBCドライバは「ojdbc14.jar」を利用しています。
 	</p>
+	<p>
+		※アプリケーションを動かす時のJDBCドライバではありませんのでお間違いなく。
+	</p>
 	<h3>JDBCタスクの接続設定(./dfprop/databaseInfoMap.dfprop)</h3>
 	<p>
-		ぐJDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
+		JDBCタスクの接続設定は以下の通りです。スキーマ名は必ず大文字で指定して下さい。
 	</p>
 	<pre>ex) 接続{port=1521} @databaseInfoMap.dfprop<code>
 map:{
@@ -127,6 +130,13 @@ public static String withdrawalReasonText_VALUE_TYPE = "stringClobType";
 	</p>
 	<p>
 		2008年1月現在、上記の設定をDBFlute内部で自動で組み込むことを検討しています。そうすれば、上記のことをユーザの方々が意識をする必要がなくなります。その場合は、CLOB用のValueTypeコンポーネントはdbflute.diconに設定され、ValueTypeアノテーションはBsEntityに設定しようかと考えています。
+	</p>
+	<h3>バッチ更新の排他制御の注意点</h3>
+	<p>
+		BehaviorのbatchUpdate()ですが、Oracleの場合は排他制御は効きません。
+	</p>
+	<p>
+		これは、OracleのJDBCドライバがバッチ更新の結果の値を正確に戻さないためです。DBFluteとしてはどうにもできないため、どうしても排他制御の判定をすることができません。(もし、正常に戻すJDBCドライバがありましたらご一報頂けるとありがたいです)
 	</p>
 	<h3>Example</h3>
 	<p>
