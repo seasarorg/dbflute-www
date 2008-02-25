@@ -138,28 +138,6 @@ torque.classificationDeploymentMap = map:{ \
     - - - - - - - - - -
 
 
-
-# _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-#                                                     Select Param
-#                                                     _/_/_/_/_/_/
-
-# /---------------------------------------------------------------------------
-# [SelectQueryTimeout] (NotRequired - Default '-1')
-torque.selectQueryTimeout = -1
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    時には、「30分掛かってもいいから検索結果が帰って来て欲しい！」という画面やBatch処理があるやもしれません。
-    その場合には、SQLのTimeout設定を延ばす必要があるため、この設定をMilli秒単位で指定します。
-
-    素のS2Daoを利用すると、PreparedStatementが隠蔽されているため、QueryTimeoutを設定するのは
-    結構大変です(独自拡張が必要)。DBFluteはS2DaoのSelectDynamicCommandを拡張しているため、
-    この設定が容易に可能です。
-
-    作者は実際にCatalog系DBのAdmin画面にてこの設定が必要となり利用しました。
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                            Additional ForeignKey
 #                                                     _/_/_/_/_/_/
@@ -240,115 +218,11 @@ torque.isMakeDeprecated = false
     (DBFlute-0.4.0より)
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-# /---------------------------------------------------------------------------
-# [Make ConditionQueryNumericArgumentLong] (NotRequired - Default 'true')
-#   [true]
-#     Make numeric argument long method of condition-query.
-#
-# *{Java Only}
-#
-torque.isMakeConditionQueryNumericArgumentLong = true
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    ConditionQueryに定義される数値型の条件設定Methodでlong型の引数のMethodを作成するか否かを指定します。
-
-    作成すると BigDecimal型 のColumnに対して、cb.query().setBookId(3); というように記述が可能になります。
-    {通常は、cb.query().setBookId(new BigDecimal(3)); と書かなければならない}
-
-    但し、ただこれだけのことでConditionQueryのSource量が膨張してしまうのは、TradeOffが大きいような気も
-    します。CompileのSpeedを優先する場合はこの設定をfalseにすることをお奨めします。
-
-    (DBFlute-0.4.0より)
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-# /---------------------------------------------------------------------------
-# [Make BehaviorForUpdate] (NotRequired - Default 'true')
-#   [true]
-#     Make for-update method of behavior.
-#
-torque.isMakeBehaviorForUpdate = false
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Behaviorに定義されるSelectForUpdate関連のMethodを作成するか否かを指定します。
-
-    「Project全体で更新Lockを掛けることはない」という方針の場合は、
-    自動生成されるSourceの量を減らすためにも、この設定をfalseにすることをお奨めします。
-
-    また、「時々ForUpdateすることがある」場合でも、ConditionBeanでForUpdateすることは可能なので、
-    Behaviorに生成されるSelectForUpdate関連のMethodが不要であれば、遠慮なくfalseにしてOKです。
-
-    (DBFlute-0.4.0より)
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
+	
 
 # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 #                                                   Other Property
 #                                                         _/_/_/_/
-
-# /---------------------------------------------------------------------------
-# [OtherConnectionDaoInitialization]
-#   isAvailableOtherConnectionDaoInitialization: (NotRequired - Default 'false')
-#     this property is valid only when isVersionAfter1040 is true.
-#
-#   *{Java Only}
-#
-torque.isAvailableOtherConnectionDaoInitialization = false
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    S2Daoの初期化時のDatabaseMetaData取得処理に利用するConnectionをTransactionとは別のConnection
-    を利用するか否かを選択します。
-
-    Sybase利用時にて報告されています。(2007/05/15)
-    DatabaseMetaData取得処理にてTransactionが有効になっていると、「DDL in tran」例外が発生します。
-    どうやら内部にてtempdbに対して一時Tableを作成しているようです。
-    このように、DatabaseMetaData取得処理がTransaction内だと不都合がある場合にtrueにします。
-
-    (DBFlute-0.4.7より)
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-# /---------------------------------------------------------------------------
-# [DaoMethodLazyInitializing] (NotRequired - Default 'false')
-#   [true]
-#     S2Dao initialize per dao method.
-#
-#   [false]
-#     S2Dao initialize per dao interface(default behavior).
-#
-#   *{Java Only}
-#
-torque.isAvailableDaoMethodLazyInitializing = true
-# ----------------/
-
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    S2Daoの初回Access時の初期化処理をDaoのMethod単位で行うかInterface単位で行うかを選択します。
-
-    S2DaoはDefaultでInterface単位で初期化します。すると、JUnitなどで自動Testを行う場合、
-    1Methodの実行のためにInterfaceの全てMethodを初期化するのでTest全体の実行が遅くなります。
-    それがいやな場合は、このPropertyをtrueにすることによって、呼び出したMethodのみ初期化される
-    ようになります。
-
-    ★TODO: ｛2007/02/18｝
-    DBFluteでの実験的な機能となります。
-    Release時(というか結合Test前など)にはS2DaoのDefault(このPropertyをfalse)にすることを
-    お奨めします。いずれ、generateし直さなくてもdbflute.diconのある場所を変えれば
-    動きが変わるようにしたいと思っています。
-    また、効果があるようであればS2Dao自身にこのOption機能を付けても良いかと考えております。
-
-    ※まだJava版のみの対応です。｛2007/02/18｝
-
-    (DBFlute-0.4.2より)
-    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
 # /---------------------------------------------------------------------------
 # [NonPrimaryKeyWritable] (NotRequired - Default 'false')
 #   [true]
