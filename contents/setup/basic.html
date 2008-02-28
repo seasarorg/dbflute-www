@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>DBFluteのセットアップ</h2>
+	<h3>環境の前提</h3>
+	<h4>Javaの実行環境(JRE)</h4>
+	<p>
+	    Java5(以上)が実行できる環境(JRE)である必要があります。(コマンドラインで「java -version」が正常に実行できること)
+	</p>
+	<h4>対象となるデータベース(スキーマ)</h4>
+	<p>
+	    対象となるデータベース(スキーマ)にテーブルが作成されている必要があります。
+	</p>
+	<h4><a href="http://s2dao.seasar.org">S2Dao</a>利用可能プロジェクト</h4>
+	<p>
+	    <a href="http://s2dao.seasar.org">S2Dao</a>が利用可能なプロジェクト環境が整っている必要があります。
+	</p>
+	<h5>Javaの場合</h5>
+	<p>
+	    EclipseであればDoltengを使ってベースとなるプロジェクトを自動生成することが可能です。生成時にS2Daoを利用したプロジェクトを指定することで、<a href="http://s2container.seasar.org">Seasar</a>と<a href="http://s2dao.seasar.org">S2Dao</a>の環境を簡単に整えることが可能です。
+	</p>
+	<p>
+		既に出来上がってるプロジェクトを参考にすることもできます(以下からチェックアウトが可能)。
+	</p>
+	<p>
+		<ul>
+			<li>SVNリポジトリ：https://www.seasar.org/svn/sandbox/dbflute/</li>
+			<li>参考プロジェクト：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example">dbflute-basic-example</a></li>
+		</ul>
+	</p>
+	<p>
+		DIコンテナとして<a href="http://s2container.seasar.org">Seasar</a>でなく<a href="http://www.springframework.org">Spring</a>を利用する場合に関しては<a href="./withspring.html">こちら</a>
+	</p>
+	<h5>C#の場合</h5>
+	<p>
+		C#の場合は、当然のことながら.NET版の<a href="http://s2container.net.seasar.org">Seasar</a>と<a href="http://s2dao.net.seasar.org">S2Dao</a>を利用します。
+	</p>
+	<p>
+		.NET版の<a href="http://s2container.net.seasar.org">Seasar</a>では、Doltengのようなプロジェクト自動生成ツールがありません。
+		<a href="http://s2container.net.seasar.org">Seasar</a>サイトのドキュメント</a>、ならびに既に出来上がってるプロジェクトを参考にします(以下からチェックアウトが可能)。
+	</p>
+	<p>
+		<ul>
+			<li>SVNリポジトリ：https://www.seasar.org/svn/sandbox/dbflute/</li>
+			<li>参考プロジェクト：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-nbasic-example">dbflute-nbasic-example</a></li>
+		</ul>
+	</p>
+	<h3>セットアップ方法</h3>
+	<h4>２つの方法</h4>
+	<p>
+		DBFluteのセットアップには以下の２種類があります。
+	</p>
+	<p>
+		<ul>
+			<li>A. テンプレートを利用したセットアップ</li>
+			<li>B. Eclipseのプラグインによるセットアップ(Javaのみ)</li>
+		</ul>
+	</p>
+	<p>
+		「A」はどの環境でも構築できるベーシックな方法です。
+	</p>
+	<p>
+		「B」に関しては<a href="./byemecha.html">こちら</a>。可能であれば、こちらの方法がお勧めです(セットアップが楽です)。
+	</p>
+	<h3>テンプレートを利用したセットアップの手順</h3>
+	<p>
+		手順は以下のようになります。
+	</p>
+	<p>
+		<ul>
+			<li>1. DBFluteをダウンロードして配置</li>
+			<li>2. DBFluteクライアントを配置</li>
+			<li>3. ビルドプロパティの設定</li>
+			<li>4. 自動生成の実行</li>
+		</ul>
+	</p>
+	<h3>1. DBFluteをダウンロードして配置</h3>
+	<p>
+		まずは、DBFluteをダウンロードしてZIPファイルを解凍し、DBFluteモジュールをプロジェクトに配置して下さい。
+	</p>
+	<p>
+		配置場所は、以下が推奨されます。
+	</p>
+	<pre>
+  ex) Javaの場合：
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    xxxproject
+        |
+        +- .settings
+        |
+        +- mydbflute                 // DBFlute本体の格納場所
+        |     |
+        |     +- dbflute-0.6.5       // ☆ここ
+        | 
+        +- src/main/java
+        +- src/main/resources
+        +- ...
+        ...
+    - - - - - - - - - -/
+
+  ex) C#の場合：
+    /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    xxxproject
+        |
+        +- lib
+        +- mydbflute                 // DBFlute本体の格納場所
+        |     |
+        |     +- dbflute-0.6.5       // ☆ここ
+        | 
+        +- source/Xxx
+        +- source/XxxTest
+        +- source/xxx.sln
+        ...
+    - - - - - - - - - -/
+	</pre>
+	<h3>2. DBFluteクライアントを配置</h3>
+	<p>
+		次に、DBFluteクライアントのテンプレートをコピーしてプロジェクトに配置して下さい。
+	</p>
+	<h4>2-1. テンプレートの配置</h4>
+	<p>
+		先ほど配置したDBFluteの./etc/client_directory-template/minimumPropertiesディレクトリの中のファイルを全てそのままコピーして、以下のようにプロジェクトに配置して下さい。(C#の場合はminimumProperties.for.csharp)
+	</p>
+	<pre>
+   ex) Javaの場合：
+     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     xxxproject
+         |
+         +- .settings
+         |
+         +- dbflute_[project]          // ☆ここ
+         |     |
+         |     +- dfprop
+         |     +- log
+         |     +- output
+         |     +- ...
+         |
+         +- mydbflute                 // DBFlute本体の格納場所
+         |     |
+         |     +- dbflute-0.6.5
+         | 
+         +- src/main/java
+         +- ...
+         ...
+      - - - - - - - - - -/
+
+   ex) C#の場合：
+     /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     xxxproject
+         |
+         +- dbflute_[project]          // ☆ここ
+         |     |
+         |     +- dfprop
+         |     +- log
+         |     +- output
+         |     +- ...
+         |
+         +- lib
+         +- mydbflute                 // DBFlute本体の格納場所
+         |     |
+         |     +- dbflute-0.6.5
+         | 
+         +- source/xxx.sln
+         ...
+     - - - - - - - - - -/
+	</pre>
+	<p>
+		dbflute_[project]の[project]の部分には任意の名称を付けて下さい。通常は対象となるデータベース(スキーマ)を表す名称を付けます。この名称を「DBFluteプロジェクト名」と呼びます
+	</p>
+	<h4>2-2. DBFluteプロジェクト名の反映</h4>
+	<p>
+		DBFluteプロジェクト名(dbflute_[project]の[project])を各種設定に反映して下さい。
+	</p>
+	<p>
+		<ul>
+			<li>_project.bat/.shの「MY_PROJECT_NAME」変数の値を[project]に修正</li>
+			<li>build-minimumProperties.propertiesのファイル名をbuild-[project].propertiesに修正</li>
+			<li>build-[project].propertiesの中のtorque.projectの値を[project]に修正</li>
+		</ul>
+	</p>
+	<h4>2-3. 利用するDBFluteの指定</h4>
+	<p>
+		_project.bat/.shの「DBFLUTE_HOME」変数の値を以下のように修正して下さい。
+	</p>
+	<pre>ex) DBFluteの配置場所が「xxxproject/mydbflute/dbflute-0.6.5」の場合：<code>
+set DBFLUTE_HOME = ../mydbflute/dbflute-0.6.5
+	</code></pre>
+	<h3>3. ビルドプロパティの設定</h3>
+	<p>
+		初回自動生成のための最低限のプロジェクト固有の情報を設定していきます。自動生成のためのプロパティ(設定)を(ビルドプロパティ)と呼びます。
+	</p>
+	<h4>3-1. build-xxx.propertiesの設定</h4>
+	<h5>3-1-1. 必須プロパティ</h5>
+	<p>
+		build-xxx.propertiesをテキストエディタで開いて、以下の必須プロパティを設定して下さい。
+	</p>
+	<p>
+		<ul>
+			<li>torque.database = [database] --) oracleやmysqlなど</li>
+			<li>torque.targetLanguage = [java or csharp]</li>
+			<li>torque.packageBase = [package name] --) jp.co.xxx.xxx.dbflute</li>
+			<li>torque.s2daoVersion = [s2dao version] --) 例えば「1.0.47」</li>
+		</ul>
+	</p>
+	<p>
+		これらは、build-xxx.propertiesに最初からコメント付きで定義されています。プロジェクトに適した値に修正して下さい。
+	</p>
+	<h5>3-1-2. 特定環境対応プロパティ</h5>
+	<p>
+		以下の「ある特定の環境に適用するためのプロパティ」を設定して下さい。それぞれデフォルト値が設定されていますので、特に指定の必要がなければ何も設定する必要はありません。
+	</p>
+	<p>
+		<ul>
+			<li>torque.java.dir = [path] --) Default: ../src/main/java</li>
+			<li>torque.targetContainer = [seasar or spring] --) Default: seasar</li>
+			<li>torque.isJavaNameOfTableSameAsDbName = [true or false] --) Default: false</li>
+			<li>torque.isJavaNameOfColumnSameAsDbName = [true or false] --) Default: false</li>
+			<li>torque.projectPrefix = [prefix of class name] --) Default: null</li>
+		</ul>
+	</p>
+	<p>
+		「torque.java.dir」は、自動生成クラスの出力先を設定します。デフォルトはJava「../src/main/java」、C#「../source」です。別のところに出力したい場合はコメントアウトされている「torque.java.dir = [path]」を有効にして設定して下さい。
+	</p>
+	<p>
+		「torque.targetContainer」は、利用するDIコンテナを設定します。デフォルトは「seasar」です。<a href="http://www.springframework.org">Spring</a>を利用する場合(Javaのみサポート)は「torque.targetContainer = spring」という行を追加して下さい。
+	</p>
+	<p>
+		「torque.isJavaNameOfTableSameAsDbName」は、DB上のテーブル名の規約が「ORDER_DETAIL」という形式でなく「OrderDetail」という形式(クラス名とテーブル名が同値)かどうか設定をします。デフォルトはfalseです。必要であれば「torque.isJavaNameOfTableSameAsDbName = true」という行を追加して下さい。
+	</p>
+	<p>
+		「torque.isJavaNameOfColumnSameAsDbName」は、DB上のカラム名の規約において「torque.isJavaNameOfTableSameAsDbName」と同様の調整をします。必要であれば「torque.isJavaNameOfColumnSameAsDbName = true」という行を追加して下さい。
+	</p>
+	<p>
+		「torque.projectPrefix」は、自動生成されたクラスのクラス名になんらかのPrefixを付けたい場合に指定します。例えば「Ld」と設定した場合、自動生成されたクラスは全て「LdXxx」という形式になります。
+		これは「プロジェクトの規約対策」ならびに「複数DB対応時のクラス名の識別しやすさの向上」に役に立ちます。デフォルトは「無し」です。必要であれば「torque.projectPrefix = [prefix]」という行を追加して設定して下さい。
+	</p>
+	<h4>3-2. DB接続情報の設定</h4>
+	<p>
+		該当のデータベースへの接続情報を「dbflute_[project]/dfprop/databaseInfoMao.dfprop」ファイルに設定して下さい。各種データベース毎の設定方法に関しては<a href="../dbvendor/basic.html">こちら</a>をご覧下さい。
+	</p>
+	<h3>4. 自動生成の実行</h3>
+	<p>
+		それでは、自動生成をしてみましょう。
+	</p>
+	<h4>4-1. スキーマ情報の取得(jdbc)</h4>
+	<p>
+		「dbflute_[project]」配下のjdbc.bat(.sh)を実行して下さい。実際にDBに接続してスキーマ情報を取得します。「dbflute_[project]/schema」配下にproject-schema-[project].xmlが出力されて、中にスキーマ情報(テーブルの構成情報)が定義されていたら成功です。
+	</p>
+	<h4>4-2. クラスファイルの自動生成(generate)</h4>
+	<p>
+		「dbflute_[project]」配下のgenerate.bat(.sh)を実行して下さい。クラスファイルが生成されます。
+	</p>
+	<h4>4-3. コンパイルしてみる</h4>
+	<p>
+		前提となる環境がそれっていればコンパイルが通るはずです。
+	</p>
+	<h4>4-4. DBFluteのコンポーネントを有効にする</h4>
+	<h5>Javaの場合</h5>
+	<p>
+		自動生成クラスの出力先がデフォルトのままの「../src/main/java」であれば、dbflute.diconが「../src/main/resources」に出力されているはずです。これをapp.dicon(SeasarのルートDicon)において、Includeするようにして下さい。(出力先がデフォルトのままで無い場合は、dbflute.diconは出力先直下に出力されます)
+	</p>
+	<p>
+		Doltengなどでプロジェクトを自動生成した場合、app.diconにてデフォルトで「dao.dicon」をがIncludeされている場合がありますがこれは削除して下さい。
+	</p>
+	<p>
+		もし、DIコンテナに<a href="http://www.springframework.org">Spring</a>を利用する場合は、dbflute.diconに代わってdbfluteBeans.xmlが出力されているはずです。これをルートのBean定義から参照するようにして下さい。
+	</p>
+	<h3>5. その後...</h3>
+	<p>
+		DBFluteを実際に使いながら必要に応じて、まだ未設定のビルドプロパティをプロジェクトの特性に適合した値に調整していきます。具体的には「シーケンス」、「共通例」、「区分値」、「排他制御」などです。これらは必須ではありませんが、利用すると非常に便利な機能です。詳しくはこちら(工事中)
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>メインコンテンツ</h3>
+	<ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DBベンダごとの扱い</a></li>
+	</ul>
+	<h3>トピックス</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">C#ユーザの皆様へ</a></li>
+	</ul>
+	<h3>その他いろいろ</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistryについて</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
