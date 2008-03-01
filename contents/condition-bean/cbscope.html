@@ -27,18 +27,18 @@
 	<h2>ConditionBeanのスコープ</h2>
 	<h3>概要</h3>
 	<p>
-		DBFluteは、DBアクセスの大きな２つのやり方を提供しています。それはConditionBeanとOutsideSql(外だしSQL)です。これら２つの存在意義に関してはここでは割愛させて頂き、いざ実装するときにこの２つのどちらを利用すれば良いのかに焦点を当てます。
+		DBFluteは、DBアクセスの大きな２つのやり方を提供しています。それはConditionBeanと外だしSQL(OutsideSql)です。これら２つの存在意義に関してはここでは割愛させて頂き、いざ実装するときにこの２つのどちらを利用すれば良いのかに焦点を当てます。
 	</p>
 	<p>
-		当然、「ConditionBeanでできないことはOutsideSql(外だしSQL)で」という正論に間違いはありませんが、プログラマがConditionBeanの機能を頭の中で全て抑えていることは少ないと思われます。そこで、素早く判断するための「判断の流れ」を紹介したいと思います。
+		当然、「ConditionBeanでできないことは外だしSQLで」という正論に間違いはありませんが、プログラマがConditionBeanの機能を頭の中で全て抑えていることは少ないと思われます。そこで、素早く判断するための「判断の流れ」を紹介したいと思います。
 	</p>
 	<h3>判断の流れ</h3>
-	<h4>A. 明らかなOutsideSql(外だしSQL)か否かを判断</h4>
+	<h4>A. 明らかな外だしSQLか否かを判断</h4>
 	<p>
-		ConditionBeanのスコープを確認する前に、まずは「明らかにOutsideSql(外だしSQL)でやるべき」と言えるものを確認していきます。こうすることで、ConditionBeanを意識する前の早い段階で判断が可能です。
+		ConditionBeanのスコープを確認する前に、まずは「明らかに外だしSQLでやるべき」と言えるものを確認していきます。こうすることで、ConditionBeanを意識する前の早い段階で判断が可能です。
 	</p>
 	<p>
-		以下に当てはまるものは確実にOutsideSql(外だしSQL)です。
+		以下に当てはまるものは確実に外だしSQLです。
 	</p>
 	<ul>
 		<li>Group By句を使う</li>
@@ -61,7 +61,7 @@
 		そして、ConditionBeanのスコープからConditionBeanで実装できるか確認していきます。
 	</p>
 	<p>
-		「明らかなOutsideSql(外だしSQL)」を通り過ぎたこの時点ではConditionBeanで実装可能である可能性が高いです。実際にConditionBeanを実装しながらの確認でも構いません。後に「やはりOutsideSql(外だしSQL)で実装」となっても、そのConditionBeanの実装は無駄にはなりません。それは「C」において後述しますが、近いところまで実装したConditionBeanからOutsideSql(外だしSQL)の土台となるSQLが生成できるからです。
+		「明らかな外だしSQL」を通り過ぎたこの時点ではConditionBeanで実装可能である可能性が高いです。実際にConditionBeanを実装しながらの確認でも構いません。後に「やはり外だしSQLで実装」となっても、そのConditionBeanの実装は無駄にはなりません。それは「C」において後述しますが、近いところまで実装したConditionBeanから外だしSQLの土台となるSQLが生成できるからです。
 	</p>
 	<p>
 		以下がConditionBeanのスコープです。
@@ -184,20 +184,20 @@
 			</ul>
 		</li>
 	</ul>
-	<h4>C. やはりOutsideSql(外だしSQL)であると判断</h4>	
+	<h4>C. やはり外だしSQLであると判断</h4>	
 	<p>
-		ここまで来たら、やはり「OutsideSql(外だしSQL)で」ということになります。
+		ここまで来たら、やはり「外だしSQLで」ということになります。
 	</p>
 	<p>
-		ここで、ちょっとした「OutsideSql(外だしSQL)」の実装支援を紹介します。	もし、この時点でConditionBeanで近いところまで実装済みであれば、それは消してはいけません。以下の手順が可能だからです。
+		ここで、ちょっとした「外だしSQL」の実装支援を紹介します。	もし、この時点でConditionBeanで近いところまで実装済みであれば、それは消してはいけません。以下の手順が可能だからです。
 	</p>
 	<ol>
 		<li>ConditionBeanでできるところまでテスト実装</li>
 		<li>ConditionBeanのtoDisplaySql()の戻り値をログに出力</li>
-		<li>ログ出力されたSQL文をOutsideSql(外だしSQL)の土台として活用</li>
+		<li>ログ出力されたSQL文を外だしSQLの土台として活用</li>
 	</ol>
 	<p>
-		このようにすることで、OutsideSql(外だしSQL)の実装にてSQLの構文やテーブル名、カラム名を１から書く必要はなくなり、スペルミスなどのケアレスミスもなくなります。また、判断の流れの中で実装したConditionBeanは全く無駄になりません。
+		このようにすることで、外だしSQLの実装にてSQLの構文やテーブル名、カラム名を１から書く必要はなくなり、スペルミスなどのケアレスミスもなくなります。また、判断の流れの中で実装したConditionBeanは全く無駄になりません。
 	</p>
 	<p>
 		但し、ConditionBeanのtoDisplaySql()はDBFlute-0.6.0からの機能です。また、C#版ではまだ実装されていません(2008年1月現在)。toDisplaySql()がない場合は、toString()で代替します。

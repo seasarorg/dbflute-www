@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#document" class="active">document</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>DBFluteのロギング設定</h2>
+	<p>
+		DBFluteを使った場合の最適なロギング設定について、最低限の基本的なことと推奨設定について説明します。
+	</p>
+	<h3>環境の前提</h3>
+	<p>
+	    <ul>
+	    	<li>log4j.propertiesを利用していることを前提とします。</li>
+	    	<li>exampleの説明上「console」という名前のAppenderが設定されているとします。</li>
+	    	<li>exampleの説明上アプリケーション固有パッケージを「com.example」とします。</li>
+	    </ul>
+	</p>
+	<h3>開発用デバッグログの設定</h3>
+	<h4>アプリケーション固有パッケージ</h4>
+	<p>
+	    アプリケーション固有パッケージをログ出力の対象にして下さい。
+	</p>
+	<pre>ex) アプリケーション固有パッケージをログ出力の対象にする @log4j.properties<code>
+# ----------------------------------------------------------
+#                                                Application
+#                                                -----------
+# You should set application specific package.
+log4j.logger.com.example = ALL, console
+	</code></pre>
+	<p>
+	    こうすることで、アプリケーションで発行したログが出力されるようになります(これはDBFluteと関係なくやってくべきです)。
+	</p>
+	<h5>DBFluteのSQL実行ログ</h5>
+	<p>
+	    DBFluteで生成したクラスのパッケージがアプリケーション固有パッケージ配下であれば(通常はそのはず)、DBFluteが出力するSQL実行のログが出力されるようになります。
+	</p>
+	<pre>ex) DBFluteのSQL実行のログ(会員管理画面から実行) @Console<code>
+- /===========================================================================
+-                                                       MemberDao.selectList()
+-                                                       =====================/
+- MemberAdminPage.initialize():43 --> MemberBhv.selectList() --> ...
+- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0 from MEMBER dflocal left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
+- ===========/ [00m00s016ms - Selected list: 6 first={1,ストイコビッチ,Stojkovic,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
+	</code></pre>
+	<p>
+	    「実行されたDaoとBehavior、どのPageクラスのメソッドから呼びされたのか」がわかります(行数付きで)。よくあるフレームワークではSQLだけが出力されていることがあります。その場合、どのSQLがどの処理のものなのかを判別するのがかなりやっかいで、右端のWhere句まで見て初めて「ああ、このSQLはあそこで呼び出したものか」とわかります。それだとデバッグ効率が悪いので、DBFluteではこのような「呼び出し元とSQLの結びつき」がすぐにわかるような工夫をしています。
+	</p>
+	<p>
+	    そして「表示用SQL」に「実行コスト」と「実行結果のビュー」が出力されます。これらは言うまでもなく開発者にとって必要不可欠な情報です。
+	</p>
+	<h5>「表示用SQL」に関して補足</h5>
+	<p>
+	    実際に発行したSQLでは、バインド変数を利用されて「where XXX = ? and ...」というように条件値は全て「?」で表現されます。しかし、これでは非常にわかりにくいため、そのバインド変数を解決した「表示用SQL」を作成して出力しています。なので「表示用」と言うわけです。
+	</p>
+	<p>
+	    よく勘違いされる例としては日付の値です。実際に発行したSQLでは日付は「日付型」のままでバインド変数として設定されますが、表示用SQLでは人間が目で見てわかる形式「文字列型」に変換してあげないといけないので表示用SQL専用の一定の日付フォーマットが利用されています。そのフォーマットがあるデータベースでは解析できない形式である可能性も(たまに)ありますのでそこはご注意ください。いずれにせよ、実際に発行したSQLと表示用SQLの日付のフォーマットは無関係であることを認識しておいて下さい。
+	</p>
+	<h5>DBFluteの「初回の」SQL実行ログ</h5>
+	<p>
+	    DBFluteのログのさらに細かい補足をします。
+	</p>
+	<p>
+	    S2Daoでも同じですが、DBFluteはアプリケーションを起動した直後の一番最初のDBアクセスで内部的な初期化を行います。なので、初回実行時ののみ以下のようなログが出力されます。
+	</p>
+	<pre>ex) DBFluteのSQL実行のログ(会員管理画面から実行) @Console<code>
+- /===========================================================================
+-                                                       MemberDao.selectList()
+-                                                       =====================/
+- MemberAdminPage.initialize():43 --> MemberBhv.selectList() --> ...
+...Creating daoMetaData.
+...Initializing sqlCommand.
+SqlCommand Initialization Cost: [00m00s527ms]
+- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0 from MEMBER dflocal left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
+- ===========/ [00m00s543ms - Selected list: 6 first={1,ストイコビッチ,Stojkovic,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
+	</code></pre>
+	<p>
+	    さっきのログから比べてと三行付け加わってるのがわかります。これは初期化をしている証拠です。「SqlCommand Initialization Cost: [00m00s527ms]」で初期化に掛かったコストがわかります。
+	</p>
+	<h5>DBFluteの初期化の補足</h5>
+	<p>
+		DBFluteはDaoの初期化時にDBのメタデータを取得しません。既に自動生成されてプログラム上で保持しているからです。よって、初期化のコストは「S2Daoのみ」を使う場合に比べて格段に速いです。(S2Daoにもメタデータを使わない(オプション)機能はありますが、少々使い勝手が悪いです)
+	</p>
+	<p>
+		DBFluteはDaoの初期化を「メソッド単位」で行います。「S2Daoのみ」を使う場合は、Daoクラス単位で初期化されるため初回の実行があまりに遅く、利用されないメソッドも初期化されるので自動生成ツールとは非常に相性が悪いです。DBFluteは「呼ばれたメソッド」だけを初期化します。
+	</p>
+	<p>
+		DBFluteはDaoの内部的なコンポーネントを再利用形式で無駄なObjectを生成しないようにしています(すごく内部的な話ですが...)。これにより「S2Daoのみ」を使う場合に比べて、そもそも初期化コストが低いです。
+	</p>
+	<h4>フレームワークパッケージ</h4>
+	<p>
+	    フレームワークとしてSeasarを利用していますので、Seasarパッケージをログ出力の対象にして下さい。
+	</p>
+	<pre>ex) org.seasarをログ出力の対象にする @log4j.properties<code>
+# ----------------------------------------------------------
+#                                                  Framework
+#                                                  ---------
+# You should set seasar package.
+log4j.logger.org.seasar = ALL, console
+	</code></pre>
+	<p>
+	    このようにすると、Containerの初期化やトランザクションなどフレームワーク関連のログが出力されるようになります。こちらも非常に大事な情報となります。
+	</p>
+	<p>
+	    しかし、一つだけ「それぞれの開発者のログには出てこなくてもいいかな」というログがあります。それは「論理的なコネクションの取得と破棄」に関するログです。これはこれでいざというときは非常に大事なログなのですが、あまりに大量にログに出力されるためログ自体が非常に見にくくなるので肥大化します。ここはアプリケーション開発側の判断になりますが、もしこのログを出力したくない思った場合は以下のように設定すれば他のログを保ったままその出力を抑えられます。
+	</p>
+	<pre>ex) 「論理的なコネクションの取得と破棄」に関するログだけを抑える @log4j.properties<code>
+# ----------------------------------------------------------
+#                                                  Framework
+#                                                  ---------
+# You should set seasar package.
+log4j.logger.org.seasar = ALL, console
+
+# If the fit is on you, set this to remove many many many 'Get logical connection' log.
+log4j.logger.org.seasar.extension.dbcp = ERROR, console
+log4j.additivity.org.seasar.extension.dbcp = false
+	</code></pre>
+	<h3>本番用デバッグログの設定(一般論)</h3>
+	<p>
+		通常本番ではDEBUGログは無効化します。よって、log4j.properitesは開発用と本番用で別々のものを作成するか、パラメータをANTのテンプレートのフィルタ機能など使って環境毎に切り替えられるようにする必要があります。
+	</p>
+	<p>
+		通常本番ではERRORレベルのログはエラー専用のログファイルに出力します。ローリング処理を日付でやるのかサイズでやるのかはアプリケーションに依ります。またインフラ側でアーカイブするのであればlog4jで設定する必要はない場合もあります。
+	</p>
+	<p>
+		INFOやWARNを出力対象とするかどうかはアプリケーションに依りますが、少なくともフレームワークのINFOやWARNを出力する必要はないことが多いです。アプリケーションのWARNとフレームワークのWARNがアプリケーション運用上同じレベルとは限らないからです。
+	</p>
+	<p>
+		徹底して本番運用でのデバッグ環境を整えたい場合は、デバッグのログのキャッシング機能付きのSmtpAppenderを利用がおすすめです。ERRORが発生したある程度前までのDEBUGレベルのログが一緒にメールに記載されます。但し、SmtpAppender自身がダブルバイト文字をサポートしていないため拡張が必要なことと、DEBUGログのキャッシングの分ほんの少しパフォーマンスが劣化することがデメリットです(設定も多少特殊になります)。また、本番のインフラ的にメール送信がNGである可能性もあります。
+	</p>
+	<p>
+	    特にWEB環境ですが、TomcatやWEBフレームワークの特徴からユーザオペレーションで簡単にかつ頻繁に例外が発生してしまうことが(時に)あります。画面の挙動的には問題がなくても、その例外をcatchしてERRORログを出力している場合に「意味の無いERRORログ」が出力されてしまうことになります。これは非常に危険で「意味のあるERRORログ」が埋もれてしまう可能性があります。もし、ERRORレベルでメールと飛ばしていたとしたら、大量の「意味のないERRORメール」の中に「意味のあるERRORメール」が埋もれることになります。この場合結合環境やステージング環境でしっかり見極めて本番出力すべきERRORログを調整する必要があります。
+	</p>
+	<p>
+	    これ以上のことはアプリケーションによって大分変わりますので、ここで一概にこのように設定するとは言えません。適切なロギング設計をお願いします。
+	</p>
+	<h3>その他ポイント</h3>
+	<h4>ログレイアウト</h4>
+	<p>
+		ログのレイアウトに関して、もちろんアプリケーションに依りますが、DBFluteのExampleでは以下のようなレイアウトを利用しています。
+	</p>
+	<pre>ex) DBFluteのExampleで利用しているレイアウト @log4j.properties<code>
+log4j.appender.console.layout.ConversionPattern=%d [%t]-%-5p (%C{1}#%M():%L) - %m%n
+	</code></pre>
+	<pre>ex) DBFluteのExampleで利用しているレイアウトの出力例 @log4j.properties<code>
+2008-03-01 15:53:35,801 [main]-DEBUG (S2DaoMetaDataExtension#getSqlCommand():169) - ...Initializing sqlCommand.
+	</code></pre>
+	<p>
+		クラス名とメソッド名と行数を出力しているようにしています。これで、どこのログなのかが一目瞭然となります。
+	</p>
+	<p>
+		一つ注意なのは、Doltengで生成されたlog4j.propertiesだと「メソッド名と行数」が出力されません(2008/3/1現在)。もし「メソッド名と行数」が出力可能であることを知らずにDoltengのデフォルトレイアウトで開発している場合は、log4j.propertiesをすぐに見直すことをお奨めします。
+	</p>
+	<p>
+		さらには、Doltengで生成されたlog4j.propertiesだとクラス名がフルパッケージで表示されるのでログが非常に見づらくなります。DBFluteのExampleで利用しているレイアウトではパッケージ無しのクラス名が出力されるようになっています。
+	</p>
+	<h4>SQLだけのログファイルの作成</h4>
+	<p>
+		ときに、SQLだけが出力されたログファイルを作成したいことがあります。その場合はDBFluteのallcommon.QLogというクラスだけをそのログファイルの出力対象にします。
+	</p>
+	<p>
+		「sqllog」というAppenderがファイルに出力Appenderであることを前提としています。
+	</p>
+	<pre>ex) SQLだけが出力されたログファイルを作成 @log4j.properties<code>
+# ----------------------------------------------------------
+#                                                Application
+#                                                -----------
+# You should set application specific package.
+log4j.logger.com.example = ALL, console
+
+# SQL only log
+log4j.logger.com.example.dbflute.basic.dbflute.exampledb.allcommon.QLog = ALL, sqllog
+	</code></pre>
+	<h3>DBFluteのExampleで利用している設定</h3>
+	<p>
+		DBFluteのExampleで利用しているlog4j.propertiesを以下に記載しておきます。これそのままでは実際の開発では足りないでしょうが、少しでも皆様のロギング設計の参考になれば幸いです。
+	</p>
+	<pre>ex) DBFluteのExampleで利用しているlog4j.properties @log4j.properties<code>
+
+# ========================================================================================
+#                                                                               Definition
+#                                                                               ==========
+# ----------------------------------------------------------
+#                                                     Common
+#                                                     ------
+log.dir=/tmp/log
+
+# ----------------------------------------------------------
+#                                                    Console
+#                                                    -------
+# ConsoleAppender
+log.console.loglevel = DEBUG
+
+# ----------------------------------------------------------
+#                                                      Daily
+#                                                      -----
+# DailyRollingFileAppender
+#log.daily.yyyymmddhh='_'yyyy-MM-dd'$'HH'h'
+#log.daily.yyyymmdd='_'yyyy-MM-dd
+#log.daily.loglevel = DEBUG
+
+# ========================================================================================
+#                                                                                 Appender
+#                                                                                 ========
+# ----------------------------------------------------------
+#                                                    Console
+#                                                    -------
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.Target=System.out
+log4j.appender.console.ImmediateFlush=true
+log4j.appender.console.Threshold=${log.console.loglevel}
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d [%t]-%-5p (%C{1}#%M():%L) - %m%n
+
+# ----------------------------------------------------------
+#                                                      Daily
+#                                                      -----
+#log4j.appender.daily=org.apache.log4j.DailyRollingFileAppender
+#log4j.appender.daily.File=${log.dir}/dbflute/dbflute-basic-example.log
+#log4j.appender.daily.Append=true
+#log4j.appender.daily.DatePattern=${log.daily.yyyymmdd}
+#log4j.appender.daily.Threshold=${log.daily.loglevel}
+#log4j.appender.daily.layout=org.apache.log4j.PatternLayout
+#log4j.appender.daily.layout.conversionPattern=%d [%t] %-5p (%C{1}#%M():%L) - %m%n
+
+
+# ========================================================================================
+#                                                                                   Logger
+#                                                                                   ======
+# ----------------------------------------------------------
+#                                                Application
+#                                                -----------
+# You should set application specific package.
+log4j.logger.com.example = ALL, console
+
+# ----------------------------------------------------------
+#                                                  Framework
+#                                                  ---------
+# You should set seasar package.
+log4j.logger.org.seasar = ALL, console
+
+# If the fit is on you, set this to remove many many many 'Get logical connection' log.
+log4j.logger.org.seasar.extension.dbcp = ERROR, console
+log4j.additivity.org.seasar.extension.dbcp = false
+
+	</code></pre>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>メインコンテンツ</h3>
+	<ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DBベンダごとの扱い</a></li>
+	</ul>
+	<h3>トピックス</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">C#ユーザの皆様へ</a></li>
+	</ul>
+	<h3>その他いろいろ</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistryについて</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
