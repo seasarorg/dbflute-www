@@ -24,59 +24,17 @@
 	</div>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>外だしSQLの一件検索</h2>
+	<h2>区分値(Classification)</h2>
 	<p>
-		Entity型での取得や１件であることのチェックを行うメソッドが存在します。<br />
-	</p>
-	<h3>実装方法</h3>
-	<p>
-		outsideSql()メソッドの後、「entityHandling()」メソッドを呼び出します。<br />
-		すると、その後に「selectEntity()」・「selectEntityWithDeletedCheck()」メソッドが呼び出せます。
+		DBFluteには区分値(CommonColumn)を認識してタイプセーフに区分値を扱うことのできる機能があります。
 	</p>
 	<p>
-		<ul>
-			<li>selectEntity()</li>
-			<p>
-				→ 戻り値は引数で指定したEntityの型。<br />
-				→ 検索結果が２件以上の場合はEntityDuplicatedExceptionが発生。<br />
-				→ 検索結果が０件の場合はnullが戻る。<br />
-				→ 検索結果が存在しない可能性があり、かつ、その場合にも処理を続ける場合に利用。
-			</p>
-			<li>selectEntityWithDeletedCheck()</li>
-			<p>
-				→ 戻り値は引数で指定したEntityの型。<br />
-				→ 検索結果が２件以上の場合はEntityDuplicatedExceptionが発生。<br />
-				→ 検索結果が０件の場合はEntityAlreadyDeletedExceptionが発生。<br />
-				→ 検索結果が存在しないことが要件的にあり得ない(例外でよい)場合に利用。
-			</p>
-		</ul>
-		「SQLのパス」や「ParameterBean」の仕様に関してはリスト検索と変わるところはありません。
-		<pre>ex) selectEntity()<code>
-final Class&lt;SimpleMember&gt; entityType = SimpleMember.class
-final SimpleMember member = memberBhv.outsideSql().entityHandling().selectEntity(path, pmb, entityType);
-if (member != null) {
-    ...
-} else {
-    ...
-}
-		</code></pre>
-		<pre>ex) selectEntityWithDeletedCheck()<code>
-final Class&lt;SimpleMember&gt; entityType = SimpleMember.class
-final SimpleMember member = member.outsideSql().entityHandling().selectEntity(path, pmb, entityType);
-... // nullは戻らないのでnullチェックの必要なし
-		</code></pre>
+		*Seasarカンファレンス「<a href="http://event.seasarfoundation.org/sc2007autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2007a-c5-dbflute.pdf">現場ソリューション DBFlute</a>」においても紹介されました。
 	</p>
 	<p>
-		SQL上のSelect句の指定カラムを１つにして、戻り値Entityの型としてStringやIntegerを指定することも可能です。<br />
-		検索件数の取得「select count(*)」や最大値の取得「select max(XXX)」などにおいてまさしくこれを利用します。
+		申し訳ございません。ドキュメント作成中です。「<a href="http://event.seasarfoundation.org/sc2007autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2007a-c5-dbflute.pdf">現場ソリューション DBFlute</a>」、もしくは、<a href="../../ja/tips-classification.html">古い形式のドキュメント</a>の方をご覧下さい。
 	</p>
-	<pre>ex) 文字列<code>
-final String value = memberBhv.outsideSql().selectEntity(path, pmb, String.class);
-	</code></pre>
-	<pre>ex) 数値<code>
-final Integer value = memberBhv.outsideSql().selectEntity(path, pmb, Integer.class);
-	</code></pre>
-
+	
 <!-- __content-end__ --></div>
 
 <div id="sideBar">

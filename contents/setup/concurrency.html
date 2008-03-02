@@ -24,59 +24,68 @@
 	</div>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>外だしSQLの一件検索</h2>
+	<h2>DBFluteの排他制御</h2>
 	<p>
-		Entity型での取得や１件であることのチェックを行うメソッドが存在します。<br />
+		DBFluteには排他制御(楽観的並行性制御)を自動で行う機能があります。
 	</p>
-	<h3>実装方法</h3>
+	<h3>排他制御の設定</h3>
 	<p>
-		outsideSql()メソッドの後、「entityHandling()」メソッドを呼び出します。<br />
-		すると、その後に「selectEntity()」・「selectEntityWithDeletedCheck()」メソッドが呼び出せます。
+		設定方法は以下の通りです。
 	</p>
 	<p>
 		<ul>
-			<li>selectEntity()</li>
-			<p>
-				→ 戻り値は引数で指定したEntityの型。<br />
-				→ 検索結果が２件以上の場合はEntityDuplicatedExceptionが発生。<br />
-				→ 検索結果が０件の場合はnullが戻る。<br />
-				→ 検索結果が存在しない可能性があり、かつ、その場合にも処理を続ける場合に利用。
-			</p>
-			<li>selectEntityWithDeletedCheck()</li>
-			<p>
-				→ 戻り値は引数で指定したEntityの型。<br />
-				→ 検索結果が２件以上の場合はEntityDuplicatedExceptionが発生。<br />
-				→ 検索結果が０件の場合はEntityAlreadyDeletedExceptionが発生。<br />
-				→ 検索結果が存在しないことが要件的にあり得ない(例外でよい)場合に利用。
-			</p>
+			<li>A. 制御対象のカラムが「VERSION_NO」である → 自動判別のため設定不要</li>
+			<li>B. 制御対象のカラムが任意の名前である → build-xxx.propertiesに設定</li>
 		</ul>
-		「SQLのパス」や「ParameterBean」の仕様に関してはリスト検索と変わるところはありません。
-		<pre>ex) selectEntity()<code>
-final Class&lt;SimpleMember&gt; entityType = SimpleMember.class
-final SimpleMember member = memberBhv.outsideSql().entityHandling().selectEntity(path, pmb, entityType);
-if (member != null) {
-    ...
-} else {
-    ...
-}
-		</code></pre>
-		<pre>ex) selectEntityWithDeletedCheck()<code>
-final Class&lt;SimpleMember&gt; entityType = SimpleMember.class
-final SimpleMember member = member.outsideSql().entityHandling().selectEntity(path, pmb, entityType);
-... // nullは戻らないのでnullチェックの必要なし
-		</code></pre>
 	</p>
 	<p>
-		SQL上のSelect句の指定カラムを１つにして、戻り値Entityの型としてStringやIntegerを指定することも可能です。<br />
-		検索件数の取得「select count(*)」や最大値の取得「select max(XXX)」などにおいてまさしくこれを利用します。
+		指定が必要な場合(「B」の場合)は、以下のように設定にして再自動生成して下さい。
 	</p>
-	<pre>ex) 文字列<code>
-final String value = memberBhv.outsideSql().selectEntity(path, pmb, String.class);
+	<pre>ex) 排他制御のカラムとして数値型の「XXX_COLUMN」を指定 @build-xxx.properties<code>
+torque.versionNoFieldName          = XXX_COLUMN
 	</code></pre>
-	<pre>ex) 数値<code>
-final Integer value = memberBhv.outsideSql().selectEntity(path, pmb, Integer.class);
+	<pre>ex) 排他制御のカラムとして日付型の「XXX_COLUMN」を指定 @build-xxx.properties<code>
+torque.updateDateFieldName          = XXX_COLUMN
 	</code></pre>
-
+	<p>
+		数値型のカラムを利用する場合と日付型のカラムを利用する場合の二通りをサポートしていますが、日付型の場合はDBの日付の精度に正確性が依存してしまうため、数値型で排他制御することをお奨めします。
+	</p>
+	<h3>排他制御機能の利用</h3>
+	<p>
+		上記の指定をすると、Behaviorの以下のメソッドが排他制御を行うようになります。
+	</p>
+	<p>
+		<ul>
+			<li>update()</li>
+			<li>delete()</li>
+			<li>insertOrUpdate()</li>
+			<li>batchUpdate()</li>
+			<li>batchDelete()</li>
+		</ul>
+	</p>
+	<p>
+		具体的には、実行時に対象レコードが他のプロセスが更新した場合に「EntityAlreadyUpdatedException」が発生します。この例外を排他制御の例外としてアプリケーションで扱うようにして下さい。
+	</p>
+	<p>
+		この時これらメソッドは排他制御カラムの値の指定が必須となります。指定せずに実行した場合は例外が発生しますので注意して下さい。
+	</p>
+	<h3>排他制御したくないとき</h3>
+	<p>
+		夜間バッチ処理やある特殊な更新処理などでは「排他制御したくない」ときがあります。そのときはメソッド名に「Nonstrict」が付いたメソッドを利用して下さい。これらのメソッドは排他制御を行わずに更新、削除処理を行います。
+	</p>
+	<p>
+		<ul>
+			<li>updateNonstrict()</li>
+			<li>deleteNonstrict()</li>
+			<li>insertOrUpdateNonstrict()</li>
+			<li>batchUpdateNonstrict()</li>
+			<li>batchDeleteNonstrict()</li>
+		</ul>
+	</p>
+	<p>
+		これらのメソッドは、そもそも排他制御の設定がされていない場合はメソッド自体が生成されません(存在しません)。
+	</p>
+	
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
