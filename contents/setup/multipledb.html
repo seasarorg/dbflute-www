@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../base/index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../base/index.html">home</a></li>
+			<li><a href="../base/index.html#document">document</a></li>
+			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
+			<li><a href="../base/index.html#download">download</a></li>
+			<li><a href="../base/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>複数DB対応のポイント</h2>
+	<p>
+		複数DB対応時のポイントを説明します。
+	</p>
+	<p>
+		既に出来上がってる複数DB対応プロジェクトを参考にすることもできます(以下からチェックアウトが可能)。
+	</p>
+	<p>
+		<ul>
+			<li>SVNリポジトリ：https://www.seasar.org/svn/sandbox/dbflute/</li>
+			<li>参考プロジェクト：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-multipledb-example">dbflute-multipledb-example</a></li>
+		</ul>
+	</p>
+	<h3>複数DBの前提</h3>
+	<p>
+		ここでいう「複数DB」とは、「テーブル構造の違う別のデータベース(スキーマ)の固定的な複数DB」を示します。(同じテーブル構造のDB２つで状況によってInsert先を変えるような動的な複数DBではありません)
+	</p>
+	<h3>DBFluteでの実現方法</h3>
+	<p>
+		非常に単純です。DBFluteクライアントを二つ作成します。
+	</p>
+	<pre><code>
+   ex) Javaの場合：
+     xxxproject
+         +- .settings
+         +- dbflute_[project1]        // DBFluteクライアント1
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- dbflute_[project2]        // DBFluteクライアント2
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- mydbflute                 // DBFluteモジュールの格納場所
+         |     +- dbflute-0.6.5
+         +- src/main/java             // ソースディレクトリ
+
+   ex) C#の場合：
+     xxxproject
+         +- dbflute_[project1]        // DBFluteクライアント1
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- dbflute_[project2]        // DBFluteクライアント2
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- lib
+         +- mydbflute                 // DBFluteモジュールの格納場所
+         |     +- dbflute-0.6.5
+         +- source/xxx.sln            // ソースディレクトリ
+	</code></pre>
+	<h3>クラスやリソースファイルの識別</h3>
+	<p>
+		二つのDBFluteクライアントでリソースがバッティングしないように、以下のビルドプロパティを考慮して下さい。
+	</p>
+	<p>
+		<ul>
+			<li>torque.projectPrefix = [prefix of class name] --&gt; Default: null</li>
+			<li>torque.dbfluteDiconFileName = [name] --&gt; Default: dbflute.dicon *Javaのみ</li>
+			<li>torque.j2eeDiconResourceName = [name] --&gt; Default: j2ee.dicon *Javaのみ</li>
+			<li>torque.quillDataSourceName = [data-source name] --&gt; Default: null(なし) *C#のみ(0.6.5においてまだ未実装)</li>
+		</ul>
+	</p>
+	<h4>torque.projectPrefix</h4>
+	<p>
+		自動生成されたクラスのクラス名の先頭になんらかの文字を付けたい場合に指定します。デフォルトは「null(なし)」です。複数DB対応時の２つ目以降のDBの場合において識別しやすくするために設定することが多いです。
+	</p>
+	<h4>torque.dbfluteDiconFileName</h4>
+	<p>
+		dbflute.diconの名前を設定します。デフォルトは「dbflute.dicon」です。複数DB対応時の２つ目以降のDBの場合において「dbflute-[dbname].dicon」とすることが多いです。
+	</p>
+	<h4>torque.j2eeDiconResourceName</h4>
+	<p>
+		利用するj2ee.diconを設定します。デフォルトは「j2ee.dicon」です。複数DB対応時の２つ目以降のDBの場合において「j2ee-[dbname].dicon」とすることが多いです。
+	</p>
+	<h4>torque.quillDataSourceName</h4>
+	<p>
+		<a href="http://s2container.net.seasar.org/ja/quill.html">Quill</a>の設定で定義したデータベース(スキーマ)のデータソース名です。デフォルトは「null(なし)」です。C#限定のプロパティです。単一DBの場合は設定する必要性はほぼありません。複数DB対応時の２つ目以降のDBの場合において設定する必要があります。
+	</p>
+	<h4>設定の適用方式について</h4>
+	<p>
+		一つ目のDBFluteクライアントでは上記のプロパティは設定せずに二つ目のDBFluteクライアントで設定するやり方と、両方のDBFluteクライアントで設定して対比的にするやり方と二つあります。これは、アプリケーションからみたときの二つのDBの重要度の比重によるかもしれません。二つ目のDBがテーブルが２、３個の明らかに再サイド的なDBであれば前者が良いかもしれませんが、二つとも同じくらい重要なDBで恒久的なのであれば後者が良いかもしれません。
+	</p>
+	<h3>Diconの複数DB設定(Java)</h3>
+	<p>
+		申し訳ございません。ドキュメント作成中です。<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-multipledb-example">既に出来上がってる複数DB対応プロジェクト</a>を参考にして下さい。
+	</p>
+	<h3>Quillの複数DB設定(C#)</h3>
+	<p>
+		申し訳ございません。ドキュメント作成中です。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Main Contents</h3>
+	<ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
