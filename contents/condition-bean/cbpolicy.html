@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<!--  todo keywordsなど -->
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../base/index.html">DBFlute</a></h1>
+	<div>
+		<ul>
+			<li><a href="../../ja/index.html">home</a></li>
+			<li><a href="../../ja/index.html#document">document</a></li>
+			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
+			<li><a href="../../ja/index.html#download">download</a></li>
+			<li><a href="../../ja/index.html#tracking">bts</a></li>
+		</ul>
+	</div>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>ConditionBeanのポリシー</h2>
+	<h3>ConditionBeanの役割</h3>
+	<p>
+		<a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a>との役割の棲み分けに関しては<a href="../introduction/dbaccessif.html">こちら</a>
+	</p>
+	<h3>ConditionBeanの可読性</h3>
+	<p>
+		ConditionBeanの可読性のポリシーについて説明します。
+	</p>
+	<h4>可読性の二つの要素</h4>
+	<p>
+		可読性といった場合に、二つの要素があると考えています。
+	</p>
+	<p>
+		<ul>
+			<li>見た目が直感的で見やすい</li>
+			<li>やれることが限られているので判断しやすい</li>
+		</ul>
+	</p>
+	<h4>見た目が直感的で見やすい</h4>
+	<p>
+		ここにこだわるのはO/Rマッパにとって当然のことと言えるでしょう。
+	</p>
+	<p>
+		一例として(非常に細かい例になりますが)、ConditionBeanのWhere句生成部分は「カラム名 + 演算子 + 条件値」というSQLにおける一般的な定義順序を崩さずにプログラム上でのタイプセーフな処理を実現しています。
+	</p>
+	<pre>ex) 会員IDが「３」のものを検索(MEMBER_ID = 3) @Java<code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberId_Equal(3);
+	</code></pre>
+	<p>
+		これは、作者が以前<a href="http://db.apache.org/torque/">Apache Torque</a>の利用したプロジェクトにいたときに、現場の人にヒアリングをし、また自分自身も利用者として感じたことから考慮されたことです。
+	</p>
+	<pre>ex) 会員IDが「３」のものを検索(MEMBER_ID = 3) @Java-Torque<code>
+Criteria criteria = new Criteria();
+criteria.add(MemberPeer.MEMBER_ID, 3, Criteria.EQUAL);
+	</code></pre>
+	<p>
+		現場の開発者はずっとそのO/Rマッパの特性を覚えているわけではありません。他の仕事をやりつつブランクを空けて関わったり限定的に関わったりとすることが多いです。それゆえ、ささいなことではありますが、DBFluteではこういった「直感的」ということを重視しています。
+	</p>
+	<p>
+		さらに細かい補足として、メソッド名にアンダースコアを入れ、スペースを空けてみやすくしています。メソッド名のアンダースコアが「規約としてどうなの？」・「かっこうわるい」と思う方もいらっしゃるかもしれません。しかしDBFluteはそういった体裁よりも、バグ修正などで他人の書いたソースを読んでストイックな作業をされる方を優先したいと考えています。
+	</p>
+	<h4>やれることが限られているので判断しやすい</h4>
+	<p>
+		可読性といったときに、実はこういった要素があることはあまり論じられません。しかし、人は「その対象のやれること(スコープ)が限られていることを知ってることで処理を判断しやすい」という特性を持っています。
+	</p>
+	<p>
+		例えば、ConditionBeanは「GroupBy句」や「SQL関数(count(*)除く)」が利用できません(どうやっても利用できません)。その分、ConditionBeanで書かれたプログラムを理解する際に「GroupBy句を使ってたりするかな？」や「SQL関数(count(*)除く)を使ってたりするかな？」といった意識を頭の中から既に外した状態で物事を考えることができます。
+	</p>
+	<p>
+		ConditionBeanは完全タイプセーフであるがゆえに(*a)逆に実現できることが限られ、可読性を向上させているのです。
+	</p>
+	<p>
+		(*a): 部分的なSQLを文字列として設定するようなI/Fは無いため、プログラム上での無理矢理なSQLが抑制されています。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Main Contents</h3>
+	<ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
