@@ -32,11 +32,71 @@
 	<h3>関連ページへのリンク</h3>
 	<p>
 		<ul>
-			<li><a href="../../ja/tips-condition_bean.html">ConditionBeanの機能</a></li>
 			<li><a href="./cbpolicy.html">ConditionBeanのポリシー</a></li>
 			<li><a href="./cbscope.html">ConditionBeanのスコープ</a></li>
 			<li><a href="./cbredic.html">逆引きConditionBean</a></li>
 		</ul>
+	</p>
+	<h3>ConditionBeanとは？</h3>
+	<p>
+		そもそもConditionBeanとは？に関しては<a href="../introduction/dbaccessif.html">こちら</a>
+	</p>
+	<h3>基本的な使い方</h3>
+	<p>
+		<ul>
+			<li>A. ConditionBeanを生成</li>
+			<ul>
+				<li>そのSQLの基点テーブルは何か？</li>
+			</ul>
+			<li>B. 条件の設定</li>
+			<ul>
+				<li>関連テーブルは何を取得したいのか？(Select句)</li>
+				<li>どのような絞り込みをしたいのか？(Where句 ※一部From句)</li>
+				<li>どのような並べ替えをしたいのか？(OrderBy句)</li>
+				<li>ページングや更新ロックの取得などしたいのか？</li>
+			</ul>
+			<li>C. Behaviorのメソッドを呼ぶ</li>
+			<ul>
+				<li>一覧検索なのか一件検索なのか？</li>
+			</ul>
+		</ul>
+	</p>
+	<pre>ex) 基点テーブルを会員(MEMBER)とした場合 @Java<code>
+// A. ConditionBeanを生成
+MemberCB cb = new MemberCB(); // 基点テーブルは会員
+
+// B. 条件の設定
+cb.setupSelect_MemberStatus(); // 会員ステータスを結合して取得(Select句に設定)
+cb.query().setMemberName_PrefixSearch("S"); // 会員名が'S'で始まること
+cb.addOrderBy_MemberBirthday_Desc(); // 会員の生年月日の降順で並べる
+cb.fetchFirst(20); // １ページを２０件
+cb.fetchPage(3); // ３ページ目を検索
+
+// C. Behaviorのメソッドを呼ぶ
+ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb); // 一覧検索
+
+// ListResultBeanはjava.util.List実装なのでそのままfor文で利用可能
+for (Member member : memberList) {
+    ... = member.getMemberName();
+    ...
+}
+	</code></pre>
+	<h4>SQL実装の思考の流れ</h4>
+	<p>
+		ここで紹介されている実装の上での思考の流れは、これはConditionBeanに限らず通常SQLを書く際にそのまま通じる大事な要素です。逆に解釈すると、ConditionBeanは「SQLでの思考の流れ」をそのままタイプセーフな実装の世界に展開し、「開発者の思考の流れ」の安全なレールを敷いていると言えます。
+	</p>
+	<h3>具体的な使い方</h3>
+	<h4>SetupSelect(結合先取得)</h4>
+	<p>
+		これは先ほどの「基本的な使い方」の「関連テーブルは何を取得したいのか？(Select句)」に相当する機能です。詳しくは<a href="http://gihyo.jp/dev/feature/01/dbflute/0004">こちら</a>
+	</p>
+	<h4>ConditionQuery(条件設定)</h4>
+	<p>
+		これは先ほどの「基本的な使い方」の「どのような絞り込みをしたいのか？(Where句 ※一部From句)」や「どのような並べ替えをしたいのか？(OrderBy句)」に相当する機能です。詳しくは<a href="http://gihyo.jp/dev/feature/01/dbflute/0003">こちら</a>
+	</p>
+	<h3>ドキュメント補足</h3>
+	<p>
+		２００８年３月１６日時点で、まだドキュメントは書き途中です。<a href="http://gihyo.jp/dev/feature/01/dbflute">gihyo.jpにて公開されている記事</a>や<a href="../../ja/tips-condition_bean.html">古い形式のドキュメント</a>をご参考ください。誠に申し訳ありません。
 	</p>
 	
 <!-- __content-end__ --></div>
