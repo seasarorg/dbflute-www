@@ -57,9 +57,36 @@ cb.query().setMemberName("100%ジュース", new LikeSearchOption().likeContain(
 	<p>
 		関連：<a href="../outside-sql/likesearch.html">外だしSQLの曖昧検索</a>
 	</p>
-	<h3>子テーブル(Referrer)の条件で絞り込みたい</h3>
+	<h3>親テーブル(ForeignTable)の条件で絞り込みたい</h3>
 	<p>
-		例えば、会員(MEMBER)の一覧画面にて、「1万以上の購入をしたことのある会員」という絞り込みをする要件があったとした場合、SQLとして以下のようになります。
+		例えば、購入(PURCHASE)の一覧画面にて、「生産中止の商品に関する購入」という絞り込みをする要件があったとした場合、SQLとして以下のようになります。
+	</p>
+	<pre>ex) 「生産中止の商品に関する購入」という絞り込みの検索 @SQL<code>
+ from PURCHASE purchase
+   left outer join PRODUCT product
+     on purchase.PRODUCT_ID = product.PRODUCT_ID
+where product.PRODUCT_STATUS_CODE = 'PST'
+	</code></pre>
+	<p>
+		ConditionBeanでは、以下のように実装することが可能です。
+	</p>
+	<pre>ex) 「生産中止の商品に関する購入」という絞り込みの検索 @Java<code>
+PurchaseCB cb = new PurchaseCB();
+cb.query().queryProduct().setProductStatusCode_Equal_ProductStop();
+... = memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		上記の例では、setProductStatusCode_Equal_ProductStop()はDBFluteのClassification機能を利用しています。
+	</p>
+	<p>
+		上記の例では、条件絞り込みのためだけに商品テーブルを結合していますが、さらに商品テーブル自身のデータを取得したいという場合は、cb.setupSelect_Product();を呼び出します。
+	</p>
+	<p>
+		「left outer join」は「inner join」の方が良いのでは？と思われるかも知れませんが、Where句に結合先のカラムでの絞り込みを入れた瞬間にSQLの結果としては違いはなくなります。そのことをオプティマイザも考慮するため、パフォーマンス的にも差が出ることはありません。但し、古いバージョンのDBの場合はこの辺がシビアな場合もありますが、それほど古い場合はDBFluteがそもそも未対応の可能性もあります。
+	</p>
+	<h3>子テーブル(ReferrerTable)の条件で絞り込みたい</h3>
+	<p>
+		例えば、会員(MEMBER)の一覧画面にて、「価格1万以上の購入をしたことのある会員」という絞り込みをする要件があったとした場合、SQLとして以下のようになります。
 	</p>
 	<pre>ex) 「1万以上の購入をしたことのある会員」という絞り込みの検索 @SQL<code>
  from MEMBER member
@@ -85,7 +112,52 @@ MemberCB cb = new MemberCB();
 	<p>
 		PurchaseCBの部分で匿名の括弧'{}'で囲っているのは、単に見やすさを考慮しているだけです(必須ではありません)。
 	</p>
-	<h3>TODO: まだまだこれからどんどん書いていきます(2008/01/22)</h3>
+	<h3>結合する親テーブル(ForeignTable)を絞り込みたい</h3>
+	<p>
+		これは、「親テーブル(ForeignTable)の条件で絞り込みたい」とは違い、基点テーブルは絞り込まれずに、絞り込まれるのは結合した親テーブルだけとなります。要は、「親テーブルを絞り込んでから」結合したい場合です。
+	</p>
+	<p>
+		例えば、購入(PURCHASE)の一覧画面にて、会員名称を一緒に表示したいが正式会員だけ名称を表示する(退会会員や仮会員は規約上名称をその画面上に表示してはいけないなど)、という要件があったとした場合、SQLとして以下のようになります。
+	</p>
+	<pre>ex) 「会員名称を一緒に表示したいが正式会員だけ名称を表示する」の検索 @SQL<code>
+ from PURCHASE purchase
+   left outer join MEMBER member
+     on purchase.MEMBER_ID = member.MEMBER_ID
+       and member.MEMBER_STATUS_CODE = 'FML'
+	</code></pre>
+	<p>
+		ちょっと例が無理矢理かもしれません。主には非依存のリレーションと論理削除の仕組みを組み合わせた場合に良く利用されます。結合先の情報を必要とするので結合して取得するが、論理削除されているものは存在しないものとして結合対象から外すというような場合です。もし、依存型のリレーションの場合は、結合先が論理削除されていたら自分自身も削除されているとみなすので別項の「親テーブル(ForeignTable)の条件で絞り込みたい」と同じ話になります。
+	</p>
+	<p>
+		ConditionBeanでは、以下のように実装することが可能です。
+	</p>
+	<pre>ex) 「会員名称を一緒に表示したいが正式会員だけ名称を表示する」の検索 @Java<code>
+PurchaseCB cb = new PurchaseCB();
+cb.query().queryMember().on().setMemberStatusCode_Equal_Formalized();
+... = memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		setMemberStatusCode_Equal_Formalized()はDBFluteのClassification機能を利用しています。
+	</p>
+	<p>
+		On句の条件でなう、インラインビューを使ったやり方もあります。
+	</p>
+	<pre>ex) 「会員名称を一緒に表示したいが正式会員だけ名称を表示する」の検索(インラインビュー) @SQL<code>
+ from PURCHASE purchase
+   left outer join (select * from MEMBER where member.MEMBER_STATUS_CODE = 'FML') member
+	</code></pre>
+	<pre>ex) 「会員名称を一緒に表示したいが正式会員だけ名称を表示する」の検索(インラインビュー) @Java<code>
+PurchaseCB cb = new PurchaseCB();
+cb.query().queryMember().inline().setMemberStatusCode_Equal_Formalized();
+... = memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		しかし、基本的にはOn句の利用をお奨めします。「left outer join」と「inner join」の話とは違い、DB次第ではありますがオプティマイザがこの２つを同一のものとみなす力がない可能性があります。
+	</p>
+	<p>
+		インラインビューの存在意義は、「より複雑な絞り込みが可能」という点です。例えば、On句の中ではInScopeSubQueryやExistsSubQueryが利用できない(ConditionBeanの)仕様になっていますが、インラインビューではその制限がありません。
+	</p>
+	<h3>TODO: まだまだこれからどんどん書いていきます(2008/03/16)</h3>
 	
 <!-- __content-end__ --></div>
 
