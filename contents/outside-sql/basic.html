@@ -4,7 +4,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<!--  todo keywordsなど -->
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
@@ -13,16 +12,8 @@
 <body>
 
 <div id="header">
-	<h1><a href="../base/index.html">DBFlute</a></h1>
-	<div>
-		<ul>
-			<li><a href="../../ja/index.html">home</a></li>
-			<li><a href="../../ja/index.html#document">document</a></li>
-			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
-			<li><a href="../../ja/index.html#download">download</a></li>
-			<li><a href="../../ja/index.html#tracking">bts</a></li>
-		</ul>
-	</div>
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<img src="../../image/logo-content.gif" alt="logo"/>
 </div>
 <div id="content"><!-- __content-start__ -->
 	<h2>外だしSQLの基本</h2>
@@ -40,92 +31,82 @@
 		<li><a href="./paging.html">ページング検索</a></li>
 		<li><a href="./likesearch.html">曖昧検索</a></li>
 	</ul>
-	<h3>前提</h3>
-	<h4>利用可能バージョン</h4>
-	<p>
-		<ul>
-			<li>
-				[Java-1.4]の場合 → 未実装です。Genericを前提とした処理のため、今後も実装予定はありません。
-			</li>
-			<li>
-				[Java-5.0 or Java6.0 or C#-2.0 or C-#3.0]の場合 → DBFlute-0.5.8より利用可能です。
-			</li>
-		</ul>
-	</p>
-	<h4>新方式の経緯</h4>
-	<p>
-		以前は、S2Daoをそのまま利用する「Daoを利用した外だしSQL」のやり方を利用していましたが、<br />
-		Behaviorのみで全てのDBアクセスを可能にするため、Behaviorで外だしSQLを実行することが可能になりました。<br />
-		(外だしSQLのときだけDaoを意識しなければならず、S2Daoを知らない初心者には敷居が高いという意見がありました)
-	</p>
-	<p>
-		その際、ジェネリックの利用、SQLファイルの自由度アップ、外だしSQLのページング検索の向上など、
-様々な改善が施されています。<br />
-		もちろん今までの「Daoを利用した外だしSQL」は、今後も利用可能です。
-	</p>
-	<h4>説明の前に</h4>
-	<p>
-		外だしSQLの基本では、利用頻度の一番高い「リスト検索(一覧検索)」を取り上げています。<br />
-		その他検索(１件検索やページング検索)については、このページの最後にリンクがありますのでそちらご覧下さい。<br />
-		また、例題は“理解し易さ”を考慮して簡単なSQL(ConditionBeanで実現できるレベル)となっております。<br />
-	</p>
 	<h3>実装概要</h3>
-	<p>
-		外だしSQLを実装する場合も、ConditionBeanと同じくBehaviorを使います。
-		<pre>ex) 会員名称に'ス'を指定して外だしSQLを実行<code>
-final SimpleMemberPmb pmb = new SimpleMemberPmb();
-pmb.setMemberName("ス");
-final List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList("sql/member/xxx.sql", pmb, SimpleMember.class);
-		</code></pre>
-	</p>
 	<p>
 		実装の流れは以下のようになります：
 	</p>
-	<ol>
-		<li>任意のパッケージにxxx.sqlファイルを作成する。</li>
-		<li>xxx.sqlファイルにSQLを2Way-SQLで実装する。</li>
-		<li>Sql2Entityを実行する。</li>
-		<li>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</li>
-	</ol>
+	<ul>
+		<li>1. SQLファイルを作成する。</li>
+		<li>2. SQLを2Way-SQLで実装する。</li>
+		<li>3. Sql2Entityを実行する。</li>
+		<li>4. SQLを呼び出して実行する。</li>
+	</ul>
 	<h3>実装手順</h3>
-	<ol>
-		<li>
-			<h4>任意のパッケージにxxx.sqlファイルを作成する。</h4>
-			<p>ex) SQLファイルの配置</p>
-			<code>
-				sql/member/selectSimpleMember.sql
-			</code>
-			<p>
-				SQLファイルは、以下のディレクトリ配下に配置して下さい。<br />
-				<ul>
-					<li>Java版 ： 「../src/main/resources」</li>
-					<li>C#版 ： 「../source」</li>
-					<p>※「../」はDBFluteクライアントディレクトリからの相対パスを示します。</p>
-				</ul>
-				もし、「torque.java.dir(についてはこちら(★工事中))」にて独自の自動生成クラス出力先を設定している場合は、<br />
-				その指定したディレクトリ配下に配置するようにして下さい。<br />
-			</p>
-			<p>
-				SQLファイルのキャラセットはデフォルト「UTF-8」です。<br />
-				その他のキャラセットを利用する場合は「torque.daoSqlFileEncoding(についてはこちら(★工事中))」にて指定します。<br />
-			</p>
-			<p>
-				C#版では、作成したSQLファイルのビルドアクションを「埋め込まれたリソース」にして下さい。<br />
-				これを設定しないと、DLL内にSQLファイルが含まれず、SQLを読み込むことができないためです。
-			</p>
-		</li>
-		<li>
-			<h4>xxx.sqlファイルにSQLを2Way-SQLで実装する。</h4>
-			<p>
-			ポイントは以下の通りです：
-				<ul>
-					<li>Sql2Entityの宣言を行う。</li>
-					<li>引数のParameterBeanへの参照は、「pmb」という変数名を利用することを習慣とする。</li>
-					<li>パラメータコメントを利用する。パラメータコメントについては<a href="./pmcomment.html">こちら</a></li>
-				</ul>
-			</p>
-			<pre>ex) 2Way-SQLでの実装（戻り値にCustomizeEntity・引数にParameterBeanを利用）
-			<code>
+	<h4>1. SQLファイルを作成する。</h4>
+	<dl>
+		<dt>パッケージ</dt>
+		<dd>
+			<dl>
+				<dt>Java版</dt>
+				<dd>../src/main/resources配下のxxx.exbhvパッケージ</dd>
+				<dt>C#版</dt>
+				<dd>../source配下のxxx.exbhv</dd>
+			</dl>
+		</dd>
+		<dt>ファイル名</dt>
+		<dd>[Behaviorクラス名]_[SQLを表現する任意の名前].sql *基点となるテーブルのBehavior</dd>
+		<dt>エンコーディング</dt>
+		<dd>UTF-8 *設定により変更可能(torque.daoSqlFileEncoding)</dd>
+		<dt>その他補足</dt>
+		<dd>
+			<dl>
+				<dt>C#版での注意点</dt>
+				<dd>SQLファイルのビルドアクションを「埋め込まれたリソース」にして下さい。</dd>
+				<dt>SQLファイルとBehaviorとの関連</dt>
+				<dd>
+					SQLファイルは任意のパッケージでも構いませんが、上記のように規約合わせて配置するとSQLのパスの指定が「タイプセーフ」に行えます(後述)。
+					このようなSQLファイルを規約でBehaviorと関連付けてパスの解決をするやり方を「BehaviorQueryPath(後述)を利用した外だしSQL」と呼びます。
+					*DBFlute-0.7.1より
+				</dd>
+				<dt>任意のパッケージを利用する場合</dt>
+				<dd>
+					例えば、「sql/member/selectSimpleMember.sql」というようなパスもファイル名も任意で指定することも可能です。
+					但し、その場合はSQLの配置規約や命名規約など各プロジェクトにて考える必要があります。また、プログラムからのSQLのパスの指定をタイプセーフに行うことはできません。
+				</dd>
+			</dl>
+		</dd>
+	</dl>
+	<p>ex) SQLファイルの配置</p>
+	<code>
+		com/example/.../dbflute/exbhv/MemberBhv_selectSimpleMember.sql
+	</code>
+	<h4>2. SQLを2Way-SQLで実装する。</h4>
+	<p>
+	ポイントは以下の通りです：
+	</p>
+	<dl>
+		<dt>A. Sql2Entityの宣言</dt>
+		<dd>
+			戻り値Entity「CustomizeEntity」と引数DTO「ParameterBean」を生成する場合はその宣言を行う。
+			*Sql2Entityについては<a href="./sql2entity.html">こちら</a>
+		</dd>
+		<dt>B. パラメータコメント</dt>
+		<dd>
+			引数のParameterBeanへの参照は「pmb」という変数名を利用すること(習慣)。
+			*パラメータコメントについては<a href="./pmcomment.html">こちら</a>
+		</dd>
+		<dt>その他補足</dt>
+		<dd>
+			<dl>
+				<dt>CustomizeEntity</dt>
+				<dd>外だしSQLの戻り値Entityのことを「CustomizeEntity」と呼びます。</dd>
+				<dt>ParameterBean</dt>
+				<dd>外だしSQLの引数DTOのことを「ParameterBean」と呼びます。</dd>
+			</dl>
+		</dd>
+	</dl>
+	<pre>ex) 2Way-SQLでの実装（CustomizeEntityとParameterBeanを生成する場合）
+	<code>
 -- #SimpleMember#
 
 -- !SimpleMemberPmb!
@@ -145,76 +126,88 @@ select member.MEMBER_ID
    /*END*/
  /*END*/
  order by member.MEMBER_ID asc
-			</code>
-			</pre>
-		</li>
-		<li>
-			<h4>Sql2Entityを実行する。</h4>
-			<p>
-				Sql2Entityについては<a href="./sql2entity.html">こちら</a><br />
-			</p>
-		</li>
-		<li>
-			<h4>BehaviorのoutsideSql()メソッドを利用して作成したSQLを呼び出すプログラムを実装する。</h4>
-			<p>
-			ポイントは以下の通りです：
-				<ul>
-					<li>BehaviorのoutsideSql()メソッドの後、「selectList()」メソッドを呼び出す。</li>
-					<p>
-						→ 該当の外だしSQLにおいて一番基点となるテーブルのBehaviorを利用するのを習慣とする。<br />
-					</p>
-					<li>引数として「SQLのパス」・「ParameterBean」・「戻り値Entityの型」を指定する。</li>
-					<p>
-						→ 「SQLのパス(path)」は必須。<br />
-						→ 「ParameterBean(pmb)」はSQLに渡す引数が無い場合は不要。<br />
-						→ 「戻り値Entityの型(entityType)」は必須。<br />
-					</p>
-				</ul>
-			</p>
-			<p>ex) リスト検索のテスト実装｛条件：名前が'ス'で始まる会員であること｝</p>
-			<pre>
-			<code>
+	</code>
+	</pre>
+	<h4>3. Sql2Entityを実行する。</h4>
+	<p>
+		以下のものが自動生成されます：
+	</p>
+	<dl>
+		<dt>A. 戻り値Entity「CustomizeEntity」</dt>
+		<dd>exentity.customize配下に生成。</dd>
+		<dt>B. 引数DTO「ParameterBean」</dt>
+		<dd>exdao.pmbean配下に生成。</dd>
+		<dt>C. SQLのパス定義「BehaviorQueryPath」</dt>
+		<dd>Behaviorのstatic定義として生成。定数名は「PATH_xxx」。*DBFlute-0.7.1より</dd>
+		<dt>その他補足</dt>
+		<dd>
+			<dl>
+				<dt>SQLが文法的に間違っている場合</dt>
+				<dd>Sql2Entity実行時に例外が発生します。SQL文を修正して成功するまで再実行して下さい。</dd>
+				<dt>BehaviorQueryPath</dt>
+				<dd>Behaviorに定義されるSQLのパス定義を「BehaviorQueryPath」と呼びます。</dd>
+			</dl>
+		</dd>
+	</dl>
+	<p>
+		Sql2Entityについては<a href="./sql2entity.html">こちら</a>
+	</p>
+	<h4>4. SQLを呼び出して実行する。</h4>
+	<p>
+	ポイントは以下の通りです：
+	</p>
+	<dl>
+		<dt>Behavior#outsideSql().selectList()</dt>
+		<dd>SQLファイルの名前で指定したBehaviorを利用する。</dd>
+		<dt>第一引数(path)：SQLのパス</dt>
+		<dd>必須。Behavior.PATH_xxxの定義を利用する</dd>
+		<dt>第二引数(pmb)：ParameterBean</dt>
+		<dd>任意。SQLに渡すパラメータが無い場合は不要(null可)。</dd>
+		<dt>第三引数(entityType)：CustomizeEntityを指定する。</dt>
+		<dd>必須。</dd>
+		<dt>その他補足</dt>
+		<dd>
+			<dl>
+				<dt>任意のパッケージを利用の場合(or DBFlute-0.7.0以下)</dt>
+				<dd>第一引数には「sql/member/selectSimpleMember.sql」というようなSQLファイルへのフルパスを文字列で指定して下さい。</dd>
+				<dt>C#版の場合</dt>
+				<dd>第三引数はなく、メソッドのジェネリック指定でCustomizeEntityの型を指定します。</dd>
+			</dl>
+		</dd>
+	</dl>
+	<p>ex) リスト検索のテスト実装｛条件：名前が'ス'で始まる会員であること｝</p>
+	<pre>
+	<code>
 public void test_outsideSql_selectSimpleMember_Tx() throws Exception {
     // ## Arrange ##
-    // SQLのパス
-    final String path = "sql/member/selectSimpleMember.sql";
+    // SQLのパス「BehaviorQueryPath」
+    String path = MemberBhv.PATH_selectSimpleMember;
 
-    // 検索条件
-    final SimpleMemberPmb pmb = new SimpleMemberPmb();
+    // パラメータ「ParameterBean」
+    SimpleMemberPmb pmb = new SimpleMemberPmb();
     pmb.setMemberName("ス");
 
-    // 戻り値Entityの型
-    final Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
+    // 戻り値Entityの型「CustomizeEntity」
+    Class&lt;SimpleMember&gt; entityType = SimpleMember.class;
 
     // ## Act ##
-    // SQL実行！
-    final List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList(path, pmb, entityType);
+    // 外だしSQLの実行！
+    List&lt;SimpleMember&gt; resultList = memberBhv.outsideSql().selectList(path, pmb, entityType);
 
     // ## Assert ##
-    assertNotSame("テストの成立のため１件以上は必ずあること: " + resultList.size(), 0, resultList.size());
-    log("{SimpleMember}");
-    for (SimpleMember entity : resultList) {
-        final Integer memberId = entity.getMemberId();
-        final String memberName = entity.getMemberName();
-        final String memberStatusName = entity.getMemberStatusName();
-        log("    " + memberId + " - " + memberName + " - " + memberStatusName);
-        assertNotNull(memberId);
-        assertNotNull(memberName);
-        assertNotNull(memberStatusName);
-        assertTrue("The memberName should start with 'ス': " + memberName, memberName.startsWith("ス"));
-    }
+    ...
 }
-			</code>
-			</pre>
-			<p>ex) 実行ログ｛条件：名前が'ス'で始まる会員であること｝</p>
-			<pre>
-			<code>
-(S2DaoInterceptor#traceMethod():201) - /===============================================================================
-(S2DaoInterceptor#traceMethod():202) -                                                       OutsideSqlDao.selectList()
-(S2DaoInterceptor#traceMethod():203) -                                                       =========================/
-(S2DaoInterceptor#traceMethod():211) - OutsideSql: sql/member/selectSimpleMember.sql
-(S2DaoInterceptor#traceSqlCommand():444) - SqlCommand Initialization Cost: [00m02s156ms]
-(Logger#debug():105) - -- #SimpleMember#
+	</code>
+	</pre>
+	<p>ex) リスト検索のテスト実装のログ</p>
+	<pre>
+	<code>
+(XLog#log():23) - /===============================================================================
+(XLog#log():23) -                                                       OutsideSqlDao.selectList()
+(XLog#log():23) -                                                       =========================/
+(XLog#log():23) - path: com/example/dbflute/basic/dbflute/exbhv/MemberBhv_selectSimpleMember.sql
+(XLog#log():23) - option: {paging=non, dynamic=false}
+(QLog#log():23) - -- #SimpleMember#
 
 -- !SimpleMemberPmb!
 -- !!Integer memberId!!
@@ -223,52 +216,37 @@ public void test_outsideSql_selectSimpleMember_Tx() throws Exception {
 select member.MEMBER_ID
      , member.MEMBER_NAME
      , memberStatus.MEMBER_STATUS_NAME
-
   from MEMBER member
     left outer join MEMBER_STATUS memberStatus
       on member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
  where
    
    member.MEMBER_NAME like 'ス' || '%'
-   
  
  order by member.MEMBER_ID asc
-(S2DaoInterceptor#traceReturn():479) - ===========/ [00m02s484ms - Selected list: 2 first={1,ストイコビッチ,正式会員}]
-(S2DaoInterceptor#traceReturn():496) -  
-(AppTestBase#log():69) - {SimpleMember}
-(AppTestBase#log():69) -     1 - ストイコビッチ - 正式会員
-(AppTestBase#log():69) -     4 - スタンコビッチ - 正式会員
-			</code>
-			</pre>
-			<p>
-				SQL上のSelect句の指定カラムを１つにして、戻り値Entityの型としてStringやIntegerを指定することも可能です。
-			</p>
-			<pre><code>
-final List&lt;String&gt; valueList = memberBhv.outsideSql().selectList(path, pmb, String.class);
-			</code></pre>
-		</li>
-	</ol>
-	<h3>様々な外だしSQL</h3>
+(XLog#log():23) - ===========/ [00m00s532ms - Selected list: 2 first={1,ストイコビッチ,正式会員}]
+(XLog#log():23) -  
+(ContainerTestCase#log():70) - {SimpleMember}
+(ContainerTestCase#log():70) -     1, ストイコビッチ, 正式会員
+(ContainerTestCase#log():70) -     4, スタンコビッチ, 正式会員
+	</code>
+	</pre>
 	<p>
-		<ul>
-			<li><a href="./entity.html">外だしSQLの一件検索</a></li>
-			<li><a href="./paging.html">外だしSQLのページング検索</a></li>
-			<li><a href="./cursor.html">外だしSQLのカーソル検索</a></li>
-			<li><a href="./dynamic.html">外だしSQLの動的バインド変数検索</a></li>
-			<li><a href="./likesearch.html">外だしSQLの曖昧検索</a></li>
-		</ul>	
+		SQL上のSelect句の指定カラムを１つにして、戻り値Entityの型としてStringやIntegerを指定することも可能です。
 	</p>
-	<h3>パラメータコメント</h3>
-	<p>
-		パラメータコメントについては<a href="./pmcomment.html">こちら
-	</p>
+	<pre><code>
+List&lt;String&gt; valueList = memberBhv.outsideSql().selectList(path, pmb, String.class);
+	</code></pre>
 	
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
-	<h3>Main Contents</h3>
+	<h3>Document</h3>
 	<ul>
 		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
 		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
 		<ul>
 			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
@@ -297,6 +275,7 @@ final List&lt;String&gt; valueList = memberBhv.outsideSql().selectList(path, pmb
 	</ul>
 	<h3>Topics</h3>
 	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
 		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
 	</ul>
 	<h3>Various</h3>

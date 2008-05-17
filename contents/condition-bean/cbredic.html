@@ -4,7 +4,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<!--  todo keywordsなど -->
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
@@ -13,16 +12,8 @@
 <body>
 
 <div id="header">
-	<h1><a href="../base/index.html">DBFlute</a></h1>
-	<div>
-		<ul>
-			<li><a href="../../ja/index.html">home</a></li>
-			<li><a href="../../ja/index.html#document">document</a></li>
-			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
-			<li><a href="../../ja/index.html#download">download</a></li>
-			<li><a href="../../ja/index.html#tracking">bts</a></li>
-		</ul>
-	</div>
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<img src="../../image/logo-content.gif" alt="logo"/>
 </div>
 <div id="content"><!-- __content-start__ -->
 	<h2>逆引きConditionBean</h2>
@@ -102,6 +93,18 @@ where member.MEMBER_ID exists (
 	</p>
 	<pre>ex) 「1万以上の購入をしたことのある会員」という絞り込みの検索 @Java<code>
 MemberCB cb = new MemberCB();
+cb.query().existsPurchaseList(new SubQuery&lt;PurchaseCB&gt;() {
+    public void query(PurchaseCB subCB) {
+        subCB.query().setPurchasePrice_GreaterEqual(10000);
+    }
+});
+... = memberBhv.selectList(cb);
+	</code></pre>
+	<p>
+		PurchaseCBの部分で匿名の括弧'{}'で囲っているのは、単に見やすさを考慮しているだけです(必須ではありません)。
+	</p>
+	<pre>ex) DBFlute-0.7.0以下の場合<code>
+MemberCB cb = new MemberCB();
 {
     PurchaseCB purchaseSubCB = new PurchaseCB();
     purchaseSubCB.query().setPurchasePrice_GreaterEqual(10000);
@@ -109,9 +112,6 @@ MemberCB cb = new MemberCB();
 }
 ... = memberBhv.selectList(cb);
 	</code></pre>
-	<p>
-		PurchaseCBの部分で匿名の括弧'{}'で囲っているのは、単に見やすさを考慮しているだけです(必須ではありません)。
-	</p>
 	<h3>結合する親テーブル(ForeignTable)を絞り込みたい</h3>
 	<p>
 		これは、「親テーブル(ForeignTable)の条件で絞り込みたい」とは違い、基点テーブルは絞り込まれずに、絞り込まれるのは結合した親テーブルだけとなります。要は、「親テーブルを絞り込んでから」結合したい場合です。
@@ -162,9 +162,12 @@ cb.query().queryMember().inline().setMemberStatusCode_Equal_Formalized();
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
-	<h3>Main Contents</h3>
+	<h3>Document</h3>
 	<ul>
 		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
 		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
 		<ul>
 			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
@@ -193,6 +196,7 @@ cb.query().queryMember().inline().setMemberStatusCode_Equal_Formalized();
 	</ul>
 	<h3>Topics</h3>
 	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
 		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
 	</ul>
 	<h3>Various</h3>

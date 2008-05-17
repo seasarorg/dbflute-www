@@ -4,7 +4,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<!--  todo keywordsなど -->
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
@@ -13,16 +12,8 @@
 <body>
 
 <div id="header">
-	<h1><a href="../base/index.html">DBFlute</a></h1>
-	<div>
-		<ul>
-			<li><a href="../../ja/index.html">home</a></li>
-			<li><a href="../../ja/index.html#document">document</a></li>
-			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
-			<li><a href="../../ja/index.html#download">download</a></li>
-			<li><a href="../../ja/index.html#tracking">bts</a></li>
-		</ul>
-	</div>
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<img src="../../image/logo-content.gif" alt="logo"/>
 </div>
 <div id="content"><!-- __content-start__ -->
 	<h2>DBFluteのロギング</h2>
@@ -58,14 +49,19 @@ log4j.logger.com.example = ALL, console
 	</p>
 	<pre>ex) DBFluteのSQL実行のログ(会員管理画面から実行) @Console<code>
 - /===========================================================================
--                                                       MemberDao.selectList()
+-                                                       MemberBhv.selectList()
 -                                                       =====================/
-- MemberAdminPage.initialize():43 --> MemberBhv.selectList() --> ...
-- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0 from MEMBER dflocal left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
+- MemberAdminPage.initialize():43 --> ...
+- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0
+-   from MEMBER dflocal
+-     left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+-  where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
 - ===========/ [00m00s016ms - Selected list: 6 first={1,ストイコビッチ,Stojkovic,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
 	</code></pre>
 	<p>
-	    「実行されたDaoとBehavior、どのPageクラスのメソッドから呼びされたのか」がわかります(行数付きで)。よくあるフレームワークではSQLだけが出力されていることがあります。その場合、どのSQLがどの処理のものなのかを判別するのがかなりやっかいで、右端のWhere句まで見て初めて「ああ、このSQLはあそこで呼び出したものか」とわかります。それだとデバッグ効率が悪いので、DBFluteではこのような「呼び出し元とSQLの結びつき」がすぐにわかるような工夫をしています。
+	    「実行されたBehavior、どのPageクラスのメソッドから呼びされたのか」がわかります(行数付きで)。よくあるフレームワークではSQLだけが出力されていることがあります。
+	    その場合、どのSQLがどの処理のものなのかを判別するのがかなりやっかいで、右端のWhere句まで見て初めて「ああ、このSQLはあそこで呼び出したものか」とわかります。
+	    それだとデバッグ効率が悪いので、DBFluteではこのような「呼び出し元とSQLの結びつき」がすぐにわかるような工夫をしています。
 	</p>
 	<p>
 	    そして「表示用SQL」に「実行コスト」と「実行結果のビュー」が出力されます。これらは言うまでもなく開発者にとって必要不可欠な情報です。
@@ -85,32 +81,21 @@ log4j.logger.com.example = ALL, console
 	    S2Daoでも同じですが、DBFluteはアプリケーションを起動した直後の一番最初のDBアクセスで内部的な初期化を行います。なので、初回実行時ののみ以下のようなログが出力されます。
 	</p>
 	<pre>ex) DBFluteのSQL実行のログ(会員管理画面から実行) @Console<code>
-- /===========================================================================
--                                                       MemberDao.selectList()
--                                                       =====================/
-- MemberAdminPage.initialize():43 --> MemberBhv.selectList() --> ...
-...Creating daoMetaData.
+...Creating daoMetaData for MemberDao.
 ...Initializing sqlCommand.
 SqlCommand Initialization Cost: [00m00s527ms]
-- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0 from MEMBER dflocal left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
-- ===========/ [00m00s543ms - Selected list: 6 first={1,ストイコビッチ,Stojkovic,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
+- /===========================================================================
+-                                                       MemberBhv.selectList()
+-                                                       =====================/
+- MemberAdminPage.initialize():43 --> ...
+- select dflocal.MEMBER_ID as MEMBER_ID, dflocal.MEMBER_NAME as MEMBER_NAME, dflocal.MEMBER_ACCOUNT as MEMBER_ACCOUNT, dflocal.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE, dflocal.MEMBER_FORMALIZED_DATETIME as MEMBER_FORMALIZED_DATETIME, dflocal.MEMBER_BIRTHDAY as MEMBER_BIRTHDAY, dflocal.REGISTER_DATETIME as REGISTER_DATETIME, dflocal.REGISTER_USER as REGISTER_USER, dflocal.REGISTER_PROCESS as REGISTER_PROCESS, dflocal.UPDATE_DATETIME as UPDATE_DATETIME, dflocal.UPDATE_USER as UPDATE_USER, dflocal.UPDATE_PROCESS as UPDATE_PROCESS, dflocal.VERSION_NO as VERSION_NO, dfrelation_0.MEMBER_STATUS_CODE as MEMBER_STATUS_CODE_0, dfrelation_0.MEMBER_STATUS_NAME as MEMBER_STATUS_NAME_0, dfrelation_0.DISPLAY_ORDER as DISPLAY_ORDER_0
+-   from MEMBER dflocal
+-     left outer join MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+-  where dflocal.MEMBER_ACCOUNT like 'S%' order by dflocal.MEMBER_ID asc
+- ===========/ [00m00s016ms - Selected list: 6 first={1,ストイコビッチ,Stojkovic,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
 	</code></pre>
 	<p>
 	    さっきのログから比べてと三行付け加わってるのがわかります。これは初期化をしている証拠です。「SqlCommand Initialization Cost: [00m00s527ms]」で初期化に掛かったコストがわかります。
-	</p>
-	<h5>DBFluteの初期化の補足</h5>
-	<p>
-		DBFluteはDaoの初期化時にDBのメタデータを取得しません。既に自動生成されてプログラム上で保持しているからです。よって、初期化のコストは「S2Daoのみ」を使う場合に比べて格段に速いです。(S2Daoにもメタデータを使わない(オプション)機能はありますが、少々使い勝手が悪いです)
-	</p>
-	<p>
-		DBFluteはDaoの初期化を「メソッド単位」で行います。「S2Daoのみ」を使う場合は、Daoクラス単位で初期化されるため初回の実行があまりに遅く、利用されないメソッドも初期化されるので自動生成ツールとは非常に相性が悪いです。DBFluteは「呼ばれたメソッド」だけを初期化します。
-	</p>
-	<p>
-		DBFluteはDaoの内部的なコンポーネントを再利用形式で無駄なObjectを生成しないようにしています(すごく内部的な話ですが...)。これにより「S2Daoのみ」を使う場合に比べて、そもそも初期化コストが低いです。
-	</p>
-	<h4>フレームワークパッケージ</h4>
-	<p>
-	    フレームワークとしてSeasarを利用していますので、Seasarパッケージをログ出力の対象にして下さい。
 	</p>
 	<pre>ex) org.seasarをログ出力の対象にする @log4j.properties<code>
 # ----------------------------------------------------------
@@ -276,9 +261,12 @@ log4j.additivity.org.seasar.extension.dbcp = false
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
-	<h3>Main Contents</h3>
+	<h3>Document</h3>
 	<ul>
 		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
 		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
 		<ul>
 			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
@@ -307,6 +295,7 @@ log4j.additivity.org.seasar.extension.dbcp = false
 	</ul>
 	<h3>Topics</h3>
 	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
 		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
 	</ul>
 	<h3>Various</h3>

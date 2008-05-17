@@ -4,7 +4,6 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<!--  todo keywordsなど -->
 	<style type="text/css" title="currentStyle">
 		@import "../../css/main.css";
 	</style>
@@ -13,16 +12,8 @@
 <body>
 
 <div id="header">
-	<h1><a href="../base/index.html">DBFlute</a></h1>
-	<div>
-		<ul>
-			<li><a href="../../ja/index.html">home</a></li>
-			<li><a href="../../ja/index.html#document">document</a></li>
-			<!-- <li><a href="../base/index.html#document" class="active">document</a></li> -->
-			<li><a href="../../ja/index.html#download">download</a></li>
-			<li><a href="../../ja/index.html#tracking">bts</a></li>
-		</ul>
-	</div>
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<img src="../../image/logo-content.gif" alt="logo"/>
 </div>
 <div id="content"><!-- __content-start__ -->
 	<h2>C#ユーザの皆様へ</h2>
@@ -46,25 +37,17 @@
 		まずは外部仕様的な面において、以下の項目がC#版では実装されていません。
 		(上から順に優先度)
 		<ul>
-			<li>ConditionBeanにて同Table間限定のUnion *0.6.4にて実装</li>
 			<li>ConditionBeanのPrefix/Suffix/Containを指定/Escape指定が可能なLikeSearch *0.6.4にてContainだけ実装</li>
-			<li>ConditionBeanのSetupSelect(親結合先取得)の無限階層化(現２階層) *0.6.5にて実装</li>
-			<li>DBMetaの細かいメタ情報利用(要は未実装なのです) *0.6.4にて8割方実装</li>
 			<li>PagingResultBeanのPageGroupとPageRange</li>
 			<li>ConditionBeanの日付範囲検索の便利機能であるFromToメソッド</li>
 			<li>Behaviorのone-to-many Loadingにおける孫を取得するLoad</li>
 			<li>OutsideSqlのLikeSearchOption</li>
-			<li>ConditionBeanのtoDispaySql()メソッド *0.6.4にて実装</li>
 			<li>バッチ更新(S2Daoの対応が必要)</li>
 			<li>その他細かい点</li>
 		</ul>
 		そして内部仕様的な面において、以下の項目がC#版では実装されていません。
 		(上から順に優先度)
 		<ul>
-			<li>ConditionBeanで発行するSQLのテーブルのAlias名の座標化(幾つかのBUGが直る) *0.6.4にて実装</li>
-			<li>ConditionBeanのlockForUpdate()にてOracleのfor update of columnを利用する *0.6.4にて実装</li>
-			<li>メタデータを使わないようにする *0.6.4にて実装</li>
-			<li>検索時マッピングの結合先処理時にリフレクションを使わない *0.6.4にて実装</li>
 			<li>ジェネリックをできる限り利用してソース量の削減</li>
 			<li>その他細かい点</li>
 		</ul>
@@ -107,7 +90,7 @@
 MemberCB cb = new MemberCB();
 cb.SetupSelect_MemberStatus();// Java: cb.setupSelect_MemberStatus();
 cb.Query().SetMemberName_PrefixSearch();// Java: cb.query().setMemberName_PrefixSearch();
-cb.FetchFirst();// Java: cb.fetchFirst();
+cb.FetchFirst(20);// Java: cb.fetchFirst(20);
 		</code>
 		</pre>
 		<h4>プロパティ名の先頭が大文字</h4>
@@ -168,44 +151,44 @@ _memberBhv.LoadPurchaseList(memberList, delegate(PurchaseCB cb) {
 		今は気をつけて下さいとしか言いようがないのですが、DBFluteでは将来的にoutsideSqlTestタスクに<br />
 		「外だしSQLが埋め込まれたリソースになっているかどうか」をチェックする機能を付けようと考えています。
 	</p>
-	<h3>その他</h3>
-	<p>
-		<h4>ReSharperのススメ</h4>
-		これは必須ではありませんが、ReSharperをおすすめします。<br />
-		<br />
-		DBFluteのウリの一つとして、IDEの補完機能でサクサク実装することが挙げられるのですが、<br />
-		VisualStudioの補完機能はEclipseのそれに比べて遥かにストレスの溜まるものです。<br />
-		ReSharperはそれを補ってくれるVisualStudioのAdd-inです。<br />
-		ライセンス料が必要なので敷居が高いですが、あれば便利であることは間違いありません。
-		<h4>Exampleのススメ</h4>
-		C#版DBFluteのExampleの実装があります(Testを兼ねる)。<br />
-		<br />
-		こちら実装の参考になるだけでなく、気軽に自動生成されたDBFluteのクラスを実際に触ることができます。<br />
-		実際に動かすことも可能です。MySQLとMbUnitを用意して頂くことで、実際にDBアクセスが可能です。<br />
-		(dbflute-nbasic-example/readme.txtをお読みください)<br />
-		<br />
-		Subversion経由でチェックアウトが可能です。リポジトリURLは以下：<br />
-		https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-nbasic-example<br />
-		都度都度更新していますので、時折更新してみて下さい。
-		<h4>ドキュメントはJava版と同居</h4>
-		これは謝らなければならないことです。大変申し訳ありません。<br />
-		ですが、現状のメンテリソースからはどうしてもそうせざるを得ません。<br />
-		(C#版ドキュメントを作成、メンテしてくる方がいらっしゃいましたら歓迎いたします)<br />
-		<br />
-		現状(2008年1月頃)では、Java版のドキュメントから先述した実装差を考慮して読むようにして下さい。<br />
-		その中で、あまりに違う部分などについては「C#版ではこうこうこうなる」というように注釈をいれます。<br />
-		また、先述したC#版DBFluteのExampleも参考にしてみて下さい。<br />
-		<h4>更新日時：2008/01/18 Fri.</h4>
-		このページ自体を更新した場合にこの更新日時を更新していきます。<br />
-		時折チェックしてみて下さい。<br />
-	</p>
+	<h3>ReSharperのススメ</h3>
+	これは必須ではありませんが、ReSharperをおすすめします。<br />
+	<br />
+	DBFluteのウリの一つとして、IDEの補完機能でサクサク実装することが挙げられるのですが、<br />
+	VisualStudioの補完機能はEclipseのそれに比べて遥かにストレスの溜まるものです。<br />
+	ReSharperはそれを補ってくれるVisualStudioのAdd-inです。<br />
+	ライセンス料が必要なので敷居が高いですが、あれば便利であることは間違いありません。
+	<h3>Exampleのススメ</h3>
+	C#版DBFluteのExampleの実装があります(Testを兼ねる)。<br />
+	<br />
+	こちら実装の参考になるだけでなく、気軽に自動生成されたDBFluteのクラスを実際に触ることができます。<br />
+	実際に動かすことも可能です。MySQLとMbUnitを用意して頂くことで、実際にDBアクセスが可能です。<br />
+	(dbflute-nbasic-example/readme.txtをお読みください)<br />
+	<br />
+	Subversion経由でチェックアウトが可能です。リポジトリURLは以下：<br />
+	https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-nbasic-example<br />
+	都度都度更新していますので、時折更新してみて下さい。
+	<h3>ドキュメントはJava版と同居</h3>
+	これは謝らなければならないことです。大変申し訳ありません。<br />
+	ですが、現状のメンテリソースからはどうしてもそうせざるを得ません。<br />
+	(C#版ドキュメントを作成、メンテしてくる方がいらっしゃいましたら歓迎いたします)<br />
+	<br />
+	現状(2008年1月頃)では、Java版のドキュメントから先述した実装差を考慮して読むようにして下さい。<br />
+	その中で、あまりに違う部分などについては「C#版ではこうこうこうなる」というように注釈をいれます。<br />
+	また、先述したC#版DBFluteのExampleも参考にしてみて下さい。<br />
+	<h3>更新日時：2008/01/18 Fri.</h3>
+	このページ自体を更新した場合にこの更新日時を更新していきます。<br />
+	時折チェックしてみて下さい。<br />
 		
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
-	<h3>Main Contents</h3>
+	<h3>Document</h3>
 	<ul>
 		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
 		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
 		<ul>
 			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
@@ -234,6 +217,7 @@ _memberBhv.LoadPurchaseList(memberList, delegate(PurchaseCB cb) {
 	</ul>
 	<h3>Topics</h3>
 	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
 		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
 	</ul>
 	<h3>Various</h3>
