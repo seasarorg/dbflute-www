@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>DBFluteの内部構造</h2>
+	<h3>概要</h3>
+	<p>
+		DBFluteの内部構造を理解するためのページです。既にDBFluteを利用していておおよその理解があることを前提としています。
+	</p>
+	<p>
+		説明のために<a href="../../view/exampledb/EARoot/EA1.html">Exampleで利用しているDB</a>を利用します。
+	</p>
+	<h3>基本構造</h3>
+	<p>
+		DBFluteは、<a href="http://db.apache.org/torque/">Apache Torque</a>を利用した自動生成ツールです。よって、基本的な構造はTorqueをベースにしています。
+	</p>
+	<p>
+		DBFluteは、DBFluteの本体である「DBFluteモジュール」と、DBFluteのユーザ独自の情報を管理する「DBFluteクライアント」の二つで構成されます。
+		DBFluteモジュールはDownloadしてきたもの、DBFluteクライアントはEMechaやテンプレートからユーザが作成したもの、という風になります。
+	</p>
+	<h3>DBFluteモジュール</h3>
+	<p>
+		mydbflute配下に配置するファイル群です。
+	</p>
+	<h4>DBFluteモジュール配下</h4>
+	<dl>
+		<dt>「ant」ディレクトリ</dt>
+		<dd>組み込んでいるApache Antのモジュールが格納されています。</dd>
+		<dt>「etc」ディレクトリ</dt>
+		<dd>DBFluteクライアントのテンプレート、DBFluteの内部コマンドが格納されています。</dd>
+		<dt>「lib」ディレクトリ</dt>
+		<dd>DBFluteが利用するライブラリ(jarファイル)が格納されています。JDBCドライバを差し替える場合は、ここのファイルを差し替えます。</dd>
+		<dt>「log」ディレクトリ</dt>
+		<dd>現在利用されておりません。ログはDBFluteクライアントの「log」ディレクトリに出力されます。</dd>
+		<dt>「output」ディレクトリ</dt>
+		<dd>DBFluteが生成する<a href="../../view/schema/project-schema-exampledb.html">スキーマHTML</a>などの一時格納場所です。一時置なので通常意識する必要はありません。</dd>
+		<dt>「schema」ディレクトリ</dt>
+		<dd>DBFluteが生成するスキーマXMLなどの一時格納場所です。DBFluteは自動生成実行時にここのスキーマXMLを参照します。DBFluteクライアントのschema配下のファイルがここにコピーされます。</dd>
+		<dt>「templates」ディレクトリ</dt>
+		<dd>DBFluteが自動生成時に利用するVelocityのテンプレートファイルが格納されています。</dd>
+		<dt>「build.properties」ファイル</dt>
+		<dd>DBFluteが参照するビルドプロパティの一時格納場所です。DBFluteは自動生成実行時にここのビルドプロパティを参照します。DBFluteクライアントのビルドプロパティがここにコピーされます。</dd>
+		<dt>「build-torque.xml」ファイル</dt>
+		<dd>DBFluteのANTタスクが記述されたANT形式のXMLです。</dd>
+	</dl>
+	<p>
+		DBFluteユーザが意識する可能性のあるものは、「etc」のDBFluteクライアントのテンプレート、「lib」のJDBCドライバ、「templates」のVelocityテンプレートです。
+	</p>
+	<h4>「templates」配下</h4>
+	<dl>
+		<dt>「templates/data」ディレクトリ</dt>
+		<dd>現在利用されていません。将来削除されるかもしれません。</dd>
+		<dt>「templates/doc」ディレクトリ</dt>
+		<dd><a href="../../view/schema/project-schema-exampledb.html">スキーマHTML</a>のテンプレートが格納されています。</dd>
+		<dt>「templates/om」ディレクトリ</dt>
+		<dd>自動生成クラスのテンプレートが格納されています。言語ごとに分けて管理されています。</dd>
+		<dt>「templates/om/csharp」ディレクトリ</dt>
+		<dd>C#用のVelocityテンプレートが格納されています。</dd>
+		<dt>「templates/om/java」ディレクトリ</dt>
+		<dd>Java用のVelocityテンプレートが格納されています。</dd>
+		<dt>「templates/om/Control.vm」ファイル</dt>
+		<dd>Generate処理のコントロールをするVelocityのファイルです。「定数定義」や「パッケージ定義」も含め、「何のクラスを自動生成するか」の処理が全て記述されています。</dd>
+		<dt>「templates/om/sql2entity-Control.vm」ファイル</dt>
+		<dd>Sql2Entity処理のコントロールをするVelocityのファイルです。</dd>
+	</dl>
+<h3>TODO: @jflute -- 作成中</h3>
+<p>
+<a href="../../view/concept/internal/EARoot/EA1.html">内部概念モデル</a>
+</p>
+		
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
