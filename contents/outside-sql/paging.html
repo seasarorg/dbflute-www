@@ -49,7 +49,7 @@
 		ページング検索のSQLを作成し、autoPaging()/manualPaging()から「selectPage()」を実行します。<br />
 		引数のParameterBeanは、PagingBeanインターフェースの実装クラスである必要があります。
 		<pre>ex) 自動ページング(autoPaging)<code>
-final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
 		</code></pre>
 	</p>
 	<p>
@@ -90,7 +90,7 @@ final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().
 					<p>
 						→ 「カラム列挙」と「count(*)」とを切り替えることが可能になる。<br />
 						→ 「ページング実データ検索のみ」の場合は不要。<br />
-						→ C#版の場合は「/*IF pmb.Paging*/」となるので注意。
+						→ C#版の場合は「/*IF pmb.IsPaging*/」となるので注意。
 					</p>
 					<pre><code>
 /*IF pmb.isPaging()*/
@@ -219,10 +219,10 @@ select member.MEMBER_ID
 						→ 「ページング実データ検索のみ」の場合は代わりにselectList()を利用。
 					</p>
 					<pre>ex) 自動ページング(autoPaging)<code>
-final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
 					</code></pre>
 					<pre>ex) 手動ページング(manualPaging)<code>
-final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().manualPaging().selectPage(path, pmb, entityType);
+PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().manualPaging().selectPage(path, pmb, entityType);
 					</code></pre>
 					<li>ParameterBeanの「fetchFirst()」・「fetchPage()」メソッドを利用してページング情報を指定する。</li>
 					<p>
@@ -230,9 +230,13 @@ final PagingResultBean&lt;UnpaidSummaryMember&gt; page = memberBhv.outsideSql().
 						→ メソッド仕様はConditionBeanの場合と全く同じである。
 					</p>
 					<pre><code>
-final UnpaidSummaryMemberPmb pmb = new UnpaidSummaryMemberPmb();
-pmb.fetchFirst(20);
-pmb.fetchPage(3);
+UnpaidSummaryMemberPmb pmb = new UnpaidSummaryMemberPmb();
+pmb.paging(20, 3);
+
+// paging()メソッドはDBFlute-0.7.3よりサポート。
+// DBFlute-0.7.2までは以下の通り：
+// pmb.fetchFirst(20);
+// pmb.fetchPage(3);
 					</code></pre>
 				</ul>
 			</p>
@@ -244,26 +248,28 @@ pmb.fetchPage(3);
 public void test_outsideSql_select_autoPaging_selectPage_Tx() throws Exception {
     // ## Arrange ##
     // SQLのパス
-    final String path = MemberBhv.PATH_selectUnpaidSummaryMember;
+    String path = MemberBhv.PATH_selectUnpaidSummaryMember;
 
     // 検索条件
     final UnpaidSummaryMemberPmb pmb = new UnpaidSummaryMemberPmb();
     pmb.setMemberStatusCode(ClassificationDefinition.CODE_MemberStatus_Formalized);
 
     // 戻り値Entityの型
-    final Class&lt;UnpaidSummaryMember&gt; entityType = UnpaidSummaryMember.class;
+    Class&lt;UnpaidSummaryMember&gt; entityType = UnpaidSummaryMember.class;
 
     // ## Act ##
-    // SQL実行！
-    pmb.fetchFirst(2);// ページサイズ「２」
-    pmb.fetchPage(1);// １ページ目
-    final PagingResultBean&lt;UnpaidSummaryMember&gt; page1 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
-    pmb.fetchPage(2);// ２ページ目
-    final PagingResultBean&lt;UnpaidSummaryMember&gt; page2 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
-    pmb.fetchPage(3);// ３ページ目
-    final PagingResultBean&lt;UnpaidSummaryMember&gt; page3 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
-    pmb.fetchPage(page1.getAllPageCount());// 最後のページ
-    final PagingResultBean&lt;UnpaidSummaryMember&gt; lastPage = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+    int pageSize = 2;// ページサイズ「２」
+    pmb.paging(pageSize, 1);// １ページ目
+    PagingResultBean&lt;UnpaidSummaryMember&gt; page1 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+
+    pmb.paging(pageSize, 2);// ２ページ目
+    PagingResultBean&lt;UnpaidSummaryMember&gt; page2 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+
+    pmb.paging(pageSize, 3);// ３ページ目
+    PagingResultBean&lt;UnpaidSummaryMember&gt; page3 = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
+
+    pmb.paging(pageSize, page1.getAllPageCount());// 最後のページ
+    PagingResultBean&lt;UnpaidSummaryMember&gt; lastPage = memberBhv.outsideSql().autoPaging().selectPage(path, pmb, entityType);
 
     // ## Assert ##
     showPage(page1, page2, page3, lastPage);
