@@ -45,9 +45,13 @@ map:{
 	<p>
 		PostgreSQLは連番生成の仕組みとしてSequenceを利用します。
 	</p>
-	<h4>DBFluteでのSequence設定</h4>
+	<dl>
+		<dt>DBFluteでのSequence設定</dt>
+		<dd>後述の「PostgreSQLでのSequenceについて」をご覧下さい。</dd>
+	</dl>
+	<h4>PostgreSQLでのSequenceについて</h4>
 	<p>
-		詳しくは<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でSequenceを使うDBの場合」をご覧下さい。但し、以下に補足があります。
+		詳しくは<a href="../setup/sequence.html">DBFluteのSequence</a>をご覧下さい。但し、以下に補足があります。
 	</p>
 	<p>
 		通常Sequenceは明示的にSequenceとテーブルの関連付けを設定ファイルに記述する必要があるのですが、
@@ -56,45 +60,6 @@ map:{
 	<h3>ページングの実現方法</h3>
 	<p>
 		limit/offset句を利用しています。
-	</p>
-	<h3>FixedConditionの活用</h3>
-	<p>
-		PostgreSQLはleft outer joinのon句内のサブクエリの中で結合元テーブルのカラム参照が可能なので、FixedConditionを効果的に活用できます。例えば「親 left outer join あるカラムが最大値の子」というような結合が可能になります。
-	</p>
-	<p>
-		例えば、会員(MEMBER)の最終ログイン日時を取得したい場合は、まずAdditionalForeignKeyで以下のように設定します。(親テーブルで最終ログイン日時というカラムを明示的に保持してないことが前提)
-	</p>
-	<pre>ex) 「親 left outer join あるカラムが最大値の子」を設定 {会員(MEMBER)の最終ログイン日時} @additionalForeignKeyMap.dfprop<code>
-map:{
-    ; FK_MEMBER_MEMBER_LOGIN_LATEST  = map:{
-        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-        ; fixedCondition  = 
-
-    # on句の固定条件として「結合先ログイン情報が該当会員の最新のログイン日時であること」を追加
-    # 以下の変数を使うことでテーブルのAlias名がSQL実行時に自動解決。
-    #   $$localAlias$$   = 基点テーブルのAlias名
-    #   $$foreignAlias$$ = 結合テーブルのAlias名
-    $$foreignAlias$$.LOGIN_DATETIME = (select max(LOGIN_DATETIME) from MEMBER_LOGIN where MEMBER_ID = $$localAlias$$.MEMBER_ID)
-
-        ; fixedSuffix = AsLatest
-    }
-}
-	</code></pre>
-	<p>
-		すると、上記設定後に自動生成し直すと、以下のようにConditionBeanで最終ログイン日時を取得することができます。
-	</p>
-	<pre>ex) 「親 left outer join ある値が最新の子」を設定 {会員(MEMBER)の最終ログイン日時} @Java<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberLoginAsLatest();
-List&lt;Member&gt; memberList = memberBhv.selectList(cb);
-for (Member member : memberList) {
-    MemberLogin memberLogin = member.getMemberLoginAsLatest();
-	... = memberLogin.getLoginDatetime();// 最終ログイン日時を取得
-}
-	</code></pre>
-	<p>
-		いざこういう検索が必要になったときには絶大な効果を発揮します。必要なければ使う必要は当然ありませんが、こういう機能があることを覚えておきましょう。
 	</p>
 	<h3>Example</h3>
 	<p>

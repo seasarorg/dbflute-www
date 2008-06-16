@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>DBFluteのSequence</h2>
+	<p>
+		DBFluteをSequenceを使った連番生成の設定について説明します。
+	</p>
+	<h3>仕組みについて</h3>
+	<p>
+		Sequenceは基本的にInsert文の実行直前にSequenceを取得するSQLを実行する必要があります。DBFluteはその直前実行を自動化し、Identityを利用しているのと同様に利用できるようにしています。
+	</p>
+	<pre>ex) Sequenceを使ったInsert時(Identityと同様にPKを指定しない) @Java<code>
+Member member = new Member();
+member.setMemberName("Billy Joel");
+member.setMemberAccount("billyjoel");
+memberBhv.insert(member);
+	</code></pre>
+	<h3>Sequenceの設定</h3>
+	<p>
+		一般にSequenceは独立したオブジェクトであり、特にテーブルに紐付いているわけではないので、DBFluteに「どのSequenceがどのテーブルと関連付いているのか」を教えてあげる必要があります。
+	</p>
+	<p>
+		DBFluteクライアント配下の「dfprop/sequenceDefinitionMap.dfprop」というファイルに関連付けを設定します。すると、DBFluteはInsert時に自動的に該当のSequenceから値を取得してInsertするようになります。
+	</p>
+	<pre>ex) DBFluteでのSequenceの設定 @sequenceDefinitionMap.dfprop<code>
+map:{
+    ; PURCHASE     = SEQ_PURCHASE
+    ; MEMBER       = SEQ_MEMBER
+    ; MEMBER_LOGIN = SEQ_MEMBER_LOGIN
+    ; PRODUCT      = SEQ_PRODUCT
+}
+	</code></pre>
+	<p>
+		<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example">DBFluteOracleExample</a>にて、この設定のExampleがありますのでご参考下さい。
+	</p>
+	<p>
+		PostgreSQLのSerial型に関しては、「どのSequenceがどのテーブルと関連付いているのか」がシステム的にわかるSequenceなので、上記の設定なしでSequenceを利用することが可能です。
+		PostgreSQLの扱いに関しては<a href="../dbvendor/postgresql.html">こちら</a>
+	</p>
+	<h3>Sequenceの明示的取得</h3>
+	<p>
+		SequenceのIdentityとの違いは「Insert前に値を取得することができる」ことです。
+	</p>
+	<p>
+		稀にInsert前に値を取得して、その値から別のカラムの値を導出してからInsertするような要件があったりします。
+		通常はSequenceの自動設定が便利ですが、このような場合だけは事前に明示的にSequenceを取得します。
+	</p>
+	<pre>ex) DBFluteでのSequenceの明示的取得 @Java<code>
+Integer nextVal = memberBhv.selectNextVal();
+	</code></pre>
+	<p>
+		sequenceDefinitionMapの関連付け設定をしておくことで、BehaviorにselectNextVal()メソッドが生成されます。
+		DBFluteは内部でこのメソッドを呼び出してEntityに自動設定しているだけです。
+		自分で明示的に取得してEntityに設定することも可能です。明示的にPKに値を設定された場合は内部で自動設定は実行しないようになります。
+	</p>
+	<pre>ex) DBFluteでのSequenceの明示的取得＆明示的設定 @Java<code>
+Integer nextVal = memberBhv.selectNextVal();
+Member member = new Member();
+member.setMemberId(nextVal); // *Point!
+member.setMemberName("Billy Joel");
+member.setMemberAccount("billyjoel");
+memberBhv.insert(member);
+	</code></pre>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>

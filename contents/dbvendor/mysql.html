@@ -45,10 +45,10 @@ map:{
 	<p>
 		連番生成の仕組みとしてIdentityを利用します。
 	</p>
-	<h4>DBFluteでのIdentity設定</h4>
-	<p>
-		詳しくは<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でIdentityを使うDBの場合」をご覧下さい。以降はDBベンダ依存の補足です。
-	</p>
+	<dl>
+		<dt>DBFluteでのIdentity設定</dt>
+		<dd>詳しくは<a href="../setup/identity.html">DBFluteのIdentity</a>をご覧下さい。</dd>
+	</dl>
 	<h4>補足：MySQLでIdentity設定</h4>
 	<p>
 		Create文では以下のように指定します。
@@ -160,46 +160,6 @@ sql_mode="PIPES_AS_CONCAT,ANSI_QUOTES,IGNORE_SPACE,NO_DIR_IN_CREATE,STRICT_TRANS
 		<li>PIPES_AS_CONCAT ： SQL上の文字列連結で'||'が利用可能になる</li>
 		<li>ONLY_FULL_GROUP_BY ： 間違ったGroupByがちゃんとエラーになる</li>
 	</ul>
-	
-	<h3>FixedConditionの活用</h3>
-	<p>
-		MySQLはleft outer joinのon句内のサブクエリの中で結合元テーブルのカラム参照が可能なので、FixedConditionを効果的に活用できます。例えば「親 left outer join あるカラムが最大値の子」というような結合が可能になります。
-	</p>
-	<p>
-		例えば、会員(MEMBER)の最終ログイン日時を取得したい場合は、まずAdditionalForeignKeyで以下のように設定します。(親テーブルで最終ログイン日時というカラムを明示的に保持してないことが前提)
-	</p>
-	<pre>ex) 「親 left outer join あるカラムが最大値の子」を設定 {会員(MEMBER)の最終ログイン日時} @additionalForeignKeyMap.dfprop<code>
-map:{
-    ; FK_MEMBER_MEMBER_LOGIN_LATEST  = map:{
-        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-        ; fixedCondition  = 
-
-    # on句の固定条件として「結合先ログイン情報が該当会員の最新のログイン日時であること」を追加
-    # 以下の変数を使うことでテーブルのAlias名がSQL実行時に自動解決。
-    #   $$localAlias$$   = 基点テーブルのAlias名
-    #   $$foreignAlias$$ = 結合テーブルのAlias名
-    $$foreignAlias$$.LOGIN_DATETIME = (select max(LOGIN_DATETIME) from MEMBER_LOGIN where MEMBER_ID = $$localAlias$$.MEMBER_ID)
-
-        ; fixedSuffix = AsLatest
-    }
-}
-	</code></pre>
-	<p>
-		すると、上記設定後に自動生成し直すと、以下のようにConditionBeanで最終ログイン日時を取得することができます。
-	</p>
-	<pre>ex) 「親 left outer join ある値が最新の子」を設定 {会員(MEMBER)の最終ログイン日時} @Java<code>
-MemberCB cb = new MemberCB();
-cb.setupSelect_MemberLoginAsLatest();
-List&lt;Member&gt; memberList = memberBhv.selectList(cb);
-for (Member member : memberList) {
-    MemberLogin memberLogin = member.getMemberLoginAsLatest();
-	... = memberLogin.getLoginDatetime();// 最終ログイン日時を取得
-}
-	</code></pre>
-	<p>
-		いざこういう検索が必要になったときには絶大な効果を発揮します。必要なければ使う必要は当然ありませんが、こういう機能があることを覚えておきましょう。
-	</p>
 	<h3>Example</h3>
 	<p>
 		MySQLを利用したDBFluteのExampleプロジェクト(Java)が存在します。ぜひそちらを参考にしてみて下さい。

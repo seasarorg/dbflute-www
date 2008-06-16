@@ -16,33 +16,80 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>DBベンダごとの扱い</h2>
+	<h2>DBFluteにおけるH2の扱い</h2>
+	<h3>概要</h3>
 	<p>
-		DBFluteを利用する上でのDBベンダごとの扱いです。接続設定やDB特有の必須設定などについて記載されていますので、必ずお読みください。
+		DBFluteを利用する上でのH2の扱いを述べます。
 	</p>
-	<h3>関連ページへのリンク</h3>
+	<p>
+		※バージョンはH2-1.0.xを前提として記載しています。
+	</p>
+	<h3>JDBCタスクで利用するJDBCドライバ</h3>
+	<p>
+		JDBCドライバは「h2-2008-05-31.jar」(DBFlute-0.7.3時点)を利用しています。但し、これは随時バージョンアップしていきます。
+	</p>
+	<h3>JDBCタスクの接続設定(./dfprop/databaseInfoMap.dfprop)</h3>
+	<p>
+		JDBCタスクの接続設定は以下の通りです。
+	</p>
+	<pre>ex) 接続{Embeddedの場合} @databaseInfoMap.dfprop<code>
+map:{
+    ; driver          = org.h2.Driver
+    ; url             = jdbc:h2:file:../src/main/resources/exampledb/exampledb
+    ; schema          = 
+    ; user            = [dbuser]
+    ; password        = [dbpassword]
+}
+	</code></pre>
+	<h3>主キーで連番の利用</h3>
+	<p>
+		H2は連番生成の仕組みとしてSequenceとIdentityが利用可能です。
+		(但し、DBFluteでH2のSequenceをサポートしたのは0.7.4からとなりますのでご注意下さい)
+	</p>
+	<dl>
+		<dt>DBFluteでのSequence設定</dt>
+		<dd>詳しくは<a href="../setup/sequence.html">DBFluteのSequence</a>をご覧下さい。</dd>
+		<dt>DBFluteでのIdentity設定</dt>
+		<dd>詳しくは<a href="../setup/identity.html">DBFluteのIdentity</a>をご覧下さい。</dd>
+	</dl>
+	<h4>補足：H2でIdentity設定</h4>
+	<p>
+		Create文では以下のように指定します。
+	</p>
+	<pre>ex) H2でIdentity設定 {MEMBERのMEMBER_IDにIdentity} @DDL<code>
+CREATE TABLE MEMBER
+(
+    MEMBER_ID INTEGER IDENTITY NOT NULL PRIMARY KEY,
+    MEMBER_NAME VARCHAR(200) NOT NULL,
+    ...
+)
+	</code></pre>
+	<h4>補足：H2でInsert文の実行後に発行された連番を取得</h4>
+	<p>
+		Insert文の実行後に発行された連番を取得するSQLは以下のようになります。DBFluteを利用している場合は内部的に発行されるので意識する必要はありません。
+	</p>
+	<pre>ex) H2でInsert文の実行後に発行された連番を取得 @SQL<code>
+CALL IDENTITY()
+	</code></pre>
+	<h3>ページングの実現方法</h3>
+	<p>
+		limit/offset句を利用しています。
+	</p>
+	<pre>ex) H2でページング絞り {limit/offset句} @SQL<code>
+select ...
+  from MEMBER dflocal  
+ order by dflocal.MEMBER_NAME asc 
+ limit 4 offset 8
+	</code></pre>
+	<h3>Example</h3>
+	<p>
+		H2を利用したDBFluteのExampleプロジェクト(Java)が存在します。ぜひそちらを参考にしてみて下さい。
+	</p>
 	<ul>
-		<li><a href="./mysql.html">MySQL</a></li>
-		<li><a href="./postgresql.html">PostgreSQL</a></li>
-		<li><a href="./oracle.html">Oracle</a></li>
-		<li><a href="./db2.html">DB2</a></li>
-		<li><a href="./sqlserver.html">SQLServer (工事中)</a></li>
-		<li><a href="./firebird.html">Firebird (工事中)</a></li>
-		<li><a href="./h2.html">H2</a></li>
-		<li><a href="./derby.html">Apache Derby (工事中)</a></li>
+		<li>SVNリポジトリ：https://www.seasar.org/svn/sandbox/dbflute/</li>
+		<li>プロジェクト：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example">dbflute-basic-example</a></li>
 	</ul>
-	<h2>DBベンダ共通の扱い</h2>
-	<h3>主キーの連番でSequenceを使うDBの場合</h3>
-	<h4>DBFluteでのSequence設定</h4>
-	<p>
-		<a href="../setup/sequence.html">こちら</a>に移行しました
-	</p>
-	<h3>主キーの連番でIdentityを使うDBの場合</h3>
-	<h4>DBFluteでのIdentity設定</h4>
-	<p>
-		<a href="../setup/identity.html">こちら</a>に移行しました
-	</p>
-
+	
 <!-- __content-end__ --></div>
 
 <div id="sideBar">

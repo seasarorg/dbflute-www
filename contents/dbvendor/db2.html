@@ -58,9 +58,31 @@ map:{
 	<p>
 		DB2は連番生成の仕組みとしてSequenceとIdentityを利用することができます。
 	</p>
-	<h4>DBFluteでのSequence設定</h4>
+	<dl>
+		<dt>DBFluteでのSequence設定</dt>
+		<dd>詳しくは<a href="../setup/sequence.html">DBFluteのSequence</a>をご覧下さい。</dd>
+		<dt>DBFluteでのIdentity設定</dt>
+		<dd>後述の「DB2でのIdentityについて」をご覧下さい。</dd>
+	</dl>
+	<h4>DB2でのIdentityについて</h4>
 	<p>
-		詳しくは<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でSequenceを使うDBの場合」をご覧下さい。以降はDBベンダ依存の補足です。
+		DB2のJDBCドライバにちょっとしたクセがあります。
+	</p>
+	<p>
+		Identityが「always」の場合は、特に問題ありません。<a href="../setup/identity.html">DBFluteのIdentity</a>をご覧下さい。
+	</p>
+	<p>
+		Identityが「by default」の場合は、DB2のJDBCドライバがオートインクメント情報を提供してくれないため(バグかどうか不明)、DBFluteに手動でIdentity情報を与える必要があります。
+	</p>
+	<pre>ex) 手動Identity設定 @identityDefinitionMap.dfprop<code>
+map:{
+    MEMBER = MEMBER_ID
+    ; PURCHASE = PURCHASE_ID
+    ; ...
+}
+	</code></pre>
+	<p>
+		「always」の方が設定は楽になりますが、PKの値を明示的に指定したInsertができないためテストデータの管理等が煩雑になります。なので、「by default」がおすすめです。
 	</p>
 	<h4>補足：DB2でSequenceを作成</h4>
 	<p>
@@ -76,26 +98,6 @@ CREATE SEQUENCE SEQ_MEMBER AS INT START WITH 1 INCREMENT BY 1;
 	<pre>ex) DB2でSequenceを取得 @SQL<code>
 values nextval for SEQ_MEMBER;
 	</code></pre>
-	<h4>DBFluteでのIdentity設定</h4>
-	<p>
-		DB2のJDBCドライバにちょっとしたクセがあります。
-	</p>
-	<p>
-		Identityが「always」の場合は、<a href="./basic.html">DBベンダごとの扱い</a>の「主キーの連番でIdentityを使うDBの場合」をご覧下さい。
-	</p>
-	<p>
-		Identityが「by default」の場合は、DB2のJDBCドライバがオートインクメント情報を提供してくれないため(バグかどうか不明)、DBFluteに手動でIdentity情報を与える必要があります。
-	</p>
-	<pre>ex) 手動Identity設定 @identityDefinitionMap.dfprop<code>
-map:{
-    MEMBER = MEMBER_ID
-    ; PURCHASE = PURCHASE_ID
-    ; ...
-}
-	</code></pre>
-	<p>
-		「always」の方が設定は楽になりますが、PKの値を明示的に指定したInsertができないためテストデータの管理等が煩雑になります。なので、「by default」がおすすめです。
-	</p>
 	<h4>補足：DB2でIdentity設定</h4>
 	<p>
 		Create文では以下のように指定します。

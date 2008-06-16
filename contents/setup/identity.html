@@ -16,33 +16,36 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>DBベンダごとの扱い</h2>
+	<h2>DBFluteのIdentity</h2>
 	<p>
-		DBFluteを利用する上でのDBベンダごとの扱いです。接続設定やDB特有の必須設定などについて記載されていますので、必ずお読みください。
+		DBFluteをIdentityを使った連番生成の設定について説明します。
 	</p>
-	<h3>関連ページへのリンク</h3>
-	<ul>
-		<li><a href="./mysql.html">MySQL</a></li>
-		<li><a href="./postgresql.html">PostgreSQL</a></li>
-		<li><a href="./oracle.html">Oracle</a></li>
-		<li><a href="./db2.html">DB2</a></li>
-		<li><a href="./sqlserver.html">SQLServer (工事中)</a></li>
-		<li><a href="./firebird.html">Firebird (工事中)</a></li>
-		<li><a href="./h2.html">H2</a></li>
-		<li><a href="./derby.html">Apache Derby (工事中)</a></li>
-	</ul>
-	<h2>DBベンダ共通の扱い</h2>
-	<h3>主キーの連番でSequenceを使うDBの場合</h3>
-	<h4>DBFluteでのSequence設定</h4>
+	<h3>仕組みについて</h3>
 	<p>
-		<a href="../setup/sequence.html">こちら</a>に移行しました
+		Identityは基本的にIdentity属性が付与されたPKカラムをInsert文に含めずに実行するとDB内部で連番が発行されます。そして、その直後に発行された連番値を取得するSQLを実行することでPKの値を知ることができます。
 	</p>
-	<h3>主キーの連番でIdentityを使うDBの場合</h3>
-	<h4>DBFluteでのIdentity設定</h4>
 	<p>
-		<a href="../setup/identity.html">こちら</a>に移行しました
+		通常「どのカラムがIdentity属性が付与されているのか」をInsert文を発行するフレームワークが知る必要があるのですが、
+		DBFluteは自動生成時にJDBC経由でそのIdentity情報を取得するため、特に特別な設定をせずにIdentityを利用することが可能です。
+		(S2DaoのIDアノテーションを自動生成しています)
 	</p>
+	<p>
+		また、「直後の発行された連番値を取得するSQLを実行」はDBFluteが自動的に実行し、EntityのPKプロパティにその値を格納するため、特に意識せずに連番値を利用することが可能です。
+		(S2Daoの機能をそのまま利用しています)
+	</p>
+	<pre>ex) Identityを使ったInsert時(PKに値を設定しないでOK) @Java<code>
+Member member = new Member();
+member.setMemberName("Billy Joel");
+member.setMemberAccount("billyjoel");
+memberBhv.insert(member);
 
+Integer memberId = member.getMemberId();// *Point!
+	</code></pre>
+	<h3>Identityの設定</h3>
+	<p>
+		上記の通り、Identityの利用に関しては特別に設定をする必要はありません。
+	</p>
+	
 <!-- __content-end__ --></div>
 
 <div id="sideBar">
