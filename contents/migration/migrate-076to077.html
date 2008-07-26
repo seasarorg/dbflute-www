@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.7.6 to 0.7.7}</h2>
+	<h3>環境上の注意点</h3>
+	<h4>Sql2Entityも一緒に</h4>
+	<p>
+		バージョンアップした際は、GenerateだけでなくSql2Entityも実行して下さい。
+	</p>
+	<h4>古いテーブルを削除</h4>
+	<p>
+		古いテーブルのクラスが残っているとコンパイルエラーになる可能性があります。
+		それらクラスは不要なので削除するようにして下さい。
+	</p>
+	<p>
+		build-xxx.propertiesに「torque.isDeleteOldTableClass = true」を定義すると、古いテーブルのクラスを削除(OS上のファイルを削除)します。設定例は<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example/dbflute_exampledb/build-exampledb.properties">こちら</a>
+	</p>
+	<h4>jdbc.diconの旧S2JDBCコンポーネント@Java</h4>
+	<p>
+		今まで、jdbc.diconに「ResultSetFactory(BasicResultSetFactory)」と「StatementFactory(ConfigurableStatementFactory)」を定義しなければなりませんでしたが、こちら不要になりました。
+	</p>
+	<p>
+		DBFluteはもともとこれらを必要としていませんでしたが、S2Daoとの互換のために定義しなければなりませんでした。今回互換を保ったままその依存を除去したので、jdbc.diconから削除して構いません。無論、残してても別に構いません(利用しないだけ)。
+	</p>
+    <h4>不要なクラス@Java</h4>
+    <p>
+    	以下クラスは不要となりました。削除して構いません(残ってても支障ありません)。
+    </p>
+    <ul>
+    	<li>...allcommon.dbmeta.info.RefererInfo *ReferrerInfoと間違えないように</li>
+    	<li>...allcommon.s2dao.S2DaoStatementFactory</li>
+    </ul>
+	<h3>実装上の注意点</h3>
+	<h4>java.sql.SQLExceptionの扱い@Java</h4>
+	<p>
+		SQLExceptionが発生した時のthrowされる例外が以下のように変わりました。
+	</p>
+	<dl>
+		<dt>今まで</dt>
+		<dd>org.seasar.framework.exception.SQLRuntimException</dd>
+		<dt>これから</dt>
+		<dl>
+			<dt>通常</dt>
+			<dd>...allcommon.exception.SQLFailureException</dd>
+			<dt>一意制約違反</dt>
+			<dd>...allcommon.exception.EntityAlreadyExistsException(extends SQLFailureException)</dd>
+		</dl>
+	</dl>
+	<p>
+		SQLRuntimeExceptionをcatchして独自処理するようなことがなければ意識する必要はありません。
+	</p>
+	<p>
+		もし、SQLRuntimeExceptionをcatchして独自処理しているようであれば、catchする部分の判定の変更をお願いします。ほとんどの場合「一意制約違反」の判定かと思われます。
+		SQLRuntimeExceptionからSQLExceptionのSQLStateやErrorCodeを辿ってDB依存の判定をするよりも、遥かに判定が簡単(かつDB依存は解決)になっています。
+	</p>
+<pre><code>
+try {
+    ... = member.selectList(cb);
+} catch (EntityAlreadyExistsException e) {// 一意制約違反
+    ...独自処理
+}
+</code></pre>
+	<p>
+		本来は、SQLRuntimeExceptionを継承した例外にしたかったのですが、残念ながらSQLRuntimeExceptionはfinalクラスでした。
+		よって、上記のような移行が発生してしまう可能性がありますが、今回は利便性を優先させて頂きました(誠に申し訳ありませn)。
+	</p>
+	<p>
+		独自の例外に変更したことによって、わかりづらかったエラーメッセージを改善することもできました。
+	</p>
+<pre>Oracleの場合の一意制約違反のエラーメッセージ<code>
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The entity already exists on the database!
+
+[Advice]
+Please confirm the primary key whether it already exists on the database.
+And confirm the unique constraint for other columns.
+
+[Statement]
+oracle.jdbc.driver.OraclePreparedStatementWrapper@7e5619
+
+[SQLState]
+23000
+
+[ErrorCode]
+1
+
+[SQLException]
+org.seasar.framework.exception.SSQLException
+[ESSR0072]SQLで例外(SQL=[insert into MEMBER (MEMBER_NAME, MEMBER_ACCOUNT, MEMBER_ID, MEMBER_STATUS_CODE, REGISTER_DATETIME, REGISTER_USER, REGISTER_PROCESS, UPDATE_DATETIME, UPDATE_USER, UPDATE_PROCESS, VERSION_NO) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)], Message=[1], ErrorCode=23000, SQLState={3})が発生しました
+
+[NextException]
+java.sql.SQLException
+ORA-00001: 一意制約(EXAMPLEDB.SYS_C0010726)に反しています
+
+* * * * * * * * * */
+</code></pre>
+	<p>
+		もし、SQLRuntimeExceptionをcatchしてる箇所が多すぎて修正しきれないという場合は、もとの挙動に戻すことも可能です。
+		以下の設定をしてから自動生成し直して下さい。
+	</p>
+<pre>SQLRuntimeExceptionモードに戻す @ビルドプロパティ<code>
+torque.isCompatibleSQLExceptionHandlingOldStyle = true
+</code></pre>
+	<p>
+		一意制約違反のDB依存判定のテストはこちらです。
+	</p>
+	<ul>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example/src/test/java/com/example/dbflute/oracle/dbflute/various/UniqueConstraintTest.java">Oracle:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-postgresql-example/src/test/java/com/example/dbflute/postgresql/dbflute/various/UniqueConstraintTest.java">PostgreSQL:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-mysql-example/src/test/java/com/example/dbflute/mysql/dbflute/various/UniqueConstraintTest.java">MySQL:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-db2-example/src/test/java/com/example/dbflute/db2/dbflute/various/UniqueConstraintTest.java">DB2:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-sqlserver-example/src/test/java/com/example/dbflute/sqlserver/dbflute/various/UniqueConstraintTest.java">SQLServer:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example/src/test/java/com/example/dbflute/basic/dbflute/various/UniqueConstraintTest.java">H2:UniqueConstraintTest</a></li>
+		<li><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dfjava/src/test/java/dbflute/ldb/various/UniqueConstraintTest.java">Derby:UniqueConstraintTest</a></li>
+	</ul>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
