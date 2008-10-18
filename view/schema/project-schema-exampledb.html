@@ -1,1814 +1,1778 @@
-
-
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
 <head>
-  <title>project-schema-exampledb</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <style>
-  .normalFont {
-    font-family: Verdana; font-size: 10pt;
-  }
+  <title>exampledb Schema</title>
+  <style type="text/css">
+      * {
+          margin: 0;
+        padding: 0;
+      }
+    body {
+          font-family: sans-serif;
+        font-size: 90%;
+        margin: 10px 5px 5px 15px;
+    }
+    
+    /* header */
+    h1 {
+        font-size: 1.5em;
+        border-bottom: 2px solid #af0000;
+        border-top: 2px solid #af0000;
+    }
+    h2 {
+        margin: 30px 0 5px 0;
+        font-size: 1.8em;
+        border-bottom: 2px solid #af0000;
+        border-left: 10px solid #af0000;
+        text-indent: 10px;
+    }
+    
+    /* table */
+    table {
+        border-collapse:collapse;
+    }
+    table, th {
+        border: 1px solid #555;
+    }
+    th {
+        background-color: #cc9;
+        font-size: 0.8em;
+    }
+    td {
+        border-bottom: 1px dotted #aaa;
+        border-left: 1px solid #555;
+        padding:2px;
+    }
+    .flgcell {
+        text-align: center;
+    }
+    
+    /* inner table */
+    table.child {
+        margin: 3px;
+    }
+    table.child th {
+        font-size: 0.7em;
+        background-color: #fff;
+    }
+    table.child, table.child td, table.child th {
+        border-top: none;
+        border-left: none;
+        border-bottom: 1px solid #aaa;
+        border-right: 1px solid #aaa;
+    }
   </style>
 </head>
 
-<body class="normalFont">
-  <table border="1" cellspacing="0" cellpadding="0">
-    <tr bgcolor="#CCCCCC">
-      <th class="normalFont">Table Name</th>
-      <th class="normalFont">Entity Name</th>
-      <th class="normalFont">Foreign Table</th>
-      <th class="normalFont">Referrer Table</th>
-      <th class="normalFont">Comment</th>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a></td>
-      <td class="normalFont">Member</td>
-      <td class="normalFont"><a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
-      <td class="normalFont"><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE">PURCHASE</a></td>
-      <td class="normalFont">会員登録時にInsertされる</td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a></td>
-      <td class="normalFont">MemberLogin</td>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#MEMBER_SECURITY">MEMBER_SECURITY</a></td>
-      <td class="normalFont">MemberSecurity</td>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
-      <td class="normalFont">MemberStatus</td>
-      <td class="normalFont"></td>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_LOGIN">MEMBER_LOGIN</a></td>
-      <td class="normalFont">固定の区分値</td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a></td>
-      <td class="normalFont">MemberWithdrawal</td>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a>, <a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#PRODUCT">PRODUCT</a></td>
-      <td class="normalFont">Product</td>
-      <td class="normalFont"><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a></td>
-      <td class="normalFont"><a href="#PURCHASE">PURCHASE</a></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a></td>
-      <td class="normalFont">ProductStatus</td>
-      <td class="normalFont"></td>
-      <td class="normalFont"><a href="#PRODUCT">PRODUCT</a></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#PURCHASE">PURCHASE</a></td>
-      <td class="normalFont">Purchase</td>
-      <td class="normalFont"><a href="#MEMBER">MEMBER</a>, <a href="#PRODUCT">PRODUCT</a></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#VENDOR_CHECK">VENDOR_CHECK</a></td>
-      <td class="normalFont">VendorCheck</td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a></td>
-      <td class="normalFont">WithdrawalReason</td>
-      <td class="normalFont"></td>
-      <td class="normalFont"><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a></td>
-      <td class="normalFont"></td>
-    </tr>
-    <tr>
-      <td class="normalFont"><a href="#SUMMARY_PRODUCT">SUMMARY_PRODUCT</a></td>
-      <td class="normalFont">SummaryProduct</td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-      <td class="normalFont"></td>
-    </tr>
+<body>
+  <h1>exampledb Schema</h1>
+  
+  <h2>Tables</h2>
+  <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>ForeignTable</th>
+          <th>ReferrerTable</th>
+          <th>EntityName</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+    <tbody>
+      <tr>
+        <td><a href="#MEMBER">MEMBER</a></td>
+        <td>TABLE</td>
+        <td><a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
+        <td><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE">PURCHASE</a></td>
+        <td>Member</td>
+        <td> 会員登録時にInsertされる</td>
+      </tr>
+      <tr>
+        <td><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a></td>
+        <td>TABLE</td>
+        <td><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
+        <td>&nbsp;</td>
+        <td>MemberLogin</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#MEMBER_SECURITY">MEMBER_SECURITY</a></td>
+        <td>TABLE</td>
+        <td><a href="#MEMBER">MEMBER</a></td>
+        <td>&nbsp;</td>
+        <td>MemberSecurity</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#MEMBER_STATUS">MEMBER_STATUS</a></td>
+        <td>TABLE</td>
+        <td>&nbsp;</td>
+        <td><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_LOGIN">MEMBER_LOGIN</a></td>
+        <td>MemberStatus</td>
+        <td> 固定の区分値</td>
+      </tr>
+      <tr>
+        <td><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a></td>
+        <td>TABLE</td>
+        <td><a href="#MEMBER">MEMBER</a>, <a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a></td>
+        <td>&nbsp;</td>
+        <td>MemberWithdrawal</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#PRODUCT">PRODUCT</a></td>
+        <td>TABLE</td>
+        <td><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a></td>
+        <td><a href="#PURCHASE">PURCHASE</a></td>
+        <td>Product</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a></td>
+        <td>TABLE</td>
+        <td>&nbsp;</td>
+        <td><a href="#PRODUCT">PRODUCT</a></td>
+        <td>ProductStatus</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#PURCHASE">PURCHASE</a></td>
+        <td>TABLE</td>
+        <td><a href="#MEMBER">MEMBER</a>, <a href="#PRODUCT">PRODUCT</a></td>
+        <td>&nbsp;</td>
+        <td>Purchase</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#VENDOR_CHECK">VENDOR_CHECK</a></td>
+        <td>TABLE</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>VendorCheck</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a></td>
+        <td>TABLE</td>
+        <td>&nbsp;</td>
+        <td><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a></td>
+        <td>WithdrawalReason</td>
+        <td> &nbsp;</td>
+      </tr>
+      <tr>
+        <td><a href="#SUMMARY_PRODUCT">SUMMARY_PRODUCT</a></td>
+        <td>VIEW</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>SummaryProduct</td>
+        <td> &nbsp;</td>
+      </tr>
+    </tbody>
   </table>
 
-
-<a name="MEMBER"/>
-<h2>MEMBER</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="MEMBER" />MEMBER</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERMEMBER_ID">MEMBER_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE">PURCHASE</a>&nbsp;</td>
+    <td>memberId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> 連番</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_ID">MEMBER_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE">PURCHASE</a>&nbsp;</td>
-    <td class="normalFont">memberId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont">連番</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERMEMBER_NAME">MEMBER_NAME</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberName</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> 会員検索の条件となる</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_NAME">MEMBER_NAME</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberName</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont">会員検索の条件となる</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberAccount</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberAccount</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberStatusCode</td>
+    <td>String</td>
+    <td><a href="#MemberStatus">MemberStatus</a></td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"><a href="#MemberStatus">MemberStatus</a></td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="MEMBERMEMBER_FORMALIZED_DATETIME">MEMBER_FORMALIZED_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberFormalizedDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_FORMALIZED_DATETIME">MEMBER_FORMALIZED_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberFormalizedDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="MEMBERMEMBER_BIRTHDAY">MEMBER_BIRTHDAY</td>
+    <td>DATE</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberBirthday</td>
+    <td>Date</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERMEMBER_BIRTHDAY">MEMBER_BIRTHDAY</td>
-    <td class="normalFont">DATE</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberBirthday</td>
-    <td class="normalFont">java.util.Date</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERREGISTER_DATETIME">REGISTER_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERREGISTER_DATETIME">REGISTER_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERREGISTER_USER">REGISTER_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERREGISTER_USER">REGISTER_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERREGISTER_PROCESS">REGISTER_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERREGISTER_PROCESS">REGISTER_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERUPDATE_DATETIME">UPDATE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERUPDATE_DATETIME">UPDATE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERUPDATE_USER">UPDATE_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERUPDATE_USER">UPDATE_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERUPDATE_PROCESS">UPDATE_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERUPDATE_PROCESS">UPDATE_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBERVERSION_NO">VERSION_NO</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">versionNo</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBERVERSION_NO">VERSION_NO</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>versionNo</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("MEMBERMEMBER_STATUS_CODE");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER_STATUS.MEMBER_STATUS_CODE";
-    }
-}
-</script>
 
-
-<a name="MEMBER_LOGIN"/>
-<h2>MEMBER_LOGIN</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="MEMBER_LOGIN" />MEMBER_LOGIN</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_LOGINMEMBER_LOGIN_ID">MEMBER_LOGIN_ID</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberLoginId</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_LOGINMEMBER_LOGIN_ID">MEMBER_LOGIN_ID</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberLoginId</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_LOGINMEMBER_ID">MEMBER_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER">MEMBER</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="MEMBER_LOGINMEMBER_ID">MEMBER_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER">MEMBER</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_LOGINLOGIN_DATETIME">LOGIN_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>loginDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="MEMBER_LOGINLOGIN_DATETIME">LOGIN_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">loginDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_LOGINLOGIN_MOBILE_FLG">LOGIN_MOBILE_FLG</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>loginMobileFlg</td>
+    <td>Integer</td>
+    <td><a href="#Flg">Flg</a></td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_LOGINLOGIN_MOBILE_FLG">LOGIN_MOBILE_FLG</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">loginMobileFlg</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"><a href="#Flg">Flg</a></td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_LOGINLOGIN_MEMBER_STATUS_CODE">LOGIN_MEMBER_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">loginMemberStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_LOGINLOGIN_MEMBER_STATUS_CODE">LOGIN_MEMBER_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>loginMemberStatusCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("MEMBER_LOGINMEMBER_ID");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER.MEMBER_ID";
-    }
-}
-if(document.getElementById) {
-    var col = document.getElementById("MEMBER_LOGINLOGIN_MEMBER_STATUS_CODE");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER_STATUS.MEMBER_STATUS_CODE";
-    }
-}
-</script>
 
-
-<a name="MEMBER_SECURITY"/>
-<h2>MEMBER_SECURITY</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="MEMBER_SECURITY" />MEMBER_SECURITY</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYMEMBER_ID">MEMBER_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER">MEMBER</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYMEMBER_ID">MEMBER_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER">MEMBER</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYLOGIN_PASSWORD">LOGIN_PASSWORD</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>loginPassword</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYLOGIN_PASSWORD">LOGIN_PASSWORD</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">loginPassword</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYREMINDER_QUESTION">REMINDER_QUESTION</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>reminderQuestion</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYREMINDER_QUESTION">REMINDER_QUESTION</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">reminderQuestion</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYREMINDER_ANSWER">REMINDER_ANSWER</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>reminderAnswer</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYREMINDER_ANSWER">REMINDER_ANSWER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">reminderAnswer</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYREGISTER_DATETIME">REGISTER_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYREGISTER_DATETIME">REGISTER_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYREGISTER_PROCESS">REGISTER_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYREGISTER_PROCESS">REGISTER_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYREGISTER_USER">REGISTER_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYREGISTER_USER">REGISTER_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYUPDATE_DATETIME">UPDATE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYUPDATE_DATETIME">UPDATE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYUPDATE_PROCESS">UPDATE_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYUPDATE_PROCESS">UPDATE_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYUPDATE_USER">UPDATE_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYUPDATE_USER">UPDATE_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_SECURITYVERSION_NO">VERSION_NO</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">versionNo</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_SECURITYVERSION_NO">VERSION_NO</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>versionNo</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("MEMBER_SECURITYMEMBER_ID");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER.MEMBER_ID";
-    }
-}
-</script>
 
-
-<a name="MEMBER_STATUS"/>
-<h2>MEMBER_STATUS</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="MEMBER_STATUS" />MEMBER_STATUS</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_STATUSMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>&nbsp;</td>
+    <td>memberStatusCode</td>
+    <td>String</td>
+    <td><a href="#MemberStatus">MemberStatus</a></td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_STATUSMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER">MEMBER</a>, <a href="#MEMBER_LOGIN">MEMBER_LOGIN</a>&nbsp;</td>
-    <td class="normalFont">memberStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"><a href="#MemberStatus">MemberStatus</a></td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_STATUSMEMBER_STATUS_NAME">MEMBER_STATUS_NAME</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberStatusName</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="MEMBER_STATUSMEMBER_STATUS_NAME">MEMBER_STATUS_NAME</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberStatusName</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="MEMBER_STATUSDISPLAY_ORDER">DISPLAY_ORDER</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">displayOrder</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_STATUSDISPLAY_ORDER">DISPLAY_ORDER</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>displayOrder</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-</script>
 
-
-<a name="MEMBER_WITHDRAWAL"/>
-<h2>MEMBER_WITHDRAWAL</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="MEMBER_WITHDRAWAL" />MEMBER_WITHDRAWAL</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALMEMBER_ID">MEMBER_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER">MEMBER</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALMEMBER_ID">MEMBER_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER">MEMBER</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>withdrawalReasonCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#WITHDRAWAL_REASON">WITHDRAWAL_REASON</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">withdrawalReasonCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_INPUT_TEXT">WITHDRAWAL_REASON_INPUT_TEXT</td>
+    <td>CLOB</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>withdrawalReasonInputText</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_INPUT_TEXT">WITHDRAWAL_REASON_INPUT_TEXT</td>
-    <td class="normalFont">CLOB</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">withdrawalReasonInputText</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALWITHDRAWAL_DATETIME">WITHDRAWAL_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>withdrawalDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALWITHDRAWAL_DATETIME">WITHDRAWAL_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">withdrawalDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALREGISTER_DATETIME">REGISTER_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALREGISTER_DATETIME">REGISTER_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALREGISTER_PROCESS">REGISTER_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALREGISTER_PROCESS">REGISTER_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALREGISTER_USER">REGISTER_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALREGISTER_USER">REGISTER_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALUPDATE_DATETIME">UPDATE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALUPDATE_DATETIME">UPDATE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALUPDATE_PROCESS">UPDATE_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALUPDATE_PROCESS">UPDATE_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALUPDATE_USER">UPDATE_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALUPDATE_USER">UPDATE_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="MEMBER_WITHDRAWALVERSION_NO">VERSION_NO</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">versionNo</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="MEMBER_WITHDRAWALVERSION_NO">VERSION_NO</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>versionNo</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("MEMBER_WITHDRAWALMEMBER_ID");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER.MEMBER_ID";
-    }
-}
-if(document.getElementById) {
-    var col = document.getElementById("MEMBER_WITHDRAWALWITHDRAWAL_REASON_CODE");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from WITHDRAWAL_REASON.WITHDRAWAL_REASON_CODE";
-    }
-}
-</script>
 
-
-<a name="PRODUCT"/>
-<h2>PRODUCT</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="PRODUCT" />PRODUCT</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td><a href="#PURCHASE">PURCHASE</a>&nbsp;</td>
+    <td>productId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTPRODUCT_ID">PRODUCT_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont"><a href="#PURCHASE">PURCHASE</a>&nbsp;</td>
-    <td class="normalFont">productId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productName</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productName</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTPRODUCT_HANDLE_CODE">PRODUCT_HANDLE_CODE</td>
+    <td>VARCHAR</td>
+    <td><center> 100  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productHandleCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="PRODUCTPRODUCT_HANDLE_CODE">PRODUCT_HANDLE_CODE</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 100  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productHandleCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productStatusCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#PRODUCT_STATUS">PRODUCT_STATUS</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTREGISTER_DATETIME">REGISTER_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTREGISTER_DATETIME">REGISTER_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTREGISTER_USER">REGISTER_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTREGISTER_USER">REGISTER_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTREGISTER_PROCESS">REGISTER_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTREGISTER_PROCESS">REGISTER_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTUPDATE_DATETIME">UPDATE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTUPDATE_DATETIME">UPDATE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTUPDATE_USER">UPDATE_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTUPDATE_USER">UPDATE_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTUPDATE_PROCESS">UPDATE_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTUPDATE_PROCESS">UPDATE_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCTVERSION_NO">VERSION_NO</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">versionNo</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCTVERSION_NO">VERSION_NO</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>versionNo</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("PRODUCTPRODUCT_STATUS_CODE");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from PRODUCT_STATUS.PRODUCT_STATUS_CODE";
-    }
-}
-</script>
 
-
-<a name="PRODUCT_STATUS"/>
-<h2>PRODUCT_STATUS</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="PRODUCT_STATUS" />PRODUCT_STATUS</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCT_STATUSPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td><a href="#PRODUCT">PRODUCT</a>&nbsp;</td>
+    <td>productStatusCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PRODUCT_STATUSPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont"><a href="#PRODUCT">PRODUCT</a>&nbsp;</td>
-    <td class="normalFont">productStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="PRODUCT_STATUSPRODUCT_STATUS_NAME">PRODUCT_STATUS_NAME</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productStatusName</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="PRODUCT_STATUSPRODUCT_STATUS_NAME">PRODUCT_STATUS_NAME</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productStatusName</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-</script>
 
-
-<a name="PURCHASE"/>
-<h2>PURCHASE</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="PURCHASE" />PURCHASE</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPURCHASE_ID">PURCHASE_ID</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>purchaseId</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEPURCHASE_ID">PURCHASE_ID</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">purchaseId</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEMEMBER_ID">MEMBER_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#MEMBER">MEMBER</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>memberId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="PURCHASEMEMBER_ID">MEMBER_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER">MEMBER</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">memberId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPRODUCT_ID">PRODUCT_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#PRODUCT">PRODUCT</a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="PURCHASEPRODUCT_ID">PRODUCT_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#PRODUCT">PRODUCT</a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPURCHASE_DATETIME">PURCHASE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>purchaseDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="PURCHASEPURCHASE_DATETIME">PURCHASE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">purchaseDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPURCHASE_COUNT">PURCHASE_COUNT</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>purchaseCount</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEPURCHASE_COUNT">PURCHASE_COUNT</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">purchaseCount</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPURCHASE_PRICE">PURCHASE_PRICE</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>purchasePrice</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEPURCHASE_PRICE">PURCHASE_PRICE</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">purchasePrice</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEPAYMENT_COMPLETE_FLG">PAYMENT_COMPLETE_FLG</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>paymentCompleteFlg</td>
+    <td>Integer</td>
+    <td><a href="#Flg">Flg</a></td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEPAYMENT_COMPLETE_FLG">PAYMENT_COMPLETE_FLG</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">paymentCompleteFlg</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"><a href="#Flg">Flg</a></td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEREGISTER_DATETIME">REGISTER_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEREGISTER_DATETIME">REGISTER_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEREGISTER_USER">REGISTER_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEREGISTER_USER">REGISTER_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEREGISTER_PROCESS">REGISTER_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>registerProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEREGISTER_PROCESS">REGISTER_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">registerProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEUPDATE_DATETIME">UPDATE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEUPDATE_DATETIME">UPDATE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEUPDATE_USER">UPDATE_USER</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateUser</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEUPDATE_USER">UPDATE_USER</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateUser</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEUPDATE_PROCESS">UPDATE_PROCESS</td>
+    <td>VARCHAR</td>
+    <td><center> 200  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>updateProcess</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEUPDATE_PROCESS">UPDATE_PROCESS</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 200  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">updateProcess</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="PURCHASEVERSION_NO">VERSION_NO</td>
-    <td class="normalFont">BIGINT</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">versionNo</td>
-    <td class="normalFont">Long</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="PURCHASEVERSION_NO">VERSION_NO</td>
+    <td>BIGINT</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>versionNo</td>
+    <td>Long</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-if(document.getElementById) {
-    var col = document.getElementById("PURCHASEMEMBER_ID");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from MEMBER.MEMBER_ID";
-    }
-}
-if(document.getElementById) {
-    var col = document.getElementById("PURCHASEPRODUCT_ID");
-    if (col != null) {
-        col.style.backgroundColor = "afe295";
-        col.title="Foreignkey from PRODUCT.PRODUCT_ID";
-    }
-}
-</script>
 
-
-<a name="VENDOR_CHECK"/>
-<h2>VENDOR_CHECK</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="VENDOR_CHECK" />VENDOR_CHECK</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="VENDOR_CHECKVENDOR_CHECK_ID">VENDOR_CHECK_ID</td>
+    <td>DECIMAL</td>
+    <td><center> 16  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>vendorCheckId</td>
+    <td>BigDecimal</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="VENDOR_CHECKVENDOR_CHECK_ID">VENDOR_CHECK_ID</td>
-    <td class="normalFont">DECIMAL</td>
-    <td class="normalFont"><center> 16  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">vendorCheckId</td>
-    <td class="normalFont">java.math.BigDecimal</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="VENDOR_CHECKDECIMAL_DIGIT">DECIMAL_DIGIT</td>
+    <td>DECIMAL</td>
+    <td><center> 5, 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>decimalDigit</td>
+    <td>BigDecimal</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="VENDOR_CHECKDECIMAL_DIGIT">DECIMAL_DIGIT</td>
-    <td class="normalFont">DECIMAL</td>
-    <td class="normalFont"><center> 5, 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">decimalDigit</td>
-    <td class="normalFont">java.math.BigDecimal</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="VENDOR_CHECKINTEGER_NON_DIGIT">INTEGER_NON_DIGIT</td>
+    <td>DECIMAL</td>
+    <td><center> 5  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>integerNonDigit</td>
+    <td>BigDecimal</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="VENDOR_CHECKINTEGER_NON_DIGIT">INTEGER_NON_DIGIT</td>
-    <td class="normalFont">DECIMAL</td>
-    <td class="normalFont"><center> 5  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">integerNonDigit</td>
-    <td class="normalFont">java.math.BigDecimal</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="VENDOR_CHECKLARGE_CHARACTER">LARGE_CHARACTER</td>
-    <td class="normalFont">CLOB</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">largeCharacter</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="VENDOR_CHECKLARGE_CHARACTER">LARGE_CHARACTER</td>
+    <td>CLOB</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>largeCharacter</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-</script>
 
-
-<a name="WITHDRAWAL_REASON"/>
-<h2>WITHDRAWAL_REASON</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="WITHDRAWAL_REASON" />WITHDRAWAL_REASON</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="WITHDRAWAL_REASONWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>&nbsp;</td>
+    <td>withdrawalReasonCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="WITHDRAWAL_REASONWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont"><a href="#MEMBER_WITHDRAWAL">MEMBER_WITHDRAWAL</a>&nbsp;</td>
-    <td class="normalFont">withdrawalReasonCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td id="WITHDRAWAL_REASONWITHDRAWAL_REASON_TEXT">WITHDRAWAL_REASON_TEXT</td>
+    <td>CLOB</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>withdrawalReasonText</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="WITHDRAWAL_REASONWITHDRAWAL_REASON_TEXT">WITHDRAWAL_REASON_TEXT</td>
-    <td class="normalFont">CLOB</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">withdrawalReasonText</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont" id="WITHDRAWAL_REASONDISPLAY_ORDER">DISPLAY_ORDER</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center> o </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">displayOrder</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td id="WITHDRAWAL_REASONDISPLAY_ORDER">DISPLAY_ORDER</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>displayOrder</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-</script>
 
-
-<a name="SUMMARY_PRODUCT"/>
-<h2>SUMMARY_PRODUCT</h2>
-
-<p/>
-<table border="1" cellspacing="0">
+<h2><a name="SUMMARY_PRODUCT" />SUMMARY_PRODUCT</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+      <th>Classification</th>
+      <th>Comment</th>
+    </tr>
+  </thead>
   <tr>
-    <th class="normalFont" bgcolor="#CCCCCC">PK</th>
-    <th class="normalFont" bgcolor="#CCCCCC">INC</th>
-    <th class="normalFont" bgcolor="#CCCCCC">UQ</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Name</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Type</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Size</th>
-    <th class="normalFont" bgcolor="#CCCCCC">NotNull</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Default</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ForeignTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">ReferrerTable</th>
-    <th class="normalFont" bgcolor="#CCCCCC">PropertyName</th>
-    <th class="normalFont" bgcolor="#CCCCCC">JavaType</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Classification</th>
-    <th class="normalFont" bgcolor="#CCCCCC">Comment</th>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="SUMMARY_PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+    <td>INTEGER</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productId</td>
+    <td>Integer</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="SUMMARY_PRODUCTPRODUCT_ID">PRODUCT_ID</td>
-    <td class="normalFont">INTEGER</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productId</td>
-    <td class="normalFont">Integer</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="SUMMARY_PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+    <td>VARCHAR</td>
+    <td><center> 50  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productName</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="SUMMARY_PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
-    <td class="normalFont">VARCHAR</td>
-    <td class="normalFont"><center> 50  </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productName</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="SUMMARY_PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td><center> 3  </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>productStatusCode</td>
+    <td>String</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
   <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="SUMMARY_PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
-    <td class="normalFont">CHAR</td>
-    <td class="normalFont"><center> 3  </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">productStatusCode</td>
-    <td class="normalFont">String</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
-  </tr>
-  <tr>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont" id="SUMMARY_PRODUCTLATEST_PURCHASE_DATETIME">LATEST_PURCHASE_DATETIME</td>
-    <td class="normalFont">TIMESTAMP</td>
-    <td class="normalFont"><center> &nbsp; </center></td>
-    <td class="normalFont"><center>  &nbsp; </center></td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"><a href="#"></a>&nbsp;</td>
-    <td class="normalFont">&nbsp;</td>
-    <td class="normalFont">latestPurchaseDatetime</td>
-    <td class="normalFont">java.sql.Timestamp</td>
-    <td class="normalFont"> &nbsp;</td>
-    <td class="normalFont"></td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="SUMMARY_PRODUCTLATEST_PURCHASE_DATETIME">LATEST_PURCHASE_DATETIME</td>
+    <td>TIMESTAMP</td>
+    <td><center> &nbsp; </center></td>
+    <td> &nbsp;</td>
+    <td><a href="#"></a>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>latestPurchaseDatetime</td>
+    <td>Timestamp</td>
+    <td> &nbsp;</td>
+    <td> &nbsp;</td>
   </tr>
 </table>
-<script>
-</script>
 
 
-  <p/>
-  <p/>
   <h2>Classification Definition</h2>
-  <p/>
-  <table border="1" cellspacing="0" cellpadding="0">
-    <tr bgcolor="#CCCCCC">
-      <th class="normalFont">Classification</th>
-      <th class="normalFont">Top Comment</th>
-      <th class="normalFont">Definition</th>
-    </tr>
-    
-    <tr>
-      <td class="normalFont">Flg</td>
-      <td class="normalFont">フラグを示す</td>
-      <td class="normalFont">
-	    <table border="1">
-          <tr bgcolor="#EEEEEE">
-            <th class="normalFont">Code</th>
-            <th class="normalFont">Name</th>
-            <th class="normalFont">Comment</th>
-          </tr>
-          <tr>
-            <td><a name="Flg"/>1</td>
-            <td>True</td>
-            <td>有効を示す</td>
-          </tr>
-          <tr>
-            <td><a name="Flg"/>0</td>
-            <td>False</td>
-            <td>無効を示す</td>
-          </tr>
-        </table>
-	  </td>
-    </tr>
-    
-    <tr>
-      <td class="normalFont">MemberStatus</td>
-      <td class="normalFont">会員の状態を示す</td>
-      <td class="normalFont">
-	    <table border="1">
-          <tr bgcolor="#EEEEEE">
-            <th class="normalFont">Code</th>
-            <th class="normalFont">Name</th>
-            <th class="normalFont">Comment</th>
-          </tr>
-          <tr>
-            <td><a name="MemberStatus"/>PRV</td>
-            <td>Provisional</td>
-            <td>仮会員を示す</td>
-          </tr>
-          <tr>
-            <td><a name="MemberStatus"/>FML</td>
-            <td>Formalized</td>
-            <td>正式会員を示す</td>
-          </tr>
-          <tr>
-            <td><a name="MemberStatus"/>WDL</td>
-            <td>Withdrawal</td>
-            <td>退会会員を示す</td>
-          </tr>
-        </table>
-	  </td>
-    </tr>
+  <table>
+      <thead>
+      <tr>
+        <th>Classification</th>
+        <th>Top Comment</th>
+        <th>Definition</th>
+      </tr>
+      </thead>
+    <tbody>
+      <tr>
+        <td>Flg</td>
+        <td>フラグを示す</td>
+        <td>
+          <table class="child">
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Comment</th>
+            </tr>
+            <tr>
+              <td><a name="Flg"/>1</td>
+              <td>True</td>
+              <td>有効を示す</td>
+            </tr>
+            <tr>
+              <td><a name="Flg"/>0</td>
+              <td>False</td>
+              <td>無効を示す</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>MemberStatus</td>
+        <td>会員の状態を示す</td>
+        <td>
+          <table class="child">
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Comment</th>
+            </tr>
+            <tr>
+              <td><a name="MemberStatus"/>PRV</td>
+              <td>Provisional</td>
+              <td>仮会員を示す</td>
+            </tr>
+            <tr>
+              <td><a name="MemberStatus"/>FML</td>
+              <td>Formalized</td>
+              <td>正式会員を示す</td>
+            </tr>
+            <tr>
+              <td><a name="MemberStatus"/>WDL</td>
+              <td>Withdrawal</td>
+              <td>退会会員を示す</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    <tbody>
   </table>
-
 </body>
 </html>
