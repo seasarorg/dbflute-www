@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.8.3 to 0.8.4}</h2>
+	<h3>環境上の注意点</h3>
+	<h4>Sql2Entityも一緒に</h4>
+	<p>
+		バージョンアップした際は、GenerateだけでなくSql2Entityも実行して下さい。
+	</p>
+	<h4>古いテーブルを削除</h4>
+	<p>
+		古いテーブルのクラスが残っているとコンパイルエラーになる可能性があります。
+		それらクラスは不要なので削除するようにして下さい。
+	</p>
+	<p>
+		build-xxx.propertiesに「torque.isDeleteOldTableClass = true」を定義すると、古いテーブルのクラスを削除(OS上のファイルを削除)します。設定例は<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example/dbflute_exampledb/build-exampledb.properties">こちら</a>
+	</p>
+	<h4>幾つかのプロパティは廃止</h4>
+	<p>
+		幾つか古くなったプロパティを廃止します。これらは現在全てデフォルトがfalseのもので、公開されていなかったものもあります。
+		ほとんどの方は利用されていないかと思われますが、万が一ご利用されている場合はお手数ですが移行をお願いします。
+	</p>
+	<ul>
+		<li>isCompatibleOutsideSqlResultOldStyle</li>
+		<li>isMakeBehaviorNoConditionLoadReferrer</li>
+		<li>isMakeBehaviorLoopUpdate</li>
+		<li>isMakeDBMetaStaticDefinition</li>
+		<li>isMakeDBMetaJDBCSupport</li>
+		<li>isMakeDBMetaCommonColumnHandling</li>
+	</ul>
+	<h4>不要になったクラス</h4>
+	<p>
+		残っていても害にはなりませんが、DBFluteとしては利用しなくなったクラスがありますのでお手数ですが削除願います。
+		(名前が変わったことによって利用されなくなったクラスも含む)
+	</p>
+	<ul>
+		<li>allcommon.cbean.SimpleOrderByBean</li>
+		<li>allcommon.cbean.outsidesql.OutsideSqlDao</li>
+		<li>allcommon.s2dao.FetchNarrowingResultSetFactory</li>
+		<li>allcommon.s2dao.S2BeanMetaDataFactoryImpl *名称変更により</li>
+		<li>allcommon.s2dao.S2DaoLatestSqlProvider *名称変更により</li>
+		<li>allcommon.s2dao.S2DaoPropertyTypeFactoryBuilderExtension *名称変更により</li>
+	</ul>
+	<h3>実装上の注意点</h3>
+	<h4>BhvがDaoを利用しない(Java版のみ)</h4>
+	<p>
+		<a href="http://d.hatena.ne.jp/jflute/20081104/1225776745">jfluteの日記:BhvがDaoを利用しない</a>をご覧下さい。
+	</p>
+	<p>
+		今回はJava版のみの話ではありますが、将来C#版も同じ挙動にする予定です。
+	</p>
+	<h4>Daoインターフェースを生成しないモード(Java版のみ)</h4>
+	<p>
+		デフォルトは今まで通りDaoインターフェースは生成されます。
+	</p>
+	<h5>概要</h5>
+	<p>
+		これは、移行できる方のみ移行して頂ければと思います。
+		Daoインターフェースは、Behaviorでも利用されません。つまり、アプリでDaoインターフェースを
+		明示的に利用していない限り、Daoインターフェースは全く不要なものとなります。
+		しかし、単に不要というだけなら良いですが、不要なDaoインターフェースが生成されることによる弊害が３つ存在します。
+	</p>
+	<ul>
+		<li>A. S2Daoの機能を利用されてしまう可能性がある</li>
+		<li>B. 余計なクラスが生成される分、自動生成処理、コンパイル処理が遅い</li>
+		<li>C. Daoインターフェースが初期化されることで単体テストが遅い</li>
+	</ul>
+	<p>
+		「A」は、<a href="http://d.hatena.ne.jp/jflute/20081017/1224218262">jfluteの日記:S2Daoの機能を一部抑制</a>と関連した話です。
+	</p>
+	<p>
+		「B」は、一番わかりやすいかと思います。Daoインターフェースを生成しなければ、
+		「テーブル数 * 2」個分のクラスが削減されます。
+	</p>
+	<p>
+		「C」が、一番効果がでかい話です。Daoインターフェースは初期化でJavassistによる
+		エンハンス処理が必要です。単体テストでは(ほとんどの場合)一回のテストケース実行ごとに
+		Containerを初期化するため、Daoインターフェースの初期化がかなりの負荷になります。
+		一テストケースの実行が速くなることで、プログラマはストレスなく単体テストを実装できますし、
+		全テストケースの実行が速くなることで、デグレ検知のための一括テスト実行がとてもやりやすくなります。
+		dbflute-mysql-exampleやdbflute-oracle-exampleでは既にこのモードを利用していますが、
+		格段に単体テスト実行が速くなっています(体感で明らかにわかるくらい速い)。
+	</p>
+	<p>
+		これらのことからも「可能であれば」Daoインターフェースを生成しないモードに移行することをお奨めします。
+		また、近い将来のバージョン(0.8.5の可能性あり)ではこのモードをDBFluteのデフォルトにする予定です。
+	</p>
+	<p>
+		今回はJava版のみの話ではありますが、将来C#版も同じ挙動にする予定です。
+	</p>
+	<h5>手順</h5>
+	<p>
+		手順は以下の通りです。
+	</p>
+	<ol>
+		<li>ビルドプロパティ(build-xxx.properties)に「torque.isMakeDaoInterface = false」</li>
+		<li>bsdao/exdaoパッケージを削除して自動生成し直し(Generate/Sql2Entity)</li>
+		<li>EclipseでJavaクラス全部に「インポートの編成(Organize Imports)」を実行</li>
+	</ol>
+	<p>
+		「インポートの編成(Organize Imports)」がポイントです。bsdao/exdaoパッケージを無くすことに伴って、
+		ParameterBeanのパッケージが「bsdao/pmbean」から「bsbhv/pmbean」に変わっています。
+		Eclipseで選択したソースディレクトリ配下のクラスを一気に「インポートの編成」できますのでそんなに手間にはなりません。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/aftersetup.html">After Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Version-up</a></li>
+		</ul>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+	<h3>Various</h3>
+	<ul>
+		<li><a href="../various/sqllog.html">SqlLogRegistry</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
