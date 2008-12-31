@@ -16,29 +16,81 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>DBFluteのツールとしての機能</h2>
+	<h2>ツールとしてのDBFlute(タスク一覧)</h2>
 	<p>
-		O/Rマッパとして通常利用するコマンドは以下の通りです。
+		DBFluteは、内部で<a href="http://ant.apache.org/">Apache Ant</a>を利用して、それぞれのタスクを実行します。
+	</p>
+	<h3>タスク一覧</h3>
+	<ul>
+		<li>JDBC : 自動生成のためのDBスキーマ情報の取得</li>
+		<li>Generate : DBスキーマ情報からのクラスの自動生成</li>
+		<li>Sql2Entity : 外だしSQLからのクラスの自動生成</li>
+		<li>ReplaceSchema : DBスキーマを初期化してDDL文を流しテストデータまで一気に登録</li>
+		<li>Doc : DBスキーマ情報をHTMLのテーブル一覧として出力 *<a href="../../view/schema/project-schema-exampledb.html">サンプル</a></li>
+		<li>OutsideSqlTest : 外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェック</li>
+	</ul>
+	<p>
+		TODO: 作成中(2008/12/31)：それぞれの詳細の説明
+	</p>
+	<h4>JDBC</h4>
+	<p>
+		自動生成のためのDBスキーマ情報の取得します。
 	</p>
 	<p>
-		<ul>
-			<li>JDBC : 自動生成のためのDBスキーマ情報の取得</li>
-			<li>Generate : DBスキーマ情報からのクラスの自動生成</li>
-			<li>Sql2Entity : 外だしSQLからのクラスの自動生成</li>
-		</ul>
+		DBFluteクライアントの「./dfprop/databaseInfoMap.dfprop」のDB接続情報からDBに接続し、
+		正常終了するとDBFluteクライアントの「./schema/project-schema-xxx.xml」にDBスキーマ情報が出力されます。
+	</p>
+	<h4>Generate</h4>
+	<p>
+		DBスキーマ情報からテーブル対応のクラス(+DBFluteフレームワーク)を自動生成します。
 	</p>
 	<p>
-		それに対して、実装や環境構築の補佐をする機能のコマンドは以下の通りです。
+		JDBCタスクが実行されていることが前提となります(DBスキーマ情報が必要なため)。
+		二回目以降の実行の場合は、変更のあったクラスだけが上書きされます。但し、Extended(ジェネレーションギャップ)のクラスは上書きされません。
+	</p>
+	<h3>ロールごとに必要なタスク</h3>
+	<p>
+		ロールごとに必要となるタスクが変わります。
+	</p>
+	<ul>
+		<li>アーキテクト : 全て(主にはJDBCとGenerate)</li>
+		<li>ディベロッパー : ReplaceSchemaとSql2Entity(OutsideSqlTestも可)</li>
+	</ul>
+	<h3>イベントごとに必要なタスク</h3>
+	<p>
+		イベントごとに必要となるタスクです。
+	</p>
+	<ul>
+		<li>DB作成時 : JDBC, Generate, Doc, (ReplaceSchema)</li>
+		<li>DB変更時 : JDBC, Generate, Doc, (ReplaceSchema)</li>
+		<li>外だしSQL実装時 : Sql2Entity, (OutsideSqlTest)</li>
+		<li>毎朝会社に来たら : ReplaceSchema</li>
+		<li>ナイトリービルド(テスト) : ReplaceSchema, OutsideSqlTest</li>
+	</ul>
+	<p>
+		TODO: 作成中(2008/12/31)：それぞれの詳細の説明
+	</p>
+	<h3>実行の仕方</h3>
+	<p>
+		DBFluteクライアントにそれぞれWindows用、Unix用(MacOSXも含む)に「.bat」と「.sh」が用意されています。
+	</p>
+	<ul>
+		<li>JDBC : jdbc.bat(.sh)</li>
+		<li>Generate : generate.bat(.sh)</li>
+		<li>Sql2Entity : sql2entity.bat(.sh)</li>
+		<li>ReplaceSchema : replace-schema.bat(.sh)</li>
+		<li>Doc : doc.bat(.sh)</li>
+		<li>OutsideSqlTest : outside-sql-test.bat(.sh)</li>
+	</ul>
+	<p>
+		実行すると、コンソールにログが表示されます。詳細を追う必要はないですが、実行が正常終了したのかどうかは
+		必ず確認するようにして下さい。もし、エラーが発生した際にログの詳細をみて状況を把握します。
+		DBFluteクライアントの「./log/dbflute.log」にも同じログが出力されていますので、
+		コンソールが見づらい環境の場合(特にコマンドプロンプト)は、そちらをテキストエディタで開いて見ると良いでしょう。
 	</p>
 	<p>
-		<ul>
-			<li>Doc : DBスキーマ情報をHTMLのテーブル一覧として出力 *<a href="../../view/schema/project-schema-exampledb.html">サンプル</a></li>
-			<li>ReplaceSchema : DBスキーマを初期化してDDL文を流しテストデータまで一気に登録</li>
-			<li>OutsideSqlTest : 外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェック</li>
-		</ul>
-	</p>
-	<p>
-		★工事中
+		Windows上のEclipseであれば、Eclipseのパッケージ・エクスプローラ上でダブルクリックして実行も出来ますし、
+		「リソースの検索(Ctrl + Shift + R)」で検索して選択しても実行できます。
 	</p>
 	
 <!-- __content-end__ --></div>

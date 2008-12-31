@@ -18,7 +18,7 @@
 <div id="content"><!-- __content-start__ -->
 	<h2>DBFluteのDBアクセスI/F</h2>
 	<p>
-		S2Daoから<a href="../outside-sql/about.html">2Way-SQL</a>を「<a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a>」として継承しつつ、さらに完全タイプセーフなSQL自動生成機能「<a href="../condition-bean/basic.html">ConditionBean</a>」を提供し、その適材適所のバランスを重要視しています。
+		S2Daoから2Way-SQLを「<a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a>」として継承しつつ、さらに完全タイプセーフなSQL自動生成機能「<a href="../condition-bean/basic.html">ConditionBean</a>」を提供し、その適材適所のバランスを重要視しています。
 	</p>
 	<p>
 		<ul>
@@ -26,9 +26,16 @@
 			<li>複雑(非定型)なSQL → <a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a></li>
 		</ul>
 	</p>
+	<pre>ex) MEMBER(会員)テーブルの検索(ConditionBean) @Java<code>MemberCB cb = new MemberCB();
+cb.query().setMemberName_Equal("Stoikovic");</code></pre>
+	<pre>ex) MEMBER(会員)テーブルの検索(OutsideSql) @SQL-File<code>select member.MEMBER_ID, ...
+  from MEMBER member
+ where member.MEMBER_ID = /*pmb.memberName*/'Savicevic';</code></pre>
 	<h3>外だしSQLの重要性</h3>
 	<p>
-		複雑(非定型)なSQLは、アプリケーションで肝となるDBアクセスロジックである可能性が高いです。その複雑性からバグも発生しやすく、時には実行計画と睨めっこしなければならないような大事な大事なSQLであり、それらは<a href="../outside-sql/about.html">2Way-SQL</a>を大いに活用して最適なSQLを作り上げます。
+		複雑(非定型)なSQLは、アプリケーションで肝となるDBアクセスロジックである可能性が高いです。
+		その複雑性からバグも発生しやすく、時には実行計画と睨めっこしなければならないような大事な大事なSQLであり、
+		それらは2Way-SQLを大いに活用して最適なSQLを作り上げます。
 	</p>
 	<h3>全て外だしSQLで実装したら？</h3>
 	<p>
@@ -36,34 +43,41 @@
 	</p>
 	<p>
 		<ul>
-			<li>DB変更に弱い</li>
+			<li>DB変更に非常に弱い</li>
 			<li>SQL特有のケアレスミスが多発</li>
 			<li>SQLの命名やフォーマット等の規約の不統一による可読性の劣化</li>
 			<li>大量のSQLファイルの管理コスト</li>
 		</ul>
 	</p>
 	<p>
-		実装数の割合は、複雑(非定型)なSQLに比べて簡単(定型的)なSQLの方が圧倒的に多く、上記のような問題が発生します。これらは<a href="../outside-sql/about.html">2Way-SQL</a>のおかげで大分解消はされるのですが、完全ではなく已然問題は残ります。
+		実装数の割合は、複雑(非定型)なSQLに比べて簡単(定型的)なSQLの方が圧倒的に多く、上記のような問題が発生します。
+		これらは<a href="../outside-sql/about.html">2Way-SQL</a>のおかげで大分解消はされるのですが、完全ではなく已然問題は残ります。
 	</p>
 	<h3>ConditionBeanでバランスを得る</h3>
 	<p>
-		そこでDBFluteは、簡単(定型的)なSQLに関しては完全タイプセーフな<a href="../condition-bean/basic.html">ConditionBean</a>で安全かつ速い実装を提供し、その分、現場の開発者には複雑(非定型)なSQLに集中してもらいたいという考えを持っています。
+		そこでDBFluteは、簡単(定型的)なSQLに関しては完全タイプセーフな<a href="../condition-bean/basic.html">ConditionBean</a>で安全かつ速い実装を提供し、
+		その分、現場のディベロッパーには複雑(非定型)なSQLに集中してもらいたいという考えを持っています。
 	</p>
 	<p>
-		理想的にはどちらか片方の方法で全てのSQLを実現できるのが良いに決まっています。しかし、それはシビアな開発期間、シビアなパフォーマンス要件など様々な要因を考えると不可能であり、バランスを重視したDBアクセスI/Fが(少なくとも今の時代の)現場に一番フィットすると判断しました。
+		理想的にはどちらか片方の方法で全てのSQLを実現できるのが良いに決まっています。
+		しかし、それはシビアな開発期間、シビアなパフォーマンス要件など様々な要因を考えると不可能であり、
+		バランスを重視したDBアクセスI/Fが(少なくとも今の時代の)現場に一番フィットすると判断しました。
 	</p>
 	<h3>とにかく二つの方法を覚えればよい</h3>
 	<p>
-		もちろん、いくらバランスと言ってもやり方が三つも四つも存在すると、わかりやすさが半減し開発者の学習コストが高くなって効率が良くありません。また、都度都度プロジェクトでどの方法をどう使っていくかの実装ポリシー策定も必要になってしまいます。これは他のO/Rマッパでありがちな問題でした。開発者がどれをどうやって実装すれば良いのか迷うのです。
+		もちろん、いくらバランスと言ってもやり方が三つも四つも存在すると、わかりやすさが半減し開発者の学習コストが高くなって効率が良くありません。
+		また、都度都度プロジェクトでどの方法をどう使っていくかの実装ポリシー策定も必要になってしまいます。
+		これは他のO/Rマッパでありがちな問題でした。開発者がどれをどうやって実装すれば良いのか迷うのです。
+		DBFluteでは、とにかく二つだけ「<a href="../condition-bean/basic.html">ConditionBean</a>」
+		と「<a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a>」を覚えれば開発者は実装が可能です。
 	</p>
 	<p>
-		DBFluteでは、とにかく二つだけ「<a href="../condition-bean/basic.html">ConditionBean</a>」と「<a href="../outside-sql/basic.html">外だしSQL(OutsideSql)</a>」を覚えれば開発者は実装が可能です。
+		また、ConditionBeanは完全タイプセーフであるがゆえに(*a)逆に実現できることが限られ、その棲み分けはハッキリしています。
+		<a href="../condition-bean/cbscope.html">ConditionBeanのスコープ</a>といったようなドキュメントも用意され、
+		開発者はチェックシート式にその判断を得ることも可能です。
 	</p>
 	<p>
-		また、ConditionBeanは完全タイプセーフであるがゆえに(*a)逆に実現できることが限られ、その棲み分けはハッキリしています。<a href="../condition-bean/cbscope.html">ConditionBeanのスコープ</a>といったようなドキュメントも用意され、開発者はチェックシート式にその判断を得ることも可能です。
-	</p>
-	<p>
-		(*a): 部分的なSQLを文字列として設定するようなI/Fは無いため、プログラム上での無理矢理なSQLが抑制されています。
+		(*a): 部分的なSQLを文字列として設定するようなI/Fは無いため、プログラム上での自由で危険な埋め込みSQLが抑制されます。
 	</p>
 	
 <!-- __content-end__ --></div>
