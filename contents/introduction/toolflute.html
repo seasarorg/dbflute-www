@@ -16,11 +16,46 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>ツールとしてのDBFlute(タスク一覧)</h2>
+	<h2>ツールとしてのDBFlute</h2>
+	<h3>構造</h3>
+	<p>
+		DBFluteを利用する際は、二つのディレクトリが存在します。
+	</p>
+	<dl>
+		<dt>DBFluteクライアント</dt>
+		<dd>「dbflute_xxx」ディレクトリ</dd>
+		<dt>DBFluteモジュール</dt>
+		<dd>「mydbflute/dbflute-x.x.x」ディレクトリ</dd>
+	</dl>
+	<pre>ex) Javaの場合：<code>     xxxproject
+         +- .settings
+         +- dbflute_[project]         // DBFluteクライアント
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- mydbflute
+         |     +- dbflute-0.8.8       // DBFluteモジュール
+         +- src/main/java             // ソースディレクトリ	</code></pre>
+	<pre>ex) C#の場合：<code>     xxxproject
+         +- dbflute_[project]         // DBFluteクライアント
+         |     +- dfprop
+         |     +- log
+         |     +- ...
+         +- lib
+         +- mydbflute
+         |     +- dbflute-0.8.8       // DBFluteモジュール
+         +- source/xxx.sln            // ソースディレクトリ	</code></pre>
+	<p>
+		DBFluteモジュールは設置したら基本的に意識する必要はありません。プロジェクト独自の設定と実行環境は全てDBFluteクライアントに含まれます。
+	</p>
+	<p>
+		DBFluteクライアントがDBFluteモジュールを利用(参照)します。どのバージョンのDBFluteモジュールを利用するかは、
+		DBFluteクライアント配下の「_project.bat(.sh)」にて「DBFLUTE_HOME」という環境変数で指定されます。
+	</p>
+	<h3>タスク一覧</h3>
 	<p>
 		DBFluteは、内部で<a href="http://ant.apache.org/">Apache Ant</a>を利用して、それぞれのタスクを実行します。
 	</p>
-	<h3>タスク一覧</h3>
 	<ul>
 		<li>JDBC : 自動生成のためのDBスキーマ情報の取得</li>
 		<li>Generate : DBスキーマ情報からのクラスの自動生成</li>
@@ -29,9 +64,59 @@
 		<li>Doc : DBスキーマ情報をHTMLのテーブル一覧として出力 *<a href="../../view/schema/project-schema-exampledb.html">サンプル</a></li>
 		<li>OutsideSqlTest : 外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェック</li>
 	</ul>
+	<h3>実行の仕方</h3>
 	<p>
-		TODO: 作成中(2008/12/31)：それぞれの詳細の説明
+		DBFluteクライアント配下にそれぞれWindows用、Unix用(MacOSXも含む)に「.bat」と「.sh」が用意されています。
 	</p>
+	<ul>
+		<li>JDBC : jdbc.bat(.sh)</li>
+		<li>Generate : generate.bat(.sh)</li>
+		<li>Sql2Entity : sql2entity.bat(.sh)</li>
+		<li>ReplaceSchema : replace-schema.bat(.sh)</li>
+		<li>Doc : doc.bat(.sh)</li>
+		<li>OutsideSqlTest : outside-sql-test.bat(.sh)</li>
+	</ul>
+	<p>
+		実行すると、コンソールにログが表示されます。詳細を追う必要はないですが、実行が正常終了したのかどうかは
+		必ず確認するようにして下さい。もし、エラーが発生した際にログの詳細をみて状況を把握します。
+		DBFluteクライアントの「./log/dbflute.log」にも同じログが出力されていますので、
+		コンソールが見づらい環境の場合(特にコマンドプロンプト)は、そちらをテキストエディタで開いて見ると良いでしょう。
+	</p>
+	<p>
+		Windows上のEclipseであれば、Eclipseのパッケージ・エクスプローラ上でダブルクリックして実行も出来ますし、
+		「リソースの検索(Ctrl + Shift + R)」で検索して選択しても実行できます。
+	</p>
+	<h3>設定ファイル</h3>
+	<p>
+		これらのタスクを実行するときに必要な設定ファイルがあります。これをビルドプロパティと呼びます。
+	</p>
+	<p>
+		ビルドプロパティは二種類の形式を持っています。
+		一部例外はありますが、基本的な区分けは以下の通りです。
+	</p>
+	<dl>
+		<dt>「キー = 値」で表現される基本的なプロパティ</dt>
+		<dd>DBFluteクライアント配下の「./build-xxx.properties」：通称「properties」</dd>
+		<dt>「キー = ネスト構造(Map)」で表現されるプロパティ</dt>
+		<dd>DBFluteクライアント配下の「./dfprop/xxx.dfprop」：通称「dfprop」</dd>
+	</dl>
+	<p>
+		dfpropの「ネスト構造(Map)」というのは、例えば以下のような形式を示します。
+	</p>
+	<pre>ex) additionalForeignKeyMap.dfprop<code>map:{
+    ; FK_SUMMARY_PRODUCT_PRODUCT_STATUS = map:{
+        ; localTableName  = SUMMARY_PRODUCT     ; foreignTableName  = PRODUCT_STATUS
+        ; localColumnName = PRODUCT_STATUS_CODE ; foreignColumnName  = PRODUCT_STATUS_CODE
+    }
+}</code></pre>
+	<p>
+		将来的に全てdfpropに移行される可能性があります。
+		無論、移行後も「properties」に定義されている設定で動かせるようにはします。
+	</p>
+	<p>
+		設定ファイルの具体的な内容は、<a href="../setup/buildproperty.html">ビルドプロパティ</a>をご覧下さい。
+	</p>
+	<h3>タスクの詳細</h3>
 	<h4>JDBC</h4>
 	<p>
 		自動生成のためのDBスキーマ情報の取得します。
@@ -47,6 +132,45 @@
 	<p>
 		JDBCタスクが実行されていることが前提となります(DBスキーマ情報が必要なため)。
 		二回目以降の実行の場合は、変更のあったクラスだけが上書きされます。但し、Extended(ジェネレーションギャップ)のクラスは上書きされません。
+	</p>
+	<p>
+		クラスファイルは、「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下に出力されます。
+	</p>
+	<h4>Sql2Entity</h4>
+	<p>
+		外だしSQLからの検索結果を格納するEntity(CustomizeEntity)とSQLへの引数を格納するBean(ParameterBean)を自動生成します。
+	</p>
+	<p>
+		「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下のSQLファイルを対象とします。
+		Sql2Entityについて詳しくは<a href="../outside-sql/sql2entity.html">こちら</a>
+	</p>
+	<p>
+		クラスファイルは、「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下に出力されます。
+	</p>
+	<h4>ReplaceSchema</h4>
+	<p>
+		DBスキーマを初期化してDDL文を流しテストデータまで一気に登録します。
+	</p>
+	<p>
+		詳しくは、<a href="http://event.seasarfoundation.org/sc2008autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2008autumn_c1_dbflute.pdf">現場ソリューション２(PDF)</a>をご覧下さい。
+	</p>
+	<h4>Doc</h4>
+	<p>
+		DBスキーマ情報をHTMLのテーブル一覧として出力します。
+	</p>
+	<p>
+		JDBCタスクが実行されていることが前提となります(DBスキーマ情報が必要なため)。
+	</p>
+	<p>
+		正常終了するとDBFluteクライアントの「./output/doc/project-schema-xxx.xml」にDBスキーマ情報が記載されたHTMLが出力されます。
+		<a href="../../view/schema/project-schema-exampledb.html">サンプル</a>をご覧下さい。
+	</p>
+	<h4>OutsideSqlTest</h4>
+	<p>
+		外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェックします。
+	</p>
+	<p>
+		詳しくは、<a href="http://event.seasarfoundation.org/sc2008autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2008autumn_c1_dbflute.pdf">現場ソリューション２(PDF)</a>をご覧下さい。
 	</p>
 	<h3>ロールごとに必要なタスク</h3>
 	<p>
@@ -69,28 +193,6 @@
 	</ul>
 	<p>
 		TODO: 作成中(2008/12/31)：それぞれの詳細の説明
-	</p>
-	<h3>実行の仕方</h3>
-	<p>
-		DBFluteクライアントにそれぞれWindows用、Unix用(MacOSXも含む)に「.bat」と「.sh」が用意されています。
-	</p>
-	<ul>
-		<li>JDBC : jdbc.bat(.sh)</li>
-		<li>Generate : generate.bat(.sh)</li>
-		<li>Sql2Entity : sql2entity.bat(.sh)</li>
-		<li>ReplaceSchema : replace-schema.bat(.sh)</li>
-		<li>Doc : doc.bat(.sh)</li>
-		<li>OutsideSqlTest : outside-sql-test.bat(.sh)</li>
-	</ul>
-	<p>
-		実行すると、コンソールにログが表示されます。詳細を追う必要はないですが、実行が正常終了したのかどうかは
-		必ず確認するようにして下さい。もし、エラーが発生した際にログの詳細をみて状況を把握します。
-		DBFluteクライアントの「./log/dbflute.log」にも同じログが出力されていますので、
-		コンソールが見づらい環境の場合(特にコマンドプロンプト)は、そちらをテキストエディタで開いて見ると良いでしょう。
-	</p>
-	<p>
-		Windows上のEclipseであれば、Eclipseのパッケージ・エクスプローラ上でダブルクリックして実行も出来ますし、
-		「リソースの検索(Ctrl + Shift + R)」で検索して選択しても実行できます。
 	</p>
 	
 <!-- __content-end__ --></div>
