@@ -1,0 +1,3522 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>ldb schema</title>
+  <style type="text/css">
+    * {
+        margin: 0;
+        padding: 0;
+      }
+    body {
+        font-family: sans-serif;
+        font-size: 90%;
+        margin: 10px 5px 5px 15px;
+    }
+    
+    /* header */
+    h1 {
+        font-size: 1.5em;
+        border-bottom: 2px solid #af0000;
+        border-top: 2px solid #af0000;
+    }
+    h2 {
+        margin: 30px 0 5px 0;
+        font-size: 1.8em;
+        border-bottom: 2px solid #af0000;
+        border-left: 10px solid #af0000;
+        text-indent: 10px;
+    }
+    .updatedate {
+        text-align: right;
+    }
+
+    /* table */
+    table {
+        border-collapse:collapse;
+    }
+    table, th {
+        border: 1px solid #555;
+    }
+    th {
+        background-color: #cc9;
+        font-size: 0.8em;
+    }
+    td {
+        border-bottom: 1px dotted #aaa;
+        border-left: 1px solid #555;
+        padding:2px;
+    }
+    .aliascell {
+        white-space: nowrap;
+    }
+    .flgcell {
+        text-align: center;
+    }
+    .numcell {
+        text-align: center;
+    }
+	.linkcell {
+        font-size: 0.8em;
+    }
+	.commentcell {
+        font-size: 0.7em;
+    }
+	.subcell {
+        font-size: 0.8em;
+    }
+	.comcolcell {
+        color: #666;
+    }
+	.optcell {
+        font-style: italic;
+    }
+
+    /* inner table */
+    table.child {
+        margin: 3px;
+    }
+    table.child th {
+        font-size: 0.7em;
+        background-color: #fff;
+    }
+    table.child, table.child td, table.child th {
+        border-top: none;
+        border-left: none;
+        border-bottom: 1px solid #aaa;
+        border-right: 1px solid #aaa;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>ldb schema on derby</h1>
+  <p class="updatedate">2008/10/21 20:36:18</p>
+  <h2>Table List</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>ForeignTable</th>
+        <th>ReferrerTable</th>
+        <th>Comment</th>
+        <th>EntityName</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="#AUTHOR">AUTHOR</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#BOOK">BOOK</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Author</td>
+      </tr>
+      <tr>
+        <td><a href="#BLACK_ACTION">BLACK_ACTION</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#BLACK_ACTION_LOOKUP">BLACK_ACTION_LOOKUP</a>, <a href="#BLACK_LIST">BLACK_LIST</a></td>
+        <td class="subcell">&nbsp;</td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">BlackAction</td>
+      </tr>
+      <tr>
+        <td><a href="#BLACK_ACTION_LOOKUP">BLACK_ACTION_LOOKUP</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#BLACK_ACTION">BLACK_ACTION</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">BlackActionLookup</td>
+      </tr>
+      <tr>
+        <td><a href="#BLACK_LIST">BLACK_LIST</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#LB_USER">LB_USER</a></td>
+        <td class="subcell"><a href="#BLACK_ACTION">BLACK_ACTION</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">BlackList</td>
+      </tr>
+      <tr>
+        <td><a href="#BOOK">BOOK</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#AUTHOR">AUTHOR</a>, <a href="#GENRE">GENRE</a>, <a href="#PUBLISHER">PUBLISHER</a></td>
+        <td class="subcell"><a href="#COLLECTION">COLLECTION</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Book</td>
+      </tr>
+      <tr>
+        <td><a href="#COLLECTION">COLLECTION</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#BOOK">BOOK</a>, <a href="#LIBRARY">LIBRARY</a></td>
+        <td class="subcell"><a href="#COLLECTION_STATUS">COLLECTION_STATUS</a>, <a href="#LENDING_COLLECTION">LENDING_COLLECTION</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Collection</td>
+      </tr>
+      <tr>
+        <td><a href="#COLLECTION_STATUS">COLLECTION_STATUS</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#COLLECTION">COLLECTION</a>, <a href="#COLLECTION_STATUS_LOOKUP">COLLECTION_STATUS_LOOKUP</a></td>
+        <td class="subcell">&nbsp;</td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">CollectionStatus</td>
+      </tr>
+      <tr>
+        <td><a href="#COLLECTION_STATUS_LOOKUP">COLLECTION_STATUS_LOOKUP</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#COLLECTION_STATUS">COLLECTION_STATUS</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">CollectionStatusLookup</td>
+      </tr>
+      <tr>
+        <td><a href="#GARBAGE">GARBAGE</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Garbage</td>
+      </tr>
+      <tr>
+        <td><a href="#GENRE">GENRE</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#GENRE">GENRE</a></td>
+        <td class="subcell"><a href="#BOOK">BOOK</a>, <a href="#GENRE">GENRE</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Genre</td>
+      </tr>
+      <tr>
+        <td><a href="#LB_USER">LB_USER</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#BLACK_LIST">BLACK_LIST</a>, <a href="#LIBRARY_USER">LIBRARY_USER</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">LbUser</td>
+      </tr>
+      <tr>
+        <td><a href="#LENDING">LENDING</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#LIBRARY_USER">LIBRARY_USER</a></td>
+        <td class="subcell"><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Lending</td>
+      </tr>
+      <tr>
+        <td><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#COLLECTION">COLLECTION</a>, <a href="#LENDING">LENDING</a></td>
+        <td class="subcell">&nbsp;</td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">LendingCollection</td>
+      </tr>
+      <tr>
+        <td><a href="#LIBRARY">LIBRARY</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#LIBRARY_TYPE_LOOKUP">LIBRARY_TYPE_LOOKUP</a></td>
+        <td class="subcell"><a href="#COLLECTION">COLLECTION</a>, <a href="#LIBRARY_USER">LIBRARY_USER</a>, <a href="#NEXT_LIBRARY">NEXT_LIBRARY</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Library</td>
+      </tr>
+      <tr>
+        <td><a href="#LIBRARY_TYPE_LOOKUP">LIBRARY_TYPE_LOOKUP</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#LIBRARY">LIBRARY</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">LibraryTypeLookup</td>
+      </tr>
+      <tr>
+        <td><a href="#LIBRARY_USER">LIBRARY_USER</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#LB_USER">LB_USER</a>, <a href="#LIBRARY">LIBRARY</a></td>
+        <td class="subcell"><a href="#LENDING">LENDING</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">LibraryUser</td>
+      </tr>
+      <tr>
+        <td><a href="#NEXT_LIBRARY">NEXT_LIBRARY</a></td>
+        <td>TABLE</td>
+        <td class="subcell"><a href="#LIBRARY">LIBRARY</a></td>
+        <td class="subcell">&nbsp;</td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">NextLibrary</td>
+      </tr>
+      <tr>
+        <td><a href="#PUBLISHER">PUBLISHER</a></td>
+        <td>TABLE</td>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell"><a href="#BOOK">BOOK</a></td>
+        <td class="commentcell"> &nbsp;</td>
+        <td class="subcell">Publisher</td>
+      </tr>
+    </tbody>
+  </table>
+
+<h2><a name="AUTHOR" />AUTHOR</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="AUTHORAUTHOR_ID">AUTHOR_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BOOK">BOOK</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">authorId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="AUTHORAUTHOR_NAME">AUTHOR_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">authorName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="AUTHORAUTHOR_AGE">AUTHOR_AGE</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">authorAge</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="AUTHORR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="AUTHORR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="AUTHORR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="AUTHORU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="AUTHORU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="AUTHORU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="BLACK_ACTION" />BLACK_ACTION</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTIONBLACK_ACTION_ID">BLACK_ACTION_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackActionId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTIONBLACK_LIST_ID">BLACK_LIST_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#BLACK_LIST">BLACK_LIST</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackListId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTIONBLACK_ACTION_CODE">BLACK_ACTION_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#BLACK_ACTION_LOOKUP">BLACK_ACTION_LOOKUP</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackActionCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTIONBLACK_LEVEL">BLACK_LEVEL</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackLevel</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="BLACK_ACTIONACTION_DATE">ACTION_DATE</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">actionDate</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="BLACK_ACTIONEVIDENCE_PHOTOGRAPH">EVIDENCE_PHOTOGRAPH</td>
+    <td>BLOB</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">evidencePhotograph</td>
+    <td class="subcell">byte[]</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTIONR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTIONR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTIONR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTIONU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTIONU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="BLACK_ACTIONU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="BLACK_ACTION_LOOKUP" />BLACK_ACTION_LOOKUP</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTION_LOOKUPBLACK_ACTION_CODE">BLACK_ACTION_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BLACK_ACTION">BLACK_ACTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackActionCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_ACTION_LOOKUPBLACK_ACTION_NAME">BLACK_ACTION_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackActionName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTION_LOOKUPR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTION_LOOKUPR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTION_LOOKUPR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTION_LOOKUPU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_ACTION_LOOKUPU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="BLACK_ACTION_LOOKUPU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="BLACK_LIST" />BLACK_LIST</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_LISTBLACK_LIST_ID">BLACK_LIST_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BLACK_ACTION">BLACK_ACTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackListId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_LISTLB_USER_ID">LB_USER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LB_USER">LB_USER</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BLACK_LISTBLACK_RANK">BLACK_RANK</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">blackRank</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_LISTR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_LISTR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_LISTR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_LISTU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BLACK_LISTU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="BLACK_LISTU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="BOOK" />BOOK</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKBOOK_ID">BOOK_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION">COLLECTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">bookId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKISBN">ISBN</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 20 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">isbn</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKBOOK_NAME">BOOK_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">bookName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKAUTHOR_ID">AUTHOR_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#AUTHOR">AUTHOR</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">authorId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKPUBLISHER_ID">PUBLISHER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#PUBLISHER">PUBLISHER</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">publisherId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="BOOKGENRE_CODE">GENRE_CODE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 24 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#GENRE">GENRE</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">genreCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="BOOKOPENING_PART">OPENING_PART</td>
+    <td>CLOB</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">openingPart</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKMAX_LENDING_DATE_COUNT">MAX_LENDING_DATE_COUNT</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">maxLendingDateCount</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="BOOKOUT_OF_USER_SELECT_YN">OUT_OF_USER_SELECT_YN</td>
+    <td>CHAR</td>
+    <td class="numcell"> 1 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"><a href="#YesNo">YesNo</a></td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">outOfUserSelectYn</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="BOOKOUT_OF_USER_SELECT_REASON">OUT_OF_USER_SELECT_REASON</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 200 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">outOfUserSelectReason</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BOOKR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BOOKR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BOOKR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BOOKU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="BOOKU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="BOOKU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="COLLECTION" />COLLECTION</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTIONCOLLECTION_ID">COLLECTION_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION_STATUS">COLLECTION_STATUS</a>,<br /><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTIONLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY">LIBRARY</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTIONBOOK_ID">BOOK_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#BOOK">BOOK</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">bookId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTIONARRIVAL_DATE">ARRIVAL_DATE</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">arrivalDate</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTIONR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTIONR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTIONR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTIONU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTIONU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="COLLECTIONU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="COLLECTION_STATUS" />COLLECTION_STATUS</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTION_STATUSCOLLECTION_ID">COLLECTION_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION">COLLECTION</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTION_STATUSCOLLECTION_STATUS_CODE">COLLECTION_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION_STATUS_LOOKUP">COLLECTION_STATUS_LOOKUP</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"><a href="#CollectionStatus">CollectionStatus</a></td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionStatusCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUSR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUSR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUSR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUSU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUSU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="COLLECTION_STATUSU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="COLLECTION_STATUS_LOOKUP" />COLLECTION_STATUS_LOOKUP</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTION_STATUS_LOOKUPCOLLECTION_STATUS_CODE">COLLECTION_STATUS_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION_STATUS">COLLECTION_STATUS</a>&nbsp;</td>
+    <td class="linkcell"><a href="#CollectionStatus">CollectionStatus</a></td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionStatusCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="COLLECTION_STATUS_LOOKUPCOLLECTION_STATUS_NAME">COLLECTION_STATUS_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionStatusName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUS_LOOKUPR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUS_LOOKUPR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUS_LOOKUPR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUS_LOOKUPU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="COLLECTION_STATUS_LOOKUPU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="COLLECTION_STATUS_LOOKUPU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="GARBAGE" />GARBAGE</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="GARBAGEGARBAGE_MEMO">GARBAGE_MEMO</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 50 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">garbageMemo</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="GARBAGEGARBAGE_TIME">GARBAGE_TIME</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">garbageTime</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="GENRE" />GENRE</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="GENREGENRE_CODE">GENRE_CODE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 24 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BOOK">BOOK</a>,<br /><a href="#GENRE">GENRE</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">genreCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="GENREGENRE_NAME">GENRE_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">genreName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="GENREHIERARCHY_LEVEL">HIERARCHY_LEVEL</td>
+    <td>NUMERIC</td>
+    <td class="numcell"> 9 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">hierarchyLevel</td>
+    <td class="subcell">BigDecimal</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="GENREHIERARCHY_ORDER">HIERARCHY_ORDER</td>
+    <td>NUMERIC</td>
+    <td class="numcell"> 10 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">hierarchyOrder</td>
+    <td class="subcell">BigDecimal</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td id="GENREPARENT_GENRE_CODE">PARENT_GENRE_CODE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 24 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#GENRE">GENRE</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">parentGenreCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="GENRER_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="GENRER_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="GENRER_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="GENREU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="GENREU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="GENREU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LB_USER" />LB_USER</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LB_USERLB_USER_ID">LB_USER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BLACK_LIST">BLACK_LIST</a>,<br /><a href="#LIBRARY_USER">LIBRARY_USER</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LB_USERLB_USER_NAME">LB_USER_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LB_USERUSER_PASSWORD">USER_PASSWORD</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 50 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">userPassword</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LB_USERU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LENDING" />LENDING</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LENDINGLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY_USER">LIBRARY_USER</a>&nbsp;</td>
+    <td class="linkcell"><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LENDINGLB_USER_ID">LB_USER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY_USER">LIBRARY_USER</a>&nbsp;</td>
+    <td class="linkcell"><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LENDINGLENDING_DATE">LENDING_DATE</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#LENDING_COLLECTION">LENDING_COLLECTION</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lendingDate</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDINGR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDINGR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDINGR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDINGU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDINGU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="LENDINGU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LENDING_COLLECTION" />LENDING_COLLECTION</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LENDING_COLLECTIONLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LENDING">LENDING</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LENDING_COLLECTIONLB_USER_ID">LB_USER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LENDING">LENDING</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LENDING_COLLECTIONLENDING_DATE">LENDING_DATE</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LENDING">LENDING</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lendingDate</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LENDING_COLLECTIONCOLLECTION_ID">COLLECTION_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION">COLLECTION</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">collectionId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LENDING_COLLECTIONRETURN_LIMIT_DATE">RETURN_LIMIT_DATE</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">returnLimitDate</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDING_COLLECTIONR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDING_COLLECTIONR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDING_COLLECTIONR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDING_COLLECTIONU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LENDING_COLLECTIONU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="LENDING_COLLECTIONU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LIBRARY" />LIBRARY</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARYLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#COLLECTION">COLLECTION</a>,<br /><a href="#LIBRARY_USER">LIBRARY_USER</a>,<br /><a href="#NEXT_LIBRARY">NEXT_LIBRARY</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARYLIBRARY_NAME">LIBRARY_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARYLIBRARY_TYPE_CODE">LIBRARY_TYPE_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY_TYPE_LOOKUP">LIBRARY_TYPE_LOOKUP</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryTypeCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARYR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARYR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARYR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARYU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARYU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="LIBRARYU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LIBRARY_TYPE_LOOKUP" />LIBRARY_TYPE_LOOKUP</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARY_TYPE_LOOKUPLIBRARY_TYPE_CODE">LIBRARY_TYPE_CODE</td>
+    <td>CHAR</td>
+    <td class="numcell"> 3 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY">LIBRARY</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryTypeCode</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARY_TYPE_LOOKUPLIBRARY_TYPE_NAME">LIBRARY_TYPE_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryTypeName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_TYPE_LOOKUPR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_TYPE_LOOKUPR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_TYPE_LOOKUPR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_TYPE_LOOKUPU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_TYPE_LOOKUPU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="LIBRARY_TYPE_LOOKUPU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="LIBRARY_USER" />LIBRARY_USER</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARY_USERLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY">LIBRARY</a>&nbsp;</td>
+    <td class="linkcell"><a href="#LENDING">LENDING</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="LIBRARY_USERLB_USER_ID">LB_USER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LB_USER">LB_USER</a>&nbsp;</td>
+    <td class="linkcell"><a href="#LENDING">LENDING</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">lbUserId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_USERR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_USERR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_USERR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_USERU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="LIBRARY_USERU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="LIBRARY_USERU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="NEXT_LIBRARY" />NEXT_LIBRARY</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="NEXT_LIBRARYLIBRARY_ID">LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY">LIBRARY</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">libraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell">*</td>
+    <td id="NEXT_LIBRARYNEXT_LIBRARY_ID">NEXT_LIBRARY_ID</td>
+    <td>SMALLINT</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#LIBRARY">LIBRARY</a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">nextLibraryId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="NEXT_LIBRARYDISTANCE_KM">DISTANCE_KM</td>
+    <td>NUMERIC</td>
+    <td class="numcell"> 4, 2 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">distanceKm</td>
+    <td class="subcell">BigDecimal</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="NEXT_LIBRARYR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="NEXT_LIBRARYR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="NEXT_LIBRARYR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="NEXT_LIBRARYU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="NEXT_LIBRARYU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="NEXT_LIBRARYU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+<h2><a name="PUBLISHER" />PUBLISHER</h2>
+<table>
+  <thead>
+    <tr>
+      <th>PK</th>
+      <th>ID</th>
+      <th>UQ</th>
+      <th>IX</th>
+      <th>Not<br />Null</th>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th>Def</th>
+      <th>ForeignTable</th>
+      <th>ReferrerTable</th>
+      <th>Classification</th>
+      <th>Comment</th>
+      <th>PropertyName</th>
+      <th>JavaType</th>
+    </tr>
+  </thead>
+  <tr>
+    <td class="flgcell">o</td>
+    <td class="flgcell">o</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="PUBLISHERPUBLISHER_ID">PUBLISHER_ID</td>
+    <td>INTEGER</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell"><a href="#BOOK">BOOK</a>&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">publisherId</td>
+    <td class="subcell">Integer</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td id="PUBLISHERPUBLISHER_NAME">PUBLISHER_NAME</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 80 </td>
+    <td class="subcell"> &nbsp;</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">publisherName</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="PUBLISHERR_USER">R_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="PUBLISHERR_MODULE">R_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="PUBLISHERR_TIMESTAMP">R_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">RTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="PUBLISHERU_USER">U_USER</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-user</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UUser</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell" id="PUBLISHERU_MODULE">U_MODULE</td>
+    <td>VARCHAR</td>
+    <td class="numcell"> 100 </td>
+    <td class="subcell"> default-module</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UModule</td>
+    <td class="subcell">String</td>
+  </tr>
+  <tr>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell"> &nbsp;</td>
+    <td class="flgcell">*</td>
+    <td class="comcolcell optcell" id="PUBLISHERU_TIMESTAMP">U_TIMESTAMP</td>
+    <td>TIMESTAMP</td>
+    <td class="numcell"> &nbsp;</td>
+    <td class="subcell"> CURRENT_TIMESTAMP</td>
+    <td class="linkcell"><a href="#"></a>&nbsp;</td>
+    <td class="linkcell">&nbsp;</td>
+    <td class="linkcell"> &nbsp;</td>
+    <td class="commentcell"> &nbsp;</td>
+    <td class="subcell">UTimestamp</td>
+    <td class="subcell">Timestamp</td>
+  </tr>
+</table>
+
+
+  <h2>Classification Definition</h2>
+  <table>
+      <thead>
+      <tr>
+        <th>Classification</th>
+        <th>Top Comment</th>
+        <th>Definition</th>
+      </tr>
+      </thead>
+    <tbody>
+      <tr>
+        <td><a name="YesNo"/>YesNo</td>
+        <td>はいいいえを示す</td>
+        <td>
+          <table class="child">
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Comment</th>
+            </tr>
+            <tr>
+              <td>y</td>
+              <td>Yes</td>
+              <td> &nbsp;</td>
+            </tr>
+            <tr>
+              <td>n</td>
+              <td>No</td>
+              <td> &nbsp;</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td><a name="CollectionStatus"/>CollectionStatus</td>
+        <td>蔵書の状態を示す</td>
+        <td>
+          <table class="child">
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Comment</th>
+            </tr>
+            <tr>
+              <td>NOR</td>
+              <td>NOR</td>
+              <td>通常状態を示す</td>
+            </tr>
+            <tr>
+              <td>WAT</td>
+              <td>WAT</td>
+              <td>待ち状態を示す</td>
+            </tr>
+            <tr>
+              <td>OUT</td>
+              <td>OUT</td>
+              <td>貸し出し中を示す</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    <tbody>
+  </table>
+</body>
+</html>
