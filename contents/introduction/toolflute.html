@@ -54,16 +54,19 @@
 	</p>
 	<h3>タスク一覧</h3>
 	<p>
-		DBFluteは、内部で<a href="http://ant.apache.org/">Apache Ant</a>を利用して、それぞれのタスクを実行します。
+		DBFluteは、内部で<a href="http://ant.apache.org/">Apache Ant</a>を利用してそれぞれのタスクを実行します(概念図は<a href="../../ja/view/concept/basic/task/index.html">こちら</a>)。
 	</p>
 	<ul>
 		<li>JDBC : 自動生成のためのDBスキーマ情報の取得</li>
 		<li>Generate : DBスキーマ情報からのクラスの自動生成</li>
 		<li>Sql2Entity : 外だしSQLからのクラスの自動生成</li>
 		<li>ReplaceSchema : DBスキーマを初期化してDDL文を流しテストデータまで一気に登録</li>
-		<li>Doc : DBスキーマ情報をHTMLのテーブル一覧として出力 *<a href="../../view/schema/project-schema-exampledb.html">サンプル</a></li>
-		<li>OutsideSqlTest : 外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェック</li>
+		<li>Doc : DBスキーマ情報をHTMLのテーブル一覧として出力 *<a href="../../ja/view/schema/project-schema-exampledb.html">サンプル</a></li>
+		<li>OutsideSqlTest : 外だしSQLを2WaySQLとしてそのまま実行してSQLの妥当性をチェック</li>
 	</ul>
+	<p>
+		ReplaceSchemaとOutsideSqlTestに関しては<a href="http://event.seasarfoundation.org/sc2008autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2008autumn_c1_dbflute.pdf">現場ソリューション２(PDF)</a>に詳しく書いてあります。
+	</p>
 	<h3>実行の仕方</h3>
 	<p>
 		DBFluteクライアント配下にそれぞれWindows用、Unix用(MacOSXも含む)に「.bat」と「.sh」が用意されています。
@@ -111,62 +114,6 @@
 }</code></pre>
 	<p>
 		将来的に全てdfpropに移行される可能性があります(検討中)。
-	</p>
-	<h3>タスクの詳細</h3>
-	<h4>JDBC</h4>
-	<p>
-		自動生成のためのDBスキーマ情報の取得します。
-	</p>
-	<p>
-		DBFluteクライアントの「./dfprop/databaseInfoMap.dfprop」のDB接続情報からDBに接続し、
-		正常終了するとDBFluteクライアントの「./schema/project-schema-xxx.xml」にDBスキーマ情報が出力されます。
-	</p>
-	<h4>Generate</h4>
-	<p>
-		DBスキーマ情報からテーブル対応のクラス(+DBFluteフレームワーク)を自動生成します。
-	</p>
-	<p>
-		JDBCタスクが実行されていることが前提となります(DBスキーマ情報が必要なため)。
-		二回目以降の実行の場合は、変更のあったクラスだけが上書きされます。但し、Extended(ジェネレーションギャップ)のクラスは上書きされません。
-	</p>
-	<p>
-		クラスファイルは、「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下に出力されます。
-	</p>
-	<h4>Sql2Entity</h4>
-	<p>
-		外だしSQLからの検索結果を格納するEntity(CustomizeEntity)とSQLへの引数を格納するBean(ParameterBean)を自動生成します。
-	</p>
-	<p>
-		「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下のSQLファイルを対象とします。
-		Sql2Entityについて詳しくは<a href="../outside-sql/sql2entity.html">こちら</a>
-	</p>
-	<p>
-		クラスファイルは、「properties」に定義されている「torque.java.dir」プロパティに定義されたディレクトリ配下に出力されます。
-	</p>
-	<h4>ReplaceSchema</h4>
-	<p>
-		DBスキーマを初期化してDDL文を流しテストデータまで一気に登録します。
-	</p>
-	<p>
-		詳しくは、<a href="http://event.seasarfoundation.org/sc2008autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2008autumn_c1_dbflute.pdf">現場ソリューション２(PDF)</a>をご覧下さい。
-	</p>
-	<h4>Doc</h4>
-	<p>
-		DBスキーマ情報をHTMLのテーブル一覧として出力します。
-	</p>
-	<p>
-		JDBCタスクが実行されていることが前提となります(DBスキーマ情報が必要なため)。
-	</p>
-	<p>
-		正常終了するとDBFluteクライアントの「./output/doc/project-schema-xxx.xml」にDBスキーマ情報が記載されたHTMLが出力されます。
-		<a href="../../view/schema/project-schema-exampledb.html">サンプル</a>をご覧下さい。
-	</p>
-	<h4>OutsideSqlTest</h4>
-	<p>
-		外だしSQLを2WaySQLとしてそのまま実行し、SQLの妥当性をチェックします。
-	</p>
-	<p>
-		詳しくは、<a href="http://event.seasarfoundation.org/sc2008autumn/viewAttachment.do?_pageName_=Session&_fileName_=sc2008autumn_c1_dbflute.pdf">現場ソリューション２(PDF)</a>をご覧下さい。
 	</p>
 	<h3>ロールごとに必要なタスク</h3>
 	<p>
@@ -223,7 +170,7 @@
 			<li><a href="../outside-sql/paging.html">Paging</a></li>
 			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
 		</ul>
-		<li><a href="../../ja/tips-behavior.html">Behavior</a></li>
+		<li>Behavior</li>
 		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
 	</ul>
 	<h3>Topics</h3>
