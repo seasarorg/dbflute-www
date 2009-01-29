@@ -69,7 +69,7 @@ member.update(member); // 共通カラムは内部で自動設定される
 	<p>
 		DBFluteクライアント配下の「./dfprop/commonColumnMap.dfprop」に以下のような設定をして再自動生成をして下さい。(*dfpropファイルはビルドプロパティの外だし形式の設定のことを言います)
 	</p>
-	<pre>ex) 共通カラムの規則性を設定 @commonColumnMap.dfprop<code>
+	<pre>ex) 共通カラムの規則性を設定(Javaの場合) @commonColumnMap.dfprop<code>
 map:{
     ; commonColumnMap = map:{
         ; REGISTER_DATETIME=TIMESTAMP ; REGISTER_USER=VARCHAR ; REGISTER_PROCESS=VARCHAR
@@ -91,36 +91,18 @@ map:{
 }
 	</code></pre>
 	<p>
-		「commonColumnMap」にて、そもそも共通カラムはどのカラムなのかを指定します。そして、それぞれのカラムにInsert/Update時にどんな値を格納するかを「beforeInsertMap」/「beforeUpdateMap」にて設定します。
+		C#の場合は、以下の点が異なります。
+	</p>
+	<ul>
+		<li>「$$AccessContext$$.getAccess...」→「$$AccessContext$$.GetAccess...」</li>
+		<li>「entity.getRegisterDatetime()」→「entity.RegisterDatetime」</li>
+	</ul>
+	<p>
+		「commonColumnMap」にて、そもそも共通カラムはどのカラムなのかを指定します。
+		そして、それぞれのカラムにInsert/Update時にどんな値を格納するかを「beforeInsertMap」/「beforeUpdateMap」にて設定します。
 	</p>
 	<p>
 		「$$AccessContext$$」は、DBFluteが生成するallcommonパッケージのAccessContextのThreadLocalを保持するクラスです。このクラスから共通カラムに格納する値を取得します。
-	</p>
-	<h5>設定方法のバージョン制限</h5>
-	<p>
-		注：上記のdfpropを利用した設定方法はDBFlute-0.6.5からになります。それ以前のバージョンの場合はbuild-xxx.propertiesに以下のように設定して下さい。
-	</p>
-	<pre>ex) 共通カラムの規則性を設定(build-xxx.propertiesバージョン) @build-xxx.properties<code>
-torque.commonColumnMap = map:{ \
-        ; REGISTER_DATETIME=TIMESTAMP; REGISTER_USER=VARCHAR; REGISTER_PROCESS=VARCHAR \
-        ; UPDATE_DATETIME=TIMESTAMP  ; UPDATE_USER=VARCHAR  ; UPDATE_PROCESS=VARCHAR \
-    }
-torque.commonColumnSetupBeforeInsertInterceptorLogicMap = map:{ \
-        ; REGISTER_DATETIME = $$AccessContext$$.getAccessTimestampOnThread() \
-        ; REGISTER_USER     = $$AccessContext$$.getAccessUserOnThread() \
-        ; REGISTER_PROCESS  = $$AccessContext$$.getAccessProcessOnThread() \
-        ; UPDATE_DATETIME   = entity.getRegisterDatetime() \
-        ; UPDATE_USER       = entity.getRegisterUser() \
-        ; UPDATE_PROCESS    = entity.getRegisterProcess() \
-    }
-torque.commonColumnSetupBeforeUpdateInterceptorLogicMap = map:{ \
-        ; UPDATE_DATETIME   = $$AccessContext$$.getAccessTimestampOnThread() \
-        ; UPDATE_USER       = $$AccessContext$$.getAccessUserOnThread() \
-        ; UPDATE_PROCESS    = $$AccessContext$$.getAccessProcessOnThread() \
-    }
-	</code></pre>
-	<p>
-		無論、DBFlute-0.6.5以降でもこの古い方の書き方で動作しますので、既に設定してしまっている方は無理にdfpropに移行する必要ありません。但し、dfpropの方が改行エスケープが不要でコメント行も自由に入れられるので利便性は高いです。
 	</p>
 	<h5>commonColumnMapのカラムタイプ</h5>
 	<p>
