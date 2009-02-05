@@ -32,24 +32,25 @@
 		こうすることで、ConditionBeanを意識する前の早い段階で判断が可能です。
 	</p>
 	<p>
-		以下に当てはまるものは確実に外だしSQLです。
+		以下はConditionBeanでは実現できないことが確定しているものです。
 	</p>
 	<ul>
-		<li>Group By句</li>
-		<li>max(),min(),sum(),avg(),count()以外の関数</li>
-		<li>Truncate、Merge、Minus、Any、Some</li>
-		<li>DDL文</li>
-		<li>更新ロック以外のロック指定(DB2の「with RR」やMySQLの「lock table」など)</li>
+		<li>集計結果を取得する {Group By句}</li>
+		<li>独自の計算をする {max(),min(),sum(),avg(),count()以外の関数}</li>
+		<li>テーブル構造を更新する {DDL文}</li>
+		<li>テーブルデータを問答無用削除 {Truncate}</li>
+		<li>テーブル同士をマージする {Merge}</li>
 		<li>(FK制約などで)関連の全くないテーブル同士での結合</li>
 		<li>別テーブル同士でのUNIONもしくはUNION ALL</li>
-		<li>
-			カーソルで１レコードずつメモリ展開して処理したい
-			<ul>
-				<li>この場合はOutsideSqlのカーソル検索を利用</li>
-				<li>カーソル検索については<a href="../outside-sql/cursor.html">こちら</a></li>
-			</ul>
-		</li>
 	</ul>
+	<p>
+		目的(やりたいこと)が明確であることが前提です。そのDBアクセス要件がどういう結果を欲しているのかをSQL(という手段)にとらわれず考えることが大事です。
+		もし、やりたいことが「テーブル検索の結果セットに子テーブル導出カラムを追加したい」であれば、
+		Group By句を使っても実現はできますが(インラインビュー内でGroup Byを利用)、実はSelect句での相関サブクエリでも実現でき、
+		しかも、(状況次第ではありますが)後者の方がパフォーマンスに相性も良く、ConditionBeanの「(Specify)DerivedReferrer」機能で実装することができます。
+		「Group Byという手段」が頭の中で先行しているとこれを見落としてしまう可能性があります。これはDBFluteでなくても(普通にSQLを書く上で)不利益なことです。
+		まず目的(やりたいこと)を明確にしてから、それを実現する(最適な)手段が上記のものかどうかを判断して下さい。
+	</p>
 	<h3>B. ConditionBeanのスコープを判断</h3>
 	<p>
 		そして、ConditionBeanのスコープからConditionBeanで実装できるか確認していきます。
@@ -151,7 +152,18 @@
 	</ul>
 	<h4>その他</h4>
 	<ul>
-		<li>ページング検索</li>
+		<li>ページング検索
+			<ul>
+				<li>各データベース固有のページング絞り込み条件を利用</li>
+				<li>DB2とSQLServerはOffset処理だけResultSet読み飛ばし</li>
+			</ul>
+		</li>
+		<li>カーソル検索
+			<ul>
+				<li>コールバックを指定して一件ずつフェッチしながら処理</li>
+				<li>マッピングコストを省略したい場合は<a href="../outside-sql/cursor.html">外だしSQLカーソル検索</a></li>
+			</ul>
+		</li>
 		<li>更新ロック</li>
 		<li>
 			子テーブルをone-to-manyの関係のまま取得 {Behavior.LoadReferrer}
@@ -161,11 +173,12 @@
 				<li>{1:n:n}というように無限階層そして枝分かれ階層のLoadが可能</li>
 			</ul>
 		</li>
-		<li>カーソル検索</li>
+		<li>
+			様々なロック
 			<ul>
-				<li>コールバックを指定して一件ずつフェッチしながら処理</li>
-				<li>マッピングコストを省略したい場合は<a href="../outside-sql/cursor.html">外だしSQLカーソル検索</a></li>
+				<li>DB2の「with RR」や「with CS」などの細かいロック指定は、DBFluteプロパティの設定次第で利用可能</li>
 			</ul>
+		</li>
 	</ul>
 	<h3>C. やはり外だしSQLであると判断</h3>	
 	<p>
