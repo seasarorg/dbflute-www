@@ -16,51 +16,58 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>バージョン移行{0.8.5 to 0.8.6}</h2>
-	<h3>環境上の注意点</h3>
-	<h4>Sql2Entityも一緒に *いつもの注意点</h4>
+	<h2>Behaviorの基本</h2>
+	<h3>Behaviorとは？</h3>
 	<p>
-		バージョンアップした際は、GenerateだけでなくSql2Entityも実行して下さい。
+		Behaviorは、DBFluteにおいてDBアクセスする際のエントリコンポーネントになります。
+		ConditionBeanも外だしSQL(OutsideSql)も全てBehaviorにて実行します。
+		テーブル一つに付き、Behaviorが一つ存在します。DIコンテナ管理のコンポーネントでシングルトンとして管理されます。
 	</p>
-	<h4>古いテーブルを削除 *いつもの注意点</h4>
+	<h3>Behaviorの利用方法</h3>
 	<p>
-		古いテーブルのクラスが残っているとコンパイルエラーになる可能性があります。
-		それらクラスは不要なので削除するようにして下さい。
+		DIコンテナ管理のコンポーネントということで、他のコンポーネントと同じくそれぞれのDIコンテナの特徴に合わせて利用します。
 	</p>
+	<h4>Seasarの場合</h4>
 	<p>
-		build-xxx.propertiesに「torque.isDeleteOldTableClass = true」を定義すると、古いテーブルのクラスを削除(OS上のファイルを削除)します。設定例は<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example/dbflute_exampledb/build-exampledb.properties">こちら</a>
+		コンテナ管理されたコンポーネント上で、プロパティを作成することで利用可能です。
+		プロパティ名は、Behaviorのクラス名の先頭文字を小文字にしたものになります。
+		型によるインジェクションはされませんので、プロパティ名は正確である必要がありますのでご注意下さい。
 	</p>
-	<h4>削除クラス</h4>
+<pre>ex) (コンテナ管理されている)Pageクラス上でBehaviorを利用<code>
+public class FooPage {
+    @Binding(bindingType = BindingType.MUST)
+    protected MemberBhv memberBhv;
+}
+</code></pre>
 	<p>
-		以下のクラスが削除となりました。前回バージョンで非推奨になったものです。
+		Getter/Setterを作っても構いません(Seasarの仕様に従って下さい)。
+	</p>
+	<h4>Springの場合</h4>
+	<p>
+		コンテナ管理されたコンポーネント上で、プロパティを作成することで利用可能です。
+		プロパティ名は、Behaviorのクラス名の先頭文字を小文字にしたものになりますが、
+		型によるインジェクションがされますので、これは習慣的なものです。
+	</p>
+<pre>ex) (コンテナ管理されている)Pageクラス上でBehaviorを利用<code>
+public class FooPage {
+    protected MemberBhv memberBhv;
+    protected MemberBhv getMemberBhv() {
+        return memberBhv;
+    }
+    protected void getMemberBhv(MemberBhv memberBhv) {
+        this.memberBhv = memberBhv;
+    }
+}
+</code></pre>
+	<h3>DBFluteBasicExample</h3>
+	<p>
+		詳細な機能や仕様に関しては、DBFluteBasicExampleのExample実装をご覧下さい。
 	</p>
 	<ul>
-		<li>allcommon.BFinder *Javaのみ(C#はもともとない)</li>
-		<li>allcommon.GenMetaData</li>
+		<li>初級編：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example/src/test/java/com/example/dbflute/basic/dbflute/howto/jp/BehaviorBasicTest.java">BehaviorBasicTest</a></li>
+		<li>中級編：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example/src/test/java/com/example/dbflute/basic/dbflute/howto/jp/BehaviorMiddleTest.java">BehaviorMiddleTest</a></li>
+		<li>上級編：<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example/src/test/java/com/example/dbflute/basic/dbflute/howto/jp/BehaviorPlatinumTest.java">BehaviorPlatinumTest</a></li>
 	</ul>
-	<h4>削除メソッド</h4>
-	<p>
-		以下のメソッドが削除となりました。前回バージョンで非推奨になったものです。
-	</p>
-	<ul>
-		<li>ConditionBean.limitSelect_PKOnly() *Javaのみ(C#はもともとない)</li>
-		<li>ConditionBean.union(XxxCB) *Javaのみ(C#はもともとない)</li>
-	</ul>
-	<p>
-		「Daoインターフェースを生成しない」モードで利用されなくなったクラスを削除してないと、
-		上記の影響でコンパイルエラーになる可能性があります。その場合は利用されなくなったクラスを削除して下さい。
-	</p>
-	<h4>非推奨のクラス</h4>
-	<p>
-		以下のクラスが非推奨になりました。内部的に利用していたクラスで、CDefクラスに置き換わります。
-	</p>
-	<ul>
-		<li>allcommon.ClassificationDefinition</li>
-	</ul>
-	<h3>実装上の注意点</h3>
-	<p>
-		特にありません。
-	</p>
 	
 <!-- __content-end__ --></div>
 
