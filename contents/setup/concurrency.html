@@ -27,17 +27,29 @@
 	<p>
 		<ul>
 			<li>A. 制御対象のカラムが「VERSION_NO」である → 自動判別のため設定不要</li>
-			<li>B. 制御対象のカラムが任意の名前である → build-xxx.propertiesに設定</li>
+			<li>B. 制御対象のカラムが任意の名前である → optimisticLockDefinitionMap.dfpropにて設定</li>
 		</ul>
 	</p>
 	<p>
 		指定が必要な場合(「B」の場合)は、以下のように設定にして再自動生成して下さい。
 	</p>
-	<pre>ex) 排他制御のカラムとして数値型の「XXX_COLUMN」を指定 @build-xxx.properties<code>
-torque.versionNoFieldName          = XXX_COLUMN
+	<pre>ex) 排他制御のカラムとして日付型の「XXX_COLUMN」を指定 @optimisticLockDefinitionMap.dfprop<code>
+# /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# o updateDateFieldName: (NotRequired - Default '')
+#  The column name of update date for optimistic lock. 
+# 
+; updateDateFieldName = XXX_COLUMN
+# - - - - - - - - - -/
 	</code></pre>
-	<pre>ex) 排他制御のカラムとして日付型の「XXX_COLUMN」を指定 @build-xxx.properties<code>
-torque.updateDateFieldName          = XXX_COLUMN
+	<pre>ex) 排他制御のカラムとして数値型の「XXX_COLUMN」を指定 @optimisticLockDefinitionMap.dfprop<code>
+# /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# o versionNoFieldName: (NotRequired - Default 'VERSION_NO')
+#  The column name of version no for optimistic lock.
+#  Basically you don't need this if your tables have the column 'VERSION_NO'.
+#  because the default value is 'VERSION_NO'.
+# 
+; versionNoFieldName = XXX_COLUMN
+# - - - - - - - - - -/
 	</code></pre>
 	<p>
 		数値型のカラムを利用する場合と日付型のカラムを利用する場合の二通りをサポートしていますが、日付型の場合はDBの日付の精度に正確性が依存してしまうため、数値型で排他制御することをお奨めします。
