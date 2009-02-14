@@ -16,19 +16,45 @@
 	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
 </div>
 <div id="content"><!-- __content-start__ -->
-	<h2>バージョン移行{0.8.8.4 to 0.8.8.5}</h2>
-	<h3>アップグレードの方法について</h3>
+	<h2>DBMetaの基本</h2>
+	<h3>DBMetaとは？</h3>
 	<p>
-		<a href="../setup/versionup.html">こちら</a>をご覧下さい。
+		DBMetaは、Entityが表現する構造(テーブルや外だしSQL(OutsideSql))のメタ情報を表現するオブジェクトです。
 	</p>
-	<h3>環境上の注意点</h3>
 	<p>
-		特に無し
+		Singletonオブジェクトであり、Entityから取得してもDBMetaのgetInstance()メソッドで取得しても同じインスタンスになります。
+		また、全てのDBMetaは「DBMetaインターフェース」を実装しているので抽象化して利用することが可能です。
 	</p>
-	<h3>実装上の注意点</h3>
-	<p>
-		特に無し
-	</p>
+<pre>ex) 会員(Member)のDBMetaを取得<code>// Get from singleton instance method
+MemberDbm dbmeta = MemberDbm.getInstance();
+
+// Get from entity as DBMeta interface
+DBMeta dbmeta = member.getDBMeta();
+</code></pre>
+	<h3>DBMetaの種類</h3>
+	<dl>
+		<dt>DomainEntityのDBMeta</dt>
+		<dd>テーブルに対応するDBMeta。Generateタスクで自動生成される。</dd>
+		<dt>CustomizeEntityのDBMeta</dt>
+		<dd>外だしSQL(OutsideSql)に対応するDBMetad。Sql2Entityタスクで自動生成される。</dd>
+	</dl>
+	<h3>カラム情報</h3>
+<pre>ex) 会員(Member)のカラム情報を取得<code>MemberDbm dbmeta = MemberDbm.getInstance();
+
+// MemberId
+ColumnInfo memberIdInfo = dbmeta.columnMemberId();
+String memberIdDbName = memberIdInfo.getColumnDbName();
+String memberIdPropertyName = memberIdInfo.getPropertyName();
+if (memberIdInfo.isPrimary()) {
+}
+
+// MemberName
+ColumnInfo memberNameInfo = dbmeta.columnMemberName();
+String memberNameDbName = memberNameInfo.getColumnDbName();
+String memberNamePropertyName = memberNameInfo.getPropertyName();
+if (memberNameInfo.isPrimary()) {
+}
+</code></pre>
 	
 <!-- __content-end__ --></div>
 
