@@ -22,8 +22,19 @@
 		<a href="../setup/versionup.html">こちら</a>をご覧下さい。
 	</p>
 	<h3>環境上の注意点</h3>
+	<h4>AccessContextで「Anonymous」を廃止</h4>
 	<p>
-		特に無し
+		共通カラムの機能を利用していて、以下のようにAccessContextをスレッド上での初期化をInterceptorやFilterなどで処理している場合はこの話は無関係です。
+	</p>
+<pre><code>AccessContext context = new AccessContext();
+context.setAccessTimestamp(accessTimestamp);
+context.setAccessUser(accessUser);
+context.setAccessProcess(accessProcess);
+AccessContext.setAccessContextOnThread(context);</code></pre>
+	<p>
+		上記の処理がされてない状態で共通カラムの自動設定処理が実行された場合に、AccessUserやAccessProcessなどで「Anonymous」という文字列がデフォルト値になっていましたが、
+		これは業務的に意味のないものなので廃止しました(今後は例外がthrowされます)。共通カラムを利用する場合は必ず事前にAccessContextを初期化して下さい。
+		(日付だけはデフォルト値(現在日時)が存在します)
 	</p>
 	<h3>実装上の注意点</h3>
 	<h4>PrefixSearch/LikeSearchで一致方向を指定したら自動エスケープ</h4>
