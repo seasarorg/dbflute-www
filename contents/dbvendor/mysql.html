@@ -81,6 +81,28 @@ select last_insert_id();
 	<pre>ex) OutsideSqlのManualPaging(手動ページング)でページング @SQL<code>
 ... limit /*$pmb.pageStartIndex*/80, /*$pmb.fetchSize*/20
 	</code></pre>
+	<h3>MySQLで外だしSQLでDATE型カラムで比較する際の注意点</h3>
+	<p>
+		ここでいうDATE型とは「時分秒のない日付」です。<br />
+		OracleやSQLServerではサポートされていないので関係ありません。<br />
+		ConditionBeanでは関係ありません。
+	</p>
+	<p>
+		MySQLに限り、外だしSQLでDATE型カラムに対して比較する時はjava.util.Dateの時分秒ミリ秒の存在に注意して下さい。
+	</p>
+	<p>
+		他のDBでは、DATE型カラムに対してのパラメータのjava.util.Dateの時分秒ミリ秒は無視されて比較されます。
+		しかし、MySQLではその時分秒ミリ秒が評価されてしまいます(MySQLのJDBCドライバ-5.1.6にて検証)。
+		すると以下のような条件がHITしません。
+	</p>
+	<pre>ex) FOO_DATE「2009-12-12」のレコードがpmb.fooDate「2009-12-12 12:34:56:123」でHITしない @SQL<code>where FOO_DATE &gt;= /*pmb.fooDate*/'2003-02-25'</code></pre>
+	<p>
+		以下のことでこれを回避することができます：
+	</p>
+	<ul>
+		<li>Java上でjava.util.Dateで時分秒ミリ秒が入らないようにする(new Date()注意)</li>
+		<li>ParameterBeanの型指定でjava.sql.Dateを使う</li>
+	</ul>
 	<h3>MySQLを小文字管理にした場合の注意点</h3>
 	<p>
 		MySQLはLinux上ではではSQL文でのテーブル名やカラム名の大文字小文字を区別します。これをWindows上と同じように区別ないようにするためには、my.cnf or my.iniに以下のような設定をします。
