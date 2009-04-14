@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>利用方法</h2>
+	
+    <p>
+    Maven DBFlute Plugin の基本的な利用方法について説明します。
+    </p>
+
+	<h3>利用する前に(事前準備)</h3>
+	
+    <p>
+    Maven DBFlute Plugin を利用するためには、<a href="http://maven.apache.org/download.html" target="_blank">Maven 2 のインストール</a>および <a href="http://maven.apache.org/guides/getting-started/index.html#How_do_I_make_my_first_Maven_project" target="_blank">Maven のプロジェクトを生成しておく</a>必要があります。
+    Maven プロジェクトの生成には、Maven の archetype 機構を利用すると簡単に生成することができます。
+    たとえば、Maven のインストール後に、以下のように実行すると Maven プロジェクトが作成されます。
+    </p>
+
+    <pre>
+      <code>
+mvn archetype:create \
+    -DgroupId=グループID \
+    -DartifactId=プロジェクトID \
+    -DarchetypeArtifactId=maven-archetype-webapp
+      </code>
+    </pre>
+
+    <p>
+    groupId には生成するプロジェクトのグループ ID、artifactId には生成するプロジェクトのプロジェクト ID、archetypeArtifactId には生成するプロジェクトのタイプをしていします。
+    archetypeArtifactId には以下のものなどを指定できます。
+    詳細については、<a href="http://maven.apache.org/plugins/maven-archetype-plugin/index.html" target="_blank">Maven Archetype Plugin</a> を参照してください。
+    </p>
+
+    <ul>
+      <li>maven-archetype-quickstart: jar ファイルを生成するプロジェクト</li>
+      <li>maven-archetype-webapp: war ファイルを生成するプロジェクト</li>
+      <li>maven-archetype-j2ee: J2EE プロジェクトを生成するプロジェクト</li>
+      <li>maven-archetype-mojo: Maven プラグインを生成するプロジェクト</li>
+    </ul>
+
+	<h3>pom.xml の更新</h3>
+	
+    <p>
+    Maven DBFlute Plugin を利用するために、開発するプロジェクトの pom.xml にプラグイン情報を追加します。
+    以下のように追加してください。
+    バージョン (version要素) は最新のバージョンを利用してください。
+    </p>
+    
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+...
+  &lt;build&gt;
+    &lt;plugins&gt;
+...
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-dbflute-plugin&lt;/artifactId&gt;
+        &lt;version&gt;0.1.0-SNAPSHOT&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;dbfluteVersion&gt;0.9.4.1-RC2&lt;/dbfluteVersion&gt;
+          &lt;dbPackage&gt;sample.app.db&lt;/dbPackage&gt;
+          &lt;schemaName&gt;sample&lt;/schemaName&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+...
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+...
+&lt;/project&gt;
+      </code>
+    </pre>
+
+    <p>
+    configuration 要素以下で Maven DBFlute Plugin のパラメータを設定することができます。
+    dbfluteVersion はプロジェクトにインストールする DBFlute のバージョン、dbPackage は DBFlute により生成されるクラスをインストールするパッケージ名、schemaName はスキーマ名で DBFlute クライアント内の build-スキーマ名.properties などで利用されます。
+    </p>
+
+    <p>
+    デフォルトでは H2 のデータベースが設定されますが、Oracle など別な DB を設定するなどカスタマイズしたい場合は、configuration 要素以下に以下のように指定します。
+    この設定は、DBFlute クライアントだけに適用されるものなので、アプリが使う jdbc.dicon などのその他の設定は別途行ってください。
+    </p>
+
+    <pre>
+      <code>
+...
+        &lt;configuration&gt;
+...
+          &lt;database&gt;mysql&lt;/database&gt;
+          &lt;databaseDriver&gt;com.mysql.jdbc.Driver&lt;/databaseDriver&gt;
+          &lt;databaseUrl&gt;jdbc:mysql://localhost/DB名?useUnicode=true&amp;amp;amp;characterEncoding=UTF-8&lt;/databaseUrl&gt;
+          &lt;databaseUser&gt;ユーザ名&lt;/databaseUser&gt;
+          &lt;databasePassword&gt;パスワード&lt;/databasePassword&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+...
+      </code>
+    </pre>
+
+	<h3>DBFluteのダウンロード・展開 (dbflute:download)</h3>
+
+    <p>
+    dbflute:download ゴールを実行すると、dbfluteVersion で指定されたバージョンの DBFlute を mydbflute ディレクトリ以下に展開します。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:download
+      </code>
+    </pre>
+
+	<h3>DBFluteクライアントの展開 (dbflute:create-client)</h3>
+
+    <p>
+    dbflute:create-client ゴールを実行すると、dbfluteVersion で指定されたバージョンの DBFlute の DBFlute クライアントを展開します。
+    展開時に database などのパラメータが pom.xml などで設定されている場合は、それらの値が適用されます。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:create-client
+      </code>
+    </pre>
+
+	<h3>スキーマの作成 (dbflute:replace-schema)</h3>
+
+    <p>
+    dbflute:replace-schema ゴールを実行すると、DBFlute クライアントの replace-schema.[sh|bat] が実行されます。
+    replace-schema については、<a href="http://dbflute.sandbox.seasar.org/contents/setup/bytemplate.html">セットアップ</a>を参照してください。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:replace-schema
+      </code>
+    </pre>
+
+	<h3>スキーマ情報の取得 (dbflute:jdbc)</h3>
+
+    <p>
+    dbflute:jdbc ゴールを実行すると、DBFlute クライアントの jdbc.[sh|bat] が実行されます。
+    jdbc については、<a href="http://dbflute.sandbox.seasar.org/contents/setup/bytemplate.html">セットアップ</a>を参照してください。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:jdbc
+      </code>
+    </pre>
+
+	<h3>スキーマ情報のHTML化 (dbflute:doc)</h3>
+
+    <p>
+    dbflute:doc ゴールを実行すると、DBFlute クライアントの doc.[sh|bat] が実行されます。
+    doc については、<a href="http://dbflute.sandbox.seasar.org/contents/setup/bytemplate.html">セットアップ</a>を参照してください。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:doc
+      </code>
+    </pre>
+
+	<h3>クラスファイルの自動生成 (dbflute:generate)</h3>
+
+    <p>
+    dbflute:generate ゴールを実行すると、DBFlute クライアントの generate.[sh|bat] が実行されます。
+    generate については、<a href="http://dbflute.sandbox.seasar.org/contents/setup/bytemplate.html">セットアップ</a>を参照してください。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:generate
+      </code>
+    </pre>
+
+	<h3>SQLから対応するEntityの自動生成 (dbflute:sql2entity)</h3>
+
+    <p>
+    dbflute:sql2entity ゴールを実行すると、DBFlute クライアントの sql2entity.[sh|bat] が実行されます。
+    sql2entity については、<a href="http://dbflute.sandbox.seasar.org/contents/outside-sql/sql2entity.html">Sql2Entity</a> を参照してください。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:sql2entity
+      </code>
+    </pre>
+
+	<h3>外だしSQLの確認 (dbflute:outside-sql-test)</h3>
+
+    <p>
+    dbflute:outside-sql-test ゴールを実行すると、DBFlute クライアントの outside-sql-test.[sh|bat] が実行されます。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:generate
+      </code>
+    </pre>
+
+	<h3>DBFluteのアップグレード (dbflute:upgrade)</h3>
+
+    <p>
+    dbflute:upgrade ゴールを実行すると、利用している DBFlute を dbfluteVersion で指定されたバージョンにアップグレードします。
+    アップグレードは、DBFlute をダウンロード・展開し、DBFlute クライアントの _project.[sh|bat] を更新します。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:upgrade
+      </code>
+    </pre>
+
+	<h3>CRUDページの自動生成 (dbflute:generate-crud)</h3>
+
+    <p>
+    dbflute:generate-crud ゴールを実行すると、指定された DB の各テーブルに関する SAStruts 用の一覧・生成・更新・削除のページを生成します。 
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:generate-crud
+      </code>
+    </pre>
+
+	<h2>利用に関して</h2>
+
+    <p>
+    実際、Maven DBFlute Plugin を利用した開発において、以下のゴールを実行すれば、Java のソースコードが生成され、プロジェクトで利用可能になります。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:download
+mvn dbflute:create-client
+mvn dbflute:jdbc
+mvn dbflute:generate
+      </code>
+    </pre>
+
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4architect.html">Tutorial(for Arct)</a></li>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Upgrade</a></li>
+		</ul>
+		<li><a href="../maven/basic.html">Maven</a></li>
+		<ul>
+			<li><a href="../maven/usage.html">Usage</a></li>
+		</ul>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+		<li><a href="../behavior/basic.html">Behavior</a></li>
+		<li><a href="../entity/basic.html">Entity</a></li>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>

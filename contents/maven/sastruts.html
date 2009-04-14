@@ -1,0 +1,749 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/main.css";
+	</style>
+	<title>DBFlute</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+<div id="content"><!-- __content-start__ -->
+	<h2>SAStruts での利用</h2>
+	
+    <p>
+    SAStruts のブランクを利用して、Maven DBFlute Plugin を用いた開発の流れを説明します。
+    </p>
+
+	<h3>利用する前に(事前準備)</h3>
+	
+    <p>
+    ここでの説明を進める上で、<a href="http://maven.apache.org/download.html" target="_blank">Maven 2 のインストール</a>をしておく必要があります。
+    </p>
+
+	<h3>SAStruts ブランクのダウンロード・展開</h3>
+	
+    <p>
+    <a href="http://sastruts.seasar.org/download.html">SAStrutsのダウンロード</a>から sastruts-blank-1.0.4-rc1.zip を取得します。
+    展開して、適当なプロジェクト名に変更します。
+    ここでは、sample とします。
+    </p>
+    
+    <pre>
+      <code>
+unzip sa-struts-blank-1.0.4-rc1.zip
+mv sa-struts-blank sample
+cd sample
+      </code>
+    </pre>
+
+    <p>
+    Maven 的でないところを直します。
+    </p>
+
+    <pre>
+      <code>
+mv webapp/ src/main/
+      </code>
+    </pre>
+
+	<h3>pom.xml の作成</h3>
+
+    <p>
+    Maven プロジェクトにするためには、pom.xml が必要になります。
+    プロジェクトディレクトリに pom.xml を作成します。
+    </p>
+    <p>
+    pom.xml の内容は以下になります。
+    groupId、artifactId、version はプロジェクトの情報になりますので、適当に変更してください。
+    plugin 要素以下で maven-dbflute-plugin を指定しています。
+    ここでのバージョンは Maven DBFlute Plugin のバージョンになります。
+    DBFlute 自体のバージョンは dbfluteVersion で指定したバージョンが利用されます。
+    rootPackage はプロジェクトのルートパッケージ名になります。
+    dbPackage は DBFlute が生成するソースコードを配置するパッケージ名になります。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;sample.app&lt;/groupId&gt;
+  &lt;artifactId&gt;sample&lt;/artifactId&gt;
+  &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+  &lt;packaging&gt;war&lt;/packaging&gt;
+  &lt;description/&gt;
+  &lt;build&gt;
+    &lt;finalName&gt;sample&lt;/finalName&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
+        &lt;configuration&gt;
+          &lt;source&gt;1.5&lt;/source&gt;
+          &lt;target&gt;1.5&lt;/target&gt;
+          &lt;encoding&gt;UTF-8&lt;/encoding&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;artifactId&gt;maven-source-plugin&lt;/artifactId&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;id&gt;source-jar&lt;/id&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;jar&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;artifactId&gt;maven-clean-plugin&lt;/artifactId&gt;
+        &lt;configuration&gt;
+          &lt;filesets&gt;
+            &lt;fileset&gt;
+              &lt;directory&gt;src/main/webapp/WEB-INF/classes&lt;/directory&gt;
+            &lt;/fileset&gt;
+            &lt;fileset&gt;
+              &lt;directory&gt;src/main/webapp/WEB-INF/lib&lt;/directory&gt;
+            &lt;/fileset&gt;
+          &lt;/filesets&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-antrun-plugin&lt;/artifactId&gt;
+        &lt;version&gt;1.3&lt;/version&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;id&gt;delete-lib-dir&lt;/id&gt;
+            &lt;phase&gt;initialize&lt;/phase&gt;
+            &lt;configuration&gt;
+              &lt;tasks&gt;
+                &lt;delete dir="src/main/webapp/WEB-INF/lib"/&gt;
+              &lt;/tasks&gt;
+            &lt;/configuration&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;run&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.0&lt;/version&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+              &lt;outputDirectory&gt;src/main/webapp/WEB-INF/lib&lt;/outputDirectory&gt;
+              &lt;excludeScope&gt;provided&lt;/excludeScope&gt;
+              &lt;overWriteIfNewer&gt;true&lt;/overWriteIfNewer&gt;
+              &lt;overWriteReleases&gt;true&lt;/overWriteReleases&gt;
+              &lt;overWriteSnapshots&gt;true&lt;/overWriteSnapshots&gt;
+            &lt;/configuration&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-eclipse-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.5.1&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;buildOutputDirectory&gt;src/main/webapp/WEB-INF/classes&lt;/buildOutputDirectory&gt;
+          &lt;downloadSources&gt;true&lt;/downloadSources&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-dbflute-plugin&lt;/artifactId&gt;
+        &lt;version&gt;0.1.0-SNAPSHOT&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;dbfluteVersion&gt;0.9.4.1-RC2&lt;/dbfluteVersion&gt;
+          &lt;rootPackage&gt;sample.app&lt;/rootPackage&gt;
+          &lt;dbPackage&gt;sample.app.db&lt;/dbPackage&gt;
+          &lt;schemaName&gt;sample&lt;/schemaName&gt;
+          &lt;schemaFile&gt;${basedir}/dbflute/schema/project-schema-sample.xml&lt;/schemaFile&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+  &lt;pluginRepositories&gt;
+    &lt;pluginRepository&gt;
+      &lt;id&gt;maven.seasar.org&lt;/id&gt;
+      &lt;name&gt;The Seasar Foundation Maven2 Repository&lt;/name&gt;
+      &lt;url&gt;http://maven.seasar.org/maven2&lt;/url&gt;
+    &lt;/pluginRepository&gt;
+    &lt;pluginRepository&gt;
+      &lt;id&gt;maven-snapshot.seasar.org&lt;/id&gt;
+      &lt;name&gt;The Seasar Foundation Maven2 Repository&lt;/name&gt;
+      &lt;url&gt;http://maven.seasar.org/maven2-snapshot&lt;/url&gt;
+    &lt;/pluginRepository&gt;
+  &lt;/pluginRepositories&gt;
+  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;id&gt;maven.seasar.org&lt;/id&gt;
+      &lt;name&gt;The Seasar Foundation Maven2 Repository&lt;/name&gt;
+      &lt;url&gt;http://maven.seasar.org/maven2&lt;/url&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+      &lt;artifactId&gt;h2&lt;/artifactId&gt;
+      &lt;version&gt;1.0.79&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;jstl&lt;/groupId&gt;
+      &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+      &lt;version&gt;1.1.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;taglibs&lt;/groupId&gt;
+      &lt;artifactId&gt;standard&lt;/artifactId&gt;
+      &lt;version&gt;1.1.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-collections&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-collections&lt;/artifactId&gt;
+      &lt;version&gt;3.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-el&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-el&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-fileupload&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-fileupload&lt;/artifactId&gt;
+      &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-io&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-io&lt;/artifactId&gt;
+      &lt;version&gt;1.3&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-lang&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-lang&lt;/artifactId&gt;
+      &lt;version&gt;2.3&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-validator&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-validator&lt;/artifactId&gt;
+      &lt;version&gt;1.2.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;commons-logging&lt;/groupId&gt;
+      &lt;artifactId&gt;commons-logging&lt;/artifactId&gt;
+      &lt;version&gt;1.0.4&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;!-- SAStruts --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.seasar.sastruts&lt;/groupId&gt;
+      &lt;artifactId&gt;sa-struts&lt;/artifactId&gt;
+      &lt;version&gt;1.0.4-sp4&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;!-- for Portlet
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.seasar.sastruts&lt;/groupId&gt;
+      &lt;artifactId&gt;sa-struts-portlet&lt;/artifactId&gt;
+      &lt;version&gt;1.0.0&lt;/version&gt;
+    &lt;/dependency&gt;
+--&gt;
+&lt;!-- DB --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+      &lt;artifactId&gt;dbflute-runtime&lt;/artifactId&gt;
+      &lt;version&gt;0.9.4&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;!-- Geronimo --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-annotation_1.0_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-ejb_3.0_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-interceptor_3.0_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-jta_1.1_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-jpa_3.0_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-jsp_2.0_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.apache.geronimo.specs&lt;/groupId&gt;
+      &lt;artifactId&gt;geronimo-servlet_2.4_spec&lt;/artifactId&gt;
+      &lt;version&gt;1.0&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;!-- Removed from war --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;junit&lt;/groupId&gt;
+      &lt;artifactId&gt;junit&lt;/artifactId&gt;
+      &lt;version&gt;3.8.2&lt;/version&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.easymock&lt;/groupId&gt;
+      &lt;artifactId&gt;easymock&lt;/artifactId&gt;
+      &lt;version&gt;2.2&lt;/version&gt;
+      &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;xalan&lt;/groupId&gt;
+      &lt;artifactId&gt;xalan&lt;/artifactId&gt;
+      &lt;version&gt;2.5.1&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;xml-apis&lt;/groupId&gt;
+      &lt;artifactId&gt;xml-apis&lt;/artifactId&gt;
+      &lt;version&gt;2.0.2&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/project&gt;
+      </code>
+    </pre>
+
+	<h3>mvn eclipse:eclipse の実行</h3>
+
+    <p>
+    Eclipse で読み込めるようにします。
+    </p>
+
+    <pre>
+      <code>
+mvn eclipse:eclipse
+      </code>
+    </pre>
+
+    <p>
+    実行することにより、src/main/webapp/WEB-INF/lib/ が更新されます。
+    </p>
+
+	<h3>データベースの作成</h3>
+
+    <p>
+    今回は H2 を利用します。
+    別なデータベースを利用する場合は、この部分をスキップしてください。
+    </p>
+
+    <pre>
+      <code>
+mkdir src/main/webapp/WEB-INF/db
+java -jar ../lib/h2-1.0.79.jar
+      </code>
+    </pre>
+
+    <p>
+    ブラウザが開き、http://localhost:8082/ が表示されます。
+    表示されない場合は、その URL を表示してください。
+    </p>
+
+    <p>
+    JDBC URL を jdbc:h2:sample として、接続します。
+    今回は以下の単純なテーブルを作成します。
+    </p>
+
+    <pre>
+      <code>
+CREATE TABLE TEST_TABLE (
+    ID    BIGINT NOT NULL IDENTITY PRIMARY KEY,
+    NAME  VARCHAR(255),
+    VALUE INT
+);
+      </code>
+    </pre>
+
+    <p>
+    作成できたら、H2 を終了します。
+    ブラウザを閉じても H2 は終了しないので、タスクトレイにあるアイコンから終了を選択してください。
+    プロジェクトのトップディレクトリに戻ります。
+    </p>
+
+    <pre>
+      <code>
+cd ../../../../../
+      </code>
+    </pre>
+
+	<h3>DBFlute のダウンロード</h3>
+
+    <p>
+    mvn dbflute:download を実行して、DBFlute のダウンロードします。
+    DBFlute のバージョンは pom.xml に記述した dbfluteVersion になります。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:download
+      </code>
+    </pre>
+
+    <p>
+    mydbflute/dbflute-[バージョン] が作成され、そこに DBFlute が展開されます。
+    </p>
+
+    <p>
+    0.9.4.1 以前のバージョンを利用していて、Unix 系 OS を利用している場合は、ant の実行権を設定する必要があります。
+    </p>
+
+    <pre>
+      <code>
+chmod +x mydbflute/dbflute-[バージョン]/ant/bin/ant
+      </code>
+    </pre>
+
+	<h3>DBFlute クライアントの生成</h3>
+
+    <p>
+    mvn dbflute:create-client を実行して、DBFlute クライアントを生成します。
+    実行すると、mydbflute/dbflute-[バージョン]/etc/client-template/dbflute_dfclient.zip を dbflute ディレクトリに展開して、pom.xml に記述したパラメータを DBFlute クライアントに反映します。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:create-client
+      </code>
+    </pre>
+
+	<h3>スキーマ情報の取得</h3>
+
+    <p>
+    mvn dbflute:jdbc を実行して、データベースのスキーマ情報を取得します。
+    実行すると、dbflute ディレクトリの jdbc.[sh|bat] が実行されます。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:jdbc
+      </code>
+    </pre>
+
+	<h3>クラスファイルの生成</h3>
+
+    <p>
+    mvn dbflute:generate を実行して、データベースにアクセスする DBFlute のクラスを自動生成します。
+    実行すると、dbflute ディレクトリの generate.[sh|bat] が実行されます。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:generate
+      </code>
+    </pre>
+
+	<h3>dicon の更新</h3>
+
+    <p>
+    DBFlute とデータベースの情報を dicon ファイルに記述します。
+    </p>
+
+    <p>
+    src/main/resources/app.dicon を以下のように編集します。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd"&gt;
+&lt;components&gt;
+    &lt;include path="convention.dicon"/&gt;
+    &lt;include path="aop.dicon"/&gt;
+    &lt;include path="dbflute.dicon"/&gt;
+
+    &lt;component name="actionMessagesThrowsInterceptor"
+        class="org.seasar.struts.interceptor.ActionMessagesThrowsInterceptor"/&gt;
+&lt;/components&gt;
+      </code>
+    </pre>
+
+    <p>
+    src/main/resources/convention.dicon を以下のように編集します。
+    今回はルートパッケージを sample.app としているのでそれを設定します。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd"&gt;
+&lt;components&gt;
+    &lt;component class="org.seasar.framework.convention.impl.NamingConventionImpl"&gt;
+        &lt;initMethod name="addRootPackageName"&gt;
+            &lt;arg&gt;"sample.app"&lt;/arg&gt;
+        &lt;/initMethod&gt;
+    &lt;/component&gt;
+    &lt;component class="org.seasar.framework.convention.impl.PersistenceConventionImpl"/&gt;
+&lt;/components&gt;
+      </code>
+    </pre>
+
+    <p>
+    src/main/resources/jdbc.dicon を以下のように編集します。
+    データベースの情報を設定します。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE components PUBLIC "-//SEASAR2.1//DTD S2Container//EN"
+    "http://www.seasar.org/dtd/components21.dtd"&gt;
+&lt;components namespace="jdbc"&gt;
+    &lt;include path="jta.dicon"/&gt;
+
+    &lt;!-- for H2 --&gt;
+    &lt;component name="xaDataSource"
+        class="org.seasar.extension.dbcp.impl.XADataSourceImpl"&gt;
+        &lt;property name="driverClassName"&gt;
+            "org.h2.Driver"
+        &lt;/property&gt;
+        &lt;property name="URL"&gt;
+            "jdbc:h2:file:"
+                + container.getComponent(@java.lang.Class@forName("javax.servlet.ServletContext")).getRealPath("/WEB-INF/db/sample")
+        &lt;/property&gt;
+        &lt;property name="user"&gt;"sa"&lt;/property&gt;
+        &lt;property name="password"&gt;&lt;/property&gt;
+    &lt;/component&gt;
+
+    &lt;component name="connectionPool"
+        class="org.seasar.extension.dbcp.impl.ConnectionPoolImpl"&gt;
+        &lt;property name="timeout"&gt;600&lt;/property&gt;
+        &lt;property name="maxPoolSize"&gt;10&lt;/property&gt;
+        &lt;property name="allowLocalTx"&gt;true&lt;/property&gt;
+        &lt;destroyMethod name="close"/&gt;
+    &lt;/component&gt;
+
+    &lt;component name="DataSource"
+        class="org.seasar.extension.dbcp.impl.DataSourceImpl"
+    /&gt;
+
+&lt;/components&gt;
+      </code>
+    </pre>
+
+	<h3>準備完了</h3>
+
+    <p>
+    以上で DBFlute を用いて、データベースにアクセスすることができるようになります。
+    あとは、必要なウェブページなどを SAStruts で作成してください。
+    </p>
+
+	<h2>SAStruts のページの自動生成</h2>
+
+    <p>
+    Maven DBFlute Plugin では、各テーブルに関する SAStruts 用のページを自動生成することができます。
+    自動生成する場合は、以下の手順で実行してください。
+    </p>
+
+	<h3>クラスファイルとJSPの生成</h3>
+
+    <p>
+    mvn dbflute:generate-crud を実行して、クラスファイルと JSP を自動生成します。
+    </p>
+
+    <pre>
+      <code>
+mvn dbflute:generate-crud
+      </code>
+    </pre>
+
+	<h3>dicon の更新</h3>
+
+    <p>
+    生成したファイルでページング処理を行うために dicon を更新します。
+    </p>
+
+    <p>
+    src/main/resources/creator.dicon を以下のように編集します。
+    パッケージ名をカスタマイズしている場合は併せて変更してください。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd"&gt;
+&lt;components&gt;
+    &lt;include path="convention.dicon"/&gt;
+    &lt;include path="customizer.dicon"/&gt;
+
+    &lt;component class="org.seasar.framework.container.creator.ActionCreator"/&gt;
+    &lt;component class="org.seasar.struts.creator.FormCreator"/&gt;
+    &lt;component class="org.seasar.framework.container.creator.ServiceCreator"/&gt;
+    &lt;component class="org.seasar.framework.container.creator.DtoCreator"/&gt;
+    &lt;component class="org.seasar.framework.container.creator.InterceptorCreator"/&gt;
+
+    &lt;component class="sample.app.crud.creator.PagerCreator"/&gt;
+
+&lt;/components&gt;
+      </code>
+    </pre>
+
+    <p>
+    src/main/resources/customizer.dicon を以下のように編集します。
+    </p>
+
+    <pre>
+      <code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE components PUBLIC "-//SEASAR//DTD S2Container 2.4//EN"
+    "http://www.seasar.org/dtd/components24.dtd"&gt;
+&lt;components&gt;
+    &lt;include path="default-customizer.dicon"/&gt;
+
+    &lt;component name="actionCustomizer"
+        class="org.seasar.framework.container.customizer.CustomizerChain"&gt;
+        &lt;initMethod name="addAspectCustomizer"&gt;
+            &lt;arg&gt;"aop.traceInterceptor"&lt;/arg&gt;
+        &lt;/initMethod&gt;
+        &lt;initMethod name="addAspectCustomizer"&gt;
+            &lt;arg&gt;"actionMessagesThrowsInterceptor"&lt;/arg&gt;
+        &lt;/initMethod&gt;
+        &lt;initMethod name="addCustomizer"&gt;
+            &lt;arg&gt;
+                &lt;component
+                    class="org.seasar.framework.container.customizer.TxAttributeCustomizer"/&gt;
+            &lt;/arg&gt;
+        &lt;/initMethod&gt;
+        &lt;initMethod name="addCustomizer"&gt;
+            &lt;arg&gt;
+                &lt;component
+                    class="org.seasar.struts.customizer.ActionCustomizer"/&gt;
+            &lt;/arg&gt;
+        &lt;/initMethod&gt;
+    &lt;/component&gt;
+
+    &lt;component name="formCustomizer"
+        class="org.seasar.framework.container.customizer.CustomizerChain"&gt;
+    &lt;/component&gt;
+
+    &lt;component name="serviceCustomizer"
+        class="org.seasar.framework.container.customizer.CustomizerChain"&gt;
+        &lt;initMethod name="addAspectCustomizer"&gt;
+            &lt;arg&gt;"aop.traceInterceptor"&lt;/arg&gt;
+        &lt;/initMethod&gt;
+        &lt;initMethod name="addCustomizer"&gt;
+            &lt;arg&gt;
+                &lt;component
+                    class="org.seasar.framework.container.customizer.TxAttributeCustomizer"/&gt;
+            &lt;/arg&gt;
+        &lt;/initMethod&gt;
+    &lt;/component&gt;
+
+    &lt;component name="pagerCustomizer" class="org.seasar.framework.container.customizer.CustomizerChain"&gt;
+    &lt;/component&gt;
+
+&lt;/components&gt;
+      </code>
+    </pre>
+
+	<h3>war ファイルの生成</h3>
+
+    <p>
+    mvn install を実行して、war ファイルを生成します。
+    target/sample.war に生成されます。
+    </p>
+
+    <pre>
+      <code>
+mvn install
+      </code>
+    </pre>
+
+	<h3>配備</h3>
+
+    <p>
+    生成した sample.war を Tomcat などに配備して http://localhost:8080/sample/ にアクセスして、表示されることを確認してください。
+    </p>
+
+
+<!-- __content-end__ --></div>
+
+<div id="sideBar">
+	<h3>Document</h3>
+	<ul>
+		<li><a href="../introduction/basic.html">DBFlute Introduction</a></li>
+		<ul>
+			<li><a href="../introduction/tutorial4architect.html">Tutorial(for Arct)</a></li>
+			<li><a href="../introduction/tutorial4developer.html">Tutorial(for Dev)</a></li>
+		</ul>
+		<li><a href="../setup/basic.html">DBFlute Setup</a></li>
+		<ul>
+			<li><a href="../setup/bytemplate.html">Template Setup</a></li>
+			<li><a href="../setup/byemecha.html">EMecha Setup</a></li>
+			<li><a href="../setup/versionup.html">DBFlute Upgrade</a></li>
+		</ul>
+		<li><a href="../maven/basic.html">Maven</a></li>
+		<ul>
+			<li><a href="../maven/usage.html">Usage</a></li>
+		</ul>
+		<li><a href="../dbvendor/basic.html">DB-Vendor Handling</a></li>
+		<li><a href="../behavior/basic.html">Behavior</a></li>
+		<li><a href="../entity/basic.html">Entity</a></li>
+		<li><a href="../condition-bean/basic.html">ConditionBean</a></li>
+		<ul>
+			<li><a href="../condition-bean/cbscope.html">ConditionBean Scope</a></li>
+			<li><a href="../condition-bean/cbredic.html">Reverse Dictionary</a></li>
+		</ul>
+		<li><a href="../outside-sql/basic.html">OutsideSql</a></li>
+		<ul>
+			<li><a href="../outside-sql/about.html">About OutsideSql</a></li>
+			<li><a href="../outside-sql/pmcomment.html">Parameter Comment</a></li>
+			<li><a href="../outside-sql/sql2entity.html">Sql2Entity</a></li>
+			<li><a href="../outside-sql/entity.html">Entity Handling</a></li>
+			<li><a href="../outside-sql/cursor.html">Cursor Handling</a></li>
+			<li><a href="../outside-sql/dynamic.html">Dynamic Binding</a></li>
+			<li><a href="../outside-sql/paging.html">Paging</a></li>
+			<li><a href="../outside-sql/likesearch.html">Like Search</a></li>
+		</ul>
+	</ul>
+	<h3>Topics</h3>
+	<ul>
+		<li><a href="../topic/compwiths2dao.html">S2Dao Comparing</a></li>
+		<li><a href="../topic/csharpusers.html">To C# Users</a></li>
+	</ul>
+</div>
+
+<div id="footer">
+<!-- 
+	<ul>
+		<li><a href="./sample.html">seasar</a></li>
+		<li><a href="./sample.html">s2dao</a></li>
+		<li><a href="./sample.html">teeda</a></li>
+	</ul>
+	 -->
+</div>
+
+</body>
+</html>
