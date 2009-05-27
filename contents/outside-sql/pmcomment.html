@@ -55,11 +55,9 @@
 	<p>
 		アプリケーションから渡される値をバインド変数として扱うコメント構文です。<br />
 		Where句で利用します。
-		<pre>ex) バインド変数コメントの利用<code>
-where MEMBER_ID = /*pmb.memberId*/3
+		<pre>ex) バインド変数コメントの利用<code>where MEMBER_ID = /*pmb.memberId*/3
   and MEMBER_NAME like /*pmb.memberName*/'ス' || '%'
-  and MEMBER_STATUS_CODE in /*pmb.memberStatusCodeList*/('FML', 'WDL')
-		</code></pre>
+  and MEMBER_STATUS_CODE in /*pmb.memberStatusCodeList*/('FML', 'WDL')</code></pre>
 	</p>
 	<p>
 		「/**/」コメントのなかに変数値を記述することでバインド変数コメントとなります。<br />
@@ -85,10 +83,8 @@ where MEMBER_ID = /*pmb.memberId*/3
 		アプリケーションから渡される値を埋め込み変数(単なる文字列置換)として扱うコメント構文です。<br />
 		SQLの実行前に埋め込み変数コメントをアプリケーションから渡された値で文字列置換します。<br />
 		バインド変数を使いたくない場合や、一部SQLをプログラム上で組み立てる場合に利用します。
-		<pre>ex) 埋め込み変数コメントの利用(generatedSqlは'limit 80, 20'と指定されることを想定)<code>
-where MEMBER_ID = /*$pmb.memberId*/3
-/*$pmb.generatedSql*/
-		</code></pre>
+		<pre>ex) 埋め込み変数コメントの利用(generatedSqlは'limit 80, 20'と指定されることを想定)<code>where MEMBER_ID = /*$pmb.memberId*/3
+/*$pmb.generatedSql*/</code></pre>
 	</p>
 	<p>
 		宣言の先頭に「$」を付けることで埋め込み変数コメントになります。<br />
@@ -107,14 +103,12 @@ where MEMBER_ID = /*$pmb.memberId*/3
 	<p>
 		アプリケーションから渡される値を判定して条件分岐するコメント構文です。<br />
 		Where句条件の付与判定や、結合の有無判定など様々な用途で利用できます。
-		<pre>ex) IFコメントの利用<code>
- where
+		<pre>ex) IFコメントの利用<code> where
    /*IF pmb.memberId != null*/MEMBER_ID = /*pmb.memberId*/3/*END*/
    /*IF pmb.memberName != null*/and MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
   /*IF pmb.validOrderBy*/
   order by MEMBER_NAME desc
-  /*END*/
-		</code></pre>
+  /*END*/</code></pre>
 	</p>
 	<p>
 		「/**/」コメントで「IF」と最初に付けて、分岐条件を記述することでIFコメントとなります。<br />
@@ -135,15 +129,13 @@ where MEMBER_ID = /*$pmb.memberId*/3
 	<p>
 		IFコメントに対応するELSEの分岐判定を有効にするコメント構文です。<br />
 		必ずIFコメントと併用します。
-		<pre>ex) ELSEコメントの利用(カラム列挙か件数取得かを分岐)<code>
-/*IF pmb.isPaging()*/
+		<pre>ex) ELSEコメントの利用(カラム列挙か件数取得かを分岐)<code>/*IF pmb.isPaging()*/
 select member.MEMBER_ID
      , member.MEMBER_NAME
      , memberStatus.MEMBER_STATUS_NAME
 -- ELSE select count(*)
 /*END*/
-  from MEMBER member
-		</code></pre>
+  from MEMBER member</code></pre>
 	</p>
 	<p>
 		「--」コメントで「ELSE」と書いた後にIFコメントがFALSEだったときに評価されて欲しい文字列を記載することでELSEコメントとなります。<br />
@@ -151,15 +143,13 @@ select member.MEMBER_ID
 	</p>
 	<p>
 		IFコメントとELSEコメントの間で別の「--」コメントを利用することはできません。<br />
-		<pre>ex) ELSEコメントの利用でダメなパターン<code>
-/*IF pmb.isPaging()*/
+		<pre>ex) ELSEコメントの利用でダメなパターン<code>/*IF pmb.isPaging()*/
 select member.MEMBER_ID
      , member.MEMBER_NAME -- ★ここのコメントがダメ
      , memberStatus.MEMBER_STATUS_NAME
 -- ELSE select count(*)
 /*END*/
-  from MEMBER member
-		</code></pre>
+  from MEMBER member</code></pre>
 		このように実装すると例外が発生してしまいます。これはS2Daoと同じ仕様となります。<br />
 		★ですが、これは非常にハマリポイントになってしまうので、将来的に改善したいなと考えております(2007/12/31現在)。
 	</p>
@@ -169,16 +159,14 @@ select member.MEMBER_ID
 		必ずIFコメントと併用します。<br />
 		BEGINコメント内のIFコメントが全てFALSEの場合に「where」という文字列を除去します。<br />
 		また、IFコメントの結果「where and ...」という風になってしまった場合に不要な「and」を除去します。<br />
-		<pre>ex) BEGINコメントの利用(IFコメントとの併用)<code>
- /*BEGIN*/
+		<pre>ex) BEGINコメントの利用(IFコメントとの併用)<code> /*BEGIN*/
  where
    /*IF pmb.memberId != null*/MEMBER_ID = /*pmb.memberId*/3/*END*/
    /*IF pmb.memberName != null*/and MEMBER_NAME like /*pmb.memberName*/'ス' || '%'/*END*/
  /*END*/
   /*IF pmb.validOrderBy*/
   order by MEMBER_NAME desc
-  /*END*/
-		</code></pre>
+  /*END*/</code></pre>
 	</p>
 	<p>
 		「/**/」コメント内に「BEGIN」と書くことでBEGINコメントになります。
@@ -188,6 +176,21 @@ select member.MEMBER_ID
 		BEGINコメントを利用することで、Where句構文のいやらしい文字列操作をする必要がなくなります。<br />
 		Where句を動的に扱うほとんどの外だしSQLで利用します。
 	</p>
+	<p>
+		BEGINコメントをネストさせることはできませんのでご注意ください。<br />
+		サブクエリのIF条件に関しては以下のようにIFコメントを活用すると良いでしょう。<br />
+		「/*IF bbbFlg || cccFlg*/」の部分に注目です。
+	</p>
+<pre>ex) サブクエリのIF条件の応用<code>/*BEGIN*/where
+　/*IF false*/AAA = 1/*END*/
+　/*IF bbbFlg || cccFlg*/and exists (
+　　select BAR_ID
+　　from BAR
+　　where BAR.FOO_ID = FOO.FOO_ID
+　　　/*IF bbbFlg*/and BBB = 3/*END*/
+　　　/*IF cccFlg*/and CCC = 3/*END*/
+　/*END*/
+/*END*/</code></pre>
 	<h3>ENDコメント</h3>
 	<p>
 		IFコメントやBEGINコメントのスコープを定義するコメント構文です。<br />
