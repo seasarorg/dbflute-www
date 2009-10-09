@@ -44,8 +44,7 @@
 			<li>D. <a href="../behavior/basic.html">Behavior</a>のメソッドを呼ぶ</li>
 		</ul>
 	</p>
-	<pre>ex) 基点テーブルを会員(MEMBER)とした場合 @Java<code>
-// ## Arrange ##
+	<pre>ex) 基点テーブルを会員(MEMBER)とした場合 @Java<code>// ## Arrange ##
 // = = = = = = = = = = = = = = = = =
 // A. 基点テーブルのConditionBeanを生成
 //    --> select句, from句)
@@ -84,8 +83,101 @@ for (Member member : memberList) {
 //     left outer join MEMBER_STATUS status
 //       on member.MEMBER_STATUS_CODE = status.MEMBER_STATUS_CODE
 //  where member.MEMBER_NAME like 'S%'
-//  order by member.MEMBER_BIRTHDAY desc
-	</code></pre>
+//  order by member.MEMBER_BIRTHDAY desc</code></pre>
+	<h3>ConditionBeanの機能</h3>
+	<p>
+		<strong>こちら新ドキュメントで作り途中のものです。全てリンク切れですが、一覧として役に立つので先だって公開しています。</strong>
+	</p>
+	<dl class="funclist">
+		<dt><a href="./setupselect">setupSelect_Xxx()</a></dt><dd>関連テーブルの指定(select句、join句)</dd>
+		<dt><a href="./specify">specify()</a></dt><dd>主にselect句の補佐的な指定</dd>
+		<dd>
+			<dl>
+				<dt><a href="./specify/specifycolumn.html">SpecifyColumn</a></dt><dd>取得カラムの指定 - <span class="refcode">cb.specify().columnXxx()</span></dd>
+				<dt><a href="./specify/derivedreferrer.html">(Specify)DerivedReferrer</a></dt><dd>子テーブルの導出カラム - <span class="refcode">cb.specify().derivedXxx(new SubQuery...)</span></dd>
+			</dl>
+		</dd>
+		<dt><a href="./query">query()</a></dt><dd>検索条件の指定(where句、orderBy句、from句、join句)</dd>
+		<dd>
+			<dl>
+				<dt><a href="./query/equal.html">Equal</a></dt><dd>[=]</dd>
+				<dt><a href="./query/notequal.html">NotEqual</a></dt><dd>[!=]</dd>
+				<dt><a href="./query/greaterthan.html">GreaterThan</a></dt><dd>[&gt;]</dd>
+				<dt><a href="./query/lessthan.html">LessThan</a></dt><dd>[&lt;]</dd>
+				<dt><a href="./query/greaterequal.html">GreaterEqual</a></dt><dd>[&gt;=]</dd>
+				<dt><a href="./query/lessequal.html">LessEqual</a></dt><dd>[&lt;=]</dd>
+				<dt><a href="./query/likesearch">LikeSearch</a></dt><dd>[like]</dd>
+				<dd>
+					<dl>
+						<dt><a href="./query/likesearch/escape.html">Escape</a></dt><dd>ワイルドカードのエスケープ</dd>
+						<dt><a href="./query/likesearch/splitby.html">SplitBy</a></dt><dd>区切り文字で複数条件付与</dd>
+					</dl>
+				</dd>
+				<dt><a href="./query/fromto.html">FromTo</a></dt><dd>汎用FromTo条件</dd>
+				<dt><a href="./query/datefromto.html">DateFromTo</a></dt><dd>日付のFromTo条件</dd>
+				<dt><a href="./query/existssubquery.html">ExistsSubQuery</a></dt><dd>子テーブルの条件で絞り込み(exists) - <span class="refcode">cb.query().existsXxx(new SubQuery...)</span></dd>
+				<dt><a href="./query/notexistssubquery.html">NotExistsSubQuery</a></dt><dd>子テーブルの条件で絞り込み(not exists) - <span class="refcode">cb.query().notExistsXxx(new SubQuery...)</span></dd>
+				<dt><a href="./query/inscopesubquery.html">InScopeSubQuery</a></dt><dd>子テーブルの条件で絞り込み(in) - <span class="refcode">cb.query().inScopeXxx(new SubQuery...)</span></dd>
+				<dt><a href="./query/notinscopesubquery.html">NotInScopeSubQuery</a></dt><dd>子テーブルの条件で絞り込み(not in) - <span class="refcode">cb.query().notInScopeXxx(new SubQuery...)</span></dd>
+				<dt><a href="./query/derivedreferrer.html">(Query)DerivedReferrer</a></dt><dd>子テーブルの導出カラムで絞り込み - <span class="refcode">cb.query().derivedXxx(new SubQuery...)</span></dd>
+				<dt><a href="./query/scalarsubquery.html">ScalarSubQuery</a></dt><dd>基点テーブルのスカラ値で絞り込み - <span class="refcode">cb.query().scalar_Equal().max(new SubQuery...)</span></dd>
+				<dt><a href="./query/inlineview.html">InlineView</a></dt><dd>インラインビューでの絞り込み - <span class="refcode">cb.query().queryXxx().inline().set...</span></dd>
+				<dt><a href="./query/onclause.html">OnClause</a></dt><dd>on句の絞り込み条件 - <span class="refcode">cb.query().queryXxx().on().set...</span></dd>
+				<dt><a href="./query/innerjoin.html">InnerJoin</a></dt><dd>内部結合の指定 - <span class="refcode">cb.query().queryXxx().innerJoin();</span></dd>
+				<dt><a href="./query/orderby">addOrderBy_Xxx_Asc(Desc)()</a></dt><dd>orderBy句の指定 - <span class="refcode">cb.query().addOrderBy_Xxx_Asc()</span></dd>
+				<dd>
+					<dl>
+						<dt><a href="./query/orderby/nullsfirstlast">NullsFirst(Last)</a></dt><dd>nullを最初(最後)に - <span class="refcode">..._Asc().withNullsFirst()</span></dd>
+						<dt><a href="./query/orderby/manualorder">ManualOrder</a></dt><dd>手動で並べる - <span class="refcode">..._Asc().withManualOrder(orderList)</span></dd>
+					</dl>
+				</dd>
+				<dt><a href="./query/specifiedderivedorderby">SpecifiedDerivedOrderBy</a></dt><dd>子テーブルの導出カラムで並べる - <span class="refcode">cb.query().addSpecifiedDerivedOrderBy...()</span></dd>
+			</dl>
+		</dd>
+		<dt><a href="./advance/union.html">Union</a></dt><dd>union句 - <span class="refcode">cb.union(new UnionQuery...)</span></dd>
+		<dt><a href="./advance/orquery.html">OrQuery</a></dt><dd>or条件 - <span class="refcode">cb.orQuery(new OrQuery...)</span></dd>
+		<dt><a href="./advance/columnquery.html">ColumnQuery</a></dt><dd>カラム同士の比較での絞り込み - <span class="refcode">cb.columnQuery(new SpecifyQuery...)</span></dd>
+		<dt><a href="./advance/paging.html">Paging</a></dt><dd>ページング検索 - <span class="refcode">cb.paging(pageSize, pageNumber)</span></dd>
+		<dt><a href="./advance/fetchfirst.html">FetchFirst</a></dt><dd>最初のn件だけ取得 - <span class="refcode">cb.fetchFirst(fetchSize)</span></dd>
+		<dt><a href="./advance/lockforupdate.html">LockForUpdate</a></dt><dd>更新ロック - <span class="refcode">cb.lockForUpdate()</span></dd>
+		<dt><a href="./advance/statementconfig.html">StatementConfig</a></dt><dd>StatementのConfiguration(queryTimeoutなど) - <span class="refcode">cb.configure(statementConfig)</span></dd>
+		<dt><a href="./advance/todisplaysql.html">ToDisplaySql</a></dt><dd>表示用SQL - <span class="refcode">cb.toDisplaySql()</span></dd>
+		<dt><a href="./genbafit">Genba*Fit</a></dt><dd>ConditionBean関連の現場フィット</dd>
+		<dd>
+			<dl>
+				<dt><a href="./genbafit/classification.html">Classification</a></dt><dd>区分値</dd>
+				<dt><a href="./genbafit/fixedcondition.html">FixedCondition</a></dt><dd>業務的one-to-oneの固定条件</dd>
+				<dt><a href="./genbafit/databasedependency.html">DatabaseDependency</a></dt><dd>データベース依存機能</dd>
+				<dt><a href="./genbafit/whererecycle.html">WhereRecycle</a></dt><dd>Where句の再利用</dd>
+				<dt><a href="./genbafit/debuglog.html">DebugLog</a></dt><dd>徹底したデバッグログ</dd>
+				<dt><a href="./genbafit/debugmessage.html">ExceptionMessage</a></dt><dd>デバッグしやすい例外メッセージ</dd>
+				<dt class="twoedged-title">{TwoEdgedSword}</dt><dd class="twoedged-desc">※以下は厳重注意して利用すること</dd>
+				<dd>
+					<dl class="twoedged-element">
+						<dt><a href="./genbafit/includequery.html">IncludeQuery</a></dt><dd>条件メソッドの取捨選択</dd>
+						<dt><a href="./genbafit/equalemptystring.html">EqualEmptyString</a></dt><dd>空文字による等値条件(非等値も含む)</dd>
+						<dt><a href="./genbafit/disablepagingreselect.html">DisablePagingReSelect</a></dt><dd>ページングの再検索の無効化</dd>
+					</dl>
+				</dd>
+			</dl>
+		</dd>
+		<dt><a href="./various">Various</a></dt><dd>その他いろいろ</dd>
+		<dd>
+			<dl>
+				<dt><a href="./various/interfacedispatch.html">InterfaceDispatch</a></dt><dd>インターフェース経由での抽象的な利用</dd>
+				<dt><a href="./various/tableinfo.html">TableInfo</a></dt><dd>テーブル情報の取得 ※DBアクセスしない</dd>
+				<dt><a href="./various/dontuse.html">Don'tUse</a></dt><dd>利用してはいけない</dd>
+				<dt class="twoedged-title">{TwoEdgedSword}</dt><dd class="twoedged-desc">※以下は厳重注意して利用すること</dd>
+				<dd>
+					<dl class="twoedged-element">
+						<dt><a href="./various/embedcondition.html">EmbedCondition</a></dt><dd>バインド変数を使わない埋め込み条件</dd>
+						<dt><a href="./various/checksafetyresult.html">CheckSafetyResult</a></dt><dd>安全件数のチェック</dd>
+						<dt><a href="./various/haswhereorderby.html">HasWhereOrderBy</a></dt><dd>where句・order-by句の有無 ※DBアクセスしない</dd>
+					</dl>
+				</dd>
+			</dl>
+		</dd>
+	</dl>
 	<h3>DBFluteBasicExample</h3>
 	<p>
 		詳細な機能や仕様に関しては、DBFluteBasicExampleのExample実装をご覧下さい。
