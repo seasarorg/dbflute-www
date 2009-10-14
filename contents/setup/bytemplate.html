@@ -44,7 +44,7 @@
 	<p>
 		dbflute_[project]の[project]の部分には任意の名称を付けます。通常は対象となるデータベース(スキーマ)を表す名称を付けます。この名称を「クライアントプロジェクト名」と呼びます
 	</p>
-	<pre>ex) Javaの場合：<code>
+<pre>ex) Javaの場合：<code>
      xxxproject
          +- .settings
          +- dbflute_[project]         // DBFluteクライアント
@@ -54,9 +54,8 @@
          +- mydbflute
          |     +- dbflute-0.8.8       // DBFluteモジュール
          +- src/main/java             // ソースディレクトリ
-
-	</code></pre>
-	<pre>ex) C#の場合：<code>
+</code></pre>
+<pre>ex) C#の場合：<code>
      xxxproject
          +- dbflute_[project]         // DBFluteクライアント
          |     +- dfprop
@@ -66,7 +65,7 @@
          +- mydbflute
          |     +- dbflute-0.8.8       // DBFluteモジュール
          +- source/xxx.sln            // ソースディレクトリ
-	</code></pre>
+</code></pre>
 	<h3>1. DBFluteモジュールをダウンロードして配置</h3>
 	<p>
 		DBFluteモジュールをダウンロードしてZIPファイルを解凍し、DBFluteモジュールをプロジェクトに配置して下さい。
@@ -99,9 +98,9 @@
 	<p>
 		_project.bat/.shの「DBFLUTE_HOME」変数の値を以下のように修正して下さい。(コメントアウトを外します)
 	</p>
-	<pre>ex) DBFluteの配置場所が「xxxproject/mydbflute/dbflute-0.6.5」の場合： @_project.bat<code>
+<pre>ex) DBFluteの配置場所が「xxxproject/mydbflute/dbflute-0.6.5」の場合： @_project.bat<code>
 set DBFLUTE_HOME = ../mydbflute/dbflute-0.6.5
-	</code></pre>
+</code></pre>
 	<p>
 		補足：DBFluteモジュールをバージョンアップした際は、ここを修正してバージョンを切り替えます。
 	</p>
@@ -124,20 +123,39 @@ set DBFLUTE_HOME = ../mydbflute/dbflute-0.6.5
 		「ある特定の環境に適用するためのプロパティ」を設定して下さい。
 		それぞれデフォルト値が設定されていますので、そのままで問題なければ指定する必要はありません。
 	</p>
-	<dl>
-		<dt>java.dir = [path] --&gt; Default: Java=../src/main/java C#=../source</dt>
-		<dd>
-			自動生成クラスの出力先を設定します。DBFluteクライアントからの相対パスです。
-		</dd>
-		<dt>isJavaNameOfTableSameAsDbName = [true or false] --&gt; Default: false</dt>
-		<dd>
-			DB上のテーブル名の規約が「ORDER_DETAIL」という形式でなく「OrderDetail」という形式(クラス名とテーブル名が同値)かどうかの設定をします。
-		</dd>
-		<dt>isJavaNameOfColumnSameAsDbName = [true or false] --&gt; Default: false</dt>
-		<dd>
-			DB上のカラム名の規約において「isJavaNameOfTableSameAsDbName」と同様の調整をします。
-		</dd>
-	</dl>
+	<h5>自動生成クラスの出力先(generateOutputDirectory)</h5>
+	<p>
+		自動生成されるクラスの出力先を設定します。DBFluteクライアントからの相対パスです。
+		デフォルト値は[../src/main/java]なので、アプリの構造と不一致の場合は変更して下さい。
+	</p>
+<pre><span class="codetitle">ex) 自動生成の出力先を[../foo]配下にする場合 @basicInfoMap.dfprop</span><code>
+; generateOutputDirectory = ../foo
+</code></pre>
+	<h5>リソースファイルの出力先(resourceOutputDirectory)</h5>
+	<p>
+		Seasarの場合のdbflute.diconやSpringの場合のdbfluteBeans.xmlなどのリソースファイルの出力先を設定します。
+		generateOutputDirectoryプロパティのディレクトリからの相対パスです。
+		デフォルト値は[../resources]なので、generateOutputDirectoryもデフォルトであれば[src/main/resources]に出力されます。
+		アプリの構造と不一致の場合は変更して下さい。
+	</p>
+<pre><span class="codetitle">ex) 自動生成の出力先を[../bar]配下にする場合 @basicInfoMap.dfprop</span><code>
+; resourceOutputDirectory = ../bar
+</code></pre>
+	<h5>テーブル名の規約調整(isTableNameCamelCase)</h5>
+	<p>
+		DB上のテーブル名の規約が[ORDER_DETAIL]という形式でなく[OrderDetail]という形式(キャメルケース)かどうかの設定します。
+		デフォルト値は前者の形式を想定していますので、アプリケーションが後者の形式の場合は[true]を指定して下さい。
+	</p>
+<pre><span class="codetitle">ex) テーブル名が[OrderDetail]という形式の場合 @basicInfoMap.dfprop</span><code>
+; isTableNameCamelCase = true
+</code></pre>
+	<h5>カラム名の規約調整(isColumnNameCamelCase)</h5>
+	<p>
+		DB上のカラム名において[isTableNameCamelCase]と同様の調整をします。
+	</p>
+<pre><span class="codetitle">ex) カラム名が[OrderDetailId]という形式の場合 @basicInfoMap.dfprop</span><code>
+; isColumnNameCamelCase = true
+</code></pre>
 	<p>
 		さらに「複数DB対応」の場合に、考慮すべきプロパティが幾つかあります。詳しくは<a href="./multipledb.html">こちら</a>
 	</p>
@@ -182,10 +200,10 @@ set DBFLUTE_HOME = ../mydbflute/dbflute-0.6.5
 	<p>
 		Doltengなどでプロジェクトを自動生成した場合、app.diconにてデフォルトで「dao.dicon」をがIncludeされている場合がありますがこれは削除して下さい。
 	</p>
-	<pre>ex) app.diconでdbflute.diconをInclude　@Dicon<code>
+<pre>ex) app.diconでdbflute.diconをInclude　@Dicon<code>
 &lt;include path="dbflute.dicon"/&gt;
 &lt;!-- &lt;include path="dao.dicon"/&gt; --&gt;
-	</code></pre>
+</code></pre>
 	<h5>Javaの場合(<a href="http://www.springframework.org">Spring</a>)</h5>
 	<p>
 		DIコンテナに<a href="http://www.springframework.org">Spring</a>を利用する場合は、dbflute.diconに代わってdbfluteBeans.xmlが出力されているはずです。これをルートのBean定義から参照するようにして下さい。
@@ -203,10 +221,10 @@ set DBFLUTE_HOME = ../mydbflute/dbflute-0.6.5
 	<p>
 		Seasarコンポーネントに以下のように定義することでBehaviorをインジェクションすることができます。
 	</p>
-	<pre>ex) <a href="http://teeda.seasar.org">Teeda</a>のページクラスにBehaviorをインジェクション(MEMBERというテーブルの場合) @Java<code>
+<pre>ex) <a href="http://teeda.seasar.org">Teeda</a>のページクラスにBehaviorをインジェクション(MEMBERというテーブルの場合) @Java<code>
 @Binding(bindingType = BindingType.MUST)
 protected MemberBhv memberBhv;
-	</code></pre>
+</code></pre>
 	<p>
 		変数名がそのままdbflute.dicon上のコンポーネント名と一致する必要がありますのでご注意ください。(Behaviorのクラス名の先頭を小文字にしたものがコンポーネント名です)
 	</p>
@@ -214,12 +232,12 @@ protected MemberBhv memberBhv;
 	<p>
 		任意のクラス(Seasarコンポーネントである必要はない)に以下のように定義することでBehaviorをインジェクションすることができます。
 	</p>
-	<pre>ex) 任意のクラスにBehaviorをインジェクション(MEMBERというテーブルの場合) @C#<code>
+<pre>ex) 任意のクラスにBehaviorをインジェクション(MEMBERというテーブルの場合) @C#<code>
 protected MemberBhv memberBhv;
 public UserOriginalClass() {// コンストラクタ
     QuillInjector.Inject(this);
 }
-	</code></pre>
+</code></pre>
 	<p>
 		型で判別しますので変数名は自由です。
 	</p>
