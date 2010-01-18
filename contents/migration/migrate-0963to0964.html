@@ -32,13 +32,25 @@
 	</p>
 	<ul>
 		<li>今まで：19桁以上でもLong</li>
-		<li>これから：19桁以上でもBigDecimal</li>
+		<li>これから：19桁以上はBigDecimal</li>
 	</ul>
 	<p>
 		これは改善点です。19桁以上の場合は、Longは精度的に適していませんでした。
 		もし、19桁以上のNUMERIC(やDECIMAL)でLongで利用している場合は、該当箇所がコンパイルエラーになりますので、
 		そのコンパイルエラーを直すことで移行可能です。
 	</p>
+	<p>
+		また、外だしSQLで "sum関数" を利用したカラムのマッピングも "BigDecimal" になります。
+		対象のカラムが19桁未満でも、sum関数を利用するからには結果は19桁を超える可能性があるためです。
+		実際にデータベースからはメタ情報として最大の桁数が戻されています。どうしても移行出来ない場合は、
+		Sql2Entityの強制型指定を利用することで、Longにマッピングすることが可能です。
+	</p>
+<pre><code>-- ##Long TARGET_COLUMN_NAME##</code></pre>
+	<p>
+		もし、全体としてどうしても移行出来ない場合は、"littleAdjustmentMap.dfprop" に以下のプロパティを "true"
+		にすることで以前のバージョンと同じ挙動になります(19桁以上でもLong)。但し、これは推奨されません。
+	</p>
+<pre><code>; isCompatibleAutoMappingOldStyle = true</code></pre>
 	<h4>columnExeptList改めcolumnExceptMap</h4>
 	<p>
 		"自動生成対象から除外するカラム" を指定する "databaseInfoMap.dfprop" の "columnExeptList"
