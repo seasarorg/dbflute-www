@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/oldmain.css";
+	</style>
+	<title>DBFlute : Migration : 0.8.9.9</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.8.9.8 to 0.8.9.9}</h2>
+	<h3>環境上の注意点</h3>
+	<h4>Sql2Entityも一緒に *いつもの注意点</h4>
+	<p>
+		バージョンアップした際は、GenerateだけでなくSql2Entityも実行して下さい。
+	</p>
+	<h4>DBFluteConfigのロックをDIコンテナ初期化前は解除</h4>
+	<p>
+		DBFluteConfigのロックのDIコンテナ初期化前の状態が変わります。
+	</p>
+	<ul>
+		<li>今まで：ロックされている (設定するには解除が必要)</li>
+		<li>これから：ロックされていない</li>
+	</ul>
+	<p>
+		今までもこれからも、DIコンテナが初期化されたときにロックされるのは同じです。
+		DBFluteConfigは基本的にDIコンテナに初期化されるべきものということで、それに合わせてロックも初期化前は解除しておくようにしました。
+		既にロック解除のプログラムを書いていてもそのまま動作するので特に意識する必要はありません(削除できるなら削除してOKです)。
+	</p>
+	<h3>実装上の注意点</h3>
+	<h4>orQuery改めorScopeQuery</h4>
+	<p>
+		orQueryにて仕様バグがありましたので、仕様を変えて新たにorScopeQueryという機能に改めました。経緯について詳しくは
+		"<a href="http://groups.google.co.jp/group/dbflute?hl=ja">DBFluteユーザの集い</a>" をご覧下さい。
+	</p>
+	<p>
+		変わった点は "or条件をくっ付ける" だったのが、"orの範囲を指定する" というようになった点です。
+	</p>
+<pre>ex) 旧方式: MemberAccout and (Birthdate or MemberName or MemberId)<code>
+MemberCB cb = new MemberCB();
+cb.Query().SetMemberAccount_Equal("XXX"); 
+cb.Query().SetBirthdate_Equal(currentDate);
+cb.OrScopeQuery(delegate(MemberCB orCB) {
+    orCB.Query().SetMemberName_PrefixSearch("J");
+    orCB.Query().SetMemberId_Equal(3);
+});
+</code></pre>
+	<p>
+		　　　　↓↓↓
+	</p>
+<pre>ex) 新方式: MemberAccout and (Birthdate or MemberName or MemberId)<code>
+MemberCB cb = new MemberCB();
+cb.Query().SetMemberAccount_Equal("XXX");
+cb.OrScopeQuery(delegate(MemberCB orCB) {
+    orCB.Query().SetBirthdate_Equal(currentDate);
+    orCB.Query().SetMemberName_PrefixSearch("J");
+    orCB.Query().SetMemberId_Equal(3);
+});
+</code></pre>
+	<p>
+		orQuery()というメソッドは完全に無くなっており、移行するとこの機能を利用している箇所がコンパイルエラーになります。
+		影響反映がわかるようにわざとそのようにしております。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sidemenu">
+</div>
+
+<div id="footer">
+</div>
+
+</body>
+</html>

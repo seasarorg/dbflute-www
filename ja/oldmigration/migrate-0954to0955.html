@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/oldmain.css";
+	</style>
+	<title>DBFlute : Migration : 0.9.5.5</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.9.5.4 to 0.9.5.5}</h2>
+	<h3>アップグレードの方法について</h3>
+	<p>
+		<a href="../setup/versionup.html">こちら</a>をご覧下さい。
+	</p>
+	<h3>環境上の注意点</h3>
+	<p>
+		古いバージョンのDBFluteランタイム(JARファイル)が「WEB-INF/lib」の下などに残らないようにご注意下さい。
+	</p>
+	<h4>Sql2Entityでの重複したCustomizeEntity/ParameterBean</h4>
+	<dl>
+		<dt>現状</dt>
+		<dd>上書き (意味がなく、気付きにくい)</dd>
+		<dt>今後</dt>
+		<dd>わかりやすい例外に</dd>
+	</dl>
+	<p>
+		例えば、既に定義されているCustomizeEntityと同じ名前の定義を別のファイルにも定義した場合
+	</p>
+	<h4>additionalSchemaListを廃止してadditionalSchemaMapを対応</h4>
+	<p>
+		databaseInfoMap.dfpropのadditionalSchema機能ですが、よりリッチな指定ができるようにしました。
+		それに伴ってadditionalSchemaListを廃止して新たにadditionalSchemaMapを対応しました。
+	</p>
+	<p>
+		この機能を利用されている方は移行をお願いします(難しくはありません)。<br />
+		詳しくは「dbflute-oracle-example」、「https://www.seasar.org/issues/browse/DBFLUTE-560」をご覧下さい。
+	</p>
+	<h4>basicInfoMap.dfpropの幾つかのプロパティをリファクタ</h4>
+	<dl>
+		<dt>java.dir</dt><dd>--&gt; generateOutputDirectory</dd>
+		<dt>isJavaNameOfTableSameAsDbName</dt><dd>--&gt; isTableNameCamelCase</dd>
+		<dt>isJavaNameOfColumnSameAsDbName</dt><dd>--&gt; isColumnNameCamelCase</dd>
+	</dl>
+	<p>
+		互換性は保たれます。特に移行する必要はありません。<br />
+		また、そもそもあまり利用されないプロパティです。見たことの無い人は意識する必要ありません。
+	</p>
+	<h4>DI設定ファイル(dbflute.diconなど)の出力先指定をbasicInfoMap.dfpropにて</h4>
+	<dl>
+		<dt>現状</dt>
+		<dd>dependencyInjection.dfpropのdbfluteDiconPackageNameやdbfluteBeansPackageName</dd>
+		<dt>今後</dt>
+		<dd>basicInfoMap.dfpropのresourceOutputDirectory</dd>
+	</dl>
+	<p>
+		互換性は保たれます。特に移行する必要はありません。<br />
+		また、そもそもあまり利用されないプロパティです。見たことの無い人は意識する必要ありません。
+	</p>
+	<h4>build-xxx.properties改めbuild.properties</h4>
+	<p>
+		DBFluteクライアントにbuild-xxx.propertiesというファイルがありますが、
+		xxx部分は昔々の今とは違った構造のときの名残で、今では全く不要です。
+		これを改めてbuild.propertiesというすっきりした名前にしました。
+	</p>
+	<p>
+		互換性は保たれます。特に移行する必要はありません。<br />
+		新バージョンで実行する一番最初のタスクにて、build-xxx.propertiesが削除されてbuild.propertiesが作成されます。
+		それ以降build.propertiesが利用されるようになるため、意識する必要は全くありません。
+	</p>
+	<h4>互換性機能：isMakeConditionQueryClassificationRestrictionを廃止</h4>
+	<p>
+		古いバージョンでの互換性のためのプロパティですが、こちら廃止します。<br />
+		相当マニアックな機能ですので、見覚えの無い方は特に意識する必要はありません。
+	</p>
+	<h4>互換性機能：isMakeEntityTableClassificationNameAliasを廃止</h4>
+	<p>
+		古いバージョンでの互換性のためのプロパティですが、こちら廃止します。<br />
+		相当マニアックな機能ですので、見覚えの無い方は特に意識する必要はありません。
+	</p>
+	<h4>互換性機能：isMakeEntityTraceRelationを廃止</h4>
+	<p>
+		古いバージョンでの互換性のためのプロパティですが、こちら廃止します。<br />
+		相当マニアックな機能ですので、見覚えの無い方は特に意識する必要はありません。<br />
+		代替する「isMakeEntityChaseRelation」を追加しました。
+	</p>
+	<h4>隠れ機能：ReplaceSchemaのOnceMoreを廃止</h4>
+	<p>
+		ソースを徹底して読み込んた人くらいしか知られていない機能です。<br />
+		既に代替するadditionalDrop機能があるので、こちらを廃止します。
+	</p>
+	<h3>実装上の注意点</h3>
+	<h4>パラメータコメントでのParameterBeanの変数名</h4>
+	<dl>
+		<dt>現状</dt>
+		<dd>ドキュメントやExampleで「pmb」固定としているにも関わらず、「pmb」以外でも動作する</dd>
+		<dt>今後</dt>
+		<dd>(自動生成された)ParameterBeanのパラメータコメント上での変数名は「pmb」固定とする</dd>
+	</dl>
+	<p>
+		スカラ値のParameterBean(引数にベタに文字列や数値を指定)の場合は関係ありません。<br />
+		今まで通り任意の名前が利用可能です。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sidemenu">
+</div>
+
+<div id="footer">
+</div>
+
+</body>
+</html>

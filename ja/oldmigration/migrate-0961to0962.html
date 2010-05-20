@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/oldmain.css";
+	</style>
+	<title>DBFlute : Migration : 0.9.6.2</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.9.6.1 to 0.9.6.2}</h2>
+	<h3>アップグレードの方法について</h3>
+	<p>
+		<a href="../setup/versionup.html">こちら</a>をご覧下さい。
+	</p>
+	<h3>環境上の注意点</h3>
+	<p>
+		古いバージョンのDBFluteランタイム(JARファイル)が「WEB-INF/lib」の下などに残らないようにご注意下さい。
+	</p>
+	<h4>ReplaceSchemaでプロシージャがDropされます</h4>
+	<p>
+		ReplaceSchemaの改善として、スキーマの初期化処理でプロシージャがDropされます。
+		基本的にcreate or replace構文を使っていれば通常は問題ありませんでしたが、
+		プロシージャの名前を変えた後などに古い名前の方のプロシージャがDBに残っていました。
+		それが、しっかり削除されるようになっています。 
+	</p>
+	<p>
+		改善点ではありますが、ReplaceSchemaでプロシージャが削除されないことに依存して利用している方はご注意下さい。
+		プロシージャが削除されないようにするには、replaceSchemaDefinitionMap.dfpropにて
+		「isSuppressDropProcedure = true」を追加することで抑制できます。
+	</p>
+	<h4>ReplaceSchemaでDBリンクがDropされます</h4>
+	<p>
+		ReplaceSchemaの改善として、スキーマの初期化処理でDBリンクがDropされます。
+	</p>
+	<p>
+		改善点ではありますが、ReplaceSchemaでDBリンクが削除されないことに依存して利用している方はご注意下さい。
+		プロシージャが削除されないようにするには、replaceSchemaDefinitionMap.dfpropにて
+		「isSuppressDropDBLink = true」を追加することで抑制できます。
+	</p>
+	<h4>Sql2Entityでパッケージ付きプロシージャのクラス名にパッケージ名が</h4>
+	<p>
+		Sql2Entityでパッケージ付きプロシージャのParameterBeanのクラス名にパッケージ名が付与されます。
+		これにて、別パッケージ同名プロシージャを取り扱うことができるようになりました。
+	</p>
+	<p>
+		改善点ではありますが、パッケージ付きプロシージャをDBFluteで利用している方は、自動生成後にコンパイルエラーになりますのでご注意下さい。
+		新しいパッケージ付きのクラス名に直すようにして下さい。
+	</p>
+	<h3>実装上の注意点</h3>
+	<p>
+		特になし
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sidemenu">
+</div>
+
+<div id="footer">
+</div>
+
+</body>
+</html>

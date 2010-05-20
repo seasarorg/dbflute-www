@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/oldmain.css";
+	</style>
+	<title>DBFlute : Migration : 0.8.5</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.8.4 to 0.8.5}</h2>
+	<h3>環境上の注意点</h3>
+	<h4>Sql2Entityも一緒に *いつもの注意点</h4>
+	<p>
+		バージョンアップした際は、GenerateだけでなくSql2Entityも実行して下さい。
+	</p>
+	<h4>古いテーブルを削除 *いつもの注意点</h4>
+	<p>
+		古いテーブルのクラスが残っているとコンパイルエラーになる可能性があります。
+		それらクラスは不要なので削除するようにして下さい。
+	</p>
+	<p>
+		build-xxx.propertiesに「torque.isDeleteOldTableClass = true」を定義すると、古いテーブルのクラスを削除(OS上のファイルを削除)します。設定例は<a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-oracle-example/dbflute_exampledb/build-exampledb.properties">こちら</a>
+	</p>
+	<h4>非推奨のクラス</h4>
+	<p>
+		以下のクラスが非推奨となり、デフォルトでは生成されないようになりました。
+		(いずれもドキュメントに載っておらず内部的にも不要なクラスでした)
+	</p>
+	<ul>
+		<li>allcommon.BFinder</li>
+		<li>allcommon.GenMetaData</li>
+	</ul>
+	<h4>非推奨のメソッド</h4>
+	<p>
+		以下のメソッドは以前のバージョンから非推奨となっていましたが、今回デフォルトで生成されないようになりました。
+	</p>
+	<ul>
+		<li>ConditionBean.limitSelect_PKOnly() *SpecifyColumn機能にて代替可能</li>
+		<li>ConditionBean.union(XxxCB) *ConditionBean.union(SubQuery<XxxCB>)にて代替可能</li>
+	</ul>
+	<h3>実装上の注意点</h3>
+	<h4>BhvがDaoを利用しない(Java版のみ)に完全移行</h4>
+	<p>
+		前バージョン(0.8.4)ではプロパティで「BhvがDaoを利用するモード」に戻せましたが、
+		<a href="http://d.hatena.ne.jp/jflute/20081104/1225776745">jfluteの日記:BhvがDaoを利用しない</a>に書いてある通り、
+		このプロパティを廃止して完全に移行します。0.8.5からはBhvがDaoを利用することはありません。
+	</p>
+	<h4>Daoインターフェースを生成しないモード(Java版のみ)</h4>
+	<p>
+		前バージョン(0.8.4)で導入された機能ですが、0.8.5からはデフォルトではDaoインターフェースは生成されなくなります。
+	</p>
+	<p>
+		明示的に「torque.isMakeDaoInterface = true」と設定することでDaoインターフェースが生成されます。
+		但し、このプロパティも将来のバージョンでサポートされない可能性があります。
+	</p>
+	<h5>移行手順</h5>
+	<p>
+		Daoインターフェースが作成されるバージョンからの移行手順は以下の通りです。
+	</p>
+	<ol>
+		<li>bsdao/exdaoパッケージを削除して自動生成し直し(Generate/Sql2Entity)</li>
+		<li>EclipseでJavaクラス全部に「インポートの編成(Organize Imports)」を実行</li>
+	</ol>
+	<p>
+		「インポートの編成(Organize Imports)」がポイントです。bsdao/exdaoパッケージを無くすことに伴って、
+		ParameterBeanのパッケージが「bsdao/pmbean」から「bsbhv/pmbean」に変わっています。
+		Eclipseで選択したソースディレクトリ配下のクラスを一気に「インポートの編成」できますのでそんなに手間にはなりません。
+	</p>
+	<h5>不要クラス</h5>
+	<p>
+		Daoインターフェースを生成しないことにより、以下のクラスが不要になりますので削除しても構いません。
+	</p>
+	<ul>
+		<li>allcommon.DaoReadable</li>
+		<li>allcommon.DaoWritable</li>
+		<li>allcommon.DaoSelector</li>
+		<li>allcommon.CacheDaoSelector</li>
+		<li>allcommon.s2dao.S2DaoInterceptor</li>
+		<li>allcommon.s2dao.S2DaoMetaDataExtension</li>
+		<li>allcommon.s2dao.S2DaoMetaDataFactoryImpl</li>
+		<li>allcommon.s2dao.S2DaoSelectDynamicCommand</li>
+	</ul>
+	
+<!-- __content-end__ --></div>
+
+<div id="sidemenu">
+</div>
+
+<div id="footer">
+</div>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<style type="text/css" title="currentStyle">
+		@import "../../css/oldmain.css";
+	</style>
+	<title>DBFlute : Migration : 0.9.6.3</title>
+</head>
+<body>
+
+<div id="header">
+	<h1><a href="../../index.html">DBFlute<span>現場指向O/Rマッパ</span></a></h1>
+	<a href="../../index.html" class="logo"><img src="../../image/logo-content.gif" alt="dbflute logo"/></a>
+</div>
+
+<div id="content"><!-- __content-start__ -->
+	<h2>バージョン移行{0.9.6.2 to 0.9.6.3}</h2>
+	<h3>アップグレードの方法について</h3>
+	<p>
+		<a href="../setup/versionup.html">こちら</a>をご覧下さい。
+	</p>
+	<h3>環境上の注意点</h3>
+	<p>
+		古いバージョンのDBFluteランタイム(JARファイル)が「WEB-INF/lib」の下などに残らないようにご注意下さい。
+	</p>
+	<h4>java.util.Dateの実体がjava.util.Dateそのものに</h4>
+	<p>
+		(主にDATE型にマッピングされる)java.util.Dateのカラムをselectしたときのインスタンスの実体が変わります。
+	</p>
+	<ul>
+		<li>今まで：java.sql.Timestamp</li>
+		<li>これから：java.util.Date</li>
+	</ul>
+	<p>
+		これは改善点です。TimestampとDateは対称性がないためequals()で比較するときなど注意が必要でしたが、これからはその必要はありません。
+		移行に関しては、基本的に意識することはありません。Timestampが来ることを前提としたプログラムを書いている場合は注意が必要ですが、
+		そもそも実体のインスタンスに依存するプログラムを書くことは推奨されません。
+	</p>
+	<h4>DBFluteConfigのロックをDIコンテナ初期化前は解除</h4>
+	<p>
+		DBFluteConfigのロックのDIコンテナ初期化前の状態が変わります。
+	</p>
+	<ul>
+		<li>今まで：ロックされている (設定するには解除が必要)</li>
+		<li>これから：ロックされていない</li>
+	</ul>
+	<p>
+		今までもこれからも、DIコンテナが初期化されたときにロックされるのは同じです。
+		DBFluteConfigは基本的にDIコンテナに初期化されるべきものということで、それに合わせてロックも初期化前は解除しておくようにしました。
+		既にロック解除のプログラムを書いていてもそのまま動作するので特に意識する必要はありません(削除できるなら削除してOKです)。
+	</p>
+	<h3>実装上の注意点</h3>
+	<h4>orQuery改めorScopeQuery</h4>
+	<p>
+		orQueryにて仕様バグがありましたので、仕様を変えて新たにorScopeQueryという機能に改めました。経緯について詳しくは
+		"<a href="http://groups.google.co.jp/group/dbflute?hl=ja">DBFluteユーザの集い</a>" をご覧下さい。
+	</p>
+	<p>
+		変わった点は "or条件をくっ付ける" だったのが、"orの範囲を指定する" というようになった点です。
+	</p>
+<pre>ex) 旧方式: MemberAccout and (Birthdate or MemberName or MemberId)<code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberAccount_Equal("XXX"); 
+cb.query().setBirthdate_Equal(currentDate);
+cb.orQuery(new OrQuery&lt;MemberCB&gt;() {
+    public void query(MemberCB orCB) {
+        orCB.query().setMemberName_PrefixSearch("J");
+        orCB.query().setMemberId_Equal(3);
+    }
+});
+</code></pre>
+	<p>
+		　　　　↓↓↓
+	</p>
+<pre>ex) 新方式: MemberAccout and (Birthdate or MemberName or MemberId)<code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberAccount_Equal("XXX");
+cb.orScopeQuery(new OrQuery&lt;MemberCB&gt;() {
+    public void query(MemberCB orCB) {
+        orCB.query().setBirthdate_Equal(currentDate);
+        orCB.query().setMemberName_PrefixSearch("J");
+        orCB.query().setMemberId_Equal(3);
+    }
+});
+</code></pre>
+	<p>
+		orQuery()というメソッドは完全に無くなっており、移行するとこの機能を利用している箇所がコンパイルエラーになります。
+		影響反映がわかるようにわざとそのようにしております。
+	</p>
+	
+<!-- __content-end__ --></div>
+
+<div id="sidemenu">
+</div>
+
+<div id="footer">
+</div>
+
+</body>
+</html>
