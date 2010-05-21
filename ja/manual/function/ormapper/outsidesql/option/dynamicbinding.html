@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,外だしSQL,OutsideSql,機能,Example,dynamicBinding(),動的バインド変数,不定数の条件,埋め込み変数コメントにバインド変数" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>(外だしSQL)dynamicBinding() | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>(外だしSQL)dynamicBinding()</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#methodcall">メソッドの呼び出し</a></li>
+				<li><a href="#othersetup">外だしSQLとParameterBean</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		主に、検索条件の個数がアプリの入力値によって変動する不定数の検索条件のための、
+		<em class="keyword">埋め込み変数コメントの値の中に含まれたバインド変数コメントを動的なバインド変数として解釈するオプション</em>
+		です。
+	</p>
+	<p>
+		会話上では、<em class="keyword">(外だしSQLの)だいなみっくばいんど</em> と表現します。
+	</p>
+	<p>
+		<em class="keyword">ConditionBeanでは不定数の検索条件は実現できます</em> ので、
+		ConditionBeanで実装できないスコープのSQLで、かつ、不定数の検索条件の要件が発生した場合に利用します。
+	</p>
+	<h3>外だしSQLの解析は基本一度だけ</h3>
+	<p>
+		外だしSQLは、DBFlute内部にて基本的には一度だけ解析され、どのようなパラメータコメントを持っているのかなどを保持し、
+		処理が呼び出されたときにすぐにSQLを実行できるようにしています。もし、呼び出しのたびに解析していたら、毎回解析コストが掛かってしまいます。
+	</p>
+	<p>
+		但し、その状態だと、パラメータコメント、特にバインド変数コメントに関して、静的な情報として扱われているため、
+		呼び出しの度に変わる不定数の条件には対応できません。
+		例えば、埋め込み変数コメントの中に、バインド変数コメントを含めても、バインド変数として認識されません。
+		バインド変数を利用せずに条件値をそのまま埋め込んだ文字列で実行すると、要件次第ですが、セキュリティ的にもパフォーマンス的にも良くありません。
+	</p>
+	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/bindvariable.html">Topic - バインド変数</a></div>
+	<h3>解析を呼び出しのたびに行う</h3>
+	<p>
+		DBFluteでは、動的なバインド変数を実現するために、
+		(明示的なオプションとして)呼び出しの度にパラメータコメントを解析するような挙動に変更できるようにしています。
+		埋め込み変数コメントの中に、バインド変数コメントを含めても、バインド変数として認識されるようにできます。
+		この場合、解析コストに関しては、局所的ということで割り切る必要があります。
+	</p>
+	<div class="inucolumn">
+		<h3>パラメータコメントの解析コスト</h3>
+		<p>
+			SQLがよほど巨大(パラメータコメントの数が5000や10000)でない限りはほんのわずかの処理ではあるので、
+			実際に利用してみて(明らかな)パフォーマンス上の違和感がないようであれば気にする必要はないと考えられます。
+		</p>
+	</div>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="methodcall">メソッドの呼び出し</h3>
+	<p>
+		outsideSql()メソッドの後、<em class="keyword">dynamicBinding()</em>
+		メソッドを呼び出します。この機能はオプションであり、様々なメソッドで利用できます。
+	</p>
+<pre><span class="codetitle">ex) 外だしSQLの動的バインド変数をリスト検索で利用 (Eclipseでコード補完) @Java</span><code>
+<span class="attribute">memberBhv</span>.o <span class="comment">// .o と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().d <span class="comment">// .d と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().<span class="point">dynamicBinding()</span>.s <span class="comment">// .s と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().dynamicBinding().selectList(<span class="abbreviation">...</span>);
+</code></pre>
+<pre><span class="codetitle">ex) 外だしSQLの動的バインド変数を様々なメソッドと組み合わせ @Java</span><code>
+<span class="attribute">memberBhv</span>.outsideSql().dynamicBinding().manualPaging().selectPage(<span class="abbreviation">...</span>)
+<span class="attribute">memberBhv</span>.outsideSql().dynamicBinding().cursorHandling().selectCursor(<span class="abbreviation">...</span>)
+</code></pre>
+	<h3 id="othersetup">外だしSQLとParameterBean</h3>
+<pre><span class="codetitle">ex) 外だしSQLに動的なSQL文の一部を展開する埋め込み変数コメントを定義 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String dynamicClause!!</span>
+<span class="comment">-- !!Map&lt;String, String&gt; dynamicMap:like!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+  <span class="comment">/*$pmb.dynamicClause*/</span>
+</code></pre>
+	<ul class="codeoutro">
+		<li>テスト値は、2Way-SQLの実現を意識して調整(省略もOK)</li>
+	</ul>
+<pre><span class="codetitle">ex) 外だしSQLに動的なSQL文の一部を展開するパラメータを設定 @Java</span><code>
+Map&lt;String, String&gt; dynamicMap = <span class="keyword">new</span> HashMap&lt;String, String&gt;();
+StringBuilder sb = <span class="keyword">new</span> StringBuilder();
+<span class="keyword">for</span> (<span class="abbreviation">...</span>) {
+    String key = <span class="literal">"key"</span> + index;
+    sb.append(<span class="literal">" and FOO like /*pmb.dynamicMap."</span>)
+            .append(key).append(<span class="literal">"*/null"</span>);
+    dynamicMap.put(key, currentValue);
+}
+pmb.setDynamicClause(sb.toString());
+pmb.setDynamicMap(dynamicMap, <span class="keyword">new</span> LikeSearchOption().likeContain());
+</code></pre>
+
+	<div class="inucolumn">
+		<h2>パラメータコメントでループできれば</h2>
+		<p>
+			パラメータコメントでループ、つまり for 文が表現できれば、ほとんどの場合において、この機能は不要になるかもしれません。
+			ドキュメント記述時点(0.9.6.9)では、その機能は実装されていません。
+		</p>
+		<p>
+			とはいえ、	DBFluteの中で唯一、プログラム上でSQLの文字列を組み立てる場面(DBFluteが一番やりたくない行為)であり、
+			できれば無くしたいものであります。
+			ConditionBeanが強力なので実質的には必要性は低いかもしれませんが...
+			(作者の耳にもあまりdynamicBinding()を使ってるという情報は入ってきません)
+		</p>
+	</div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

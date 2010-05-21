@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,EMecha,セットアップ,Setup,特定環境適用プロパティ,テーブル名の規約調整,カラム名の規約調整" />
+	<link rel="stylesheet" type="text/css" href="../../../css/sub.css" />
+	<title>特定環境適用プロパティ | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-setup">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html"><img src="../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html"><img src="../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html"><img src="../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html"><img src="../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html"><img src="../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html"><img src="../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html"><img src="../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html"><img src="../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>特定環境適用プロパティ</h1>
+	<ul class="indexlist">
+		<li><a href="#basic">basicInfoMap.dfpropの編集</a></li>
+		<li><a href="#generate">自動生成クラスの出力先</a></li>
+		<li><a href="#resource">リソースファイルの出力先</a></li>
+		<li><a href="#tablename">テーブル名の規約調整</a></li>
+		<li><a href="#columnname">カラム名の規約調整</a></li>
+		<li><a href="#prefix">クラス名のプレフィックス</a></li>
+	</ul>
+
+	<h2 id="basic">basicInfoMap.dfpropの編集</h2>
+	<p>
+		DBFluteプロパティ basicInfoMap.dfprop をエディタで開いて、ある特定の環境に適用するためのプロパティを必要であれば修正します。
+		(EMechaがインストールされていれば、DBFluteプロパティの色付け・入力支援をするエディタ機能が .dfpropファイル に関連付いています)
+	</p>
+	<div class="relatedpage"><a href="../../manual/reference/dfprop/basicinfo/index.html">basicInfoMap.dfprop</a></div>
+	<p>
+		もし、複数DB対応を前提としている場合は、複数DB対応の調整もこの時点で考慮しておきます。
+	</p>
+	<div class="detailpage"><a href="../../manual/function/genbafit/projectfit/multipledb/index.html">現場フィット - 複数DB</a></div>
+
+	<h2 id="generate">自動生成クラスの出力先</h2>
+	<p>
+		自動生成されるクラスの出力先を設定します。DBFluteクライアントからの相対パスです。
+		デフォルト値は <em class="keyword">../src/main/java</em> なので、アプリの構造と不一致の場合は変更して下さい。
+	</p>
+	<div class="detailpage"><a href="../../manual/reference/dfprop/basicinfo/index.html#generateoutputdirectory">dfprop - generateOutputDirectory</a></div>
+<pre><span class="codetitle">ex) 自動生成の出力先を ../foo 配下にする場合 @basicInfoMap.dfprop</span><code>
+; <span class="attribute">generateOutputDirectory</span> = ../foo
+</code></pre>
+
+	<h2 id="resource">リソースファイルの出力先</h2>
+	<p>
+		Seasarの場合のdbflute.diconやSpringの場合のdbfluteBeans.xmlなどのリソースファイルの出力先を設定します。
+		<em class="keyword">generateOutputDirectory プロパティのディレクトリからの相対パス</em>
+		です。デフォルト値は <em class="keyword">../resources</em> なので、generateOutputDirectoryもデフォルトのままであれば
+		<em class="keyword">../src/main/resources</em> に出力されます。アプリの構造と不一致の場合は変更して下さい。
+	</p>
+	<div class="detailpage"><a href="../../manual/reference/dfprop/basicinfo/index.html#resourceoutputdirectory">dfprop - resourceOutputDirectory</a></div>
+<pre><span class="codetitle">ex) 自動生成の出力先を ../bar 配下にする場合 @basicInfoMap.dfprop</span><code>
+; <span class="attribute">resourceOutputDirectory</span> = ../bar
+</code></pre>
+
+	<h2 id="tablename">テーブル名の規約調整</h2>
+	<p>
+		isTableNameCamelCase プロパティを利用して、DB上のテーブル名の規約が MEMBER_STATUS という形式でなく MemberStatus
+		という形式(キャメルケース)かどうかの設定します。デフォルト値は前者の形式を想定していますので、アプリケーションが後者の形式の場合は
+		true を指定して下さい。
+	</p>
+	<div class="detailpage"><a href="../../manual/reference/dfprop/basicinfo/index.html#istablenamecamelcase">dfprop - isTableNameCamelCase</a></div>
+<pre><span class="codetitle">ex) テーブル名が OrderDetail という形式の場合 @basicInfoMap.dfprop</span><code>
+; <span class="attribute">isTableNameCamelCase</span> = <span class="keyword">true</span>
+</code></pre>
+
+	<h2 id="columnname">カラム名の規約調整</h2>
+	<p>
+		DB上のカラム名において isTableNameCamelCase プロパティと同様の調整をします。
+	</p>
+	<div class="detailpage"><a href="../../manual/reference/dfprop/basicinfo/index.html#iscolumnnamecamelcase">dfprop - isColumnNameCamelCase</a></div>
+<pre><span class="codetitle">ex) カラム名が MemberName という形式の場合 @basicInfoMap.dfprop</span><code>
+; <span class="attribute">isColumnNameCamelCase</span> = <span class="keyword">true</span>
+</code></pre>
+
+	<h2 id="prefix">クラス名のプレフィックス</h2>
+	<p>
+		例えば projectPrefix プロパティに Ld と指定したら、MEMBERテーブルのEntityのクラス名は LdEntity
+		となります。複数DBで利用する場合は、DBごとに明確に区別しやすいようにするために設定することをお奨めします。
+	</p>
+	<div class="detailpage"><a href="../../manual/reference/dfprop/basicinfo/index.html#projectprefix">dfprop - projectPrefix</a></div>
+<pre><span class="codetitle">ex) プロジェクト全体でクラス名の先頭に "Ld" を付ける場合 @basicInfoMap.dfprop</span><code>
+; <span class="attribute">projectPrefix</span> = Ld
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../"><img src="../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../ja/environment/newest.html">最新バージョン</a></li>
+		<li><a href="../../../ja/environment/license.html">ライセンス</a></li>
+		<li><a href="../../../ja/environment/supported.html">サポート情報</a></li>
+		<li><a href="../../../ja/environment/changelog/index.html">ChangeLog</a></li>
+		<li><a href="../../../ja/environment/setup/index.html">セットアップ</a>
+			<ul>
+				<li><a href="../../../ja/environment/setup/emecha.html">*EMecha</a></li>
+				<li><a href="../../../ja/environment/setup/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/plain.html">*手動</a></li>
+				<li><a href="../../../ja/environment/setup/runtime.html">DBFluteランタイムの準備</a></li>
+				<li><a href="../../../ja/environment/setup/jdbcdriver.html">JDBCドライバの準備</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/firstprop.html">特定環境適用プロパティ</a></li>
+				<li><a href="../../../ja/environment/setup/generate.html">クラスの自動生成</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/injection.html">DI環境の調整</a></li>
+				<li><a href="../../../ja/environment/setup/thenafter.html">その後の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../ja/environment/upgrade/index.html">アップグレード</a>
+			<ul>
+				<li><a href="../../../ja/environment/upgrade/emecha.html">*EMecha</a></li>
+				<li><a href="../../../ja/environment/upgrade/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/upgrade/plain.html">*手動</a></li>
+				<li><a href="../../../ja/environment/upgrade/migration/index.html">移行情報</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,セットアップ,Setup,自動生成," />
+	<link rel="stylesheet" type="text/css" href="../../../css/sub.css" />
+	<title>クラスの自動生成 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-setup">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html"><img src="../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html"><img src="../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html"><img src="../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html"><img src="../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html"><img src="../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html"><img src="../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html"><img src="../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html"><img src="../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>クラスの自動生成</h1>
+	<p>
+		それでは、自動生成をしてみましょう。
+	</p>
+	<ul class="indexlist">
+		<li><a href="#replaceschema">スキーマの作成 (ReplaceSchema)</a></li>
+		<li><a href="#jdbc">メタ情報の取得 (JDBC)</a></li>
+		<li><a href="#doc">スキーマ情報の可視化 (DOC)</a></li>
+		<li><a href="#generate">クラスファイルの自動生成 (Generate)</a></li>
+	</ul>
+
+	<h2 id="replaceschema">スキーマの作成 (ReplaceSchema)</h2>
+	<p>
+		ReplaceSchemaを使ってスキーマを管理する場合は、この時点で設定をしてスキーマを作成します。(既にスキーマがある場合は後でも構いません)
+	</p>
+	<p>
+		ERDツールなどから生成したDDL文(Drop文なし)を <em class="keyword">[DBFluteクライアント]/playsql/replace-schema.sql</em>
+		に(上書き)コピーして、ReplaceSchemaタスクを実行すると、そのDDL文が実行されスキーマが作成されます。
+		もし、データベース接続文字列などに間違いがあった場合は、このタスクが例外が発生して中断します(コンソールのログを確認すること)。
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
+	<p>
+		テストデータの登録やその他細かい設定などは、最初の自動生成が終わってからでも構いません。
+		この時点では最低限、テーブルがスキーマ上に作成されてさえいればOKです。
+	</p>
+
+	<h2 id="jdbc">メタ情報の取得 (JDBC)</h2>
+	<p>
+		JDBCタスクを実行すると、<em class="keyword">データベースに接続してスキーマ情報(メタデータ)</em> を取得します。DBFluteクライアント配下の
+		schema ディレクトリ配下に project-schema-[project].xml という形式の名前のXMLファイルが出力されます。
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
+
+	<h2 id="doc">スキーマ情報の可視化 (DOC)</h2>
+	<p>
+		DOCタスクを実行すると、<em class="keyword">取得したスキーマ情報を閲覧できるHTML(SchemaHTML)</em> が生成されます。
+		DBFluteクライアント配下の output/doc 配下に project-schema-[project].html という形式名前のHTMLファイルが出力されます。
+		ブラウザで開いてみて、想定しているテーブル情報が取得できているか(簡単に)ご確認下さい。
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/index.html">DOCタスク</a></div>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></div>
+
+	<h2 id="generate">クラスファイルの自動生成 (Generate)</h2>
+	<p>
+		Generateタスクを実行すると、<em class="keyword">パッケージ構成と共にクラスファイル</em> が生成されます。
+		Eclipseのプロジェクトを更新(F5)して自動生成されたクラスがコンパイル対象にしてコンパイルが通ることをご確認下さい。
+		コンパイルエラーになる場合は、この時点で前提となる環境が整っていない可能性があります。また、同時にDI設定ファイル(dbflute.dicon
+		や dbfluteBeans.xml など)も自動生成されます。
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../"><img src="../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../ja/environment/newest.html">最新バージョン</a></li>
+		<li><a href="../../../ja/environment/license.html">ライセンス</a></li>
+		<li><a href="../../../ja/environment/supported.html">サポート情報</a></li>
+		<li><a href="../../../ja/environment/changelog/index.html">ChangeLog</a></li>
+		<li><a href="../../../ja/environment/setup/index.html">セットアップ</a>
+			<ul>
+				<li><a href="../../../ja/environment/setup/emecha.html">*EMecha</a></li>
+				<li><a href="../../../ja/environment/setup/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/plain.html">*手動</a></li>
+				<li><a href="../../../ja/environment/setup/runtime.html">DBFluteランタイムの準備</a></li>
+				<li><a href="../../../ja/environment/setup/jdbcdriver.html">JDBCドライバの準備</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/firstprop.html">特定環境適用プロパティ</a></li>
+				<li><a href="../../../ja/environment/setup/generate.html">クラスの自動生成</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/setup/injection.html">DI環境の調整</a></li>
+				<li><a href="../../../ja/environment/setup/thenafter.html">その後の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../ja/environment/upgrade/index.html">アップグレード</a>
+			<ul>
+				<li><a href="../../../ja/environment/upgrade/emecha.html">*EMecha</a></li>
+				<li><a href="../../../ja/environment/upgrade/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../ja/environment/upgrade/plain.html">*手動</a></li>
+				<li><a href="../../../ja/environment/upgrade/migration/index.html">移行情報</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

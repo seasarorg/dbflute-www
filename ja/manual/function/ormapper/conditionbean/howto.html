@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,使い方,利用方法,実装方法,実装手順" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>ConditionBeanの使い方 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ConditionBeanの使い方</h1>
+	<ul class="indexlist">
+		<li><a href="#procedure">実装手順</a>
+			<ul>
+				<li><a href="#log">ConditionBeanの実行ログ</a></li>
+			</ul>
+		</li>
+		<li><a href="#bhvinstance">Behaviorインスタンスの取得</a></li>
+		<li><a href="#bhvmethod">CB関連のBehaviorのメソッド</a></li>
+		<li><a href="#basicspec">基本仕様</a></li>
+		<li><a href="#completion">コード補完を駆使して実装</a>
+			<ul>
+				<li><a href="#autovariable">変数の抽出</a></li>
+				<li><a href="#firstchar">先頭文字で勝負を決める</a></li>
+				<li><a href="#camelcase">キャメルケースコード補完</a></li>
+			</ul>
+		</li>
+		<li><a href="#classification">区分値</a>
+			<ul>
+				<li><a href="#classify">区分値の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="#recycle">再利用メソッドの定義</a></li>
+	</ul>
+
+	<h2 id="procedure">実装手順</h2>
+	<p>
+		<em class="keyword">目的ドリブンの思考手順</em> を頭の中に入れた上で...
+	</p>
+	<div class="relatedpage"><a href="./about.html#purpose">目的ドリブンの思考手順</a></div>
+	<ol>
+		<li>基点テーブル何か？</li>
+		<li>取得したい関連テーブルは何か？</li>
+		<li>どんな絞り込みをしたいか？どんな並び替えをしたいか？</li>
+		<li>一件検索なのか？リスト検索なのか？</li>
+	</ol>
+	<p>
+		これがそのまま実装手順となります。
+	</p>
+	<ol>
+		<li>
+			基点テーブルのConditionBeanを生成 <span class="freecomment">{select句, from句}</span>
+<pre><span class="codetitle">ex) 基点テーブルは "会員" @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+</code></pre>
+		</li>
+		<li>
+			取得したい関連テーブルを指定 (<em class="keyword">setupSelect</em>) <span class="freecomment">{select句, join句}</span>
+<pre><span class="codetitle">ex) 関連する "会員ステータス" も取得 @Java</span><code>
+cb.setupSelect_MemberStatus();
+</code></pre>
+		</li>
+		<li>
+			絞り込み条件・並び替え条件を設定 (<em class="keyword">query</em>) <span class="freecomment">{where句, order-by句, (from句, on句)}</span>
+<pre><span class="codetitle">ex) 検索条件: 会員名称が 'S' で始まり、生年月日の降順、そして、会員IDの昇順 @Java</span><code>
+cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+cb.query().addOrderBy_Birthdate_Desc();
+cb.query().addOrderBy_MemberId_Asc();
+</code></pre>
+		</li>
+		<li>
+			Behaviorのメソッドを呼ぶ
+<pre><span class="codetitle">ex) リスト検索 @Java</span><code>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+</code></pre>
+		</li>
+	</ol>
+	<h3 id="log">ConditionBeanの実行ログ</h3>
+	<p>
+		ConditionBeanの実行ログ(表示用SQLも含む)は以下のようになります。
+	</p>
+	<div class="relatedpage"><a href="../../genbafit/implfit/debuglog/index.html">現場フィット - デバッグログ</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../genbafit/implfit/displaysql/index.html"> -->現場フィット - 表示用SQL<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) リスト検索のテスト実装のログ {select句を一部省略} @Log</span><code>
+(XLog#log():38) - /===========================================================================
+(XLog#log():38) -                                                       MemberBhv.selectList()
+(XLog#log():38) -                                                       =====================/
+(XLog#log():38) - BehaviorBasicTest.test_selectList_Tx():118 -> ...
+(QLog#log():38) - 
+<span class="keyword">select</span> dflocal.MEMBER_ID <span class="keyword">as</span> c1, dflocal.MEMBER_NAME <span class="keyword">as</span> c2, <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal 
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> dflocal.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span> 
+ <span class="keyword">order by</span> dflocal.BIRTHDATE <span class="keyword">desc</span>, dflocal.MEMBER_ID <span class="keyword">asc</span>
+(XLog#log():38) - ===========/ [00m00s064ms (4) first={12, Suker, Suker, PRV, null, 1968-01-01, 2010-03-10 17:42:34.402, foo, bar, 2010-03-10 17:42:34.404, foo, bar, 0}(memberStatus)@21b]
+(XLog#log():38) -  
+</code></pre>
+
+	<h2 id="bhvinstance">Behaviorインスタンスの取得</h2>
+	<p>
+		Behaviorインスタンスは <em class="keyword">DIコンテナから取得</em> します。
+	</p>
+	<div class="detailpage"><a href="../behavior/howto.html">Behaviorの使い方</a></div>
+
+	<h2 id="bhvmethod">CB関連のBehaviorのメソッド</h2>
+	<dl class="hierarchylist">
+		<dt><span class="working"><!-- <a href="../behavior/selectentity.html"> -->selectEntity(cb)<!-- </a> --></span></dt>
+		<dd>一件検索。結果がない場合はnullを戻す</dd>
+		<dt><span class="working"><!-- <a href="../behavior/selectentitywithdeletedcheck.html"> -->selectEntityWithDeletedCheck(cb)<!-- </a> --></span></dt>
+		<dd>一件検索。結果がない場合は例外発生</dd>
+		<dt><span class="working"><!-- <a href="../behavior/selectlist.html"> -->selectList(cb)<!-- </a> --></span></dt>
+		<dd>リスト検索</dd>
+		<dt><span class="working"><!-- <a href="../behavior/selectpage.html"> -->selectPage(cb)<!-- </a> --></span></dt>
+		<dd>ページング検索。cb.paging()とセットで利用</dd>
+		<dt><span class="working"><!-- <a href="../behavior/selectcursor.html"> -->selectCursor(cb, entityRowHandler)<!-- </a> --></span></dt>
+		<dd>カーソル検索。一件ずつメモリ展開して処理</dd>
+		<dt><span class="working"><!-- <a href="../behavior/scalarselect.html"> -->scalarSelect(cb)<!-- </a> --></span></dt>
+		<dd>スカラ検索。max(), min(), sum(), avg()</dd>
+		<dt><span class="working"><!-- <a href="../behavior/loadreferrer"> -->LoadReferrer<!-- </a> --></span></dt>
+		<dd>子テーブルの取得。Refererrテーブル毎にメソッドがある</dd>
+		<dt><span class="working"><!-- <a href="../behavior/queryupdate"> -->queryUpdate(entity, cb)<!-- </a> --></span></dt>
+		<dd>ConditionBeanの条件で更新</dd>
+		<dt><span class="working"><!-- <a href="../behavior/querydelete"> -->queryDelete(cb)<!-- </a> --></span></dt>
+		<dd>ConditionBeanの条件で削除</dd>
+	</dl>
+	<p>
+
+	<h2 id="basicspec">基本仕様</h2>
+	<dl class="textlist">
+		<dt>条件の連結</dt>
+		<dd>
+			(複数の条件を指定した場合に)基本的に <em class="keyword">and</em> で連結します。(<em class="keyword">OrScopeQuery</em> 機能で or 連結)
+			<div class="relatedpage"><span class="working"><!-- <a href="./advance/orscopequery.html"> -->OrScopeQuery<!-- </a> --></span></div>
+		</dd>
+		<dt>nullや空文字の扱い</dt>
+		<dd>
+			基本的に <em class="keyword">条件値が null もしくは 空文字 の場合は設定された条件は無効(条件付与しない)</em> になります。
+			<div class="relatedpage"><a href="../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
+		</dd>
+		<dt>同じカラムで同じ比較条件の複数指定</dt>
+		<dd>
+			基本的に <em class="keyword">上書き</em> ですが、比較条件次第で追加条件となることもあります。
+		</dd>
+		<dt>同じカラムで同じ条件値での複数指定</dt>
+		<dd>
+			基本的に 重複した条件にはならずにデバッグログが出力されますが、比較条件次第で追加条件となることもあります。
+		</dd>
+		<dt>結合の方式</dt>
+		<dd>
+			基本的に <em class="keyword">left outer join</em> で結合します。(<em class="keyword">InnerJoin</em> 機能で inner join 結合)
+			<div class="relatedpage"><span class="working"><!-- <a href="./query/innerjoin.html"> -->InnerJoin<!-- </a> --></span></div>
+		</dd>
+		<dt>メソッドの呼び出し順序</dt>
+		<dd>
+			基本的に 以下のような順序でメソッドを呼び出すことを(習慣的に)お奨めします。
+			<ul class="supplementlist">
+				<li>setupSelect...</li>
+				<li>query().set...</li>
+				<li>union(...)</li>
+				<li>query().addOrderBy...</li>
+				<li>paging(), lockForUpdate(), ...</li>
+			</ul>
+			基本的には順序が入れ替わっても動作はしますが、一部処理は順序が通りでないと動作しないものもあります。例えば、union
+			を利用する場合は必ず setupSelect の後でなければなりません。<em class="keyword">可読性のためにも</em>
+			この順序(SQLのイメージと近い形)を習慣とするようにして下さい。
+		</dd>
+		<dt>マルチスレッド対応</dt>
+		<dd>
+			<em class="keyword">スレッドセーフではない</em> ので、スレッド間で(同期なしの)再利用はしてはいけません。
+		</dd>
+		<dt>ライフサイクル</dt>
+		<dd>
+			基本的には、使い捨てです。DBアクセスするときにインスタンスを生成し、実行したらそのまま破棄。
+			スレッドセーフではないので、持ち回しての利用は基本的に想定されません。
+		</dd>
+		<dt>検索結果のキャッシュ</dt>
+		<dd>
+			<em class="keyword">検索結果をキャッシュするようなことはありません</em>。
+		</dd>
+	</dl>
+
+	<h2 id="completion">コード補完を駆使して実装</h2>
+	<p>
+		メソッドの補完で実装できることがConditionBeanの特徴です。
+		メソッド名を一字一句丁寧に打ち込むというようなことはやらずに、<em class="keyword">メソッドの先頭の文字を打ち込んでメソッド候補を補完</em>
+		して、利用したいメソッドを選んで実装していくようにします。ここでは Eclipse を基本として説明します。
+	</p>
+	<h3 id="autovariable">変数の抽出</h3>
+	<p>
+		受け取りの型(左辺)を先に書くのではなく、実体(右辺)を先に書いてから受け取りの型を自動で抽出する方法があります。
+		実体(右辺)のセミコロンの右側にカーソルが置いてある状態で、<em class="keyword">ctrl + 2</em>
+		(Macは command + 2)を押した後(0.x秒)、<em class="keyword">L</em> を押します。
+	</p>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (変数の抽出) @Java</span><code>
+<span class="keyword">new</span> MemberCB(); <span class="comment">// セミコロンの右側にカーソル置いて(ctrl(or command) + 2 and L)</span>
+ <span class="attribute">to</span>
+MemberCB cb = <span class="keyword">new</span> MemberCB(); <span class="comment">// 変数名は習慣的に "cb"</span>
+</code></pre>
+	<h3 id="firstchar">先頭文字で勝負を決める</h3>
+	<p>
+		先頭文字を打てば、後はコード補完が導いてくれます。
+		特にConditionBeanでは、先頭文字(もしくはあと一文字)を打つだけで補完できるメソッドを多く利用します。
+	</p>
+	<p>
+		唯一の <em class="keyword">se</em> で始まる setupSelect...()、唯一の <em class="keyword">q</em> で始まる query()、
+		これだけでも覚えておく(習得する)だけで、ConditionBeanライフは大分違ったものになるでしょう。
+	</p>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (setupSelect) @Java</span><code>
+cb<span class="point">.se</span> <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
+ <span class="attribute">to</span>
+cb.<span class="point">setupSelect_MemberStatus()</span> <span class="comment">// "se" で始まるメソッドは setupSelect... のみ</span>
+</code></pre>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (query) @Java</span><code>
+cb<span class="point">.q</span> <span class="comment">// ".q" とだけ打って enter</span>
+ <span class="attribute">to</span>
+cb.<span class="point">query()</span> <span class="comment">// "q" で始まるメソッドは query() のみ</span>
+</code></pre>
+	<p>
+		その他メソッドに関しても、先頭文字をおおよそ把握しておくとさらに良いでしょう。
+	</p>
+	<div class="detailpage"><a href="./about.html#structure">ConditionBeanの構造</a></div>
+	<div class="inucolumn">
+		<h4>基本は enter がお奨め</h4>
+		<p>
+			ちなみに、enter でなくても、"." を押すことでメソッドの選択(決定)はできます。しかも、その後のコード補完もすぐに開始できて、
+			手間が一つ減ります。ただし、戻り値が存在していない場合は効かず、結局 enter を押す必要があります。戻り値がある場合とない場合とで、
+			enter なのか "." なのかを判断するくらいなら、全て enter で統一、という方がやりやすいと考えられるため(人に寄ります)、
+			ドキュメント上は、enter 方式で全て書いています。(enterキーの方が大きいのでリズミカルに打ちやすいというものあり)
+		</p>
+	</div>
+	<h3 id="camelcase">キャメルケースコード補完</h3>
+	<p>
+		特に <em class="keyword">キャメルケースコード補完</em>
+		は、ConditionBean実装を充実させます。必ず利用しましょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">プログラミング - キャメルケースコード補完</a></div>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (query - set...) @Java</span><code>
+cb.query()<span class="point">.set</span> <span class="comment">// query()の後 ".set" とだけ打って補完候補からメソッド選択</span>
+<span class="comment">// set[カラム名]_[比較条件名]の形式のメソッドが大量に補完される</span>
+<span class="comment">// メソッドを単語の先頭の大文字部分だけを入力して補完候補を絞り込む</span>
+<span class="comment">// 例えば、setMemberName_PrefixSearch()であれば、".setMNPS" と入力する</span>
+ <span class="attribute">to</span>
+cb.query().<span class="point">setMemberName_PrefixSearch()</span> <span class="comment">// 後は引数に値を入れてセミコロンで締める</span>
+</code></pre>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (query - addOrderBy...) @Java</span><code>
+cb.query()<span class="point">.add</span> <span class="comment">// query()の後 ".add" とだけ打って補完候補からメソッド選択</span>
+<span class="comment">// addOrderBy_[カラム名]_[Asc or Desc]の形式のメソッドが大量に補完される</span>
+<span class="comment">// メソッドを単語の先頭の大文字部分だけを入力して補完候補を絞り込む</span>
+<span class="comment">// 例えば、addOrderBy_MemberName_Desc()であれば、".addOBMND" と入力する</span>
+ <span class="attribute">to</span>
+cb.query().<span class="point">addOrderBy_MemberName_Desc()</span> <span class="comment">// 後はセミコロンで締める</span>
+</code></pre>
+
+	<h2 id="classification">区分値</h2>
+	<p>
+		区分値設定がされているカラムに関しては、区分値に関する条件設定のメソッドが存在します。
+		これらを利用することで、区分値条件をタイプセーフに指定することができます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+	<h3 id="classify">区分値の設定</h3>
+	<p>
+		<em class="keyword">set[カラム名]_[ConditionKey]_[区分値要素の名前]()</em>
+		の形式のメソッドを利用します。サポートされている ConditionKey
+		は、<em class="keyword">Equal、NotEqual</em> です。
+	</p>
+<pre><span class="codetitle">ex) 区分値条件の設定(メソッド解決)。会員ステータスが正式会員であること。 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>;
+<span class="comment">// cb.query().setMemberStatusCode_Equal("FML"); と同義</code>
+</code></pre>
+	<h4>通常のプロパティの設定と同じ set 始まり</h4>
+	<p>
+		通常のプロパティの設定と同じ set 始まりのメソッドなので、他のカラムと同様、とりあえず set
+		と打って、対象のカラムの set メソッドを補完すると、区分値メソッドも一緒に補完候補に並びますので、後はそこから選ぶだけです。
+		その時、ネイティブ型の設定メソッドしか存在しない場合は、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
+	</p>
+	<h4>キャメルケースコード補完の活用</h4>
+	<p>
+		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">setMemberStatusCode_Equal_Formalized()</em>
+		メソッドであれば、<em class="keyword">setMSCEF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">プログラミング - キャメルケースコード補完</a></div>
+	<h4>CDef を直接渡すメソッド</h4>
+	<p>
+		メソッド名解決のメソッドに対し、ENUMである CDef を直接渡すメソッドもあります。<em class="keyword">set[カラム名]_[ConditionKey]_As[区分値の名前](CDef)</em>
+		という形式のメソッドです。ただ、Equal、NotEqualに関しては、メソッド名解決のメソッドがあるため(そちらの方が便利であるため)、基本的にはあまり利用する必要はありません。
+		複数の区分値要素を指定する <em class="keyword">InScope、NotInScope</em> において利用します。
+	</p>
+	<div class="relatedpage"><a href="../runtime/allcommon/index.html#cdef">DBFluteランタイム - allcommon - CDef</a></div>
+<pre><span class="codetitle">ex) 区分値条件の設定(CDef指定)。会員ステータスが正式会員、仮会員であること。 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+List&lt;CDef.MemberStatus&gt; statusList = <span class="keyword">new</span> ArrayList&lt;CDef.MemberStatus&gt;();
+statusList.add(CDef.MemberStatus.Formalized);
+statusList.add(CDef.MemberStatus.Provisional);
+cb.query().<span class="point">setMemberStatusCode_InScope_AsMemberStatus(statusList)</span>;
+</code></pre>
+	<h4>ネイティブ型の設定メソッドは残ったまま</h4>
+	<p>
+		区分値が関連付いたカラムのネイティブ型での設定メソッドは残っています。
+		これはこれで、既に区分値であることが保証されている変数(リストボックスのリクエストパラメータなど)を直接設定したりなど、場面場面で必要になるためです。
+		このような状況以外で、区分値のコードを(特にハードコードして)設定するようなことは基本的に想定されていません(<em class="keyword">利用してはいけません</em>)。
+	</p>
+<pre><span class="codetitle">ex) (ディベロッパーが)絶対にやってはいけない設定の仕方 @Java</span><code>
+cb.query.setMemberStatusCode_Equal(<span class="literal">"FML"</span>);
+</code></pre>
+	<p>
+		もし、プロジェクト全体で <em class="keyword">区分値メソッド経由での設定を強制させたい場合</em> は、littleAdjustmentMap.dfprop
+		の isForceClassificationSetting を true にすることでネイティブ型の設定メソッドの可視性を protected にすることができます。
+	</p>
+	<div class="relatedpage"><a href="../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+	<h4>大なり小なり比較・曖昧検索は生成されない</h4>
+	<p>
+		区分値が関連付けられたカラムに対しては、GreaterEqual や LessThan
+		などの大なり小なり比較をするメソッド、ならびに、PrefixSearch や LikeSearch
+		などの曖昧検索のメソッドは<span class="existscloset">生成されません</span>。
+		業務的に区分値のコードに対してそのような比較条件を適用することはないと想定されるため、間違いを生まないようにとそのようにしています。
+	</p>
+	<div class="inucolumn">
+		<h4>区分値の大なり小なり比較</h4>
+		<p>
+			区分値の要素間で順列を付けるのであれば、コード値に意味を兼任させるのではなく、ExampleDBの "会員ステータスの表示順"
+			のように、別のカラムで(明示的な業務名で)表現するのが良いでしょう。(コード値はあくまで純粋に識別値として扱う)
+		</p>
+	</div>
+
+	<h2 id="recycle">再利用メソッドの定義</h2>
+	<p>
+		ConditionBeanでは再利用メソッドを定義して、業務的に定型的な検索条件、つまり
+		where 句を再利用することができます。
+	</p>
+	<div class="detailpage"><a href="../../genbafit/implfit/whererecycle/index.html">現場フィット - where句の再利用</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

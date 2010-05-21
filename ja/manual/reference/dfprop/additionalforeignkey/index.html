@@ -1,0 +1,393 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,DBFluteプロパティ,DBFluteProperty,additionalForeignKeyMap.dfprop,ForeingKey制約,FK制約,外部キー,参照テーブル,FKがない,業務的one-to-one,ConditionBeanでの結合" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>additionalForeignKeyMap | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>additionalForeignKeyMap</h1>
+	<ul class="indexlist">
+		<li><a href="#about">additionalForeignKeyMapとは？</a>
+			<ul>
+				<li><a href="#ifnot">FK制約がない場合のDBFlute</a></li>
+				<li><a href="#mainpattern">主な利用パターン</a></li>
+			</ul>
+		</li>
+		<li><a href="#property">プロパティ</a>
+			<ul>
+				<li><a href="#fkname">FK-name (*)</a></li>
+				<li><a href="#localtablename">localTableName (*)</a></li>
+				<li><a href="#foreigntablename">foreignTableName (*)</a></li>
+				<li><a href="#localcolumnname">localColumnName</a></li>
+				<li><a href="#foreigncolumnname">foreignColumnName</a></li>
+				<li><a href="#fixedcondition">fixedCondition</a></li>
+				<li><a href="#fixedsuffix">fixedSuffix</a></li>
+			</ul>
+		</li>
+		<li><a href="#example">Example</a></li>
+	</ul>
+
+	<h2 id="about">additionalForeignKeyMapとは？</h2>
+	<p>
+		実質的なFK(ForeignKey)の関連がありながらも実際には(FK)制約が存在しないテーブルおよびビューなどにおいて、
+		<em class="keyword">DBFluteが生成するEntityにて関連として扱えるようにする</em> DBFluteプロパティ。DBFluteクライアントの dfprop
+		配下の additionalForeignKeyMap.dfprop という名前のテキストファイルです。主に Generateタスク
+		を実行する際に参照され、実際にFK制約が存在しないテーブルでも、このプロパティの設定を行うことで関連を持ったEntityを生成できます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/generate">Generateタスク</a></div>
+	<h3 id="ifnot">FK制約がない場合のDBFlute</h3>
+	<p>
+		FK制約がない場合(かつ、このプロパティを利用しない場合)は、ConditionBeanやEntityなどにおいてその関連を扱うことができません。例えば
+		"ConditionBeanで会員を基点として会員ステータスも一緒に取得"
+		というような検索ができません。FK制約自体に多くのメリットがあるため、基本的にはFK制約がしっかりDB側に付与されていることが推奨されます。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/dbdesign/fkconstraint.html">DB設計 - FK制約について</a></div>
+	<h3 id="mainpattern">主な利用パターン</h3>
+	<dl class="textlist">
+		<dt>FK制約は存在しないが実質的にFKである</dt>
+		<dd>
+			基本的にはFK制約がしっかりDB側に付与されていることが推奨されますが、
+			DB側の事情によってFK制約が存在しない場合(かつ、実質的なFKの関連がある場合)にこのプロパティが有効です。
+		</dd>
+		<dt>ビューなどそもそもFK情報を持たないオブジェクト</dt>
+		<dd>
+			参照先のテーブルなどがFK制約を持っている場合(ビューの構造的・要件的にその関連を扱いたい場合)にこのプロパティが有効です。
+		</dd>
+		<dt>"業務的one-to-one" となるような関連</dt>
+		<dd>
+			<em class="keyword">業務的one-to-one</em> となるような擬似FKの設定も可能です。ExampleDBにおける
+			会員(MEMBER)テーブル と 会員住所情報(MEMBER_ADDRESS)テーブル
+			を例として、会員と会員住所情報の関係において "指定された日付が有効期間内であればone-to-one"
+			というような業務的な制約がある場合に、その固定の条件(<em class="keyword">fixedCondition</em>)を付与することで "擬似FK"
+			を設定することが出来ます。これはつまり ConditionBean や Entity
+			において、会員から会員住所情報を(固定条件付きの結合を利用して)参照できることを意味します。その固定条件にはバインド変数が利用できます。
+		</dd>
+	</dl>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
+	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>
+
+	<h2 id="property">プロパティ</h2>
+	<p>
+		<em class="keyword">map型プロパティ</em> で、<em class="keyword">FKの名前</em>
+		とそれに対するテーブル名とカラム名を定義します。
+	</p>
+	<div class="relatedpage"><a href="../mapprop.html">map型プロパティ</a></div>
+<pre><span class="codetitle">additionalForeignKeyMapの仕様 @additionalForeignKeyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; [FK-name] = <span class="keyword">map:</span>{
+        ; localTableName = [local-table-name]
+        ; foreignTableName = [foreign-table-name]
+        ; localColumnName = [local-column-name for FK]
+        ; foreignColumnName = [foreign-column-name for PK (or UQ)]
+        ; fixedCondition = [fixed-condition for "on" clause of join]
+        ; fixedSuffix = [fixed-suffix]
+    }
+    ; ...
+}
+</code></pre>
+	<p>
+		以下、(*)の付いたプロパティは必須です。
+	</p>
+	<h3 id="fkname">FK-name (*)</h3>
+	<p>
+		FKの名前を指定します。mapのキーになっていて、ユニークである必要があります。
+		習慣的に、実際にDBに存在するFK制約を含めてもユニークな名前(かつ、大文字で "FK_" で始まるもの)を付けることをお奨めします。
+	</p>
+	<h3 id="localtablename">localTableName (*)</h3>
+	<p>
+		FK制約を設定するテーブル名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブルの名前 (自動生成対象になっていること)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>大文字小文字の区別なし (但し実体と合わせることを推奨)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="foreigntablename">foreignTableName (*)</h3>
+	<p>
+		FKの参照先テーブル名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブルの名前 (自動生成対象になっていること)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>大文字小文字の区別なし (但し実体と合わせることを推奨)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="localcolumnname">localColumnName</h3>
+	<p>
+		FKとして扱うカラム名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>カラムの名前 (自動生成対象になっていること)</dd>
+		<dt>デフォルト</dt><dd>参照先テーブルのPKカラム名</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>大文字小文字の区別なし (但し実体と合わせることを推奨)</li>
+				<li>参照元テーブルのFKカラム名と参照先テーブルのPKカラム名と同一の場合は省略可能</li>
+				<li>複合FKの場合は、"/" (スラッシュ)区切りで複数のカラムを指定 (foreignColumnNameの順番と合わせること)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="foreigncolumnname">foreignColumnName</h3>
+	<p>
+		FKの参照先として扱うカラム名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>カラムの名前 (自動生成対象になっていること)</dd>
+		<dt>デフォルト</dt><dd>参照元テーブルのFKカラム名</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>大文字小文字の区別なし (但し実体と合わせることを推奨)</li>
+				<li>参照元テーブルのFKカラム名と参照先テーブルのPKカラム名と同一の場合は省略可能</li>
+				<li>複合FKの場合は、"/" (スラッシュ)区切りで複数のカラムを指定 (localColumnNameの順番と合わせること)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="fixedcondition">fixedCondition</h3>
+	<p>
+		絞り込み条件を付けることでFKとして参照可能な関連における場合の固定条件をSQLで指定します。
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>条件を記述したSQL (join句の "on句" に追加される条件式)</dd>
+		<dt>デフォルト</dt><dd>固定条件なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>"$$foreignAlias$$" を参照先テーブルのエイリアスとして利用可能</li>
+				<li>"$$localAlias$$" を参照元テーブルのエイリアスとして利用可能</li>
+			</ul>
+		</dd>
+	</dl>
+	<h4>バインド変数コメント</h4>
+	<p>
+		値の中では、バインド変数コメントを利用して、バインド変数を利用した固定条件にすることができます。
+		但し、外だしSQLのバインド変数コメントとは違うところがあって、その変数のプログラム型を、"変数名([プログラム型])"
+		という形式で(必ず)指定します。パッケージ名の解決は、ParameterBeanにおけるプログラム型のパッケージ解決と同じです。
+		(例えば、java.util.DateはDateでOK)
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/pmcomment.html#bindvariable">パラメータコメント - バインド変数コメント</a></div>
+	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/parameterbean.html#packageresolve">ParameterBean - プログラム型のパッケージ解決</a></div>
+<pre><span class="codetitle">ex) targetDate という変数名でjava.util.Date型のバインド変数 @additionalForeignKeyMap.dfprop</span><code>
+VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+</code></pre>
+	<p>
+		固定条件で利用する条件値をアプリから指定したい場合に有効です。この条件値は、ConditionBeanの該当リレーションの SetupSelect
+		や Query メソッドの引数で指定できます。
+	</p>
+<pre><span class="codetitle">ex) ConditionBeanで targetDate を指定 @Java</span><code>
+Date currentDate = <span class="abbreviation">...</span>;
+cb.setupSelect_MemberAddressAsValid(currentDate);
+</code></pre>
+	<h4>埋め込み区分値</h4>
+	<p>
+		(定義された)区分値を参照して、コード値を条件に埋め込むことができます(バインド変数ではない)。
+		埋め込みであることを示す、"$" を付けた後に "cls([区分名.要素名])" という形式で指定します。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/pmcomment.html#embeddedvariable">パラメータコメント - 埋め込み変数コメント</a></div>
+	<div class="relatedpage"><a href="../classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
+<pre><span class="codetitle">ex) Flg 区分値の True に対応するコード値を埋め込まれた条件に @additionalForeignKeyMap.dfprop</span><code>
+VALID_FLG &lt;= <span class="comment">/*$cls(Flg.True)*/</span>null
+</code></pre>
+<pre><span class="codetitle">ex) 実行されたときのSQL上の埋め込まれた条件 @ExecutedSql</span><code>
+VALID_FLG &lt;= 1
+</code></pre>
+	<h4>改行は保たれない</h4>
+	<p>
+		fixedCondition で指定した値の中の改行は、SQL上には反映されません。よって、プロパティ記述上の都合で(見やすいように)改行しても構いません。
+		(二行目以降は、空白インデントを一つ入れることで、前の行の最後との間に空白が入るようになります)
+	</p>
+	<h3 id="fixedsuffix">fixedSuffix</h3>
+	<p>
+		関連名を修飾する Suffix です。自動生成されるメソッド名などに付与されます。例えば "AsValid"
+		と指定した場合、"cb.setupSelect_...AsValid()" となります。
+	</p>
+	<p>
+		fixedCondition を利用したリレーションに <em class="keyword">業務的な意味を付与</em> するのに有効です。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>任意の文字列 (関連の業務的な表現に適していること)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>基本的には大文字始まりのキャメルケース</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="example">Example</h2>
+<pre><span class="codetitle">ex) 会員から会員ステータスへのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_STATUS_CODE = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER             ; foreignTableName  = MEMBER_STATUS
+    ; localColumnName = MEMBER_STATUS_CODE ; foreignColumnName = MEMBER_STATUS_CODE
+}
+</code></pre>
+<pre><span class="codetitle">ex) カラム名が同じ場合のカラム名指定の省略 @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_STATUS_CODE = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER             ; foreignTableName  = MEMBER_STATUS
+}
+</code></pre>
+<pre><span class="codetitle">ex) 会員から会員ステータスへの複合FK (会員ステータスコードと生年月日でFKの場合) @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_STATUS_CODE = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER             ; foreignTableName  = MEMBER_STATUS
+    ; localColumnName = MEMBER_STATUS_CODE/BIRTHDATE
+    ; foreignColumnName = MEMBER_STATUS_CODE/BIRTHDATE
+}
+</code></pre>
+<pre><span class="codetitle">ex) 会員から会員ステータスへの有効フラグ条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_STATUS_CODE_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER             ; foreignTableName  = MEMBER_STATUS
+    ; localColumnName = MEMBER_STATUS_CODE ; foreignColumnName = MEMBER_STATUS_CODE
+    ; fixedCondition = <span class="attribute">$$foreignAlias$$</span>.VALID_FLG = '1'
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+<pre><span class="codetitle">ex) 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+     <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

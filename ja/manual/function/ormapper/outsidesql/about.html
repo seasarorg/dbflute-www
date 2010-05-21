@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,外だしSQL,OutsideSql,外だしSQLとは？,About OutsideSql,What is OutsideSql" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>外だしSQL(OutsideSql)とは？ | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>外だしSQL(OutsideSql)について</h1>
+	<ul class="indexlist">
+		<li><a href="#about">外だしSQL(OutsideSql)とは？</a></li>
+		<li><a href="#pmcomment">パラメータコメント</a></li>
+		<li><a href="#twowaysql">2Way-SQL</a></li>
+		<li><a href="#role">実装上の役割</a></li>
+	</ul>
+
+	<h2 id="about">外だしSQL(OutsideSql)とは？</h2>
+	<p>
+		<em class="keyword">外部テキストファイルに記載されたSQL文をアプリケーションから実行</em> する機能のことを言います。
+	</p>
+	
+	<h2 id="pmcomment">パラメータコメント</h2>
+	<p>
+		単にSQL文を実行するだけでなく、パラメータコメントを利用することで、アプリケーションで指定される動的なパラメータを参照し
+		<em class="keyword">SQL上で分岐(IF文)指定・バインド変数指定</em> などができます。
+	</p>
+	<div class="detailpage"><a href="./pmcomment.html">パラメータコメント</a></div>
+<pre><span class="codetitle">ex) アプリで指定された会員IDがnullじゃなければ、その会員IDで等値条件(テスト値：3)</span><code>
+<span class="comment">/*IF pmb.memberId != null*/</span>
+MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
+<span class="comment">/*END*/</span>
+</code></pre>
+
+	<h2 id="twowaysql">2Way-SQL</h2>
+	<p>
+		さらに、バインド変数指定時にはテスト値を含めることが可能なため、外だしSQLはアプリケーションでもSQLツールでもどちらでも実行可能です。記述したSQLはアプリケーションを起動することなく、SQLツールでそのSQLの文法の確認ができます。これは非常に大きなメリットであり、開発者はSQLの実装に集中できます。
+	</p>
+	<p>
+		プログラム上で文字列でSQLを埋め込んで生成していたときは、アプリケーションを実行するまでそのSQLが正しいかどうかを確認することができませんでした。結局実行すると
+		"右カッコがありません"
+		と怒られ再度修正し、アプリケーションを再起動してまた試します。その繰り返しが本当に時間を費やすものでした。
+	</p>
+	<p>
+		外だしSQLならその時間は非常に短いです。SQLツールで簡単に実行できてしまうからです。この
+		<em class="keyword">アプリケーション・SQLツールの両方で実行可能なSQL</em> のことを <em class="keyword">2Way-SQL</em> と呼びます。
+	</p>
+<pre><span class="codetitle">ex) 2Way-SQLでの実装 (アプリケーション・SQLツールの両方で実行可能) @OutsideSql</span><code>
+<span class="comment">/*IF pmb.isPaging()*/</span>
+<span class="keyword">select</span> member.MEMBER_ID
+     , member.MEMBER_NAME
+     , (<span class="keyword">select</span> sum(purchase.PURCHASE_PRICE)
+          <span class="keyword">from</span> PURCHASE purchase
+         <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
+           <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = 0
+       ) <span class="keyword">as</span> UNPAID_PRICE_SUMMARY
+     , memberStatus.MEMBER_STATUS_NAME
+<span class="comment">-- ELSE select count(*)</span>
+<span class="comment">/*END*/</span>
+  <span class="keyword">from</span> MEMBER member
+    <span class="comment">/*IF pmb.isPaging()*/</span>
+    <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
+      <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+    <span class="comment">/*END*/</span>
+ <span class="comment">/*BEGIN*/</span><span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3/*END*/</span>
+   <span class="comment">/*IF pmb.memberStatusCode != null*/</span>
+   <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span>'FML'
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.unpaidMemberOnly*/</span>
+   <span class="keyword">and exists</span> (<span class="keyword">select</span> 'yes'
+                 <span class="keyword">from</span> PURCHASE purchase
+                <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
+                  <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = 0
+       )
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+ <span class="comment">/*IF pmb.isPaging()*/</span>
+ <span class="keyword">order by</span> UNPAID_PRICE_SUMMARY <span class="keyword">desc</span>, member.MEMBER_ID <span class="keyword">asc</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+
+	<h2 id="role">実装上の役割</h2>
+	<p>
+		実装上の役割としては、ConditionBeanでは実現できない複雑(非定型)なSQLを対象とします。
+		<em class="keyword">FK制約を付与できない(RDBとしては特殊な)関連での結合</em> や
+		<em class="keyword">group by 結果の取得</em>、<em class="keyword">集計関数以外のSQL関数の利用</em>
+		といった内容が含まれるSQLを記述することを想定しています。
+	</p>
+	<div class="relatedpage"><a href="../../../../introduction/dbaccessif.html">バランス重視のDBアクセスI/F</a></div>
+	<div class="relatedpage"><a href="../conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

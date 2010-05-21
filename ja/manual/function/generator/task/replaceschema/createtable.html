@@ -1,0 +1,458 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,ReplaceSchema,テーブル作成,create table,スキーマ作成,CreateSchema,replace-schema.sql" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>テーブル作成 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>テーブル作成</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">処理概要</a></li>
+		<li><a href="#filespec">実行ファイルの仕様</a>
+			<ul>
+				<li><a href="#convention">実行ファイルの規約</a></li>
+				<li><a href="#order">実行順序</a></li>
+				<li><a href="#encoding">エンコーディング</a></li>
+			</ul>
+		</li>
+		<li><a href="#sqlspec">SQLの仕様</a>
+			<ul>
+				<li><a href="#delimiter">SQLのデリミタ</a></li>
+				<li><a href="#beginend">SQLの範囲の明示的指定</a></li>
+				<li><a href="#definedsql">定義するSQL</a></li>
+				<li><a href="#errorhandling">エラーハンドリング</a></li>
+				<li><a href="#transaction">トランザクション</a></li>
+				<li><a href="#linehandling">改行の扱い</a></li>
+			</ul>
+		</li>
+		<li><a href="#filtervariables">変数のフィルタ</a></li>
+		<li><a href="#systemuser">システムユーザでの実行</a>
+			<ul>
+				<li><a href="#systeminfo">システムユーザの接続情報</a></li>
+				<li><a href="#systemddl">システムユーザで実行するDDL</a></li>
+				<li><a href="#notsystem">サブスキーマのユーザでの利用(非推奨)</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">処理概要</h2>
+	<p>
+		DBFluteプロパティ databaseInfoMap.dfprop
+		に定義されたスキーマに接続し、仕様に合致するファイルに定義されているDDL文を実行します。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/databaseinfo/index.html">databaseInfoMap.dfprop</a></div>
+	
+	<h2 id="filespec">実行ファイルの仕様</h2>
+	<h3 id="convention">実行ファイルの規約</h3>
+	<p>
+		以下の全ての条件に合致するテキストファイルが実行対象：
+	</p>
+	<ul>
+		<li>"DBFluteクライアント]/playsql" 配下のファイル</li>
+		<li>ファイル名が "replace-schema" で始まる</li>
+		<li>ファイル名が ".sql" で終わる</li>
+	</ul>
+	<p>
+		条件で定められている部分以外のファイル名は任意の文字列となります。基本的にはそのSQLファイルの役割を表現するようにします。また、replace-schema.sql
+		という名前のファイルも実行対象となります。
+	</p>
+<pre><span class="codetitle">ex) テーブル作成のSQLファイル @DBFluteClient</span><code>
+playsql
+ |-replace-schema-basic.sql
+ |-replace-schema-sequence.sql
+ |-replace-schema-view.sql
+ |-...
+</code></pre>
+	<h3 id="order">実行順序</h3>
+	<p>
+		実行する順序は、<em class="keyword">拡張子を含めたファイル名の辞書順(昇順)</em>
+		で実行します。実行順序を明確にしておくために、習慣的に <em class="keyword">番号で管理</em>
+		しておくことをお奨めします。
+	</p>
+<pre><span class="codetitle">ex) テーブル作成のSQLファイルで番号管理 @DBFluteClient</span><code>
+playsql
+ |-replace-schema-10-basic.sql
+ |-replace-schema-20-view.sql
+ |-replace-schema-30-sequence.sql
+ |-...
+</code></pre>
+	<h3 id="encoding">エンコーディング</h3>
+	<p>
+		エンコーディングは "UTF-8" として扱われます。別のエンコーディングを利用したい場合は、オプションで変更可能です。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#sqlfileencoding">dfprop - sqlFileEncoding</a></div>
+
+	<h2 id="sqlspec">SQLの仕様</h2>
+	<h3 id="delimiter">SQLのデリミタ</h3>
+	<p>
+		一つのファイル内に複数のSQLを定義できます。<em class="keyword">デリミタは ";" (セミコロン)</em>
+		とし、読み込まれた順序で実行していきます。
+	</p>
+<pre><span class="codetitle">ex) SQLのデリミタ @SQL-File</span><code>
+<span class="keyword">create table</span> MEMBER ...
+;
+<span class="keyword">create table</span> PURCHASE ...
+;
+...
+</code></pre>
+	<h3 id="beginend">SQLの範囲の明示的指定</h3>
+	<p>
+		但し、プロシージャなどデリミタが ";"
+		だと都合の悪いことがあります。その場合は、ある範囲を一つのSQLとして明示的に指定することが可能です。
+	</p>
+	<p>
+		SQLコメントで "<em class="keyword">-- #df:begin#</em>" を開始とし、"<em class="keyword">-- #df:end#</em>"
+		を終了として、一つのSQLを囲みます。この中にデリミタ文字が含まれていても、それはSQLの一部とみなされます。
+	</p>
+<pre><span class="codetitle">ex) SQLの範囲を明示的に指定 @SQL-File for Oracle</span><code>
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create or replace procedure</span> SP_NO_PARAMETER
+<span class="keyword">as</span>
+<span class="keyword">begin</span>
+  dbms_output.put_line('aaa');
+<span class="keyword">end</span> SP_NO_PARAMETER;
+/
+<span class="comment">-- #df:end#</span>
+
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create or replace procedure</span> SP_IN_OUT_PARAMETER(
+...
+<span class="comment">-- #df:end#</span>
+</code></pre>
+	<h3 id="definedsql">定義するSQL</h3>
+	<p>
+		ここではDDL文が定義されていることを想定していますが、実際にはDML文と区別をして実行しているわけではないので、
+		insert文やupdate文が定義されている場合にそのまま実行されます。但し、ほとんどの場合においてDML文をここで実行する必要性はないと想定しています。
+		(例えば、データの登録は "ReplaceSchemaのデータ登録" の機能を利用)
+	</p>
+	<div class="relatedpage"><a href="./loaddata.html">ReplaceSchemaのデータ登録</a></div>
+	<h3 id="errorhandling">エラーハンドリング</h3>
+	<p>
+		一つのSQLが実行に失敗しても、<span class="existscloset" title="exists an closet option">処理は続行されます</span>。
+	</p>
+	<h3 id="transaction">トランザクション</h3>
+	<p>
+		これらの処理は全て "オートコミットモード" で実行されます。ただ、基本的にDDL文を想定しているのでトランザクションの有無はそもそも無関係です。
+	</p>
+	<h3 id="linehandling">改行の扱い</h3>
+	<p>
+		SQL上の改行は、実行時には空白として扱われます。但し、"SQLの範囲の明示的指定" を利用した場合や、"comment on"
+		構文(DBMSごとに異なる)を利用した場合は、そのまま改行が保持されます。実行ログに実際にDBに発行したSQLが出力されます。
+	</p>
+	<div class="relatedpage"><a href="#beginend">this - SQLの範囲の明示的指定</a></div>
+	<div class="relatedpage"><a href="../index.html#log">DBFluteタスク - 実行ログ</a></div>
+	<h2 id="filtervariables">変数のフィルタ</h2>
+	<p>
+		SQL上の値が環境によって変わるような場合は、"replaceSchemaDefinitionMap.dfprop"
+		の "filterVariablesMap" を利用して、SQLファイル上は変数で扱い実際の値を環境ごとに切り替えられるDBFluteプロパティで管理します。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#filtervariablesmap">dfprop - filterVariablesMap</a></div>
+<pre><span class="codetitle">ex) filterVariablesMapの定義 @replaceSchemaDefinitionMap.dfprop</span><code>
+; filterVariablesMap = <span class="keyword">map:</span>{
+    ; mainSchema   = EXAMPLEDB
+}
+</code></pre>
+	<p>
+		"filterVariablesMap" で定義した値は、SQLファイル上で "/*$[variable-name]*/"
+		という形式で指定します。実行時にフィルタされて、実際の値に置き換えられます。
+	</p>
+<pre><span class="codetitle">ex) filterVariablesMapを利用したSQL @replace-schema-xxx.sql</span><code>
+<span class="keyword">create user</span> /*$mainSchema*/.MEMBER ...
+</code></pre>
+	<p>
+		このようにDBFluteプロパティで環境依存の値を管理し、"環境タイプによる切り替え" を利用して環境ごとに違う値で実行できるようにします。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/index.html#environmenttype">dfprop - 環境タイプによる切り替え</a></div>
+	<h2 id="systemuser">システムユーザでの実行</h2>
+	<p>
+		通常、ReplaceSchemaは "スキーマ(もしくはデータベース)インスタンスやDBユーザ自体は既に作成されていること" を前提としています。
+		例えば、ディベロッパーがローカルに開発用DB環境を構築しようとしたときに以下の手順を踏みます：
+	</p>
+	<ul>
+		<li>A. DBをインストール</li>
+		<li>B. DBツール(システムユーザ)でユーザとスキーマの作成</li>
+		<li>C. ReplaceSchemaの実行(テーブルなどが作成される)</li>
+	</ul>
+	<p>
+		この手順の "B" のステップを、DBFluteに "システムユーザの接続情報" 
+		と "システムユーザで実行するDDL"	を定義することで、ReplaceSchemaの中で実行することが可能です。
+	</p>
+	<h3 id="systeminfo">システムユーザの接続情報</h3>
+	<p>
+		"replaceSchemaDefinitionMap.dfprop" の "additionalUserMap" にて、システムユーザの情報を定義します。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#additionalusermap">dfprop - additionalUserMap</a></div>
+<pre><span class="codetitle">ex) additionalUserMapの定義("system" という名前の定義) @replaceSchemaDefinitionMap.dfprop</span><code>
+; additionalUserMap = <span class="keyword">map:</span>{
+    ; system = <span class="keyword">map:</span>{
+        <span class="comment">#; url = ...</span>
+        ; user = system
+        ; password = orcl
+    }
+}
+</code></pre>
+	<p>
+		接続URLがアプリユーザの接続情報と変わる場合は "url" も指定します。
+	</p>
+	<p>
+		環境によって定義が変わるような場合は、"変数のフィルタ" 機能と合わせて利用します。
+	</p>
+	<div class="relatedpage"><a href="#filtervariables">this - 変数のフィルタ</a></div>
+	<h3 id="systemddl">システムユーザで実行するDDL</h3>
+	<h4 id="changeuser">実行ユーザの一時的切り替え</h4>
+	<p>
+		通常、ReplaceSchemaは databaseInfoMap.dfprop
+		にて定義されたユーザで実行されます(基本的にはアプリケーションのユーザ)。これを
+		<em class="keyword">-- #df:changeUser([additionalUserMapのシステムユーザ情報の名前])#</em>
+		というSQLコメントを定義することで、ReplaceSchemaの中で一時的にシステムユーザに切り替えることが可能です。
+	</p>
+<pre><span class="codetitle">ex) システムユーザに切り替え("system" という名前の定義を利用) @replace-schema-xxx.sql</span><code>
+<span class="comment">-- #df:changeUser(system)#</span>
+<span class="keyword">create user</span> ...;
+<span class="keyword">grant</span> ...;
+</code></pre>
+	<p>
+		以下の条件で実行ユーザが元のユーザに戻ります：
+	</p>
+	<ul>
+		<li>該当のSQLファイルが終了する</li>
+		<li><em class="keyword">-- #df:backToMainUser()#</em> が指定される</li>
+	</ul>
+	<p>
+		基本的には、システムユーザで実行するDDLだけを定義する個別のSQLファイルを用意して、
+		アプリユーザで実行するSQLファイルと別にすることをお奨めします。
+	</p>
+<pre><span class="codetitle">ex) システムユーザ用のSQLを分ける @playsql</span><code>
+playsql
+ |-replace-schema-00-system.sql
+ |-replace-schema-10-basic.sql
+ |-replace-schema-20-view.sql
+ |-...
+</code></pre>
+	<h4 id="checkuser">アプリユーザの存在チェック</h4>
+	<p>
+		ReplaceSchemaを実行する度にアプリユーザを作成するのではなく、既にユーザが存在する場合は以降の "システムユーザで実行するSQL"
+		を実行しないで続行するようにします。ユーザを作成するDDLの定義箇所で <em class="keyword">-- #df:checkUser()#</em>
+		というSQLコメントを定義することで、そのユーザが既に存在する場合に以降のシステムユーザでの実行を無効になります。
+	</p>
+<pre><span class="codetitle">ex) ユーザが既に存在する場合は権限付与は実行しない @replace-schema-xxx.sql</span><code>
+<span class="comment">-- #df:changeUser(system)#</span>
+<span class="comment">-- #df:checkUser()#</span>
+<span class="keyword">create user</span> /*$mainUser*/ <span class="keyword">identified by</span> /*$mainPassword*/;
+
+<span class="keyword">grant connect to</span> /*$mainUser*/;
+<span class="keyword">grant resource to</span> /*$mainUser*/;
+<span class="keyword">grant create view to</span> /*$mainUser*/;
+<span class="keyword">grant create synonym to</span> /*$mainUser*/;
+<span class="keyword">grant create database link to</span> /*$mainUser*/;
+<span class="keyword">grant create public database link to</span> /*$mainUser*/;
+<span class="keyword">grant create materialized view to</span> /*$mainUser*/;
+</code></pre>
+	<p>
+		この "checkUser" 機能は、単に該当SQLの実行が失敗するか否かだけを判定して、そのユーザでのそれ以降でのSQLの実行するかどうかを決めているので、
+		他の目的で同じような挙動をしたい場合があるならば、この機能をそのまま利用することができます。
+	</p>
+	<div class="relatedpage"><a href="#reviveuser">アプリユーザが存在していても実行したいDDL</a></div>
+	<p>
+		アプリユーザのユーザ名やパスワードが環境によって変わるような場合は、"変数のフィルタ"
+		機能と合わせて利用します。ReplaceSchemaをUT環境以外でも利用するような場合は、通常アプリユーザのパスワードなどは変わる可能性が高いので、
+		その機能を使って切り替えられるようにします。
+	</p>
+	<div class="relatedpage"><a href="#filtervariables">変数のフィルタ</a></div>
+	<p>
+		補足ですが、ユーザをdropして再作成することはできません。なぜなら、ユーザが既に存在する場合はReplaceSchema自身が既にそのユーザで接続をしているからです。
+		DBMSによって挙動は変わる可能性はありますが、基本的に接続中にセッションがあるユーザはdropできません。
+		一度作ったユーザは以降のReplaceSchema実行時もそのまま利用することを前提としています。
+	</p>
+	<h4 id="reviveuser">アプリユーザが存在していても実行したいDDL</h4>
+	<p>
+		アプリユーザが既に存在していも、毎回システムユーザで実行したいDDLがある場合に、<em class="keyword">-- #df:reviveUser()#</em>
+		というSQLコメントを定義することで、それ以降のSQLを再度システムユーザで実行します。
+	</p>
+<pre><span class="codetitle">ex) ユーザが既に存在する場合でも実行したいSQLがある場合 @replace-schema-xxx.sql</span><code>
+<span class="comment">-- #df:changeUser(system)#</span>
+<span class="comment">-- #df:checkUser()#</span>
+<span class="keyword">create user</span> /*$mainUser*/ <span class="keyword">identified by</span> /*$mainPassword*/;
+
+<span class="keyword">grant connect to</span> /*$mainUser*/;
+<span class="keyword">grant resource to</span> /*$mainUser*/;
+<span class="keyword">grant create view to</span> /*$mainUser*/;
+<span class="keyword">grant create synonym to</span> /*$mainUser*/;
+<span class="keyword">grant create database link to</span> /*$mainUser*/;
+<span class="keyword">grant create public database link to</span> /*$mainUser*/;
+<span class="keyword">grant create materialized view to</span> /*$mainUser*/;
+
+-- #df:reviveUser()#
+-- #df:checkUser()#
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_SECRET_AUTH <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_SECRET_AUTH <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.SEQ_VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.SP_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_SYNONYM_SAME_NAME <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.NEXT_PKG <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_PROCEDURE <span class="keyword">to</span> /*$mainUser*/;
+</code></pre>
+	<p>
+		再度システムユーザで実行する場合も、"checkUser" 機能が利用出来ます。
+		例えば、最初の権限付与が失敗したら、それ以降の権限付与のSQLは実行しないというような挙動にできます。
+	</p>
+	<p>
+		主に、サブスキーマ(サブデータベース)のオブジェクトに対する権限などに有効です。
+		例えば、サブスキーマのオブジェクトが再作成された場合に(例えばサブスキーマのReplaceSchemaを実行するなど)、
+		メインスキーマ自体は何も変わっていなくても、メインユーザの権限がなくなっている可能性があります(DBMSによって挙動が違う可能性あり)。
+	</p>
+	<h3 id="notsystem">サブスキーマのユーザでの利用(非推奨)</h3>
+	<p>
+		この機能は、特にシステムユーザでなくても利用可能な機能です。例えば、サブスキーマのユーザに切り替えで実行するようなことも可能です。
+		但し、この機能はあまりそういう利用方法を想定していません。なぜなら、サブスキーマに関してはサブスキーマ側で "ReplaceSchema"
+		環境を構築して(DBFluteクライアントをもう一つ用意して)構成管理をする方が管理しやすいからです。
+	</p>
+	<h2>サブスキーマのテーブルdrop</h2>
+	<p>
+		メインユーザがアクセスできる範囲のサブスキーマのテーブルdrop処理を実行することが可能です。
+	</p>
+	<p>
+		"replaceSchemaDefinitionMap.dfprop" の "additionalDropMapList"
+		にて細かく定義できます。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#additionaldropmaplist">dfprop - additionalDropMapList</a></div>
+	<p>
+		但し、サブスキーマに関してはサブスキーマ側で "ReplaceSchema"
+		環境を構築して(DBFluteクライアントをもう一つ用意して)構成管理をする方が管理しやすいため、この機能の利用はあまりお奨めではありません。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

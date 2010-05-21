@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,DBFluteプロパティ,DBFluteProperty,includeQueryMap.dfprop,ソース量,コンパイル遅い" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>includeQueryMap | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>includeQueryMap</h1>
+	<ul class="indexlist">
+		<li><a href="#about">includeQueryMapとは？</a></li>
+		<li><a href="#property">プロパティ</a>
+			<ul>
+				<li><a href="#propertytype">property-type (*)</a></li>
+				<li><a href="#conditionkey">condition-key (*)</a></li>
+				<li><a href="#tablename">table-name</a></li>
+				<li><a href="#column">column-name</a></li>
+			</ul>
+		</li>
+		<li><a href="#example">Example</a></li>
+	</ul>
+
+	<h2 id="about">includeQueryMapとは？</h2>
+	<p>
+		ConditionBeanに生成する検索のためのメソッド cb.query().set[column]_[condition-key](...)
+		を取捨選択(生成するかしないか)するためのDBFluteプロパティ。DBFluteクライアントの dfprop
+		配下の includeQueryMap.dfprop という名前のテキストファイルです。主に Generateタスク にて参照されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/conditionbean/genbafit/includequery/index.html"> -->(CB)現場フィット - 条件メソッドの取捨選択<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../function/generator/task/generate/index.html">Generateタスク</a></div>
+	<div class="relatedword"><a href="../../dictionary/alphabet/wc.html#conditionkey">ConditionKey</a></div>
+	<p>
+		例えば、"日付のNotEqual" など、ほとんど利用しない条件は出力するだけソース量の無駄使い(コンパイルスピードに影響)なので、
+		出力しないようにしたい場合などに利用してください。
+		もし、アプリケーション全体で文字列型カラムに対して大なり小なり(&gt;、&lt;)の条件を付与することが絶対にないのであれば、String型の
+		"GreaterThan, LessThan, GreaterEqual, LessEqual"
+		を全て空指定すると効果が高いでしょう。間違った条件の付与を抑制するという面でも効果があります。
+	</p>
+	<p>
+		このプロパティは TwoEdgedSword 扱いです。<em class="keyword">厳重注意のもと</em> 利用して下さい。
+	</p>
+	<div class="relatedword"><a href="../../dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+
+	<h2 id="property">プロパティ</h2>
+	<p>
+		<em class="keyword">map型プロパティ</em> で、メソッドとそれに対するテーブルとカラムのマッピングを定義します。
+	</p>
+	<div class="relatedpage"><a href="../mapprop.html">map型プロパティ</a></div>
+<pre><span class="codetitle">includeQueryMapの仕様 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; [property-type] = <span class="keyword">map:</span>{
+        ; [condition-key] = <span class="keyword">map:</span>{ [table-name] = list:{[column-name] ; <span class="abbreviation">...</span>} }
+    ; ...
+}
+</code></pre>
+	<p>
+		String、Number、Date の 3 種類の型に対して、それぞれ生成するメソッドを指定することができます。
+		このプロパティに定義した内容は、次のルールでConditionBeanに反映されます。
+	</p>
+	<ul>
+		<li>指定されていないメソッドは、全テーブルの該当カラムに生成します。</li>
+		<li>指定されているメソッドは、指定されたテーブルの指定されたカラムにのみ生成します。</li>
+	</ul>
+	<p>
+		以下、(*)の付いたプロパティは必須です。
+	</p>
+
+	<h3 id="propertytype">property-type (*)</h3>
+	<p>
+		型を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>String, Number, Date</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+	</dl>
+	<h3 id="conditionkey">condition-key (*)</h3>
+	<p>
+		生成する演算子を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt>
+		<dd>
+			NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual
+			, PrefixSearch, InScope, NotInScope, LikeSearch, NotLikeSearch, EmptyString
+			<span class="freecomment">(PrefixSearch, LikeSearch, NotLikeSearch, EmptyString は、String型専用)</span>
+		</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>Equalは指定不可 (必ず生成される)</li>
+				<li>EmptyStringは、別プロパティにて空文字条件が有効になっていることが前提。Equal、NotEqual
+					が対象となり、それらメソッドの定義とは独立した設定となる。
+					(例えば、NotEqual自体が無効になっていても、EmptyStringが有効であれば、EmptyStringのNotEqualメソッドは生成される)
+				</li>
+				<li>型によって元々存在しないConditionKeyを指定しないこと (例えば、DateのLikeSearchとか)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="tablename">table-name</h3>
+	<p>
+		対象とするテーブル名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブルの名前 (自動生成対象になっていること)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+	</dl>
+	<h3 id="column-name">column-name</h3>
+	<p>
+		対象とするカラム名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>カラムの名前</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+	</dl>
+
+	<h2 id="example">Example</h2>
+<pre><span class="codetitle">ex) 特定のテーブルのカラムに対して生成する設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; String = map:{
+        ; GreaterThan = <span class="keyword">map:</span>{ MEMBER = list:{ MEMBER_ACCOUNT } }
+        ; LessThan = <span class="keyword">map:</span>{ PRODUCT = list:{ PRODUCT_NAME ; PRODUCT_HANDLE_CODE } }
+    }
+}
+</code></pre>
+<pre><span class="codetitle">ex) すべてのDate型のカラムにNotEqualを生成しない設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; Date = map:{
+        ; NotEqual = <span class="keyword">map:</span>{}
+    }
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

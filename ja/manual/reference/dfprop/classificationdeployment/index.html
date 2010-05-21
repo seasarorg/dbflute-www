@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,DBFluteプロパティ,DBFluteProperty,classificationDeploymentMap.dfprop,区分値の関連" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>classificationDeploymentMap | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>classificationDeploymentMap</h1>
+	<ul class="indexlist">
+		<li><a href="#about">classificationDeploymentMapとは？</a></li>
+		<li><a href="#property">プロパティ</a>
+			<ul>
+				<li><a href="#table">table-name (*)</a></li>
+				<li><a href="#column">column-name (*)</a></li>
+				<li><a href="#classification">classification-name (*)</a></li>
+			</ul>
+		</li>
+		<li><a href="#example">Example</a></li>
+	</ul>
+
+	<h2 id="about">classificationDeploymentMapとは？</h2>
+	<p>
+		テーブルのカラムと、それに関連付ける区分値のマッピングを定義するためのDBFluteプロパティ。DBFluteクライアントの dfprop
+		配下の classificationDeploymentMap.dfprop という名前のテキストファイルです。主に Generateタスク から参照されます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/generate/index.html">Generateタスク</a></div>
+	<p>
+		このプロパティを利用すると、以下のことができるようになります。
+	</p>
+	<ul>
+		<li>Entityに区分値を設定する際に、区分値の名称でタイプセーフに設定できる</li>
+		<li>Entityに設定されている区分値が何であるかを、区分値の名称で判定できる</li>
+		<li>ConditionBeanで条件を組み立てる際に、区分値の名称でタイプセーフに指定できる</li>
+	</ul>
+	<p>
+		また、Docタスクを実行すると、このプロパティに定義した内容が SchemaHTML
+		に反映されます。(テーブルのカラムに関連付けた区分とその区分値が表示される)
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/index.html">Docタスク</a></div>
+	<p>
+		<em class="keyword">テーブル区分値に関しては、(基本的に)自動で関連付けが行われるため、このプロパティでの設定は不要</em>
+		です。classificationDefinitionMap.dfprop
+		の方で既にテーブル名やカラム名を設定しているためです。なので、このプロパティは "暗黙の区分値" のためのものと言えます。
+		(例外的に、All-in-Oneテーブル区分値の場合にこのプロパティが必要になります)
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/classification/index.html#tablecls">現場フィット - テーブル区分値</a></div>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/classification/index.html#implicitcls">現場フィット - 暗黙の区分値</a></div>
+	<div class="relatedpage"><a href="../classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
+	<div class="relatedpage"><a href="../../../topic/dbdesign/allinonetableclassification.html">DB設計 - All-in-Oneテーブル区分値について</a></div>
+
+	<h2 id="property">プロパティ</h2>
+	<p>
+		<em class="keyword">map型プロパティ</em> で、テーブル名そしてカラム名と区分値の関連を定義します。
+	</p>
+	<div class="relatedpage"><a href="../mapprop.html">map型プロパティ</a></div>
+<pre><span class="codetitle">classificationDeploymentMapの仕様 @classificationDeploymentMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; [table-name or $$ALL$$] = <span class="keyword">map:</span>{
+        ; [column-name (with hint)] = [classification-name]
+    }
+    ; ...
+}
+</code></pre>
+	<p>
+		以下、(*)の付いたプロパティは必須です。
+	</p>
+	<h3 id="table-name">table-name (*)</h3>
+	<p>
+		テーブル名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブル名 (全テーブルを対象とする場合は $$ALL$$ とする)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>$$ALL$$ は、全テーブルの中から条件に一致するカラム全てに区分値を関連付ける</li>
+				<li>$$ALL$$ の要素は一つだけ (mapのキー値)</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="column-name">column-name (*)</h3>
+	<p>
+		区分値を関連付けるカラム名を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>カラム名</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>前方一致: "prefix:前方一致させる文字列" という形式で指定</li>
+				<li>後方一致: "suffix:後方一致させる文字列" という形式で指定</li>
+				<li>中間一致: "contain:中間一致させる文字列" という形式で指定</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="classification-name">classification-name (*)</h3>
+	<p>
+		カラムに関連付ける区分値の名称を指定します。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>classificationDefinitionMap.dfprop で定義した区分値名</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+	</dl>
+
+	<h2 id="example">Example</h2>
+<pre><span class="codetitle">ex) 設定例 @classificationDeploymentMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$ALL$$</span>       = <span class="keyword">map:</span>{suffix:_FLG = Flg} <span class="comment"># 全テーブルの_FLGで終わるカラム</span>
+    ; MEMBER_STATUS = <span class="keyword">map:</span>{MEMBER_STATUS_CODE = MemberStatus}
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

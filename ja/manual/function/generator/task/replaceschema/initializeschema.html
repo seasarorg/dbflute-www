@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,ReplaceSchema,スキーマ初期化,InitializeSchema" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>スキーマ初期化 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>スキーマ初期化</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">処理概要</a></li>
+		<li><a href="#truncate">全てのテーブルにtruncate実行</a></li>
+		<li><a href="#fk">全てのFK制約をdrop</a></li>
+		<li><a href="#table">全てのテーブルをdrop</a></li>
+		<li><a href="#sequence">全てのシーケンスをdrop</a></li>
+		<li><a href="#procedure">全てのプロシージャをdrop</a></li>
+		<li><a href="#dblink">全てのDBリンクをdrop</a></li>
+		<li><a href="#additionaldrop">別スキーマのテーブル削除</a></li>
+	</ul>
+	<h2 id="overview">処理概要</h2>
+	<p>
+		DBFluteプロパティ databaseInfoMap.dfprop
+		に定義されたスキーマに接続し、スキーマのメタデータを元に対象となるオブジェクトをdropします。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/databaseinfo/index.html">databaseInfoMap.dfprop</a></div>
+	<ul>
+		<li><a href="#truncate">全てのテーブルにtruncate実行</a></li>
+		<li><a href="#fk">全てのFK制約をdrop</a></li>
+		<li><a href="#table">全てのテーブルをdrop</a></li>
+		<li><a href="#sequence">全てのシーケンスをdrop</a></li>
+		<li><a href="#procedure">全てのプロシージャをdrop</a></li>
+		<li><a href="#dblink">全てのDBリンクをdrop</a></li>
+	</ul>
+	<p>
+		基本的に <em class="keyword">drop対象となるオブジェクトは全て接続したスキーマ(メインスキーマ)のオブジェクト</em>
+		に限ります。AdditionalSchema の設定はここには影響しません。但し、<em class="keyword">オプションで別スキーマのオブジェクトをdrop</em>
+		することが可能です。
+	</p>
+	<div class="detailpage"><a href="#additionaldrop">this - 別スキーマのテーブル削除</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
+	<p>
+		一つでも実行に失敗した場合(truncate処理を除く)は、ReplaceSchemaが中断されます。
+	</p>
+	<p>
+		これらの処理は全て "オートコミットモード" で実行されます。ただ、これら処理は基本的にDDL文なのでトランザクションの有無はそもそも無関係です。
+	</p>
+	<h2 id="truncate">全てのテーブルにtruncate実行</h2>
+	<p>
+		FK制約などでtruncateが失敗するテーブルは素通りします。
+		よって全てのテーブルがtruncateされるわけではなく、(比較的レコード量が多いと思われる)FK参照されないテーブルのみ対象となります。
+	</p>
+	<p>
+		これは、後の実行する drop table のパフォーマンスを向上させるために行っています。
+		例えば、100万件のレコードを保持するテーブルを何もせずdropしようとするとかなり時間を費やします。
+	</p>
+	<p>
+		オプションでこの処理を抑制することは可能です(但し、基本的に非推奨)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppresstruncatetable">dfprop - isSuppressTruncateTable</a></div>
+	<h2 id="fk">全てのFK制約をdrop</h2>
+	<p>
+		全てのテーブルを正確にdropするために、事前にFK制約を全てdropします。
+	</p>
+	<p>
+		オプションでこの処理を抑制することは可能です(但し、基本的に非推奨)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppressdropforeignkey">dfprop - isSuppressDropForeignKey</a></div>
+	<div class="inucolumn">
+		<h3>コラム１：FKのdropの功名</h3>
+		<p>
+			手動でDB再構築をしようとした場合、FKのdropが結構面倒なものです。
+			例えば、テーブル名が変わってしまった場合など、ERDツールなどから自動生成するdrop文に古いFK制約に関するdrop文が含まれておらず、
+			テーブルがdropできないで再構築が失敗してしまうなど、ちょっとしたギャップが手間を発生させてしまいますが、ReplaceSchemaではその手間は全くありません。
+		</p>
+	</div>
+	<h2 id="table">全てのテーブルをdrop</h2>
+	<p>
+		テーブルだけでなく、databaseInfoMap.dfprop の objectTypeTargetList
+		に定義されているオブジェクトが対象となります。例えば、ビューやシノニムなども、このプロパティ次第ではdrop対象となります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/databaseinfo">dfprop - objectTypeTargetList</a></div>
+	<p>
+		そのスキーマに定義されている全てのテーブルをdropします。例えば、自動生成対象外のテーブルもdropされます。
+		オプションで自動生成対象のテーブルのみをdropするように変更可能です。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#isdropgeneratetableonly">dfprop - isDropGenerateTableOnly</a></div>
+	<p>
+		オプションでこの処理を抑制することは可能です(但し、基本的に非推奨)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppressdroptable">dfprop - isSuppressDropTable</a></div>
+	<h2 id="sequence">全てのシーケンスをdrop</h2>
+	<p>
+		sequenceDefinitionMap.dfprop に定義されているシーケンスかどうかに関係なく、全てのシーケンスをdropします。
+	</p>
+	<p>
+		オプションでこの処理を抑制することは可能です(但し、基本的に非推奨)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppressdropsequence">dfprop - isSuppressDropSequence</a></div>
+
+	<h2 id="procedure">全てのプロシージャをdrop</h2>
+	<p>
+		outsideSqlDefinitionMap.dfprop でのSql2Entityでの自動生成対象とするか否かの設定に関係なく、全てのプロシージャをdropします。
+	</p>
+	<p>
+		そのスキーマに定義されている全てのプロシージャをdropします。例えば、自動生成対象外のプロシージャもdropされます。
+		オプションで自動生成対象のプロシージャのみをdropするように変更可能です。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#isdropgenerateprocedureonly">dfprop - isDropGenerateProcedureOnly</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/sql2entity/procedure.html#targetlist"> -->OutsideSql - プロシージャの自動生成対象の指定<!-- </a> --></span></div>
+	<p>
+		オプションでこの処理を抑制することは可能です(但し、基本的に非推奨)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppressdropprocedure">dfprop - isSuppressDropProcedure</a></div>
+
+	<h2 id="dblink">全てのDBリンクをdrop</h2>
+	<p>
+		DBリンクをサポートしているDBMSにおいて、DBリンクをdropします。
+	</p>
+	<p>
+		この挙動はDBリンクの作成もReplaceSchemaにおいて実行することを前提としていますが、
+		そうでない場合のために、オプションでこの挙動を無効にすることが可能です。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#issuppressdropdblink">dfprop - isSuppressDropDBLink</a></div>
+
+	<h2 id="additionaldrop">別スキーマのテーブル削除</h2>
+	<p>
+		オプションで、メインスキーマのテーブル削除前に、別スキーマのテーブルを削除することができます。
+	</p>
+	<p>
+		例えば、<em class="keyword">FK制約などで依存関係がある複数DB構成</em>
+		のときに、もう片方のDBをdropしないとReplaceSchema処理を続行できないという場合に、<em class="keyword">その片方のDBを先にdrop</em>
+		するように設定しておきます(その後、その片方のDBに対するReplaceSchemaは別途実行すること)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#additionaldropmaplist">dfprop - additionalDropMapList</a></div>
+<pre><span class="codetitle">ex) 隣のスキーマのテーブルを削除 @replace-schema-xxx.sql</span><code>
+; additionalDropMapList = <span class="keyword">list:</span>{
+    ; <span class="keyword">map:</span>{
+        ; url = jdbc:oracle:thin:...
+        ; schema = NEXTEXAMPLEDB
+        ; user = nextexampledb
+        ; password = nextexampledb
+        ; propertiesMap = map:{}
+        ; objectTypeTargetList = list:{TABLE;VIEW}
+        ; tableExceptList = list:{}
+        ; tableTargetList = list:{}
+        ; isDropAllTable = false
+    }
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

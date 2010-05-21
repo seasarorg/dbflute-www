@@ -1,0 +1,414 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,パラメータコメント,ParameterComment,SQLコメント,SQLComment,IFコメント,バインド変数コメント" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>パラメータコメント | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>パラメータコメント</h1>
+	<ul class="indexlist">
+		<li><a href="#about">パラメータコメントとは？</a></li>
+		<li><a href="#basicspec">基本仕様</a></li>
+		<li><a href="#bindvariable">バインド変数コメント</a>
+			<ul>
+				<li><a href="#bindtestvalue">テスト値の扱い</a></li>
+				<li><a href="#bindnestdproperty">ネストしたプロパティの扱い</a></li>
+				<li><a href="#bindmap">java.util.Map型の扱い</a></li>
+			</ul>
+		</li>
+		<li><a href="#embeddedvariable">埋め込み変数コメント</a>
+			<ul>
+				<li><a href="#embeddedspec">その他仕様</a></li>
+				<li><a href="#dynamicbinding">埋め込み変数コメント内のバインド</a></li>
+			</ul>
+		</li>
+		<li><a href="#ifcomment">IFコメント</a>
+			<ul>
+				<li><a href="#ifnest">IFコメントのネスト</a></li>
+				<li><a href="#ifcondition">IFコメントの条件表現</a></li>
+				<li><a href="#complexcondition">複雑な条件はメソッド化</a></li>
+				<li><a href="#withbegin">BEGINコメントとの併用</a></li>
+			</ul>
+		</li>
+		<li><a href="#elsecomment">ELSEコメント</a>
+			<ul>
+				<li><a href="#lineconstraint">一行制約</a></li>
+				<li><a href="#commentconstraint">コメント制約</a></li>
+			</ul>
+		</li>
+		<li><a href="#begincomment">BEGINコメント</a>
+			<ul>
+				<li><a href="#beginnest">BEGINコメントのネスト</a></li>
+			</ul>
+		</li>
+		<li><a href="#endcomment">ENDコメント</a></li>
+	</ul>
+
+	<h2 id="about">パラメータコメントとは？</h2>
+	<p>
+		外だしSQLの実行時に指定されるパラメータを動的に処理して、<em class="keyword">バインド変数の構築や分岐などを実現するSQLコメント</em>
+		をパラメータコメントと言います。SQLコメント形式になっているのは、2Way-SQLを実現するためです。
+	</p>
+	<div class="relatedpage"><a href="./about.html#twowaysql">2Way-SQL</a></div>
+
+	<h2 id="basicspec">基本仕様</h2>
+	<dl class="textlist">
+		<dt>コメントの構文</dt>
+		<dd>
+			コメントの構文として基本的に "/**/" を利用する。但し、一部機能(ELSE)で "--" も利用する。
+		</dd>
+		<dt>パラメータコメントの判断</dt>
+		<dd>
+			"/*" の後に空白を入れるとパラメータコメントと認識されない。<span class="freecomment">("/* IF ...*/" はただのSQLコメント)</span>
+		</dd>
+		<dt>大文字小文字</dt>
+		<dd>
+			パラメータコメント中の変数名やプロパティ名は大文字小文字を区別する。
+		</dd>
+	</dl>
+
+	<h2 id="bindvariable">バインド変数コメント</h2>
+	<p>
+		アプリケーションから渡されるパラメータをバインド変数として扱うパラメータコメントです。主に
+		where 句にて利用します。
+	</p>
+	<p>
+		"/**/" 形式のコメントの中で、"pmb.[property-name]" という形式で記述します。
+	</p>
+<pre><span class="codetitle">ex) バインド変数コメントの利用 @OutsideSql</span><code>
+  <span class="keyword">and</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+  <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
+  <span class="keyword">and</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.memberStatusCodeList*/</span>(<span class="literal">'FML'</span>, <span class="literal">'WDL'</span>)
+</code></pre>
+	<h3 id="bindtestvalue">テスト値の扱い</h3>
+	<p>
+		コメント直後の値は、テスト値と認識され、アプリケーション実行時には無視されます。
+		数値の場合は数字をそのまま記述し、文字列や日付の場合はシングルクォーテーション「'」で囲います。
+	</p>
+	<h3 id="bindnestdproperty">ネストしたプロパティの扱い</h3>
+	<p>
+		"/*pmb.memberDto.memberName*/" という形式で、ネストしたプロパティを無限階層に利用することができます。
+	</p>
+	<h3 id="bindmap">java.util.Map型の扱い</h3>
+	<p>
+		パラメータの型が java.util.Map の場合は、"/*pmb.memberMap.key1*/"
+		という形式で、map内のキー値を指定して該当する値を利用することができます。
+	</p>
+
+	<h2 id="embeddedvariable">埋め込み変数コメント</h2>
+	<p>
+		アプリケーションから渡されるパラメータを実行されるSQL上に埋め込むパラメータコメントです。
+		(めったにありませんが)バインド変数を使いたくない場合や、SQLの一部分をプログラム上で組み立てる場合に利用します。
+		画面ユーザ入力のパラメータの場合でこのコメントを利用する場合は、SQLインジェクションに注意する必要があります。
+	</p>
+	<p>
+		"/**/" 形式のコメントの中で、"$pmb.[property-name]" という形式で記述します。
+	</p>
+<pre><span class="codetitle">ex) 埋め込み変数コメントの利用 @OutsideSql</span><code>
+  <span class="keyword">and</span> MEMBER_ID = <span class="comment">/*$pmb.memberId*/</span><span class="literal">3</span>
+  <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
+  <span class="keyword">and</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.memberStatusCodeList*/</span>(<span class="literal">'FML'</span>, <span class="literal">'WDL'</span>)
+</code></pre>
+	<h3 id="embeddedspec">その他仕様</h3>
+	<p>
+		その他仕様(テスト値の扱いなど)に関してはバインド変数コメントと同じ仕様です。
+	</p>
+	<h3 id="dynamicbinding">埋め込み変数コメント内のバインド</h3>
+	<p>
+		デフォルトでは、埋め込み変数コメントに指定されるパラメータの中にバインド変数コメントが含まれていても、それはバインド変数として認識されません。
+		しかし、不定数の条件を組み立てたいときなど、それができないと困ることもあるため、プログラム側のオプションでそれを有効にすることが可能です
+	</p>
+	<div class="detailpage"><a href="./option/dynamicbinding.html">外だしSQL - DynamicBinding</a></div>
+
+	<h2 id="ifcomment">IFコメント</h2>
+	<p>
+		アプリケーションから渡されるパラメータを判定して条件分岐するパラメータコメントです。where
+		句条件の有無判定や、結合の有無判定など様々な用途で利用します。
+	</p>
+	<p>
+		"/**/" 形式のコメントの中で、"IF [condition-expression]" という形式で記述し、ENDコメントでスコープを定義します。
+	</p>
+	<div class="relatedpage"><a href="#endcomment">this - ENDコメント</a></div>
+<pre><span class="codetitle">ex) IFコメントの利用 @OutsideSql</span><code>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberName != null*/</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*IF pmb.validOrderBy*/</span>
+ <span class="keyword">order by</span> MEMBER_NAME <span class="keyword">desc</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+	<h3 id="ifnest">IFコメントのネスト</h3>
+	<p>
+		IFコメントは、ネストさせて利用することもできます。
+	</p>
+	<h3 id="ifcondition">IFコメントの条件表現</h3>
+	<p>
+		条件表現として、以下のポイントがあります。
+	</p>
+	<ul>
+		<li>文字列リテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberName &gt; 'Pixy'*/</span></li>
+		<li>数値リテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberId &gt;= 6*/</span></li>
+		<li>日付リテラルが利用できる <span class="freecomment">ex) /*IF pmb.birthdate &gt; date '2000/03/28'*/</span></li>
+		<li>nullリテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberName != null*/</span></li>
+		<li>等値条件で判定できる <span class="freecomment">ex) /*IF pmb.memberName == 'Pixy'*/</span></li>
+		<li>非等値条件で判定できる <span class="freecomment">ex) /*IF pmb.memberId != 3*/</span></li>
+		<li>大なり小なり条件で判定できる <span class="freecomment">ex) /*IF pmb.memberId &lt; 3*/</span></li>
+		<li>boolean型を利用できる <span class="freecomment">ex) /*IF pmb.memberFlg*/</span></li>
+		<li>(引数なしの)メソッド呼び出しができる <span class="freecomment">ex) /*IF pmb.isPaging()*/</span></li>
+		<li>boolean型で否定判定できる <span class="freecomment">ex) /*IF !pmb.memberFlg*/</span></li>
+		<li>AND条件で条件連結できる <span class="freecomment">ex) /*IF pmb.isPaging() && pmb.memberId != null*/</span></li>
+		<li>OR条件で条件連結できる <span class="freecomment">ex) /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
+		<li>AND条件とOR条件の(一つのIFコメント内での)併用はできない</li>
+	</ul>
+	<h3 id="complexcondition">複雑な条件はメソッド化</h3>
+	<p>
+		複雑な条件を記述する場合は、ParameterBeanのExクラスにメソッドを定義して、そのメソッドをIFコメントで呼び出すようにするのが推奨されます。
+		そうすることで、条件の妥当性をチェックの単体テストがしやすいものになります。(かつ、IFコメントの条件表現のスコープ外の複雑な条件の実現ができるようになる)
+	</p>
+<pre><span class="codetitle">ex) ParameterBeanのExクラスにて複雑な条件のメソッド @Java</span><code>
+<span class="keyword">public boolean</span> isPurchaseValid() {
+    <span class="keyword">return</span> _purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>;
+}
+</code></pre>
+<pre><span class="codetitle">ex) ParameterBeanのExクラスのメソッドをIFコメントで利用 @OutsideSql</span><code>
+ <span class="comment">/*IF pmb.isPurchaseValid()*/</span>
+ <span class="keyword">and in</span> (<span class="keyword">select</span> PURCHASE_ID
+           <span class="keyword">from</span> PURCHASE
+         <span class="abbreviation">...</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+
+	<h3 id="withbegin">BEGINコメントとの併用</h3>
+	<p>
+		where 句における条件有無の判定は、全ての条件が無効だった場合の "where" の除去、"and" や "or" の調整などをするために、
+		基本的にBEGINコメントと併用するのが基本です。
+	</p>
+	<div class="relatedpage"><a href="#begincomment">this - BEGINコメント</a></div>
+
+	<h2 id="elsecomment">ELSEコメント</h2>
+	<p>
+		IFコメントと併用して、IFコメントの判定が false だったときに有効になるパラメータコメントです。主にページングなどにおいて select
+		句を差し替えるのに利用します。
+	</p>
+	<p>
+		IFコメントのスコープ内において、"--" 形式のコメントの中で、"ELSE [SQL-expression]" という形式で記述します。
+	</p>
+<pre><span class="codetitle">ex) ELSEコメントの利用 @OutsideSql</span><code>
+<span class="comment">/*IF pmb.isPaging()*/</span>
+<span class="keyword">select</span> member.MEMBER_ID
+     , member.MEMBER_NAME
+     , <span class="abbreviation">...</span>
+<span class="comment">-- ELSE select count(*)</span>
+<span class="comment">/*END*/</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="lineconstraint">一行制約</h3>
+	<p>
+		行コメントを利用しているため、else 部分は一行表現に限られます。
+	</p>
+	<h3 id="commentconstraint">コメント制約</h3>
+	<p>
+		IFコメントとELSEコメントの間には、行コメント("--")を含めることができません。
+	</p>
+<pre><span class="codetitle">ex) ELSEコメントの利用 @OutsideSql</span><code>
+<span class="comment">/*IF pmb.isPaging()*/</span>
+<span class="keyword">select</span> member.MEMBER_ID
+     , member.MEMBER_NAME <span class="point">-- NG comment</span> 
+     , <span class="abbreviation">...</span>
+<span class="comment">-- ELSE select count(*)</span>
+<span class="comment">/*END*/</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+
+	<h2 id="begincomment">BEGINコメント</h2>
+	<p>
+		スコープ内のIFコメントが全て false の場合に、スコープ内をまるごと削除するパラメータコメントです。
+		また、IFコメント直後の "and" や "or"、"," (カンマ)の有無を調整する役割もあります。主に、where 句において利用されます。
+	</p>
+	<p>
+		"/*BEGIN*/" という形式で記述し、ENDコメントでスコープを定義します。where
+		句をまるごと囲って利用するのが最も想定される使い方です。
+	</p>
+	<div class="relatedpage"><a href="#endcomment">this - ENDコメント</a></div>
+<pre><span class="codetitle">ex) BEGINコメントの利用 @OutsideSql</span><code>
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberName != null*/</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+	<h3 id="beginnest">BEGINコメントのネスト</h3>
+	<p>
+		BEGINコメントをネストさせることはできます。
+	</p>
+	<p>
+		但し、<em class="keyword">上位のBEGINコメントが考慮するIFコメントには、ネストしたBEGINコメント内のIFコメントが含まれません</em>。
+		よって、ネストしたBEGINコメント内のIFコメントが true であっても、上位のBEGINコメント直下のIFコメントが全て false
+		の場合は、(ネストされたスコープも含めて)上位スコープから丸ごと削除されます。例えば、サブクエリの where
+		句において、(AND条件やOR条件の調整をするために)ネストしたBEGINコメントを利用する場合は、
+		以下のようにサブクエリ自体を丸ごと分岐させるIFコメントを活用すると良いでしょう。
+	</p>
+<pre><span class="codetitle">ex) サブクエリの条件を分岐 @OutsideSql</span><code>
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="point">/*IF pmb.purchaseCount != null || pmb.purchasePrice != null*/</span>
+   <span class="keyword">and in</span> (<span class="keyword">select</span> PURCHASE_ID
+             <span class="keyword">from</span> PURCHASE
+            <span class="comment">/*BEGIN*/</span>
+            <span class="keyword">where</span>
+              <span class="comment">/*IF pmb.purchaseCount != null*/</span>
+              PURCHASE_COUNT &gt;= <span class="comment">/*pmb.purchaseCount*/</span><span class="literal">2</span>
+              <span class="comment">/*END*/</span>
+              <span class="comment">/*IF pmb.purchasePrice != null*/</span>
+              <span class="keyword">and</span> PURCHASE_PRICE &gt;= <span class="comment">/*pmb.purchasePrice*/</span><span class="literal">2000</span>
+              <span class="comment">/*END*/</span>
+            <span class="comment">/*END*/</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+
+	<h2 id="endcomment">ENDコメント</h2>
+	<p>
+		IFコメントやBEGINコメントのスコープを定義するための終端を表すパラメータコメントです。
+	</p>
+	<p>
+		"/*END*/" という形式で記述します。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

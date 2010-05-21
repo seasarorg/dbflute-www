@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,移行時の注意,Migration,Attention" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<title>移行 0.8.8.x to 0.9.0 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-upgrade">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>移行 0.8.8.x to 0.9.0</h1>
+	<ul class="indexlist">
+		<li><a href="#basic">お約束の注意点</a></li>
+		<li><a href="#env">環境上の注意点</a></li>
+		<li><a href="#impl">実装上の注意点</a></li>
+	</ul>
+
+	<h2 id="basic">お約束の注意点</h2>
+	<dl class="textlist">
+		<dt>古いバージョンの削除</dt>
+		<dd>古いバージョンのDBFluteランタイム(JAR)が[WEB-INF/lib]の下などに残らないように</dd>
+		<dt>タスクを実行し忘れないように</dt>
+		<dd>Generateタスクだけでなく、(外だしSQLがある場合は)Sql2Entityタスクも実行</dd>
+	</dl>
+
+	<h2 id="env">環境上の注意点</h2>
+	<h3>S2Daoの代わりにDBFluteランタイム@Java</h3>
+	<p>
+		今回はそれなりの移行が発生するため「0.8.8.x」は安定したバージョンとして残ります。
+		「プロジェクトで安定を求めている or 移行やってる時間がない」場合はそのまま「0.8.8.x」をご利用下さい。
+	</p>
+	<p>
+		今回のバージョンより「s2dao.jar」を利用せず、代わりに「dbflute-runtime.jar」を利用するようになります。
+		「s2dao.jar」は残っていても構いませんが、DBFluteは全く利用しません。(同様の機構が「dbflute-runtime.jar」に含まれている)
+	</p>
+	<p>
+		移行手順は以下の通り：
+	</p>
+	<ul>
+		<li>A. JARファイルの準備</li>
+		<li>B. 既存allcommonパッケージの削除</li>
+		<li>C. 自動生成の実行</li>
+		<li>D. 一括インポート文の編成</li>
+		<li>E. 微調整</li>
+	</ul>
+	<h4>A. JARファイルの準備</h4>
+	<p>
+		Maven2を利用している場合は、pom.xmlのdependenciesに以下を追加します。
+	</p>
+	<pre><code>
+&lt;dependency&gt;
+	&lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+	&lt;artifactId&gt;dbflute-runtime&lt;/artifactId&gt;
+	&lt;version&gt;0.9.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+	<p>
+		Maven2を利用していない場合は、以下のURLからJARファイルをダウンロードしてビルドパスに含めます。
+	</p>
+	<pre><code>
+http://maven.seasar.org/maven2/org/seasar/dbflute/dbflute-runtime/0.9.0/dbflute-runtime-0.9.0.jar  
+</code></pre>
+	<p>
+		既存の「s2dao.jar」は不要となります(DBFlute以外の目的で利用している場合は残して構いません)。
+	</p>
+	<h4>B. 既存allcommonパッケージの削除</h4>
+	<p>
+		以前のバージョンで自動生成済みのallcommonパッケージを一旦全て削除して下さい。
+		ほとんどのクラスがJARファイルに取り込まれており、今回のバージョンから自動生成されるallcommonのクラスは10クラスほどです。
+	</p>
+	<h4>C. 自動生成の実行</h4>
+	<p>
+		DBFlute-0.9.0を使って自動生成します。こちらは通常通りのオペレーションとなります。{JDBC/Generate/Sql2Entity}
+	</p>
+	<h4>D. 一括インポート文の編成</h4>
+	<p>
+		DBFluteを利用しているプログラム(アプリコード)全てに対してEclipseの「インポート文の編成」を実行して下さい。
+		右クリックメニューより選択したパッケージ配下のクラス全てに一括で実行が可能です。
+	</p>
+	<p>
+		DBFluteのクラスに対しては「cbean.cq」パッケージに対して「インポート文の編成」を実行して下さい。
+		但し、Extendedのクラスに対して独自の処理を入れている場合はそちらも対象となります。
+	</p>
+	<h4>E. 微調整</h4>
+	<p>
+		ほとんどの場合、この時点で移行は完了ですが、通常利用では利用しないDBFluteの内部クラスを利用している場合など
+		まだコンパイルエラーになる可能性があります。これらは一つ一つ臨機に解決するようにして下さい。
+	</p>
+	<h4>注意：クラス名にプレフィックスを付与している場合</h4>
+	<p>
+		DBFluteの「projectPrefix」機能を利用していて、例えば、Entityが「LdEntity」、
+		ConditionBeanが「LdConditionBean」とかになっている場合です。
+	</p>
+	<p>
+		この場合はそのまま「一括インポート文の編成」をやってもあまり効果がありません。
+		以下の置換を別途ツールなどでやってから「一括インポート文の編成」するようにして下さい。
+		('Ld'部分はprojectPrefixの値で)
+	</p>
+	<ul>
+		<li>cbean.cqパッケージにて：LdConditionQuery → ConditionQuery</li>
+		<li>cbean.cqパッケージにて：LdSqlClause → SqlClause</li>
+		<li>アプリコードに対して：LdLikeSearchOption → LikeSearchOption</li>
+		<li>アプリコードに対して：LdListResultBean → ListResultBean</li>
+		<li>アプリコードに対して：LdPagingResultBean → PagingResultBean</li>
+		<li>アプリコードに対して：LdSubQuery → SubQuery</li>
+		<li>アプリコードに対して：LdUnionQuery → UnionQuery</li>
+	</ul>
+
+	<h2 id="impl">実装上の注意点</h2>
+	<p>
+		特になし
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/environment/newest.html">最新バージョン</a></li>
+		<li><a href="../../../../ja/environment/license.html">ライセンス</a></li>
+		<li><a href="../../../../ja/environment/supported.html">サポート情報</a></li>
+		<li><a href="../../../../ja/environment/changelog/index.html">ChangeLog</a></li>
+		<li><a href="../../../../ja/environment/setup/index.html">セットアップ</a>
+			<ul>
+				<li><a href="../../../../ja/environment/setup/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/setup/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/setup/runtime.html">DBFluteランタイムの準備</a></li>
+				<li><a href="../../../../ja/environment/setup/jdbcdriver.html">JDBCドライバの準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/firstprop.html">特定環境適用プロパティ</a></li>
+				<li><a href="../../../../ja/environment/setup/generate.html">クラスの自動生成</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/injection.html">DI環境の調整</a></li>
+				<li><a href="../../../../ja/environment/setup/thenafter.html">その後の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/environment/upgrade/index.html">アップグレード</a>
+			<ul>
+				<li><a href="../../../../ja/environment/upgrade/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/upgrade/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/upgrade/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/upgrade/migration/index.html">移行情報</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,setupSelect,関連テーブル,結合" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>SetupSelect(Relation) | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>SetupSelect(Relation)</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#severalcall">同じメソッドの複数回の呼び出し</a></li>
+				<li><a href="#noncall">SetupSelect しなければ null</a></li>
+				<li><a href="#nullable">関連データが存在しなければ null</a></li>
+				<li><a href="#beforeunion">UnionQuery よりも先に呼び出す</a></li>
+			</ul>
+		</li>
+		<li><a href="#supported">サポートされる関連テーブル</a></li>
+		<li><a href="#specifycolumn">関連テーブルの取得カラムの指定</a></li>
+		<li><a href="#query">Query(Relation) で同じ関連テーブル</a></li>
+		<li><a href="#unnecessary">SetupSelect が不要なケース</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		<em class="keyword">関連テーブルを取得</em> するために、その関連テーブルの(全ての)カラムを select
+		句に展開します(結合処理は内部的に解決されます)。すると、取得した基本テーブルの Entity
+		から、指定した関連テーブルの(検索されたデータが格納された) Entity を取得することができます。
+	</p>
+	<p>
+		会話上では、<em class="keyword">せっとあっぷせれくと</em> と表現します。SetupSelect(Relation)
+		は、関連テーブルのみ対する機能なので、<em class="keyword">りれーしょん</em>
+		を入れなくても伝わりやすいです。(ドキュメント上も SetupSelect と表現することが多いです)
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<p>
+		<em class="keyword">setupSelect_[relation-table]()</em>
+		を呼び出します。さらにネストした関連テーブルを取得する場合は、続けて
+		<em class="keyword">with[nested-relation-table]()</em>
+		を呼び出します(以降、ネストは with 始まり)。
+	</p>
+<pre><span class="codetitle">ex) SetupSelectの実装手順 (Eclipseでコード補完) {MEMBER_STATUS} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.se <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
+--
+cb.<span class="point">setupSelect_MemberStatus()</span>;
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+<span class="keyword">for</span> (Member member : memberList) {
+    MemberStatus status = member.<span class="point">getMemberStatus()</span>;
+    <span class="abbreviation">...</span> = status.getMemberStatusName();
+}
+</code></pre>
+<pre><span class="codetitle">ex) ネストした関連テーブル (Eclipseでコード補完) {MEMBER_WITHDRAWAL,...} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.seSMW <span class="comment">// ".seSMW" と打って enter</span>
+--
+cb.<span class="point">setupSelect_MemberWithdrawal()</span>.wiWR <span class="comment">// ".wiWR" と打って enter</span>
+--
+cb.setupSelect_MemberWithdrawal().<span class="point">withWithdrawalReason()</span>;
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+<span class="keyword">for</span> (Member member : memberList) {
+    MemberWithdrawal withdrawal = member.<span class="point">getMemberWithdrawal()</span>;
+    WithdrawalReason reason = withdrawal.<span class="point">getWithdrawalReason()</span>;
+    <span class="abbreviation">...</span> = reason.getWithdrawalReasonText();
+}
+</code></pre>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="severalcall">同じメソッドの複数回の呼び出し</h3>
+	<p>
+		二回目以降の呼び出しは、無意味な呼び出しとなります。
+		同階層の複数のネストした関連テーブルを呼び出すときに、必要になりますので特に例外にはなりません。
+		また、SQL上で結合回数が(無駄に)増えてしまうことはありません。
+	</p>
+<pre><span class="codetitle">ex) 同階層の複数のネストした関連テーブル {PURCHASE,MEMBER,MEMBER_STATUS...} @Java</span><code>
+PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
+cb.<span class="point">setupSelect_Member()</span>.withMemberStatus();
+cb.<span class="point">setupSelect_Member()</span>.withMemberWithdrawal();
+</code></pre>
+
+	<h3 id="noncall">SetupSelect しなければ null</h3>
+	<p>
+		SetupSelect しなかった関連テーブルの、(基点テーブルの) Entity での取得メソッドは null
+		を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
+	</p>
+
+	<h3 id="nullable">関連データが存在しなければ null</h3>
+	<p>
+		(基点テーブルのデータに対応する)関連テーブルのデータが存在しない場合は、(その基点テーブルの) Entity
+		において、その関連テーブルの取得メソッドは null を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
+	</p>
+	<p>
+		例えば、many-to-one でNotNull制約のFKカラムによる関連テーブルであれば、null
+		が戻ることはありえません。NullableなFKカラムの場合、もしくは、OnClause や InlineView
+		にて関連テーブルを結合前に絞り込んだ場合などにおいては null が戻る可能性があります。
+	</p>
+
+	<h3 id="beforeunion">UnionQuery よりも先に呼び出す</h3>
+	<p>
+		UnionQuery よりも前に呼び出す必要があります。ただ、そもそも SetupSelect
+		は、習慣的に他のどの設定メソッドよりも先(の方)に呼び出すことが推奨されていますので、
+		通常はあまり意識する必要はないと想定されます。(万が一、UnionQueryよりも後に呼び出した場合は、明示的な例外となります)
+	</p>
+	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
+<pre><span class="codetitle">ex) UnionQueryよりも先に呼び出すこと {MEMBER_STATUS} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus(); <span class="comment">// o</span>
+cb.union(<span class="keyword">new</span> UnionQuery<span class="abbreviation">...</span>)
+<span class="comment">//cb.setupSelect_MemberStatus(); x</span>
+</code></pre>
+
+	<h2 id="supported">サポートされる関連テーブル</h2>
+	<ul>
+		<li>many-to-one</li>
+		<li>one-to-one</li>
+		<li>業務的one-to-one</li>
+	</ul>
+	<div class="relatedpage"><a href="../../entity/relation.html">Entity間のリレーションのタイプ</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./bizonetoone.html"> -->SetupSelect(BizOneToOne)<!-- </a> --></span></div>
+
+	<h2 id="specifycolumn">関連テーブルの取得カラムの指定</h2>
+	<p>
+		基点テーブルと同じように、関連テーブルの取得カラムも明示的に指定して、
+		(主にパフォーマンス考慮のために)取得するカラムを選ぶことができます。
+		但し、明示的にカラムを指定した場合も、その関連テーブルに対する SetupSelect
+		の呼び出しは必要です。(SetupSelect された上で、取得するカラムを明示的に指定)
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../specify/specifycolumn.html"> -->SpecifyColumn<!-- </a> --></span></div>
+
+	<h2 id="query">Query(Relation) で同じ関連テーブル</h2>
+	<p>
+		Query(Relation) で、SetupSelect で指定した同じ関連テーブルを利用した場合でも、SQL上は一つの結合で表現されます。
+		同じ関連テーブルに対して、"取得" と "絞り込み" が同時に行われる場合は、その関連テーブルに対する SetupSelect
+		と Query(Relation) の両方を利用して実装します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/relation.html"> -->Query(Relation)<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) Query(Relation)で同じ関連テーブル {MEMBER_STATUS} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus(); <span class="comment">// 会員ステータスを取得</span>
+cb.query().queryMemberStatus().set<span class="abbreviation">...</span>; <span class="comment">// 会員ステータスで絞り込み</span>
+</code></pre>
+
+	<h2 id="unnecessary">SetupSelect が不要なケース</h2>
+	<p>
+		カウント検索やスカラ検索のとき、また、ExistsReferrer(SubQuery) や UnionQuery などの、ConditionBeanの Query
+		情報だけを必要とする場合においては、SetupSelect の呼び出しは必要ありません。
+		(そもそも処理として必要とされないため、呼び出しても利用されません)
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

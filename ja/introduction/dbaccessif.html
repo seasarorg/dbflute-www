@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,バランス重視,DBアクセス,ConditionBean,外だしSQL,OutsideSql,2WaySQL,Torque,S2Dao" />
+	<link rel="stylesheet" type="text/css" href="../../css/sub.css" />
+	<title>バランス重視のDBアクセスI/F | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-introduction">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html"><img src="../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html"><img src="../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/tutorial/architect.html"><img src="../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../ja/tutorial/developer.html"><img src="../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html"><img src="../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/environment/setup/index.html"><img src="../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../ja/environment/upgrade/index.html"><img src="../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html"><img src="../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>バランス重視のDBアクセスI/F</h1>
+	<p>
+		DBFluteが提供する <em class="keyword">バランス重視</em> のDBアクセスI/F(インターフェース)について説明します。
+	</p>
+	<ul class="indexlist">
+		<li><a href="#balance">バランス重視</a></li>
+		<li><a href="#outsidesql">外だしSQLの重要性</a></li>
+		<li><a href="#alloutside">全て外だしSQLで実装したら？</a></li>
+		<li><a href="#conditionbean">ConditionBeanでバランスを得る</a></li>
+		<li><a href="#anyway">とにかく二つの方法を覚えればよい</a></li>
+	</ul>
+
+	<h2 id="balance">バランス重視</h2>
+	<p>
+		S2Daoから2Way-SQLを "外だしSQL(OutsideSql)"
+		として継承しつつ、さらに完全タイプセーフなSQL自動生成機能 "ConditionBean"
+		を提供し、	その適材適所のバランスを重要視しています。
+	</p>
+	<dl class="valuemainlist">
+		<dt>簡単(定型的)なSQL</dt><dd><a href="../manual/function/ormapper/conditionbean">ConditionBean</a></dd>
+		<dt>複雑(非定型)なSQL</dt><dd><a href="../manual/function/ormapper/outsidesql">外だしSQL(OutsideSql)</a></dd>
+	</dl>
+<pre><span class="codetitle">ex) MEMBER(会員)テーブルの検索(ConditionBean) @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().setMemberName_Equal(<span class="literal">"Stojkovic"</span>);
+</code></pre>
+<pre><span class="codetitle">ex) MEMBER(会員)テーブルの検索(OutsideSql) @Java</span><code>
+<span class="keyword">select</span> member.MEMBER_ID, ...
+&nbsp;&nbsp;<span class="keyword">from</span> MEMBER member
+&nbsp;<span class="keyword">where</span> member.MEMBER_ID = <span class="comment">/*pmb.memberName*/</span><span class="literal">'Savicevic'</span>
+</code></pre>
+	<h2 id="outsidesql">外だしSQLの重要性</h2>
+	<p>
+		複雑(非定型)なSQLは、アプリケーションで肝となるDBアクセスロジックである可能性が高いです。
+		その複雑性からバグも発生しやすく、時には実行計画と睨めっこしなければならないような大事な大事なSQLであり、それらは
+		<em class="keyword">2Way-SQL</em> を大いに活用して最適なSQLを作り上げます。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/ormapper/outsidesql/about.html#twowaysql">2Way-SQL</a></div>
+
+	<h2 id="alloutside">全て外だしSQLで実装したら？</h2>
+	<p>
+		しかし、簡単(定型的)なSQLまで外だしSQLを実装するのはそれはそれで問題が発生します。
+	</p>
+	<ul>
+		<li>DB変更に非常に弱い</li>
+		<li>SQL特有のケアレスミスが多発</li>
+		<li>SQLの命名やフォーマット等の規約の不統一による可読性の劣化</li>
+		<li>大量のSQLファイルの管理コスト</li>
+	</ul>
+	<p>
+		実装数の割合は、複雑(非定型)なSQLに比べて簡単(定型的)なSQLの方が圧倒的に多く、上記のような問題が発生します。これらは
+		2Way-SQL のおかげで大分解消はされますが、完全ではありません。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/ormapper/outsidesql/about.html#twowaysql">2Way-SQL</a></div>
+
+	<h2 id="conditionbean">ConditionBeanでバランスを得る</h2>
+	<p>
+		そこでDBFluteは、簡単(定型的)なSQLに関しては完全タイプセーフな "ConditionBean" で安全かつ速い実装を提供し、
+		その分、現場のディベロッパーには複雑(非定型)なSQLに集中してもらいたいという考えを持っています。
+	</p>
+	<p>
+		理想的にはどちらか片方の方法で全てのSQLを実現できるのが良いに決まっています。
+		しかし、それはシビアな開発期間、シビアなパフォーマンス要件など様々な要因を考えると不可能であり、
+		バランスを重視したDBアクセスI/Fが(少なくとも今の時代の)現場に一番フィットすると判断しました。
+	</p>
+	<p>
+		<em class="keyword">およそ、8 割を ConditionBean で、2 割を 外だしSQL(OutsideSql) で！</em>
+	</p>
+	<h2 id="anyway">とにかく二つの方法を覚えればよい</h2>
+	<p>
+		もちろん、いくらバランスと言ってもやり方が三つも四つも存在すると、わかりやすさが半減しディベロッパーの学習コストが高くなって効率が良くありません。
+		また、都度都度プロジェクトでどの方法をどう使っていくかの実装ポリシー策定も必要になってしまいます。
+		これは他のO/Rマッパでありがちな問題でした。ディベロッパーがどれをどうやって実装すれば良いのか迷うのです。
+		DBFluteでは、とにかく二つだけ <em class="keyword">ConditionBean</em> と <em class="keyword">外だしSQL(OutsideSql)</em>
+		を覚えてDBアクセスします。どのプロジェクトであろうとポリシーは同じです。
+	</p>
+	<p>
+		また、ConditionBean は完全タイプセーフであるがゆえに(*1)逆に実現できることが限られ、外だしSQLとの棲み分けはハッキリしています。
+		<em class="keyword">ConditionBeanのスコープ</em>
+		といったようなドキュメントも用意され、ディベロッパーは一定の判断の流れで実装していくことができます。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
+	<p>
+		*1: 部分的なSQLをアプリケーションプログラム上で文字列として設定することはできないため、プログラム上での
+		"自由で危険な埋め込みSQL" が抑制されています。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../"><img src="../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../ja/introduction/index.html">DBFluteの紹介</a></li>
+		<li><a href="../../ja/introduction/gendriven.html">自動生成ドリブン</a></li>
+		<li><a href="../../ja/introduction/dbaccessif.html">バランス重視のDBアクセス</a></li>
+		<li><a href="../../ja/introduction/performance.html">パフォーマンス考慮</a></li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

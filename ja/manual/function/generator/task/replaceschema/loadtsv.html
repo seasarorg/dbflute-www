@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,ReplaceSchema,LoadData,TSV,TSVファイル,CSV,CSVファイル" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>データ登録(TSV) | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>データ登録(TSV)</h1>
+	<ul class="indexlist">
+		<li><a href="#tsv">TSVデータの登録</a>
+			<ul>
+				<li><a href="#tsvfiledir">TSVファイルの配置</a></li>
+				<li><a href="#tsvencoding">TSVファイルのエンコーディング</a></li>
+				<li><a href="#tsvfilename">TSVファイルのファイル名</a></li>
+				<li><a href="#tsvdataspec">TSVファイルのデータ仕様</a></li>
+			</ul>
+		</li>
+		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a></li>
+	</ul>
+
+	<h2 id="tsv">TSVデータの登録</h2>
+	<p>
+		タブ区切りのテキストデータを登録します。
+	</p>
+	<div class="relatedpage"><a href="./loaddata.html">ReplaceSchema - データ登録</a></div>
+	<h3 id="tsvfiledir">TSVファイルの配置</h3>
+	<p>
+		"[DBFluteクライアント]/playsql/data" 配下の "common/tsv" ディレクトリ、および、"[dataLoadingType]/tsv"
+		配下のTSVファイルが登録されます。
+	</p>
+	<div class="relatedpage"><a href="./loaddata.html#dataloadingtype">dataLoadingTypeによる切り替え</a></div>
+<pre><span class="codetitle">ex) TSVファイルの配置(dataLoadingTypeはデフォルトの "ut") @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+       |-common
+       |  |-tsv
+       |     |-...
+       |-ut
+       |  |-tsv
+       |     |-...
+</code></pre>
+	<p>
+		"common" は、どんな "dataLoadingType" であっても登録されます。よって、"common"
+		配下にはデータどの環境においても変わらない共通のマスタデータなどを配置すると良いでしょう。
+	</p>
+	<h3 id="tsvencoding">TSVファイルのエンコーディング</h3>
+	<p>
+		"tsv" ディレクトリの "そのTSVファイルのエンコーディング名と同じ名前のディレクトリ" 配下の ".tsv"
+		で終わるファイルをTSVファイルと認識します。そのディレクトリ名をそのままファイルを読み込むときのエンコーディングに利用します。
+	</p>
+<pre><span class="codetitle">ex) TSVファイルの配置(エンコーディングはUTF-8) @playsql</span><code>
+playsql
+ |-data
+    |-common
+    |  |-tsv
+    |     |-UTF-8
+    |        |-xxx.tsv
+    |-ut
+    |  |-tsv
+    |     |-UTF-8
+    |        |-xxx.tsv
+</code></pre>
+	<h3 id="tsvfilename">TSVファイルのファイル名</h3>
+	<p>
+		TSVのファイル名は "番号-テーブル名.tsv" もしくは "テーブル名.tsv"
+		という形式で配置します。ファイル名上のテーブル名をそのまま登録する先のテーブルとして扱います。
+	</p>
+	<p>
+		登録順序を確定させるために、番号で順序管理するのがお奨めです。
+	</p>
+<pre><span class="codetitle">ex) TSVファイルの配置: 会員系テーブルのUTF-8のTSVファイル @playsql</span><code>
+playsql
+ |-data
+    |-common
+    |  |-tsv
+    |     |-UTF-8
+    |        |-<span class="literal">10-MEMBER_STATUS.tsv</span>
+    |-ut
+    |  |-tsv
+    |     |-UTF-8
+    |        |-<span class="literal">10-MEMBER.tsv</span>
+    |        |-<span class="literal">20-MEMBER_LOGIN.tsv</span>
+</code></pre>
+	<h3 id="tsvdataspec">TSVファイルのデータ仕様</h3>
+	<dl class="textlist">
+		<dt>テーブル名</dt><dd>ファイル名(先頭の番号と終わりの拡張子は除く)</dd>
+		<dt>カラム定義</dt><dd>テキストファイルの一行目(タブ区切り)</dd>
+		<dt>データ定義</dt><dd>テキストファイルの二行目以降(タブ区切り)</dd>
+		<dt>データ形式の補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>改行を含む値の場合は、必ずダブルクォーテーションで囲われていること</li>
+				<li>ダブルクォーテーションを含む値の場合は、必ずダブルクォーテーションで囲われていること</li>
+				<li>ダブルクォーテーションを含む値の場合は、値としてのダブルクォーテーションをダブルクォーテーションでエスケープすること ex. "ABC""DEF"</li>
+				<li>日付は "yyyy/MM/dd HH:mm:ss.SSS" 形式("-" 区切り可、ミリ秒・時分秒省略可)</li>
+				<li>Time型は "HH:mm:ss" 形式</li>
+				<li>両端のダブルクォーテーションは、データとして扱わない(除去される)</li>
+				<li>データはトリムされない(エクセルデータとは違うので注意)。但し、数値カラムや日付カラムなどで明らかにトリムをしても問題ない場合は、トリムされる</li>
+				<li>空文字の値は "null" として扱われる (オプションなし)</li>
+				<li>Boolean型のカラムは、"1"・"t"・"true"をtrue、"0"・"f"・"false"をfalseとして扱う</li>
+				<li>バイナリデータは利用不可</li>
+			</ul>
+		</dd>
+		<dt>その他補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>NotNull制約のないカラムは省略可能</li>
+				<li>デフォルト制約のあるカラムは省略可能</li>
+				<li>デフォルト設定(<a href="./loaddata.html#defaultvaluemap">defaultValueMap.dataprop</a>)のあるカラムは省略可能</li>
+				<li>テーブルに存在しないカラム定義は無視される (エクセルデータとは違うので注意)</li>
+				<li>登録データは一レコードずつログに出力される {<a href="./loaddata.html#islogginginsertsql">オプションあり</a>}</li>
+				<li>登録時に定義されている値を<a href="#convertvaluemap">別の値に変換して登録する機能あり</a></li>
+				<li>バッチ更新ではなく都度都度insert文が発行される</li>
+				<li>一つのファイルでのレコード数制限は特になし</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="convertvaluemap">値のコンバート設定(dataprop)</h2>
+	<p>
+		TSVに定義されている値をそのまま登録するのではなく、ある値にマッピングして登録することが可能です。
+	</p>
+	<p>
+		TSVファイルと同じディレクトリに "convertValueMap.dataprop" という名前のテキストファイルを配置して、
+		カラム名とマッピングする値を定義します。すると、insert処理するときにマッピングした値で登録します。
+	</p>
+<pre><span class="codetitle">ex) TSVで定義されている一文字のコードを三文字のコードへ変換して登録 @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    MEMBER_STATUS_CODE = <span class="keyword">map:</span>{ F = FML ; P = PRV ; W = WDL }
+    ; [column-name] = <span class="keyword">map:</span>{[mapping-definition]}
+    ; ...
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>設定ファイル</dt>
+		<dd>convertValueMap.dataprop (UTF-8)</dd>
+		<dt>プロパティ</dt>
+		<dd>カラム名とマッピングする値</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>カラム名は大文字小文字区別なし</li>
+				<li>値のマッピングは大文字小文字区別あり</li>
+				<li>TSVデータの登録のみで有効</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		TSVデータはエクセルに比べてデータ編集がしづらいため、このような変換機能があります。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

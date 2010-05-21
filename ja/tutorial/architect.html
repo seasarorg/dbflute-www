@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,アーキテクト,Architect,チュートリアル,Tutorial,使い方,ドキュメント" />
+	<link rel="stylesheet" type="text/css" href="../../css/sub.css" />
+	<title>アーキテクトのためのチュートリアル | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-architect">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html"><img src="../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html"><img src="../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/tutorial/architect.html"><img src="../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../ja/tutorial/developer.html"><img src="../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html"><img src="../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/environment/setup/index.html"><img src="../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../ja/environment/upgrade/index.html"><img src="../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html"><img src="../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>アーキテクトのためのチュートリアル</h1>
+	<p>
+		アーキテクトがDBFluteを扱う上で <em class="keyword">必要な知識</em> や
+		<em class="keyword">開発時にやるべきこと</em> をまとめたページです。
+	</p>
+	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
+	<ul class="indexlist">
+		<li><a href="#exampledb">ExampleDB (前提)</a></li>
+		<li><a href="#knowledge">必要な知識</a>
+			<ul>
+				<li><a href="#infra">DBFluteのインフラ情報</a></li>
+				<li><a href="#generator">自動生成ツールとしてのDBFlute</a></li>
+				<li><a href="#ormapper">O/RマッパとしてのDBFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="#action">開発時にやるべきこと</a>
+			<ul>
+				<li><a href="#policy">DBFluteの利用ポリシー決め</a></li>
+				<li><a href="#replaceschema">ReplaceSchemaの利用有無</a></li>
+				<li><a href="#setup">DBFluteのセットアップ(初回自動生成)</a></li>
+				<li><a href="#totalopt">全体最適化のための設定</a></li>
+				<li><a href="#developer">ディベロッパーへの横展開</a></li>
+				<li><a href="#dbchange">DB変更時の自動生成</a></li>
+				<li><a href="#upgrade">DBFluteのアップグレード</a></li>
+			</ul>
+		</li>
+		<li><a href="#various">雑多な情報</a>
+			<ul>
+				<li><a href="#authorblog">作者のブログ</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="exampledb">ExampleDB (前提)</h2>
+	<p>
+		DBFluteの(至る所の)説明において ExampleDB
+		が利用されます。ディベロッパーとのコミュニケーションをスムーズにするためにも、基本構造は必ず把握しておくようにして下さい。
+	</p>
+	<div class="detailpage"><a href="../manual/reference/example/exampledb.html">ExampleDB</a></div>
+
+	<h2 id="knowledge">必要な知識</h2>
+	<p>
+		アーキテクトは、実装部分だけでなくDBFluteの環境周りや設定周りなど全体を把握する必要があります。
+		DBFluteを探っている人、これから使う人、問わずに必要な知識を得るためのエントリです。
+	</p>
+	<ul>
+		<li>DBFluteの概念・役割</li>
+		<li>DBFluteのインフラ情報</li>
+		<li>ツールとしてのDBFlute</li>
+		<li>O/RマッパとしてのDBFlute</li>
+	</ul>
+	<h3>DBFluteの概念・役割</h3>
+	<p>
+		開発の効率化のためにDBFlute利用を推進する、提案されてきたDBFlute利用の許可判断をするなどの場合、
+		直接は利用(実装)しないとしてもある程度の "概念と役割" を理解しておく必要があります。
+	</p>
+	<div class="detailpage"><a href="../introduction/index.html">DBFluteの紹介</a></div>
+	<h3 id="infra">DBFluteのインフラ情報</h3>
+	<p>
+		DBFluteを採用することが可能なのか？インフラ的な視点を事前に把握しておくことが大事です。
+		DBFluteを使う場合に最適な環境は？という視点からも把握しておくことは大事です。
+	</p>
+	<div class="detailpage"><a href="../environment/index.html">DBFluteの環境</a></div>
+	<h3 id="generator">自動生成ツールとしてのDBFlute</h3>
+	<p>
+		DBFluteと触れ合うとき、一番最初に出会うのは自動生成ツールとしてのDBFluteです。
+		DBFluteはO/Rマッパでもありながら、自動生成ツールそのものと言えます。
+	</p>
+	<div class="detailpage"><a href="../manual/function/generator/index.html">自動生成ツールとしてのDBFlute</a></div>
+	<h3 id="ormapper">O/RマッパとしてのDBFlute</h3>
+	<p>
+		DBFluteのメインの部分です。どのようなアーキテクチャなのか？どのように実装するのか？
+		ディベロッパーへの横展開のためにも、O/RマッパとしてのDBFluteを把握する必要があります。
+	</p>
+	<div class="detailpage"><a href="../manual/function/ormapper/index.html">O/RマッパとしてのDBFlute</a></div>
+	<p>
+		また、ディベロッパー視点からのDBFluteを知ることが、"O/RマッパとしてのDBFlute"
+		を知ることの近道でもあります。(ディベロッパーのための)チュートリアルに必ず目を通しておきましょう。
+	</p>
+	<div class="detailpage"><a href="./developer.html">ディベロッパーのためのチュートリアル</a></div>
+
+	<h2 id="action">開発時にやるべきこと</h2>
+	<p>
+		アーキテクトが開発時にやるべきことは以下の通りです。
+	</p>
+	<ul>
+		<li><a href="#policy">DBFluteの利用ポリシー決め</a></li>
+		<li><a href="#replaceschema">ReplaceSchemaの利用有無</a></li>
+		<li><a href="#setup">DBFluteのセットアップ(初回自動生成)</a></li>
+		<li><a href="#totalopt">全体最適化のための設定</a></li>
+		<li><a href="#developer">ディベロッパーへの横展開</a></li>
+		<li><a href="#dbchange">DB変更時の自動生成</a></li>
+		<li><a href="#upgrade">DBFluteのアップグレード</a></li>
+	</ul>
+	<h3 id="policy">DBFluteの利用ポリシー決め</h3>
+	<p>
+		"DBFluteをどう使うか？"、"作業が発生したときに誰がどう行うか？"
+		事前に決められるものは決めておきましょう。この後の項目の内容を参考に開発がスムーズに進むようにポリシーを考えてみて下さい。
+	</p>
+	<h3 id="replaceschema">ReplaceSchemaの利用有無</h3>
+	<p>
+		大きな判断の一つとして、ReplaceSchemaを利用するかどうか？というのがあります。
+	</p>
+	<p>
+		ReplaceSchemaは自動生成とは無関係のDBFluteの付加機能ですが、DDLの管理・実行やテストデータの管理などの機能を
+		しっかりと設定をして横展開することで、<em class="keyword">ディベロッパーのDB環境の構築・管理の負荷を軽減</em>
+		することができるとても便利なものです。
+	</p>
+	<p>
+		特にテストデータの管理は重要です。DBFluteは "DB変更に強い" を特徴としていますが、
+		プログラムだけがDB変更に強くても足りないと考えていて、<em class="keyword">テストデータもDB変更に強くないと実際にはDB変更のコストは高いまま</em>
+		です。テストデータの管理が曖昧で散在していると、いざDB変更したときにテストデータを修正する手間が膨大になってしまいます。
+		ReplaceSchemaのようなツールを使って、	<em class="keyword">しっかりテストデータも管理しておくことで本当に意味でDB変更に強い</em>
+		と言えるでしょう。
+	</p>
+	<div class="detailpage"><a href="../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
+	<h3 id="setup">DBFluteのセットアップ(初回自動生成)</h3>
+	<p>
+		DBFluteのセットアップは一つのプロジェクトに付き一回だけ行います。
+		開発が始まる前のDB設計がおおよそ固まった時点で行い、生成されたクラスを "バージョン管理システム"
+		(SVNなど)に登録をしてディベロッパーが利用できるようにします。
+	</p>
+	<div class="detailpage"><a href="../environment/setup/index.html">DBFluteのセットアップ</a></div>
+	<h3 id="totalopt">全体最適化のための設定</h3>
+	<p>
+		DBFluteは全体最適を行う様々な <em class="keyword">現場フィットな機能</em>
+		があります。プロジェクト要件がそれら機能と一致するのであれば、事前にしっかりと設定をしてディベロッパーに横展開することお奨めします。
+	</p>
+	<div class="detailpage"><a href="../manual/function/genbafit/index.html">現場フィット</a></div>
+	<p>
+		設定した後は、ディベロッパーの実装に影響のあるものはしっかりと周知します。例えば
+		"共通カラムは自動設定されるので insert や update のときに気にしなくていいですよ" とか "区分値を設定したのでこういうメソッド使って下さいね"
+		などなど。そういった情報はメールや口頭で伝えるだけでなく、いつでも参照できるようにプロジェクト内の <em class="keyword">情報共有システム</em>
+		(Wikiなど)に掲載しておくと良いでしょう。
+	</p>
+	<h3 id="developer">ディベロッパーへの横展開</h3>
+	<p>
+		DBFluteに限ったことではないですが、開発が本格化する前にディベロッパーに実装スキルを習得してもらう必要があります。
+		"各自勉強しておくように" というのも悪くはありませんが、<em class="keyword">勉強会などでディベロッパーたちがスキルを共有</em>
+		できるような形にしておくことで、スキル習得の効率も上がりますし、開発が始まってからの
+		<em class="keyword">ディベロッパー同士の情報交換によるスキル向上</em> も望めます。
+	</p>
+	<p>
+		<em class="keyword">ディベロッパーのためのチュートリアル</em>
+		というページを用意していますので、ディベロッパーには必ず(一度は)このページを読んでもらうようにして下さい。
+	</p>
+	<div class="relatedpage"><a href="./developer.html">ディベロッパーのためのチュートリアル</a></div>
+	<h3 id="dbchange">DB変更時の自動生成</h3>
+	<p>
+		<em class="keyword">DB変更(テーブルの追加やカラム名変更など)が発生するたびに再自動生成</em>
+		を行い、変更されたクラスをバージョン管理システム(SVNなど)に登録をしてディベロッパーが利用できるようにします。
+		再自動生成作業には、全てのタスクの実行が含まれます(但し、ReplaceSchemaは利用していなければ除外)。
+	</p>
+	<p>
+		生成されたクラスをコミットする前に必ずやっておくべきことがあります。
+	</p>
+	<h4>ReplaceSchemaの正常終了確認</h4>
+	<p>
+		DB変更がテストデータに影響があるかもしれません。
+	</p>
+	<p>
+		データ修正作業をアーキテクト自身がやるか他の誰に任せるかはプロジェクトの組織次第ですが、
+		とにかくこの作業を忘れて変更をコミットしてはなりません。
+	</p>
+	<h4>OutsideSqlTestの正常終了確認</h4>
+	<p>
+		DB変更が外だしSQLに影響があるかもしれません。
+	</p>
+	<p>
+		簡単な修正であればアーキテクトが直してコミットしてしまえばよいのですが、ディベロッパー(そのSQLの担当者)でないと修正が大変そうであれば、各ディベロッパーに直してもらいましょう。
+		あまりに影響範囲が広い場合は、エラーのままコミットして皆で一斉に直すというのもやむ得ないでしょう。うまくディベロッパーの方々と連携を取るようにして下さい。
+	</p>
+	<h4>自動生成クラスのコンパイル確認</h4>
+	<p>
+		DB変更がプログラムに影響があるかもしれません。
+	</p>
+	<p>
+		GenerateとSql2Entityで生成されたクラスをローカル環境でコンパイルが通るか確認します。
+		簡単な修正であればアーキテクトが直してコミットしてしまえばよいのですが、ディベロッパー(そのプログラムの担当者)でないと修正が大変そうであれば、各ディベロッパーに直してもらいましょう。
+		あまりに影響範囲が広い場合は、コンパイルエラーのままコミットして皆で一斉に直すというのもやむ得ないでしょう。うまくディベロッパーの方々と連携を取るようにして下さい。
+	</p>
+	<h3 id="upgrade">DBFluteのアップグレード</h3>
+	<p>
+		新しいDBFluteがリリースされたときに、DBFluteをアップグレードするか否かの決定とアップグレード作業をする必要があります。
+		<em class="keyword">移行時の注意</em> を必ず読んでスムーズに最新版のDBFluteをディベロッパーが利用できるようにしましょう。
+	</p>
+	<div class="detailpage"><a href="../environment/upgrade/index.html">DBFluteのアップグレード</a></div>
+
+	<h2 id="various">雑多な情報</h2>
+	<h3 id="authorblog">作者のブログ</h3>
+	<p>
+		作者のブログ <em class="keyword">jfluteの日記</em>
+		にDBFluteの情報が更新されます。実装上の細かいネタもあるので、時々チェックしてみると理解が深まるかもしれません。
+	</p>
+	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/">外部サイト - jfluteの日記</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../"><img src="../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+				<li><a href="../../ja/tutorial/architect.html#various">雑多な情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/developer.html#exampledb">ExampleDB (前提)</a></li>
+				<li><a href="../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/developer.html#style">DBアクセスのスタイル</a></li>
+				<li><a href="../../ja/tutorial/developer.html#object">意識するクラス</a></li>
+				<li><a href="../../ja/tutorial/developer.html#task">意識するタスク</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/developer.html#example">Exampleのススメ</a></li>
+				<li><a href="../../ja/tutorial/developer.html#offer">アーキテクトへの相談</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

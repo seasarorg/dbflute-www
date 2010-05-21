@@ -1,0 +1,529 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,外だしSQL,OutsideSql,使い方,利用方法,実装方法,実装手順" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>外だしSQLの使い方 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>外だしSQLの使い方</h1>
+	<ul class="indexlist">
+		<li><a href="#sqlfile">1. SQLファイルを作成する</a>
+			<ul>
+				<li><a href="#basepointtable">基点となるテーブル</a></li>
+				<li><a href="#sqlfileencoding">エンコーディング</a></li>
+				<li><a href="#wrongbhv">存在しないBehaviorを指定すると</a></li>
+			</ul>
+		</li>
+		<li><a href="#twowaysql">2. SQLを2Way-SQLで実装する</a>
+			<ul>
+				<li><a href="#customizeentitymark">CustomizeEntity マーク</a></li>
+				<li><a href="#parameterbeanmark">ParameterBean マーク</a></li>
+				<li><a href="#sqltitledesc">SQLのタイトルや説明</a></li>
+			</ul>
+		</li>
+		<li><a href="#sql2entity">3. Sql2Entityを実行する</a>
+			<ul>
+				<li><a href="#wrongsql">SQLが文法的に間違っている場合</a></li>
+			</ul>
+		</li>
+		<li><a href="#outsidesql">4. 外だしSQLを呼び出す</a>
+			<ul>
+				<li><a href="#log">外だしSQLの実行ログ</a></li>
+			</ul>
+		</li>
+		<li><a href="#bhvinstance">Behaviorインスタンスの取得</a></li>
+		<li><a href="#basicspec">基本仕様</a>
+			<ul>
+				<li><a href="#sqlpath">SQLのパス</a></li>
+				<li><a href="#pmb">ParameterBean</a></li>
+			</ul>
+		</li>
+		<li><a href="#completion">コード補完を駆使して実装</a>
+			<ul>
+				<li><a href="#firstchar">先頭文字を覚えておくのが大事</a></li>
+				<li><a href="#autoresult">戻り値の抽出</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2>外だしSQLの基本</h2>
+	<p>
+		そもそも外だしSQLとは？について説明するページがあります。
+	</p>
+	<div class="detailpage"><a href="./about.html">外だしSQLについて</a></div>
+
+	<h2>実装概要</h2>
+	<p>
+		実装の流れは以下のようになります。
+	</p>
+	<ul class="flowlist">
+		<li><a href="#sqlfile">1. SQLファイルを作成する</a></li>
+		<li><a href="#twowaysql">2. SQLを 2Way-SQL で実装する</a></li>
+		<li><a href="#sql2entity">3. Sql2Entity を実行する</a></li>
+		<li><a href="#outsidesql">4. 外だしSQLを呼び出す</a></li>
+	</ul>
+	<p>
+		ここでは、EMechaを利用しないプリミティブなやり方を紹介します。実際の開発では、EMechaの <em class="keyword">EMSql</em>
+		の機能を利用して、<em class="keyword">SQLファイルの作成</em> と <em class="keyword">Sql2Entityマーク</em>
+		の記述をウィザード画面から指定できる安全なやり方をお奨めします。
+	</p>
+	<div class="detailpage"><a href="../../helper/emecha/emsql/index.html#newoutsidesql">EMecha - EMSql - SQLファイルの作成</a></div>
+
+	<h2 id="sqlfile">1. SQLファイルを作成する</h2>
+	<p>
+		Sql2Entityタスクで参照されるディレクトリの exbhv パッケージ配下に
+		<em class="keyword">[Behaviorクラス名]_[SQLを表現する任意の名前].sql</em>
+		という形式の名前でSQLファイルを作成します。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/index.html#refsql">Sql2Entity - 外だしSQLを参照</a></div>
+<pre><span class="codetitle">ex) SQLファイルの配置パッケージ(ディレクトリ) {src/main/resources} @Directory</span><code>
+foo-project
+ |-dbflute_foo
+   |-dfprop
+   |-<span class="abbreviation">...</span>
+ |-src
+   |-main
+     |-resources
+       |-com
+         |-<span class="abbreviation">...</span>
+           |-dbflute
+             |-exbhv
+               |-<span class="point">MemberBhv_selectSimpleMember.sql</span>
+</code></pre>
+	<h3 id="basepointtable">基点となるテーブル</h3>
+	<p>
+		Behaviorは、<em class="keyword">その外だしSQLの中で業務的に基点となるテーブル</em>
+		に対応するものを選びます。但し、これは業務的な関連付けなので、厳密でなくても動作自体には支障はありません。
+	</p>
+	<h3 id="sqlfileencoding">エンコーディング</h3>
+	<p>
+		outsideSqlDefinitionMap.dfprop の <em class="keyword">sqlFileEncoding</em>
+		で指定されたエンコーディングで作成する必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../../reference/dfprop/outsidesqldefinition/index.html#sqlfileencoding">dfprop - sqlFileEncoding</a></div>
+	<h3 id="wrongbhv">存在しないBehaviorを指定すると</h3>
+	<p>
+		存在しないBehaviorを指定すると、Sql2Entityで明示的な例外が発生します。
+		テーブル名の変更などで利用していたBehaviorが削除された場合は、Sql2Entityを実行することで検知して修正します。
+	</p>
+
+	<h2 id="twowaysql">2. SQLを2Way-SQLで実装する</h2>
+	<p>
+		作成したSQLファイルの中で、SQLを <em class="keyword">2Way-SQL</em> として実装します。
+	</p>
+<pre><span class="codetitle">ex) 2Way-SQLでの実装 (CustomizeEntityとParameterBeanを利用) @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!Integer memberId!!</span>
+<span class="comment">-- !!String memberName:likePrefix!!</span>
+
+<span class="keyword">select</span> member.MEMBER_ID
+     , member.MEMBER_NAME
+     , memberStatus.MEMBER_STATUS_NAME
+  <span class="keyword">from</span> MEMBER member
+    <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
+      <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+ <span class="comment">/*BEGIN*/</span><span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberName != null*/</span>
+   <span class="keyword">and</span> member.MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'M%'</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+ <span class="keyword">order by</span> member.BIRTHDATE <span class="keyword">desc</span>, member.MEMBER_ID <span class="keyword">asc</span>
+</code></pre>
+	<p>
+		ポイントは以下の通りです。
+	</p>
+	<dl class="textlist">
+		<dt>A. Sql2Entityマーク</dt>
+		<dd>
+			CustomizeEntity と ParameterBean を生成する場合はその宣言を行う。
+			<div class="detailpage"><a href="../../generator/task/sql2entity/index.html#sql2entitymark">Sql2Entityマーク</a></div>
+		</dd>
+		<dt>B. パラメータコメント</dt>
+		<dd>
+			ParameterBeanへの参照は pmb という変数名を利用すること。
+			<div class="detailpage"><a href="./pmcomment.html">パラメータコメント</a></div>
+		</dd>
+	</dl>
+	<h3 id="customizeentitymark">CustomizeEntity マーク</h3>
+	<p>
+		<em class="keyword">検索系で select 句のカラムが二つ以上</em>
+		の場合は、基本的には必ず宣言します。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#customizeentitymark">CustomizeEntityマーク</a></div>
+<pre><span class="codetitle">ex) CustomizeEntityマークの宣言 {クラス名はSQL名から導出する場合} @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+</code></pre>
+	<p>
+		また、<em class="keyword">カラムが一つだけであってもカーソル検索する場合は必要</em> です。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/typesafecursor.html#typesafecursormark">TypeSafeCursorマーク</a></div>
+<pre><span class="codetitle">ex) TypeSafeCursorマークの宣言 {クラス名はSQL名から導出する場合} @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +cursor+</span>
+</code></pre>
+	<h3 id="parameterbeanmark">ParameterBean マーク</h3>
+	<p>
+		<em class="keyword">SQLへ渡すパラメータが一つ以上</em> の場合は、基本的には必ず宣言します。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/parameterbean.html#parameterbeanmark">ParameterBeanマーク</a></div>
+<pre><span class="codetitle">ex) ParameterBeanマークの宣言 {クラス名はSQL名から導出する場合} @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!Integer memberId!!</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<div class="inucolumn">
+	<h4>Pmb は一つ以上で宣言するのがポリシー</h4>
+	<p>
+		厳密には、パラメータが一つだけの場合は、ParameterBean
+		を自動生成しなくても、(スカラ値のParameterBeanとして)そのままの値をパラメータとして利用できます。ただ、ParameterBean
+		の空文字フィルタや曖昧検索や区分値などのオプションを利用する場合は(パラメータが一つでも)利用するメリットが大いにあり、
+		かつ、パラメータが増えた時の手間や、いちいちの判断などを考え、"一つ以上で宣言する"
+		という風に銘を打っています。(さらにはページングを利用する場合はパラメータがなくてもParameterBeanは必須)
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#emptyasnull">ParameterBean - 空文字はnullとして扱われる</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#likesearch">ParameterBean - 曖昧検索のオプション</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#fromto">ParameterBean - 日付のFromTo検索条件のオプション</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#classification">ParameterBean - 区分値条件のオプション</a></div>
+<pre><span class="codetitle">ex) スカラ値のParameterBean利用時のパラメータコメント @OutsideSql</span><code>
+<span class="comment">MEMBER_ID = /*pmb*/3</span>
+</code></pre>
+	</div>
+	<h3 id="sqltitledesc">SQLのタイトルや説明</h3>
+	<p>
+		必須ではありませんが、<em class="keyword">そのSQLを業務的に表すタイトルと説明</em>
+		をSQLファイルに付与しておくことをお奨めします。それらは、単なるSQLファイル上のコメントとしてだけでなく、<em class="keyword">JavaDocやSchemaHTMLでも参照できる重要なコメント</em>
+		となります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./genbafit/outsidesqltitle/index.html"> -->(外だしSQL)現場フィット - 外だしSQLのタイトル<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./genbafit/outsidesqldescription/index.html"> -->(外だしSQL)現場フィット - 外だしSQLの説明<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../generator/task/doc/schemahtml.html#outsidesql">SchemaHTML - 外だしSQL一覧</a></div>
+	<p>
+		SQLファイルの先頭の <em class="keyword">/* ... */</em> 形式のコメントの中で、<em class="keyword">[df:title]</em>
+		の直後にSQLのタイトル、<em class="keyword">[df:description]</em> の直後にSQLの説明を記述します。
+	</p>
+<pre><span class="codetitle">ex) SQLのタイトルと説明を記述 @OutsideSql</span><code>
+<span class="comment">/*</span>
+ <span class="point">[df:title]</span>
+ <span class="comment">シンプルな会員検索のExample</span>
+ 
+ <span class="point">[df:description]</span>
+ <span class="comment">このSQLはOutsideSqlの最も基本的なExampleです。
+ 参考ポイント：
+   o パラメータコメント(IFコメントやバインド変数コメントなど)の利用方法
+   o Sql2Entityで生成するCustomizeEntityとParameterBeanの定義方法
+   o 外だしSQLの業務的なタイトル・説明(SchemaHTMLにて表示される)の記述方法
+ 外だしSQLのエンコーディングはデフォルトで「UTF-8」です。
+ ダブルバイト文字を利用する場合はエディタのエンコーディングにご注意下さい。
+ 補足：
+   o この外だしSQLと同じSQLはConditionBeanで実現可能
+*/</span>
+<span class="comment">-- #df:entity#</span>
+<span class="abbreviation">...</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		例えば、このタイトルと説明をアプリケーション全体で必須にしたいというときは、outsideSqlDefinitionMap.dfprop
+		の設定で <em class="keyword">OutsideSqlTestタスクで必須チェック</em> を掛けることができます。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/outsidesqltest/index.html#checksqltitle">OutsideSqlTest - 外だしSQLのタイトル (オプション)</a></div>
+	<div class="relatedpage"><a href="../../generator/task/outsidesqltest/index.html#checksqldesc">OutsideSqlTest - 外だしSQLの説明 (オプション)</a></div>
+
+	<h2 id="sql2entity">3. Sql2Entityを実行する</h2>
+	<p>
+		<em class="keyword">Sql2Entityタスク</em> を実行します。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/index.html">DBFluteタスク - Sql2Entityタスク</a></div>
+	<h3 id="wrongsql">SQLが文法的に間違っている場合</h3>
+	<p>
+		Sql2Entity実行時に例外が発生します。SQL文を修正して成功するまで再実行して下さい。
+	</p>
+
+	<h2 id="outsidesql">4. 外だしSQLを呼び出す</h2>
+	<p>
+		対応する Behavior の <em class="keyword">outsideSql()</em> メソッドを利用して該当のSQLを実行します。 
+	</p>
+	<div class="relatedpage"><a href="#bhvinstance">this - Behaviorインスタンスの取得</a></div>
+	<p>
+		outsideSql() に続いて、リスト検索、カーソル検索、更新処理など、様々なメソッドが用意されています。
+		メソッドによって引数は異なりますが、おおよそ基本となるリスト検索 selectList() においてのポイントは以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>第一引数(path) *必須</dt><dd>SQLのパス: BehaviorQueryPathを利用</dd>
+		<dt>第二引数(pmb)</dt><dd>ParameterBean: SQLに渡すパラメータが無い場合は null</dd>
+		<dt>第三引数(entityType) *必須</dt><dd>CustomizeEntityのタイプ: クラス型を利用</dd>
+	</dl>
+	<p>
+		詳しい仕様は selectList() の詳細ページをご覧下さい。
+	</p>
+	<div class="detailpage"><a href="./select/selectlist.html">selectList()</a></div>
+<pre><span class="codetitle">ex) リスト検索 {名前が 'S' で始まる会員を検索｝@Java</span><code>
+<span class="comment">// SQLのパス: BehaviorQueryPath</span>
+String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
+
+<span class="comment">// パラメータ: ParameterBean</span>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+
+<span class="comment">// 戻り値Entityの型: CustomizeEntity</span>
+Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>;
+
+<span class="comment">// 外だしSQLの実行！</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(path, pmb, entityType);
+</code></pre>
+	<h3 id="log">外だしSQLの実行ログ</h3>
+	<p>
+		外だしSQLの実行ログ(表示用SQLも含む)は以下のようになります。
+	</p>
+	<div class="relatedpage"><a href="../../genbafit/implfit/debuglog/index.html">現場フィット - デバッグログ</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../genbafit/implfit/displaysql/index.html"> -->現場フィット - 表示用SQL<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) リスト検索のテスト実装のログ @Log</span><code>
+(XLog#log():38) - /========================================================================================
+(XLog#log():38) -                                                       MemberBhv.outsideSql().selectList()
+(XLog#log():38) -                                                       ==================================/
+(XLog#log():38) - BehaviorBasicTest.test_outsideSql_selectList_selectSimpleMember_Tx():457 -> ...
+(XLog#log():38) - path: selectSimpleMember
+(XLog#log():38) - option: {paging=non, dynamic=false}
+(QLog#log():38) - 
+<span class="comment">/*
+ [df:title]
+ シンプルな会員検索のExample
+ 
+ [df:description]
+ このSQLはOutsideSqlの最も基本的なExampleです。
+ 参考ポイント：
+   o パラメータコメント(IFコメントやバインド変数コメントなど)の利用方法
+   o Sql2Entityで生成するCustomizeEntityとParameterBeanの定義方法
+   o 外だしSQLの業務的なタイトル・説明(SchemaHTMLにて表示される)の記述方法
+ 外だしSQLのエンコーディングはデフォルトで「UTF-8」です。
+ ダブルバイト文字を利用する場合はエディタのエンコーディングにご注意下さい。
+ 補足：
+   o この外だしSQLと同じSQLはConditionBeanで実現可能
+*/
+-- #df:entity#
+
+-- !df:pmb!
+-- !!Integer memberId!!
+-- !!String memberName:likePrefix!!
+</span>
+<span class="keyword">select</span> member.MEMBER_ID
+     , member.MEMBER_NAME
+     , member.BIRTHDATE
+     , memberStatus.MEMBER_STATUS_NAME
+  <span class="keyword">from</span> MEMBER member
+    <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
+      <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+ 
+ <span class="keyword">where</span>
+   
+   member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span> 
+   
+   
+ 
+ <span class="keyword">order by</span> member.BIRTHDATE <span class="keyword">desc</span>, member.MEMBER_ID <span class="keyword">asc</span>
+(XLog#log():38) - ===========/ [00m00s063ms (4) first={12, Suker, 1968-01-01, 仮会員}@ef28f3f]
+(XLog#log():38) -  
+</code></pre>
+
+	<h2 id="bhvinstance">Behaviorインスタンスの取得</h2>
+	<p>
+		Behaviorインスタンスは <em class="keyword">DIコンテナから取得</em> します。
+	</p>
+	<div class="detailpage"><a href="../behavior/howto.html">Behaviorの使い方</a></div>
+
+	<h2 id="basicspec">基本仕様</h2>
+	<p>
+		どのメソッドでも共通の基本仕様です。ここにない情報はそれぞれのメソッドの詳細をご覧下さい。
+	</p>
+	<h3 id="sqlpath">SQLのパス</h3>
+	<p>
+		主に第一引数で指定します。必須の引数なので null を指定してはいけません。
+	</p>
+	<p>
+		String型ですが、基本的には BehaviorQueryPath を利用します。
+		BehaviorQueryPath を利用しない場合は、"/" (スラッシュ)区切りのクラスパスからのファイルパスとなります。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/behaviorquerypath.html">Sql2Entity - BehaviorQueryPath</a></div>
+	<p>
+		存在しないパスを指定した場合は、OutsideSqlNotFoundException が発生します。
+	</p>
+	<h3 id="pmb">ParameterBean</h3>
+	<p>
+		SQLへ渡すパラメータがない場合は null 指定できます。但し、プロシージャコールでは必須です。
+	</p>
+	<p>
+		Object型なので、(推奨されませんが)自動生成していないクラスも指定できます。また、パラメータが一つだけの場合は、String
+		型や Integer 型などの値をそのまま指定することもできます。但し、その場合、ParameterBeanの空文字フィルタやもろもろのオプションは利用できません。
+	</p>
+	<div class="relatedpage"><a href="#parameterbeanmark">this - ParameterBeanマーク</a></div>
+
+	<h2 id="completion">コード補完を駆使して実装</h2>
+	<p>
+		外だしSQLとはいえ、せめて呼び出す処理に関しては、コード補完で実装しましょう。
+		メソッド名を一字一句丁寧に打ち込むというようなことはやらずに、<em class="keyword">メソッドの先頭の文字を打ち込んでメソッド候補を補完</em>
+		して、利用したいメソッドを選んで実装していくようにします。ここでは Eclipse を基本として説明します。
+	</p>
+	<h3 id="firstchar">先頭文字を覚えておくのが大事</h3>
+	<p>
+		外だしSQLのメソッドは多くありません。ゆえに、先頭文字さえ打ってしまえば、その時点でほとんどメソッドを呼び出したも同然です。
+	</p>
+	<p>
+		まずは、必ず唱える outsideSql() メソッド。Behaviorには、"o" で始まる public
+		メソッドは他にありません。".o" と打って enter とするだけで呼び出せます。
+	</p>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (outsideSql()を一文字で補完) @Java</span><code>
+memberBhv<span class="point">.o</span> <span class="comment">// ".o" とだけ打って enter</span>
+ <span class="attribute">to</span>
+memberBhv.<span class="point">outsideSql()</span> <span class="comment">// 続けて "." と打って続きのメソッドを補完</span>
+</code></pre>
+	<p>
+		外だしSQLで頻繁に利用されるリスト検索 selectList() は、outsideSql()の直後で唯一の "s" で始まるメソッドです。".s"
+		と打って enter とするだけで呼び出せます。
+	</p>
+<pre><span class="codetitle">ex) Eclipseでのショートカット (selectList()を一文字で補完) @Java</span><code>
+memberBhv.outsideSql()<span class="point">.s</span> <span class="comment">// ".s" とだけ打って enter</span>
+ <span class="attribute">to</span>
+memberBhv.outsideSql().<span class="point">selectList(path, pmb, entityType)</span>; <span class="comment">// 最後にセミコロンを</span>
+</code></pre>
+	<p>
+		その他メソッド(経由するメソッドも含む)に関しても、先頭文字をおおよそ把握しておくとさらに良いでしょう。
+	</p>
+	<div class="detailpage"><a href="./index.html#function">外だしSQLの機能</a></div>
+	<h3 id="autoresult">戻り値の抽出</h3>
+	<p>
+		これは、Behaviorで紹介しているものと全く同じです。特に外だしSQLは、戻り値の型は Generic
+		で指定しますので、戻り値の型は自動で抽出するのがお奨めです。
+	</p>
+	<div class="detailpage"><a href="../behavior/howto.html#autoresult">Behavior - 戻り値の抽出</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

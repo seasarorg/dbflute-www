@@ -1,0 +1,320 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,CustomizeEntity,SQL対応のEntity,外だしSQLのEntity,Sql2Entity" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>CustomizeEntity | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>CustomizeEntity</h1>
+	<ul class="indexlist">
+		<li><a href="#about">CustomizeEntityとは？</a></li>
+		<li><a href="#autogenerate">CustomizeEntityの自動生成</a>
+			<ul>
+				<li><a href="#merit">自動生成によるメリット</a></li>
+				<li><a href="#deleteold">古いクラスは削除される</a></li>
+			</ul>
+		</li>
+		<li><a href="#customizeentitymark">CustomizeEntityマーク</a>
+			<ul>
+				<li><a href="#fromsqlfile">SQLファイル名からEntityの名前を導出</a></li>
+				<li><a href="#markmisc">補足</a></li>
+			</ul>
+		</li>
+		<li><a href="#option">CustomizeEntityのオプション</a>
+			<ul>
+				<li><a href="#pkmark">PKの設定</a></li>
+				<li><a href="#cursor">TypeSafeCursor</a></li>
+				<li><a href="#forcedtype">型の強制指定</a></li>
+			</ul>
+		</li>
+		<li><a href="#structure">CustomizeEntityの構造</a>
+			<ul>
+				<li><a href="#commoncolumn">共通カラム(CommonColumn)の認識</a></li>
+				<li><a href="#classification">区分値メソッドの生成</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="about">CustomizeEntityとは？</h2>
+	<p>
+		テーブル対応のEntityを DomainEntity と呼ぶのに対し、<em class="keyword">SQL対応のEntity</em>
+		を CustomizeEntity と呼びます。CustomizeEntityは <em class="keyword">SQLのselect句と同じプロパティ構造</em> を持ちます。
+	</p>
+	<p>
+		例えば、"select * from MEMBER" というようなSQLの結果はDomainEntityで受け取ることができますが、
+		"select MEMBER_ID, MAX(xxx) from ... group by MEMBER_ID"
+		というようなSQLの結果はDomainEntityでは受け取れないため、そのSQLのselect句と同じ構造を持ったCustomizeEntityで受け取るようにします。
+	</p>
+
+	<h2 id="autogenerate">CustomizeEntityの自動生成</h2>
+	<p>
+		ParameterBeanは、Sql2Entityタスクで自動生成されます。
+		出力先ディレクトリと出力クラスのパッケージは、<span class="existscloset" title="exists a closet option">Generateタスクで自動生成されるクラスと同じ</span>で、
+		Entityのパッケージ配下の <em class="keyword">customize</em> パッケージに出力されます。
+	</p>
+	<p>
+		外だしSQLに <em class="keyword">このSQLに対応するCustomizeEntityを生成したいというマーク</em>
+		を記述し、Sql2Entityタスクを実行することでCustomizeEntityが自動生成されます。
+		(CustomizeEntityの自動生成対象となる外だしSQLは、Sql2Entityタスクで実際のDBに対して実行されるため、外だしSQLは必ず
+		"2Way-SQL" で記述されていることを前提とします)
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/about.html#twowaysql">外だしSQL - 2Way-SQL</a></div>
+	<div class="relatedpage"><a href="./index.html">Sql2Entityタスク</a></div>
+	<h3 id="merit">自動生成によるメリット</h3>
+	<p>
+		外だしSQLで利用する戻り値の型は、DomainEntity
+		でなく、<em class="keyword">そのSQL独自の構造を持ったEntity</em>
+		であって欲しい場合が多々あります。そのEntityを手動で作成すると面倒なのはもとより
+		"プロパティ名とSQLで定義したカラム名が食い違うバグ" も発生します。
+		よって、DBFluteではSql2Entityタスクを利用して、<em class="keyword">SQL文そのものから定義すべきプロパティ名を導出して自動生成し</em>、そのような問題を解決します。
+		手動作成の面倒な点もなくなり、入力ミスなどによる名称定義の食い違いでのバグも一切なくなります。
+	</p>
+	<h3 id="deleteold">古いクラスは削除される</h3>
+	<p>
+		外だしSQLのどこにも記述されていない既存の<span class="existscloset" title="exists a closet option">古いCustomizeEntityは(ファイルシステム上から)削除されます</span>。
+		古いCustomizeEntityを利用しているプログラムはコンパイルエラーとして検知できます。
+	</p>
+
+	<h2 id="customizeentitymark">CustomizeEntityマーク</h2>
+	<p>
+		CustomizeEntityの生成を示すマークは、SQLの行コメント形式 "-- " で、<em class="keyword">#[Entityのクラス名]#</em>
+		という形で記述します。これを CustomizeEntityマーク と呼びます。
+	</p>
+<pre><span class="codetitle">ex) SimpleMemberという名前のCustomizeEntityを生成 @SQL-File</span><code>
+<span class="comment">-- #SimpleMember#</span>
+select ...
+  from ...
+</code></pre>
+	<h3 id="fromsqlfile">SQLファイル名からEntityの名前を導出</h3>
+	<p>
+		SQLファイル名からEntityの名前を導出できる場合は、クラス名の指定部分を固定の文字にすることができます。例えば、SQLファイルの名前が
+		MemberBhv_selectSimpleMember.sql で、CustomizeEntityのクラス名は SimpleMember
+		としたい場合に適用できます。完全にそのSQL専用のEntityと位置付けられるような場合はこの方法がお奨めです。
+	</p>
+<pre><span class="codetitle">ex) "MemberBhv_selectSimpleMember.sql" で "SimpleMember" というEntityを生成 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+select ...
+  from ...
+</code></pre>
+	<h3 id="markmisc">補足</h3>
+	<p>
+		CustomizeEntityマークは、基本的に select文 に対して記述することを想定しています。
+		update文 に対しての記述は意味のないことです。
+	</p>
+
+	<h2 id="option">CustomizeEntityのオプション</h2>
+	<h3 id="pkmark">PKの設定</h3>
+	<p>
+		生成されるCustomizeEntityが持つ情報として、<em class="keyword">そのSQL(の結果レコード)をユニークに識別するPK</em>
+		を設定することができます。そうすることでは、CustomizeEntityの equals()メソッド や hasPrimaryKey()メソッド
+		にて指定されたPKを利用するようになります。
+	</p>
+	<p>
+		SQLの行コメント で、<em class="keyword">*[主キー]*</em>
+		という形で記述します(複数指定する場合はカンマ区切りで指定)。これを
+		CustomizeEntityのPKマーク と呼びます。
+	</p>
+<pre><span class="codetitle">ex) MEMBER_IDをPKとして扱いたい場合 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- *MEMBER_ID*</span>
+select MEMBER_ID, MAX(...), ...
+  from PURCHASE
+    left outer join ...
+ group by MEMBER_ID
+</code></pre>
+	<div class="inucolumn">
+		<h4>コラム：SQLのユニーク性の明示</h4>
+		<p>
+			CustomizeEntityを利用してBehaviorから更新処理を行うというようなことはないので、実際にPKの設定が必要になる場面はあまりないかもしれません。
+			ですが、"外だしSQLは結果のユニーク性" がわかりづらいものになりがちで、そのような場合にある種 "ドキュメントという位置付け"
+			でそのSQLのユニーク性を宣言しておくことは、後でそのSQLをメンテナンスする人にとってはとてもありがたいことでしょう。
+			(SQLが)複雑でわかりにくいかもとふと思ったときに、このPKの設定をしておくと良いでしょう。
+		</p>
+	</div>
+	<h3 id="cursor">TypeSafeCursor</h3>
+	<p>
+		<em class="keyword">CustomizeEntityマークのオプション</em> として、TypeSafeCursor
+		を生成することができます。TypeSafeCursorのオプションが指定されている場合はCustomizeEntityは生成されません。
+	</p>
+	<div class="detailpage"><a href="./typesafecursor.html">TypeSafeCursor</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/cursor.html"> -->外だしSQL - カーソル検索<!-- </a> --></span></div>
+	<h3 id="forcedtype">型の強制指定</h3>
+	<p>
+		CustomizeEntityのプロパティの型は、メタデータより取得したDB上のデータ型情報を元にマッピングされます。
+		通常ほとんどの場合はこれで問題はありませんが、JDBCドライバ次第でほんの稀に予期せぬ型にマッピングされることがあります。
+		そのような場合に、型を強制的に指定することができます。SQLの行コメントで <em class="keyword">##プログラム上の型 カラム名##</em>
+		という形で記述します。するとのそのカラムにマッピング型が指定された型になります。
+	</p>
+<pre><span class="codetitle">ex) PURCHASE_PERCENTをBigDecimalに強制的にマッピング @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- ##BigDecimal PURCHASE_PERCENT##</span>
+select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
+  from ...
+</code></pre>
+
+	<h2 id="structure">CustomizeEntityの構造</h2>
+	<p>
+		CustomizeEntityクラスの構造は、基本的に DomainEntity
+		と同じです(内部的にも同じテンプレートが利用されています)。なので、Entity インターフェースを実装しており、DBMeta
+		(SQLのメタデータ)にもアクセスできます。また ジェネレーションギャップになっています。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/entity/index.html">Entity</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wg.html#generationgap">GenerationGap (ジェネレーションギャップ)</a></div>
+	<h3 id="commoncolumn">共通カラム(CommonColumn)の認識</h3>
+	<p>
+		SQLの構造として(全ての)共通カラムを含んでいる場合、<em class="keyword">自動的に共通カラムを持ったCustomizeEntity</em>
+		となります。つまり、EntityDefinedCommonColumn インターフェースを実装します。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/entity/index.html#commoncolumn">Entity - 共通カラム</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
+	<h3 id="classification">区分値メソッドの生成</h3>
+	<p>
+		<em class="keyword">DBFluteプロパティの設定にて区分値と関連付けられているカラムの条件に一致するカラム</em>
+		をSQLの構造として含んでいる場合、自動的に区分値メソッドを持ったCustomizeEntityとなります。
+		Sql2Entityのメタデータとしてカラムの参照先カラムが判明している場合は、
+		その参照先カラムの情報をもとに一致するかどうか判定されます(但し、これはJDBCドライバ次第)。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+<pre><span class="codetitle">ex) MEMBER_STATUS_CODEという名前が区分値として関連付けられている場合 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+select MEMBER_ID
+     , MEMBER_STATUS_CODE <span class="comment">-- treated as classification</span>
+     , MEMBER_STATUS_CODE as FOO <span class="comment">-- treated as classification (depends on JDBC)</span>
+     , 0 as MEMBER_STATUS_CODE <span class="comment">-- treated as classification</span>
+  from MEMBER
+</code></pre>
+<pre><span class="codetitle">ex) _FLGで終わるカラムが区分値として関連付けられている場合 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+select MEMBER_ID
+     , 0 as DELETE_FLG <span class="comment">-- treated as classification</span>
+     , 0 as DELETE_NOFLG <span class="comment">-- NOT treated as classification</span>
+  from MEMBER
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

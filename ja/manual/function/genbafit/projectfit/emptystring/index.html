@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,空文字,EmptyString,null" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>空文字の取扱い | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>空文字の取扱い</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#default">デフォルトのポリシー</a>
+			<ul>
+				<li><a href="#supposition">デフォルトの想定</a></li>
+				<li><a href="#spec">デフォルトの仕様</a></li>
+				<li><a href="#deprecated">少なくともお奨めでないこと</a></li>
+			</ul>
+		</li>
+		<li><a href="#equal">空文字による等値条件</a>
+			<ul>
+				<li><a href="#conditionbean">ConditionBean</a></li>
+				<li><a href="#parameterbean">ParameterBean</a></li>
+			</ul>
+		</li>
+		<li><a href="#entity">Entityで空文字を null に変換</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		空文字と null の区別の問題は、非常にややこしい問題です。"値が無いこと" を何で表現するか？
+		"(確かに存在する)空っぽの値" というのを業務的に取り扱うか(取り扱う必要があるか)？
+		業務的な意味合いでの話に加えて、実装上の利便性が絡んできます。
+		それも、プログラミング言語上での話、SQL上での話、DBMSごとの仕様の違いなど、それぞれ特徴があり、一律の答えを求めるのが難しくなっています。
+		様々な議論がありますが、こういった状況から、DBFluteとして
+		"明確な答えが(まだ)存在していない状態、もしくは、明確な答えが出しづらい状態にあるため、ポリシーがプロジェクトによって様々である"
+		という風に解釈をしています。
+	</p>
+	<p>
+		とはいえ、DBFluteとしては避けて通れない部分ではあるので、"デフォルトのポリシー"
+		を打ち出し、プロジェクトにそぐわない場合はアプリケーションにて(プロパティなので)調整してもらう、
+		というスタンスをとっています。
+	</p>
+	<div class="relatedpage"><a href="../../../../topic/dbdesign/emptystring.html">DB設計 - 空文字について</a></div>
+
+	<h2 id="default">デフォルトのポリシー</h2>
+	<h3 id="supposition">デフォルトの想定</h3>
+	<p>
+		まずは、DBFluteはある状況が(良いかどうかは別にして)比較的多い状況であると想定しています。
+	</p>
+	<dl class="textlist">
+		<dt>空文字に業務的な意味があることが少ない</dt>
+		<dd>
+			例えば、会員名称に空文字が入ったり、会員ステータスコードに空文字が入ったりすることは、業務上考えにくいものです。
+			"値はあるけど、空っぽである" ということに業務的な意味が付与されることは(少なくとも全体からみて)多くはないと考えています。
+		</dd>
+		<dt>"値がないこと" を示すのには null が利用される</dt>
+		<dd>
+			もちろん、概念的な話は置いて、実装上の null
+			の取扱いに注意が必要な場面があるのは事実ですが、"プログラミング言語上、SQL上、DBMSごとの仕様の違い"
+			など、それぞれの事情の影響から、null で表現されることが多いと考えています。
+			(もちろん、自分たちの組織ではそうではない(組織統一)、と人によってこのように考えない場合もありますが、
+			これまでのDBFluteの(組織はそれぞれバラバラな)利用者たちの反応などを総合的に解釈して、というところです)
+		</dd>
+	</dl>
+	<h3 id="spec">デフォルトの仕様</h3>
+	<p>
+		これらを踏まえて、DBFluteでは以下のようなデフォルトの仕様があります。
+	</p>
+	<dl class="valuemainlist">
+		<dt>検索データ</dt>
+		<dd>DBに格納されているそのままを検索</dd>
+		<dt>登録・更新データ</dt>
+		<dd>設定された値そのままを登録・更新</dd>
+		<dt>検索条件の値</dt>
+		<dd>空文字は null と同じ扱い(条件設定が無効になる)</dd>
+	</dl>
+	<p>
+		"検索データ" および "登録・更新データ" の "業務データそのもの"
+		に関しては、<em class="keyword">アプリ上で取り扱ったそのままの値が保たれることを重視</em>
+		しているため、フィルタなどは掛けていません。(これは空文字の話に限りません)
+	</p>
+	<p>
+		一方で、検索条件の値(条件値)に関しては、<em class="keyword">利便性を重視</em>
+		しているため、フィルタを掛けて、空文字も null と同じように、"その設定された条件は無効な条件である"
+		と判定します。ConditionBeanの Query による条件設定や、ParameterBeanでのIFコメントでの null
+		チェックなどが該当します。プログラミング言語上では、少なくとも業務データ以外のデータに関しては、空文字は null
+		と同じく "値がないこと" として取り扱うことも多く、隣接するフレームワークなど仕組みや実装の仕方次第で、
+		"値がないこと" を示すのに空文字が来るのか null が来るのか様々です。
+		そして、さらにそもそも空文字で等値条件を利用することが業務的に少ないという状況から、検索条件の値はデフォルトではフィルタされるようにしています。
+	</p>
+	<p>
+		もちろん、あくまである特定の状況を想定したデフォルトの挙動であり、全てのカラムがそうではない場合もあるし、
+		そもそもポリシーが違うという場合もあります。そういうときのために、空文字を活かせるようにするオプションがあります(後述)。
+		(また、逆に空文字を完全に排除するオプションもあります)
+	</p>
+	<div class="relatedpage"><a href="#equal">this - 空文字による等値条件</a></div>
+	<div class="relatedpage"><a href="#entity">this - Entityで空文字を null に変換</a></div>
+	<h3 id="deprecated">少なくともお奨めでないこと</h3>
+	<p>
+		少なくとも、以下のことが、明確になっていない、もしくは、DBスキーマ全体で統一されていない、という状況はお奨めできません。
+		必ず、(アプリ実装が始まる前の)DB設計の時点で明確にしておくことが大事です。
+		DBFluteのオプションの利用は、<em class="keyword">統一的なポリシーが存在することが前提</em> です。
+	</p>
+	<ul>
+		<li>DB上で業務的に空文字をどう扱うか？</li>
+		<li>空文字に意味を持たせる(空文字が業務的にありえる)カラムは何か？</li>
+		<li>"値がないこと" を(DBスキーマ全体で)何で表現するのか(null or empty)？</li>
+	</ul>
+
+	<h2 id="equal">空文字による等値条件</h2>
+	<h3 id="conditionbean">ConditionBean</h3>
+	<p>
+		ConditionQueryのExクラスに、空文字による等値条件を設定するメソッドを(手動で)作成します。
+		メソッドの中では、doSet[column-name]_Equal(value) を呼び出し、引数には固定で空文字を指定します。
+		メソッド名は任意ですが、習慣的に set[column-name]_Equal_EmptyString()
+		をお奨めします。また、非等値条件も同じ要領で作成します。
+	</p>
+<pre><span class="codetitle">ex) ConditionQueryで空文字による等値条件メソッドを定義 {MEMBER} @Java</span><code>
+<span class="keyword">public class</span> MemberCQ <span class="keyword">extends</span> BsMemberCQ {
+    <span class="abbreviation">...</span>
+
+    <span class="keyword">public void</span> setMemberName_Equal_EmptyString() {
+        doSetMemberName_Equal(<span class="literal">""</span>);
+    }
+}
+</code></pre>
+<pre><span class="codetitle">ex) 空文字による等値条件メソッドを利用 {MEMBER} @Java</span><code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberName_Equal_EmptyString();
+<span class="abbreviation">...</span>
+</code></pre>
+	<h4>自動生成で一括作成</h4>
+	<p>
+		ConditionQueryの空文字による等値条件メソッドを一括で自動生成することもできます。DBスキーマ全体で、"値がないこと"
+		を空文字で取り扱ってる(例えば、全てのカラムがNotNull制約の)場合や、
+	</p>
+	<p>
+		littleAdjustmentMap.dfprop の isMakeConditionQueryEqualEmptyString を true
+		に設定すると、全ての文字列のカラムに対して空文字による等値条件メソッド、および、非等値条件メソッドが自動生成されます。
+		DBスキーマ全体のポリシーとして、"値がないこと" を空文字で表現する(例えば、全カラムがNotNull制約の)場合に有効です。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#ismakeconditionqueryequalemptystring">dfprop - isMakeConditionQueryEqualEmptyString</a></div>
+	<p>
+		さらに、そのプロパティを利用した状態で、IncludeQuery
+		を利用して、空文字による等値条件の自動生成対象カラムを指定することができます。
+		DB設計の時点で、空文字に業務的な意味が存在するカラムに対して等値条件をすることがわかってる場合に有効です。
+		無駄な(大量の)メソッドは、ディベロッパーにとって紛らわしいのと、コンパイル速度の劣化に繋がります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../dbflutefit/includequery/index.html"> -->現場フィット - IncludeQuery<!-- </a> --></span></div>
+
+	<h3 id="parameterbean">ParameterBean</h3>
+	<p>
+		get メソッドでフィルタが掛かっているため、ParameterBeanのExクラスにて、get
+		メソッドをオーバーライドして、インスタンス変数の値をフィルタせずにそのまま戻すようにします。
+		但し、(DBFluteアップグレード時の)万が一の仕様変更のために、必ず単体テストを書くようにして下さい。
+	</p>
+<pre><span class="codetitle">ex) ConditionQueryで空文字による等値条件メソッドを定義 {MEMBER} @Java</span><code>
+<span class="keyword">public class</span> SimpleMemberPmb <span class="keyword">extends</span> BsSimpleMemberPmb {
+    <span class="abbreviation">...</span>
+
+    @Override
+    <span class="keyword">public</span> String getMemberName() {
+        <span class="keyword">return</span> <span class="attribute">_memberName</span>;
+    }
+}
+</code></pre>
+
+	<h2 id="entity">Entityで空文字を null に変換</h2>
+	<p>
+		もし、DBスキーマ上の全てのカラムにおいて、空文字を業務的に取り扱わない仕様で、もし空文字を設定されたら null
+		として処理したい、ということが <em class="keyword">確定している</em> 場合、littleAdjustmentMap.dfprop の
+		isEntityConvertEmptyStringToNull を利用することで、Entityの中の空文字を null に変換することができます。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isentityconvertemptystringtonull">dfprop - isEntityConvertEmptyStringToNull</a></div>
+	<p>
+		これにより、"検索データ" および "登録・更新データ" の "業務データそのもの"
+		においても、空文字を null として取り扱うことができ、実装や仕組み上の "まぎれ" も防ぐことができます。
+	</p>
+	<p>
+		但し、Entityを経由しないスカラ検索(スカラ値としてデータを受け取る検索)においては、変換処理は掛からないため、
+		DB上のカラムの値が空文字だった場合は、そのまま空文字が取得されます。
+	</p>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-tricky-example では、実際に空文字による等値条件を利用したExampleがあります。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#pointenv">DBFlute Example - 特定環境</a></div>
+	<p>
+		また、dbflute-guice-example では、実際に "Entityで空文字を null に変換" を利用したExampleがあります。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ListResultBean" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../../css/sub.css" />
+	<title>ListResultBean | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html"><img src="../../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html"><img src="../../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/tutorial/architect.html"><img src="../../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/tutorial/developer.html"><img src="../../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html"><img src="../../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/environment/setup/index.html"><img src="../../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html"><img src="../../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ListResultBean</h1>
+	<ul class="indexlist">
+		<li><a href="#about">ListResultBeanとは？</a>
+			<ul>
+				<li><a href="#implementation">java.util.Listの実装クラス</a></li>
+				<li><a href="#wrapper">java.util.ArrayListをラップ</a></li>
+				<li><a href="#selectresult">(幾つかの)検索情報を保持</a></li>
+				<li><a href="#listutility">汎用的なリスト操作を備える</a></li>
+			</ul>
+		</li>
+		<li><a href="#property">プロパティ</a></li>
+		<li><a href="#method">メソッド</a>
+			<ul>
+				<li><a href="#grouping">グルーピング</a></li>
+				<li><a href="#mapping">マッピング</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="about">ListResultBeanとは？</h2>
+	<p>
+		DBFluteにおけるリスト検索などで戻されるリスト型の結果オブジェクトです。通常は、あまり意識する必要はなく、扱う型として
+		java.util.List を利用していれば問題ありませんが、時々、力を発揮するかもしれません。(PagingResultBeanのスーパークラスとしても利用される)
+	</p>
+	<p>
+		会話上では、<em class="keyword">りすとりざるとびーん</em> と表現します。
+	</p>
+	<h3 id="implementation">java.util.Listの実装クラス</h3>
+	<p>
+		java.util.List を実装しているため、他のリスト型と同様に扱うことができます。
+	</p>
+	<h3 id="wrapper">java.util.ArrayListをラップ</h3>
+	<p>
+		内部的に java.util.ArrayList をラップして、java.util.List の仕様を実現しているため、リストとしての仕様は
+		ArrayList と基本的に同じです。List インターフェースのメソッドの実装は、ラップしている ArrayList に委譲しています。
+	</p>
+	<h3 id="selectresult">(幾つかの)検索情報を保持</h3>
+	<p>
+		検索結果だけでなく、さらに(幾つかの)検索情報のプロパティを保持しています。
+	</p>
+	<div class="detailpage"><a href="#property">this - プロパティ</a></div>
+	<h3 id="listutility">汎用的なリスト操作を備える</h3>
+	<p>
+		さらに、汎用的なリスト操作を行うメソッドを備えています。
+	</p>
+	<div class="detailpage"><a href="#method">this - メソッド</a></div>
+
+	<h2 id="property">プロパティ</h2>
+	<p>
+		ListResultBeanが保持しているプロパティは以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>tableDbName</dt><dd>検索の基点となったテーブルの名前</dd>
+		<dt>allRecordCount</dt><dd>保持しているリストの件数</dd>
+		<dt>selectedList</dt><dd>保持しているリストそのもの</dd>
+		<dt>orderByClause</dt><dd>検索時のソート情報 <span class="freecomment">(基本的に、CBによる検索のみ)</span></dd>
+	</dl>
+	<p>
+		あまり、純粋な ListResultBean として利用する場合に、これらを役に立てることは少ないかもしれません。
+		ListResultBean を継承する PagingResultBean を利用する際に意識する機会が増えるでしょう。
+	</p>
+
+	<h2 id="method">メソッド</h2>
+	<h3 id="grouping">グルーピング</h3>
+	<p>
+		例えば、リストの中身が <em class="keyword">{A, B, C, D, E, F, G, H, I, J}</em>
+		とあった場合に、<em class="keyword">{[A, B, C], [D, E, F], [G, H, I], [J]}</em>
+		というように、ある決まった規則でグルーピングされた(ネストした)構造に変換(コントロールブレイク)したいという場合に、
+		ListResultBeanのメソッドを使ってこれを実現できます。
+	</p>
+	<p>
+		ListResultBeanの <em class="keyword">groupingList(groupingRowSetupper, groupingOption)</em>
+		を利用します。groupingRowSetupper にて、一つのグループの row を作成するコールバックを指定して、groupingOption
+		にて、グルーピングの規則などのオプション情報を指定します。
+	</p>
+<pre><span class="codetitle">ex) 3 件ずつでグルーピング(row の型は ArrayList) @Java</span><code>
+ListResultBean&lt;Member> memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+GroupingOption&lt;Member&gt; groupingOption = <span class="keyword">new</span> GroupingOption&lt;Member&gt;(<span class="literal">3</span>);
+List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingRowSetupper&lt;List&lt;Member&gt, Member&gt() {
+    <span class="keyword">public</span> List&lt;Member> setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
+        <span class="keyword">return new</span> ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
+    }
+}, groupingOption);
+</code></pre>
+<pre><span class="codetitle">ex) 会員名称の先頭文字でグルーピング(row の型は ArrayList) @Java</span><code>
+ListResultBean&lt;Member> memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+GroupingOption&lt;Member&gt; groupingOption = <span class="keyword">new</span> GroupingOption&lt;Member&gt;();
+groupingOption.setGroupingRowEndDeterminer(new GroupingRowEndDeterminer&lt;Member&gt;() {
+    <span class="keyword">public boolean</span> determine(GroupingRowResource&lt;Member&gt; rowResource, Member nextEntity) {
+        Member currentEntity = rowResource.getCurrentEntity();
+        String currentInitChar = currentEntity.getMemberName().substring(0, 1);
+        String nextInitChar = nextEntity.getMemberName().substring(0, 1);
+        <span class="keyword">return</span> !currentInitChar.equalsIgnoreCase(nextInitChar);
+    }
+});
+List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingRowSetupper&lt;List&lt;Member&gt, Member&gt() {
+    <span class="keyword">public</span> List&lt;Member> setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
+        <span class="keyword">return new</span> ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
+    }
+}, groupingOption);
+</code></pre>
+	<h3 id="mapping">マッピング</h3>
+<p>TODO jflute now writing</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../../"><img src="../../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

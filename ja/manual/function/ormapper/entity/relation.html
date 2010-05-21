@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Entity,エンティティ,リレーション,関連テーブル" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>Entity間のリレーション | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Entity間のリレーション</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#type">リレーションのタイプ</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		Entityには、スキーマ上のテーブル間のリレーションが、関連テーブルへのプロパティ(メソッド)として反映されます。
+		そのプロパティを利用して、ConditionBeanなどで検索された関連テーブルのデータを取得することができます。
+	</p>
+	<p>
+		リレーションを持つのは、DomainEntity のみです。CustomizeEntity は、SQLのフラットな構造に対応する
+		Entity のため、リレーションを持ちません。
+	</p>
+	<div class="relatedpage"><a href="./index.html">Entity</a></div>
+
+	<h2 id="type">リレーションのタイプ</h2>
+	<p>
+		リレーションのタイプ(種類)と、それぞれの特徴です。これらは、Entity
+		だけでなく、ConditionBean や Behavior など他のクラスにも通じる話です。また、ExampleDB
+		の構造を把握しておくと一層理解がしやすくなるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../reference/example/exampledb.html">ExampleDB</a></div>
+	<h3>many-to-one (親テーブル)</h3>
+	<dl class="textlist">
+		<dt>例えば、会員を基点とした場合は？</dt>
+		<dd>会員ステータスが該当</dd>
+		<dt>many-to-one であることの判定基準</dt>
+		<dd>
+			FK制約(or AdditionalForeignKey)で参照していること
+		</dd>
+		<dt>プロパティ名の特徴</dt>
+		<dd>
+			テーブル名がそのままキャメルケースとなったもの(例えば、memberStatus)。
+			但し、同じ関連テーブルへのリレーションが複数存在する場合は、プロパティ名の最後に "By[FKカラム名]" が付与される。
+		</dd>
+		<dt>逆方向のリレーション</dt>
+		<dd>
+			同時に、関連テーブル側には、基点テーブルへの one-to-many のリレーションが存在する
+		</dd>
+	</dl>
+	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/wp.html#parenttable">Parent Table (親テーブル)</a></div>
+	<h3>one-to-one</h3>
+	<dl class="textlist">
+		<dt>例えば、会員を基点とした場合は？</dt>
+		<dd>会員セキュリティ情報、会員退会情報が該当</dd>
+		<dt>one-to-one であることの判定基準</dt>
+		<dd>
+			基点テーブルを参照しているFKカラムに、PK制約(or AdditionalPrimaryKey)、もしくは、UQ制約(or
+			AdditionalUniqueKey)が定義されていること
+		</dd>
+		<dt>プロパティ名の特徴</dt>
+		<dd>
+			many-to-one のプロパティ名の法則に加えて、プロパティ名の最後に "AsOne"
+			が付与される(例えば、memberSecurityAsOne)。但し、逆方向のone-to-oneのリレーションのプロパティには付与されない。
+		</dd>
+		<dt>逆方向のリレーション</dt>
+		<dd>
+			関連テーブル側には、many-to-one と同じ仕様の基点テーブルへのリレーションが存在する。
+		</dd>
+		<dt>その他特徴</dt>
+		<dd>
+			FKの方向的には、one-to-many と同じ構造だが、実装上では
+			many-to-one と(ほぼ)同じように扱うことができるため、DBFlute
+			ではあまり子テーブルとは言わず、どちらかというと親テーブルという言葉にこのone-to-oneが含まれることが多い。
+		</dd>
+	</dl>
+	<h3>業務的one-to-one</h3>
+	<dl class="textlist">
+		<dt>例えば、会員を基点とした場合は？</dt>
+		<dd>会員住所情報が該当</dd>
+		<dt>業務的one-to-one であることの判定基準</dt>
+		<dd>
+			AdditionalForeignKeyで fixedCondition が利用されていること
+		</dd>
+		<dt>プロパティ名の特徴</dt>
+		<dd>
+			many-to-one のプロパティ名の法則に加えて、AdditionalForeignKeyの fixedSuffix
+			がプロパティ名の最後にが付与される(例えば、memberAddressAsValid)。
+		</dd>
+		<dt>逆方向のリレーション</dt>
+		<dd>
+			そもそも、one-to-manyとしてのリレーションが存在しているため(そちらで代替できるため)、
+			この業務的one-to-oneに対応する逆方向のリレーションは存在しない。
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
+	<h3>one-to-many (子テーブル)</h3>
+	<dl class="textlist">
+		<dt>例えば、会員を基点とした場合は？</dt>
+		<dd>購入、会員ログイン情報が該当</dd>
+		<dt>one-to-many であることの判定基準</dt>
+		<dd>
+			基点テーブルをFK制約(or AdditionalForeignKey)で参照していること。
+		</dd>
+		<dt>プロパティ名の特徴</dt>
+		<dd>
+			many-to-one のプロパティ名の法則に加えて、プロパティ名の最後に "List"
+			が付与される(例えば、purchaseList)。
+		</dd>
+		<dt>逆方向のリレーション</dt>
+		<dd>
+			同時に、関連テーブル側には、基点テーブルへの many-to-one のリレーションが存在する
+		</dd>
+	</dl>
+	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/wc.html#childtable">Child Table (子テーブル)</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

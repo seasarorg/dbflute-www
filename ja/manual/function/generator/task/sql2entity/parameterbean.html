@@ -1,0 +1,473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ParameterBean,SQLの引数,SQLのパラメータ,外だしSQLの検索条件,Sql2Entity" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>CustomizeEntity | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ParameterBean</h1>
+	<ul class="indexlist">
+		<li><a href="#about">ParameterBeanとは？</a>
+			<ul>
+				<li><a href="#emptyasnull">空文字は null として扱われる</a></li>
+				<li><a href="#procedure">プロシージャ対応のParameterBean</a></li>
+				<li><a href="#markmisc">補足</a></li>
+			</ul>
+		</li>
+		<li><a href="#autogenerate">ParameterBeanの自動生成</a>
+			<ul>
+				<li><a href="#deleteold">古いクラスは削除される</a></li>
+			</ul>
+		</li>
+		<li><a href="#parameterbeanmark">ParameterBeanマーク</a>
+			<ul>
+				<li><a href="#fromsqlfile">SQLファイル名からParameterBeanの名前を導出</a></li>
+			</ul>
+		</li>
+		<li><a href="#option">ParameterBeanのオプション</a>
+			<ul>
+				<li><a href="#pagingselect">ページング検索のオプション</a></li>
+				<li><a href="#likesearch">LikeSearch条件のオプション</a></li>
+				<li><a href="#fromto">DateFromTo条件のオプション</a></li>
+				<li><a href="#classification">区分値条件のオプション</a></li>
+				<li><a href="#packageresolve">プログラム型のパッケージ解決</a></li>
+			</ul>
+		</li>
+		<li><a href="#structure">ParameterBeanの構造</a>
+			<ul>
+				<li><a href="#emptystring">getメソッドの空文字フィルタ</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="about">ParameterBeanとは？</h2>
+	<p>
+		SQLへ渡すパラメータ(引数)は実開発ではかなり多くなりがちです。引数が多くなればなるほどメソッドはわかりにくいものになります。
+		DBFluteの外だしSQLでは、<em class="keyword">SQLへ渡すパラメータオブジェクト</em> を利用し、呼び出しメソッドの引数を必ず
+		"一つのオブジェクト" という形にします。そのパラメータオブジェクトのことを ParameterBean と呼びます。
+	</p>
+	<h3 id="emptyasnull">空文字は null として扱われる</h3>
+	<p>
+		ConditionBeanと同様に、空文字は null
+		として扱われます。そうすることで、外だしSQLのパラメータコメント上で空文字なのか null
+		なのかを意識する必要はありません(全て
+		"nullでないこと" という条件で分岐可能)。地味なことですが、画面側フレームワークによっては
+		"存在しない値" の表現が空文字だったり null
+		だったりとします。ParameterBeanを利用することでそういった細かいことを気にする必要がありません。
+	</p>
+	<div class="relatedpage"><a href="#emptystring">this - getメソッドの空文字フィルタ</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
+	<h3 id="procedure">プロシージャ対応のParameterBean</h3>
+	<p>
+		ParameterBeanには、プロシージャ対応のもの(ProcedurePmb)が存在します。
+		同じParameterBeanではありますが、生成の課程や役割などにちょっとした違いがあります。
+		このページでは、ProcedurePmbでないParameterBeanがメインに説明されています。
+	</p>
+	<div class="relatedpage"><a href="./procedurepmb.html">ProcedurePmb</a></div>
+	<h3 id="markmisc">補足</h3>
+	<p>
+		ParameterBeanマークは、select文 だけでなく update文(系) に対しても記述することができます。
+	</p>
+
+	<h2 id="autogenerate">ParameterBeanの自動生成</h2>
+	<p>
+		ParameterBeanは、Sql2Entityタスクで自動生成されます。
+		出力先ディレクトリと出力クラスのパッケージは、<span class="existscloset" title="exists a closet option">Generateタスクで自動生成されるクラスと同じ</span>で、
+		Behaviorのパッケージ配下の <em class="keyword">pmbean</em> パッケージに出力されます。
+	</p>
+	<p>
+		外だしSQLに <em class="keyword">このSQLで利用するParameterBeanを生成したいというマーク</em>
+		を記述し、Sql2Entityタスクを実行することでParameterBeanが自動生成されます。
+		(ParameterBeanのみの自動生成の場合は、Sql2Entityタスクで該当の外だしSQLが実際のDBに実行されませんが、外だしSQLは必ず
+		2Way-SQL で記述されていることを前提とすることに変わりはありません)
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/about.html#twowaysql">外だしSQL - 2Way-SQL</a></div>
+	<div class="relatedpage"><a href="./index.html">Sql2Entityタスク</a></div>
+	<h3 id="deleteold">古いクラスは削除される</h3>
+	<p>
+		外だしSQLのどこにも記述されていない既存の<span class="existscloset" title="exists a closet option">古いParameterBeanは(ファイルシステム上から)削除されます</span>。
+		古いParameterBeanを利用しているプログラムはコンパイルエラーとして検知できます。
+	</p>
+
+	<h2 id="parameterbeanmark">ParameterBeanマーク</h2>
+	<p>
+		ParameterBeanの生成を示すマークは、SQLの行コメントで、"![ParameterBeanのクラス名]!"
+		という形で記述します。これを "<em class="keyword">ParameterBeanマーク</em>" と呼びます。
+	</p>
+	<a>
+		また、それぞれのプロパティ要素の指定は、SQLの行コメント形式 "-- " で、"!![プログラム型 プロパティ名]!!"
+		という形で記述します。CustomizeEntityとは違い "どういったプロパティ構造を保持するか"
+		をメタデータとして取得することができませんので、明示的に一つずつ宣言していきます。
+	</a>
+<pre><span class="codetitle">ex) SimpleMemberPmbという名前のParameterBeanを生成 @OutsideSql</span><code>
+<span class="comment">-- !SimpleMemberPmb!</span>
+<span class="comment">-- !!String memberId!!</span>
+<span class="comment">-- !!Date fromBirthdate!!</span>
+select <span class="abbreviation">...</span>
+  from <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		ParameterBeanのクラス名は、"Pmb" で終わることを習慣的な規約としています。
+	</p>
+	<p>
+		一つの外だしSQLに CustomizeEntityマーク と同時に記述することができます。逆に CustomizeEntityマーク
+		がなくても利用できます(ParameterBeanだけを自動生成)。
+	</p>
+	<h3 id="fromsqlfile">SQLファイル名からParameterBeanの名前を導出</h3>
+	<p>
+		SQLファイル名からParameterBeanの名前を導出できる場合は、クラス名の指定部分を固定の文字にすることができます。例えば、SQLファイルの名前が
+		MemberBhv_selectSimpleMember.sql で、ParameterBeanのクラス名を SimpleMemberPmb
+		としたい場合に適用できます。完全にそのSQL専用のParameterBeanと位置付けられるような場合はこの方法がお奨めです。
+	</p>
+<pre><span class="codetitle">ex) "MemberBhv_selectSimpleMember.sql" で "SimpleMemberPmb" というParameterBeanを生成 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberId!!</span>
+<span class="comment">-- !!Date fromBirthdate!!</span>
+select <span class="abbreviation">...</span>
+  from <span class="abbreviation">...</span>
+</code></pre>
+
+	<h2 id="option">ParameterBeanのオプション</h2>
+	<h3 id="pagingselect">ページング検索のオプション</h3>
+	<p>
+		自動生成する ParameterBean をページング検索用のものにすることができます。
+		ParameterBeanのクラス名の指定部分の後ろに、<em class="keyword">extends SPB</em> と付与します。
+	</p>
+<pre><span class="codetitle">ex) ページング検索用のParameterBeanを生成 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb</span> <span class="point">extends SPB</span><span class="comment">!</span>
+<span class="comment">-- !!String memberId!!</span>
+<span class="comment">-- !!Date fromBirthdate!!</span>
+select <span class="abbreviation">...</span>
+  from <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		このように指定することで、ParameterBeanは、<em class="keyword">SimplePagingBean</em>
+		を継承したものになり、<em class="keyword">paging()</em>
+		メソッドでページング条件の指定ができるようになります。このメソッドは、ConditionBeanにおける paging() メソッドと同じ仕様です。
+	</p>
+<pre><span class="codetitle">ex) ページング検索用のParameterBeanを生成 {1ページ20件で3ページ目} @Java</span><code>
+SimpleMemberPmb pmb = new SimpleMemberPmb();
+pmb.<span class="point">paging(20, 3)</span>;
+<span class="abbreviation">...</span> = memberBhv.outsideSql().manualPaging().selectPage(<span class="abbreviation">...</span>, pmb, <span class="abbreviation">...</span>);
+</code></pre>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/conditionbean/advance/paging.html"> -->ConditionBean - Paging<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/select/selectpagemanual.html">OutsideSql - ManualPaging</a></div>
+	<h3 id="likesearch">LikeSearch条件のオプション</h3>
+	<p>
+		外だしSQLでも "LikeSearch条件" を利用できます。
+		検索条件の中でも曖昧検索の条件はちょっと特別な存在です。一致の方向やエスケープ処理の考慮などの要素があります。
+		ParameterBeanのオプションとして指定することで、それら処理を自動で解決することができます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../genbafit/implfit/likesearchcondition/index.html"> -->現場フィット - LikeSearch条件<!-- </a> --></span></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchmatchdirection">LikeSearchMatchDirection (LikeSearch条件の一致の方向)</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchescape">LikeSearchEscape (LikeSearch条件のエスケープ)</a></div>
+	<p>
+		プロパティ定義のプロパティ名の後ろに ":[オプション]"
+		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。利用できるオプションは以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>like</dt>
+		<dd>(プログラム上で)LikeSearchOptionを指定</dd>
+		<dt>likePrefix</dt>
+		<dd>固定でエスケープ付きの前方一致</dd>
+		<dt>likeContain</dt>
+		<dd>固定でエスケープ付きの中間一致</dd>
+		<dt>likeSuffix</dt>
+		<dd>固定でエスケープ付きの後方一致</dd>
+	</dl>
+<pre><span class="codetitle">ex) 会員名で固定でエスケープ付きの中間一致 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberName:</span><span class="point">likeContain</span><span class="comment">!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
+</code></pre>
+	<p>
+		"like" 指定は、動的に一致の方向を変える要件がある場合に有効です。一致の方向が固定の場合は、"likePrefix"
+		や "likeContain" などの固定の指定がお奨めです。
+	</p>
+	<h4>Example: LikeSearchOptionを指定</h4>
+<pre><span class="codetitle">ex) 会員名でLikeSearchOptionの利用 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberName:</span><span class="point">like</span><span class="comment">!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
+</code></pre>
+<pre><span class="codetitle">ex) like指定：会員名が 'S' で始まっていること(エスケープ付き) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">setMemberName_LikeSearch</span>(<span class="literal">"S"</span>, <span class="keyword">new</span> LikeSearchOption().likePrefix());
+</code></pre>
+	<h4>Example: 固定でエスケープ付きの前方一致</h4>
+<pre><span class="codetitle">ex) 会員名でエスケープ付きの前方一致検索 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberName:</span><span class="point">likePrefix</span><span class="comment">!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
+</code></pre>
+<pre><span class="codetitle">ex) likePrefix指定：会員名が 'S' で始まっていること(エスケープ付き) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>);
+</code></pre>
+	<h4>LikeSearchOption</h4>
+	<p>
+		ConditionBeanで利用する LikeSearchOption と同じクラスですが、ここで利用出来るのは <em class="keyword">一致の方向の指定</em> と
+		<em class="keyword">エスケープ処理のOFF</em> だけです。その他の機能(メソッド)は利用できません。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/runtime/likesearchoption.html"> -->DBFluteランタイム - LikeSearchOption<!-- </a> --></span></div>
+	<h4>エスケープ処理の仕様</h4>
+	<p>
+		ConditionBeanのエスケープ処理と同じ仕様です。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../ormapper/conditionbean/query/likesearch/escape.html"> -->ConditionBean - Escape<!-- </a> --></span></div>
+	<h4>テスト値の中のワイルドカード</h4>
+	<p>
+		バインド変数コメントのテスト値の中にワイルドカードがあってもなくても関係ありません。
+		(2Way-SQLとして実行したときに曖昧検索となるか完全一致となるかの違いでしかありません)
+	</p>
+	<h4>オプションを利用しない(外だしSQLでの)曖昧検索</h4>
+	<p>
+		オプションを利用しなくても曖昧検索は可能ですが、エスケープ処理の考慮漏れなどが発生するリスクがありますので、
+		オプションを利用するやり方をお奨めします。
+	</p>
+	<h3 id="fromto">DateFromTo条件のオプション</h3>
+	<p>
+		外だしSQLでも "DateFromTo条件" を利用できます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../genbafit/implfit/datefromtocondition/index.html"> -->現場フィット - DateFromTo条件<!-- </a> --></span></div>
+	<p>
+		プロパティ定義のプロパティ名の後ろに ":[オプション]"
+		と追加することで、ParameterBeanにてDateFromTo条件を指定することができます。利用できるオプションは以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>fromDate</dt>
+		<dd>from に対応する日付に対して指定</dd>
+		<dt>toDate</dt>
+		<dd>to に対応する日付に対して指定</dd>
+	</dl>
+<pre><span class="codetitle">ex) 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!Date fromFormalizedDate:<span class="point">fromDate</span>!!</span>
+<span class="comment">-- !!Date toFormalizedDate:<span class="point">toDate</span>!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*/</span><span class="literal">'...'</span>
+ <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate*/</span><span class="literal">'...'</span>
+</code></pre>
+<pre><span class="codetitle">ex) 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">setFromFormalizedDate_FromDate</span>(toDate(<span class="literal">"2009-10-26 12:34:56"</span>));
+pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="literal">"2009-10-29 12:34:56"</span>));
+</code></pre>
+<pre><span class="codetitle">ex) 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @DisplaySQL</span><code>
+ <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2009-10-26 00:00:00'</span>
+ <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2009-10-30 00:00:00'</span>
+</code></pre>
+	<h3 id="classification">区分値条件のオプション</h3>
+	<p>
+		外だしSQLでも "区分値" を利用できます。
+	</p>
+	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+	<p>
+		プロパティ定義のプロパティ名の後ろに ":cls[区分値名称]" と追加することで、ParameterBeanにて区分値メソッドが利用できます。
+	</p>
+<pre><span class="codetitle">ex) memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberStatusCode:<span class="point">cls(MemberStatus)</span>!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+</code></pre>
+<pre><span class="codetitle">ex) 会員ステータス(区分値)が正式会員であること(検索条件) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
+</code></pre>
+	<h3 id="packageresolve">プログラム型のパッケージ解決</h3>
+	<p>
+		指定するプログラム型のパッケージ名は、頻繁に利用されることが想定されるクラスに関しては自動で解決されます。
+	</p>
+	<p>
+		以下のクラスは自動で解決されます。
+	</p>
+	<dl class="keymainlist">
+		<dt>BigDecimal</dt><dd>java.math.BigDecimal</dd>
+		<dt>Date</dt><dd>java.util.Date</dd>
+		<dt>Timestamp</dt><dd>java.sql.Date</dd>
+		<dt>Time</dt><dd>java.sql.Time</dd>
+		<dt>List</dt><dd>java.util.List</dd>
+		<dt>Map</dt><dd>java.util.Map</dd>
+	</dl>
+<pre><span class="codetitle">ex) パッケージが解決されるので指定がシンプルに @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!BigDecimal big1!!</span>
+<span class="comment">-- !!Date birthdate!!</span>
+<span class="comment">-- !!Timestamp formalizedDatetime!!</span>
+<span class="comment">-- !!List&lt;Integer&gt; countList!!</span>
+select ...
+  from ...
+</code></pre>
+	<p>
+		それ以外で、かつ、プログラミング言語上の文法的にパッケージ補完が必要なクラスに関しては、フルパッケージで指定します。
+	</p>
+<pre><span class="codetitle">ex) フルパッケージでプロパティの型を指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!com.example.DokujiDate fromBirthdate!!</span>
+select ...
+  from ...
+</code></pre>
+	<p>
+		但し、DBFluteが自動生成する "CDef" クラスに関しては、"$$CDef$$" と記述することでパッケージ指定を省略できます。
+		ENUMをプロパティ型にしたい場合に有効ですが、区分値を条件にする際の支援機能が別途ありますので、基本的には利用されることは想定されていません。
+	</p>
+<pre><span class="codetitle">ex) フルパッケージでプロパティの型を指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!$$CDef$$.MemberStatus memberStatus!!</span>
+select ...
+  from ...
+</code></pre>
+	<div class="relatedpage"><a href="#classification">this - 区分値条件のオプション</a></div>
+
+	<h2 id="structure">ParameterBeanの構造</h2>
+	<p>
+		ParameterBeanは FetchBeanインターフェース および ParameterBeanインターフェース を実装し、
+		GenerationGap (ジェネレーションギャップ)になっています。
+	</p>
+	<p>
+		アプリケーションで意識するメソッドは全て set で始まるメソッド(検索条件の指定)となります。
+	</p>
+	<h3 id="emptystring">getメソッドの空文字フィルタ</h3>
+	<p>
+		アプリケーションで意識することはないメソッドですが、パラメータの get メソッドでは空文字は null
+		にフィルタされます。Exクラスによる拡張でクラスごともしくはプロパティごとにこの挙動を変えることはできます。
+		但し、内部構造が変わる可能性もありますので、必ずオーバーライド漏れを検知できるように拡張して下さい。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
+	
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

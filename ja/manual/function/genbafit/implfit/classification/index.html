@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,区分値,Classification,定数値,ENUM,タイプセーフ" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>区分値 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>区分値</h1>
+	<ul class="indexlist">
+		<li><a href="#about">区分値とは？</a>
+			<ul>
+				<li><a href="#clstype">区分値のタイプ</a></li>
+				<li><a href="#clsattribute">区分値要素の属性</a></li>
+				<li><a href="#difficult">区分値の扱いの難しさ</a></li>
+			</ul>
+		</li>
+		<li><a href="#solution">区分値のタイプセーフ解決</a></li>
+		<li><a href="#setting">区分値の設定(dfprop)</a>
+			<ul>
+				<li><a href="#tablecls">テーブル区分値</a></li>
+				<li><a href="#implicitcls">暗黙の区分値</a></li>
+			</ul>
+		</li>
+		<li><a href="#cdef">ENUMクラス(CDef)の利用</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="about">区分値とは？</h2>
+	<p>
+		DBFluteでは、あるカラムに格納される意味のある決まった値の集合(カテゴリ)を <em class="keyword">区分値</em>
+		と呼びます。例えば、ExampleDBでは、会員ステータスコード(MEMBER_STATUS_CODE)、商品ステータスコード(PRODUCT_STATUS_CODE)が該当します。
+		また、その区分値のそれぞれの値(例えば、正式会員)を <em class="keyword">区分値要素</em>
+		と呼びます。区分値と関連されたカラムには、その区分値で定義されていない要素は通常格納されません(制約が存在するかどうかは区分値の実現方法次第)。
+	</p>
+	<p>
+		但し、区分値、区分値要素と明確に言葉を定義してはいますが、文脈から判断できるような場合は
+		<em class="keyword">区分値要素を単に区分値と呼ぶことも</em> あります。
+	</p>
+	<h3 id="clstype">区分値のタイプ</h3>
+	<p>
+		区分値には大きく二つのタイプがあります。
+	</p>
+	<dl class="textlist">
+		<dt>テーブル区分値</dt>
+		<dd>
+			テーブル管理されていて定義がデータとして実際に存在する区分値。ExampleDBでは、会員ステータスや商品ステータスが該当する。
+			FK制約によるチェックの恩恵を得ることができる。
+			<div class="relatedpage"><a href="../../../../reference/example/exampledb.html">ExampleDB</a></div>
+			<div class="relatedpage"><a href="#tablecls">this - 区分値の設定 - テーブル区分値</a></div>
+		</dd>
+		<dt>暗黙の区分値</dt>
+		<dd>
+			ドキュメント上で決められているだけで、その定義は人しか知らない区分値。ExampleDBでは、フラグ系のカラムが該当する。
+			別途チェック制約などを利用しない限り、DB上でのチェックは掛からない。
+			<div class="relatedpage"><a href="#implicitcls">this - 区分値の設定 - 暗黙の区分値</a></div>
+		</dd>
+	</dl>
+	<p>
+		前者の方が制約の恩恵を得ることもでき、明示的でわかりやすいため、全ての区分値がこの方式で扱えるのであればそれに越したことはありませんが、
+		例えば、フラグのような汎用的で統一的な区分値の場合は、後者のやり方で実現することも多く、一つのアプリ内に混在することも想定されます。
+	</p>
+	<h3 id="clsattribute">区分値要素の属性</h3>
+	<p>
+		(DBFluteにて定義する)区分値要素が持つ属性は以下の通りです。
+	</p>
+	<dl class="textlist">
+		<dt>コード (code)</dt>
+		<dd>
+			区分値要素の実際のデータベース上で利用するコード値です。
+			char型の文字列だったり、数値だったりとDB設計次第でデータ型は変わります。必須の項目です。
+		</dd>
+		<dt>名前(識別名) (name)</dt>
+		<dd>
+			区分値要素を識別する名前です。基本的には英名を想定しており、メソッド名の一部やENUMの定数名などに利用されます。
+			よって、そういった場所での利用に適した文字列であることが求められます。必須の項目です。
+		</dd>
+		<dt>別名(表示名) (alias)</dt>
+		<dd>
+			区分値要素の別名(表示名)です。基本的には表示用の名前を想定しており、JavaDocコメントなどで利用されます。
+			プログラム上で取得することもできますが、テーブル区分値の場合は、カラムデータとして利用できるため(プログラム上での取得は)想定されません。
+		</dd>
+		<dt>コメント(説明) (comment)</dt>
+		<dd>
+			区分値要素のコメント(説明)です。JavaDocコメントなどで利用されます。プログラム上で取得することはできません。
+		</dd>
+	</dl>
+	<h3 id="difficult">区分値の扱いの難しさ</h3>
+	<p>
+		それぞれの区分値要素は、業務的に意味を持った値であるため、DBアクセスにおける検索条件やプログラム上での判定条件などに頻繁に利用されます。
+		もっとも単純で、区分値の取扱いにおける問題を何も解決していない区分値の利用例が以下の通りです。
+	</p>
+<pre><span class="codetitle">ex) 区分値の取扱いにおける問題を何も解決していない区分値の利用例 {MemberStatus} @Java</span><code>
+<span class="keyword">if</span> (<span class="literal">"FML"</span>.equals(member.getMemberStatusCode())) {
+}
+</code></pre>
+	<p>
+		いわゆるハードコードというやり方で、以下のデメリットがあります。
+	</p>
+	<ul>
+		<li>コードのタイプミスが発生する(発生してもなかなか気付かない)</li>
+		<li>コード変更が発生した場合の影響範囲の特定が難しい</li>
+	</ul>
+	<p>
+		タイプミスもさることながら、コード変更も重要なポイントです。要はDB変更の亜種であり、どうしても将来的に必要なコード変更であったりする可能性も十分あります。
+		また、ステータスのような区分値は、運用開始後も追加されたり変更されたりする可能性が高い部類のものです。
+		プログラムとしてはぜひともコード変更に強いやり方で実装したいところです。
+	</p>
+
+	<h2 id="solution">区分値のタイプセーフ解決</h2>
+	<p>
+		DBFluteでは、<em class="keyword">区分値はタイプセーフ</em>、そして、<em class="keyword">コード変更にも強い</em>
+		をポリシーとしています。具体的には、区分値定義から区分値メソッドを自動生成して、プログラム上ではそのメソッド経由で区分値処理を行うようにします。
+		(コード変更が発生した場合は、メソッド名に影響が出ないレベルであれば影響なし、メソッド名に影響があるレベルであればコンパイルエラーとして検知)
+	</p>
+	<p>
+		Entityにおいては、<em class="keyword">区分値を設定するメソッド</em>、<em class="keyword">区分値を判定するメソッド</em> を利用できます。
+	</p>
+	<div class="detailpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
+	<p>
+		ConditionBeanにおいては、<em class="keyword">区分値で検索条件を設定するメソッド</em> を利用できます。
+	</p>
+	<div class="detailpage"><a href="../../../ormapper/conditionbean/howto.html#classification">ConditionBean - 区分値</a></div>
+	<p>
+		外だしSQLのParameterBeanにおいても <em class="keyword">区分値でパラメータを設定するメソッド</em> を利用できます。
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#classification">ParameterBean - 区分値</a></div>
+
+	<h2 id="setting">区分値の設定(dfprop)</h2>
+	<p>
+		区分値メソッドを生成するための区分値定義に関する設定を、classificationDefinitionMap.dfprop
+		にて定義を行います。設定方法は、区分値のタイプにより分かれます。
+	</p>
+	<h3 id="tablecls">テーブル区分値</h3>
+	<p>
+		区分値要素がデータベース上に存在していますので(ReplaceSchemaなどでデータ登録されていることが前提)、
+		対応するテーブル名やカラム名を定義し、自動生成時に実際にそのテーブルのデータを検索して、区分値定義を取得します。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
+<pre><span class="codetitle">ex) テーブル区分値を利用する例 {MemberStatus} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=MEMBER_STATUS; code=MEMBER_STATUS_CODE
+            ; name=MEMBER_STATUS_NAME; comment=DESCRIPTION
+            ; orderBy=DISPLAY_ORDER
+        }
+    }
+}
+</code></pre>
+	<h4>名前(識別名)に対応するカラムがない場合</h4>
+	<p>
+		区分値要素の名前(識別名)に対応するカラムがない場合は、業務的に表示用として利用するカラム(別名(alias)に対応するカラム)を代わりに
+		name に定義します(その場合、そのカラムは識別名と表示名を兼任したカラムであると想定されます)。その場合は、alias
+		の定義は省略できます(省略すると name と同じ値となります)。
+	</p>
+	<p>
+		どうしても、対応させる適切なカラムが存在しない場合は、コードに対応するカラム(と同じカラム)を指定します。
+		その場合、メソッド名にはコード値が利用されますが、タイプセーフであることに変わりはありません。
+		但し、コード値が区分値要素を見分けるのにわかりにくい表現である場合は、comment
+		をしっかり定義して、JavaDocコメントでの補足を利用して実装しやすいようにする必要があるでしょう。
+	</p>
+	<h4>コメント(説明)に対応するカラムがない場合</h4>
+	<p>
+		コメント(説明)に対応するカラムがなくても業務上問題ない(可能性の高い)ものではありますが、
+		ディベロッパーの実装を助ける重要な補助要素ではありますので、テーブル区分値のテーブルに、相当するカラムを定義しておくことをお奨めします。
+		それは単にDBFluteにおける話だけではなく、開発全体の利益(区分値を管理する上でのドキュメントの充実)につながるものと考えられます。
+	</p>
+	<h4>テーブル区分値における別名(表示名)の扱い</h4>
+	<p>
+		テーブル区分値では、別名(表示名)を定義した場合、JavaDocなどのドキュメント上の充実だけの利用を想定しており、プログラム上での取得は想定されません。
+		厳密には取得できなくはないのですが、ディベロッパーからは取得しづらいような仕組みになっています。
+		テーブル区分値の場合は、実際のカラムから取得して利用することができ(また、そうするべきであると考えられる)、その必要性はほとんどないためです。
+	</p>
+	<h3 id="implicitcls">暗黙の区分値</h3>
+	<p>
+		定義が(DBFluteが参照できる世界の)どこにも存在していませんので、DBFluteプロパティ上に具体的な区分値要素を定義していきます。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
+<pre><span class="codetitle">ex) 暗黙の区分値を利用する例 {MemberStatus} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; <span class="keyword">map:</span>{code=PRV;name=Provisional;alias=仮会員  ;comment=入会直後のステータスで一部のサイトサービスが利用可能}
+        ; <span class="keyword">map:</span>{code=FML;name=Formalized ;alias=正式会員;comment=正式な会員としてサイトサービスが利用可能}
+        ; <span class="keyword">map:</span>{code=WDL;name=Withdrawal ;alias=退会会員;comment=退会が確定した会員でサイトサービスはダメ}
+    }
+}
+</code></pre>
+	<p>
+		また、区分値定義だけでは、どのテーブルのどのカラムにその区分値が関連付くものかも判断が付きませんので、その関連付けを
+		classificationDeploymentMap.dfprop にて設定する必要があります。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/classificationdeployment/index.html">classificationDeploymentMap.dfprop</a></div>
+<pre><span class="codetitle">ex) 暗黙の区分値のカラムとの関連付けをする例 {MemberStatus,Flg} @classificationDeploymentMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$ALL$$</span>       = <span class="keyword">map:</span>{suffix:_FLG = Flg} <span class="comment"># 全テーブルの_FLGで終わるカラム</span>
+    ; MEMBER_STATUS = <span class="keyword">map:</span>{MEMBER_STATUS_CODE = MemberStatus}
+}
+</code></pre>
+
+	<h2 id="cdef">ENUMクラス(CDef)の利用</h2>
+	<p>
+		DBFluteの区分値機能の内部構造として、実は自動生成されるENUMが存在します。allcommonパッケージ配下の CDef
+		というクラスです。このクラスの内部クラスとして全ての区分値に対応するENUMが存在します。
+	</p>
+	<div class="detailpage"><a href="../../../ormapper/runtime/allcommon/index.html#cdef">DBFluteランタイム - allcommon - CDef</a></div>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-basic-example では、テストケースの中で区分値メソッドが利用できるように設定されています。
+		(他のほとんどのExampleでも同様に利用されています)
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

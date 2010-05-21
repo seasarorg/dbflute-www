@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,業務的なone-to-one,fixedCondition,有効期間" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>業務的one-to-one | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>業務的one-to-one</h1>
+	<ul class="indexlist">
+		<li><a href="#about">業務的one-to-oneとは？</a>
+			<ul>
+				<li><a href="#noauto">自動解決はできない</a></li>
+			</ul>
+		</li>
+		<li><a href="#solution">リレーションを定義して定型利用</a></li>
+		<li><a href="#setting">業務的one-to-oneの設定(dfprop)</a>
+			<ul>
+				<li><a href="#referrer">一方通行のリレーション</a></li>
+				<li><a href="#bindvariable">バインド変数コメント利用時の仕様</a></li>
+				<li><a href="#timing">設定のタイミング</a></li>
+			</ul>
+		</li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="about">業務的one-to-oneとは？</h2>
+	<p>
+		構造的には one-to-many でも、固定の(業務的な)条件を加えることによって one-to-one
+		として扱うことのできるリレーションのことです。biz-one-to-one(びずわんとぅわん)とも表現します。
+		ExampleDBでは、会員と会員住所情報の関係が該当します。
+		有効期間を指定することで、会員と住所が one-to-one になります。リレーションをSQLで表現すると以下のようになります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/example/exampledb.html">ExampleDB</a></div>
+<pre><span class="codetitle">ex) 業務的one-to-oneの検索SQL {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<span class="keyword">select</span> MEMBER.*
+     , MEMBER_ADDRESS.* <span class="comment">-- ONE member has ONE address at the date</span>
+  <span class="keyword">from</span> MEMBER
+    <span class="keyword">left outer join</span> MEMBER_ADDRESS
+      <span class="keyword">on</span> MEMBER.MEMBER_ID = MEMBER_ADDRESS.MEMBER_ID
+     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_BEGIN_DATE &lt;= <span class="literal">'2010-05-02'</span>
+     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_END_DATE &gt;= <span class="literal">'2010-05-02'</span>
+</code></pre>
+	<h3 id="noauto">自動解決はできない</h3>
+	<p>
+		このリレーションは、一般にリレーショナルデータベースの仕組みとしては表現されないもので(制約を掛けることはできない)、
+		固定の条件を加えることでそのようなリレーションになるというのは人(ドキュメント)しか知りません。
+		よって、自動生成ツールなどでこのリレーションを利用した処理を自動生成しようと思っても判断ができないため、
+		(アプリケーションとしては)静的な構造であるにも関わらず、ディベロッパーは常にこの join 句への固定条件を常に意識して実装する必要があります。
+	</p>
+
+	<h2 id="solution">リレーションを定義して定型利用</h2>
+	<p>
+		そういった特徴から、DBFluteでもデフォルトではこの業務的one-to-oneに対して何もアプローチできませんが、
+		静的な構造であることに変わりはないため、その構造の情報をプロパティにて定義することで、通常のリレーションと同じように扱えるようにします。
+		一度設定してしまえば、アプリではこの join 句での(業務的な)固定条件を意識せずにリレーションを利用できるようになり、
+		<em class="keyword">ディベロッパーへの統一した実装、かつ、安全性の提供</em> にもなります。(で通常のリレーションと同じように扱える)
+	</p>
+	<p>
+		(プロパティで設定して再自動生成すると)以下のような実装ができるようになり、実行すると join
+		句には指定された固定条件が自動的に付与され、one-to-oneとして扱うことができるようになります。
+	</p>
+<pre><span class="codetitle">ex) 業務的one-to-oneを利用したConditionBeanの検索 {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+Date currentDate = <span class="abbreviation">...</span>;
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.<span class="point">setupSelect_MemberAddressAsValid</span>(currentDate);
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+<span class="keyword">for</span> (Member member : memberList) {
+    MemberAddress address = member.<span class="point">getMemberAddressAsValid</span>();
+}
+</code></pre>
+
+	<h2 id="setting">業務的one-to-oneの設定(dfprop)</h2>
+	<p>
+		additionalForeignKeyMap.dfprop を利用して、リレーションを定義すると共に、固定条件 fixedCondition
+		を指定することで、業務的one-to-oneのリレーションを定義することができます。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/additionalforeignkey/index.html">additionalForeignKeyMap.dfprop</a></div>
+<pre><span class="codetitle">ex) 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+     <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<h3 id="referrer">一方通行のリレーション</h3>
+	<p>
+		この業務的one-to-oneは、一方通行のリレーションであり、ここで設定した one-to-one
+		としての逆参照のメソッドは自動生成されません(会員住所情報から会員への参照)。通常、one-to-manyの関係のあるテーブル間で利用することが想定されるため、
+		逆参照のメソッドは(one-to-manyとして)既にある、という状態なので実装上の支障はありません。
+	</p>
+	<h3 id="bindvariable">バインド変数コメント利用時の仕様</h3>
+	<h4>メソッドの引数にて条件値</h4>
+	<p>
+		バインド変数コメントを利用したリレーションの場合は、ConditionBean
+		のリレーション関連のメソッドにおいて、メソッドの引数にて条件値を指定できるようになります(指定する必要があります)。
+	</p>
+<pre><span class="codetitle">ex) バインド変数を指定する SetupSelect {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+Date currentDate = <span class="abbreviation">...</span>;
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberAddressAsValid(<span class="point">currentDate</span>);
+</code></pre>
+	<h4>SetupSelect と Query</h4>
+	<p>
+		SetupSelect と Query を両方利用する場合は、必ず両方に同じ値を指定します。
+		もし、違う値を指定してしまった場合は、最後に設定された値が有効になります(内部的には上書きをしているだけ)。
+	</p>
+<pre><span class="codetitle">ex) バインド変数を指定する SetupSelect と Query {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+Date currentDate = <span class="abbreviation">...</span>;
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberAddressAsValid(<span class="point">currentDate</span>);
+cb.query().queryMemberAddressAsValid(<span class="point">currentDate</span>).setAddress_<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		そのような仕様のため一つのリレーションで "2007/01/01の会員住所" と "2008/01/01の会員住所"
+		を同時に取り扱うことはできません。そのような場合は、fixedSuffix
+		だけを変えた別のリレーションを(業務的に意味のある名前で)定義することをお奨めします。
+	</p>
+	<h4>SpecifyColumn</h4>
+	<p>
+		但し、SpecifyColumnは、既に SetupSelect で条件値が指定されていることが前提となるため、条件値の指定は不要です(そもそも引数が存在しない)。
+	</p>
+<pre><span class="codetitle">ex) バインド変数を利用したリレーションの SpecifyColumn {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+Date currentDate = <span class="abbreviation">...</span>;
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberAddressAsValid(currentDate);
+cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddress();
+</code></pre>
+	<div class="inucolumn">
+		<h3 id="timing">設定のタイミング</h3>
+		<p>
+			このリレーションは、DB設計が固まった時点(DBFluteで自動生成ができる時点)で、どこに業務的one-to-oneが存在するのか洗い出すことができます。
+			また、DB設計の成果として少なくともドキュメント上に洗い出されてなければなりません。
+			つまり、このリレーションの(DBFluteプロパティにおける)定義は最初のDBFluteのセットアップ直後のタイミングで設定することができるため、
+			実装時に必要になった時にではなく、<em class="keyword">最初から設定された状態でディベロッパーに横展開</em>
+			することをお奨めします。
+			(RDBとして未解決なデータ構造をディベロッパーに未解決のまま渡すではなく、少なくともDBFluteとして解決されている状態で横展開)
+		</p>
+	</div>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-basic-example では、実際に会員と会員住所情報の業務的one-to-oneを設定して、テストケースの中で利用しています。
+		(他のほとんどのExampleでも同様に利用されています)
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

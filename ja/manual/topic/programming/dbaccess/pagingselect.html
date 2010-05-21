@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,トピック,Topic,DBアクセス,ページング検索,PagingSelect,ページングの基本,ページングとは" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>DBアクセス - ページング検索 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>DBアクセス - ページング検索</h1>
+	<ul class="indexlist">
+		<li><a href="#about">ページング検索とは？</a></li>
+		<li><a href="#process">ページング検索の処理</a>
+			<ul>
+				<li><a href="#allrecordcount">ページングなし総レコード数の取得</a></li>
+				<li><a href="#pagingdata">ページング実データの取得</a></li>
+				<li><a href="#calculate">ページング結果の計算処理</a></li>
+				<li><a href="#dilemma">ページングのジレンマ</a></li>
+				<li><a href="#order">ページング処理の順序</a></li>
+				<li><a href="#optimisticlock">ページングの排他制御</a></li>
+			</ul>
+		</li>
+		<li><a href="#dbflutepaging">DBFluteのページング検索</a></li>
+	</ul>
+
+	<h2 id="about">ページング検索とは？</h2>
+	<p>
+		主に、検索画面などで、条件に合致する全部のデータを表示すると、大量件数になり過ぎてメモリ不足になる、もしくは、
+		そもそも人がとても見づらい画面になってしまう、ということから "1 ページに付き 20 件だけ表示"
+		というように一度に表示する件数を絞り込むやり方があり、それに合わせた検索の方式をページング検索と呼びます(少なくともDBFluteではそう呼びます)。
+	</p>
+	<p>
+		画面上では、何ページ目のデータを表示するのかをユーザに指定させるための、ページングナビゲーションが存在します。
+		ページングナビゲーションは、さらに、全体で何件あって、かつ、全体で何ページあって、今表示しているのが何ページ目なのか、の情報も表示します。
+		キャッシュするなど色々な方式がありますが、単純なやり方では、指定されたページのデータをその場で検索します。
+	</p>
+<pre><span class="codetitle">ex) よくあるページングナビゲーション {8ページ目を表示} @GUI</span><code>
+ 8 / 23 <span class="keyword">ページ</span> (453 <span class="keyword">件</span>)
+<span class="attribute">前へ 3 4 5 6 7</span> <span class="point">8</span> <span class="attribute">9 10 11 12 13 次へ</span>
+</code></pre>
+	<p>
+		ここでは、シンプルでよく利用されていると想定される、キャッシュなどは利用しない、ページング検索に焦点を当てます。
+		(DBFluteが採用してるのはこちらです)
+	</p>
+
+	<h2 id="process">ページング検索の処理</h2>
+	<p>
+		ページング検索で行う処理には大きく三つの要素があります。
+	</p>
+	<ul>
+		<li>ページングなし総レコード数の取得</li>
+		<li>ページング実データの取得</li>
+		<li>ページング結果の計算処理</li>
+	</ul>
+	<h3 id="allrecordcount">ページングなし総レコード数の取得</h3>
+	<p>
+		ページングをしなかったときに取得対象となるレコードの総件数を取得する処理です。
+		総レコード数は、画面で表示するだけでなく、総ページ数を計算するのにも利用するため、この処理は欠かせないものです。
+	</p>
+	<h3 id="pagingdata">ページング実データの取得</h3>
+	<p>
+		例えば、81件目から100件目のレコード(実データ)を取得する処理です。
+	</p>
+	<p>
+		このページング条件を実現するための方法が、大きく二つあります。
+	</p>
+	<ul>
+		<li>SQLスキップ(SQLの構文で絞り込みをする)</li>
+		<li>カーソルスキップ(カーソルでデータ取得をスキップ)</li>
+	</ul>
+	<h4 id="sqlskip">SQLスキップ</h4>
+	<p>
+		例えば、Oracleなら rownum、PostgreSQLなら limit/offset 構文を利用して、SQLでページング条件を実現させます。
+		この方法を(ページングの)SQLスキップと呼びます。
+		DBの処理の中で絞り込みを完結させるため、パフォーマンス向上が(比較的)見込まれやすい方法となります。
+	</p>
+<pre><span class="codetitle">ex) PostgreSQLでSQLでページング条件 {81-100} @DisplaySql</span><code>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER dflocal  
+ <span class="keyword">order by</span> dflocal.MEMBER_NAME <span class="keyword">asc</span> 
+ <span class="keyword">offset</span> 80 <span class="keyword">limit</span> 20 <span class="comment">-- 80件飛ばして、そこから20件だけ取得</span>
+</code></pre>
+	<h4 id="cursorskip">カーソルスキップ</h4>
+	<p>
+		SQLでは指定された条件に合致するレコードが全て検索対象になるが、検索結果をカーソルで扱っているときに、
+		必要なデータだけ読み込むようにカーソル操作してページング条件を実現させます。この方法を(ページングの)カーソルスキップと呼びます。
+		パフォーマンス上のデメリットがありながらも、一つ共通の仕組みが用意できれば、SQLの実装が楽になるのが特徴です。
+	</p>
+	<p>
+		また、この方式の中でさらに二つのやり方が存在します。
+	</p>
+	<dl class="textlist">
+		<dt>カーソルのループスルー</dt><dd>カーソルをループさせて読み込み対象外レコードを単純に読み飛ばす(データ取得しない)</dd>
+		<dt>カーソルのポインタシフト</dt><dd>カーソルの現在位置移動を利用して読み込み対象のレコードだけをループで取得する</dd>
+	</dl>
+	<p>
+		ポインタシフトの方がパフォーマンス上のメリットがありますが、カーソルの状態次第で利用できないことがあります。
+		例えば、ResultSet の ResultSetType が ResultSet.TYPE_FORWARD_ONLY に設定されている場合は利用できません。
+	</p>
+	<h3 id="calculate">ページング結果の計算処理</h3>
+	<p>
+		総レコード数、そして、実データから、ページングナビゲーションを構築するために必要な情報を導出する計算処理です。
+		例えば、総ページ数は、総レコード数を 1 ページあたりのレコード数で割って余りがある場合はそれに 1
+		を足すことで計算できます。これら計算処理を、それぞれの画面ごとに実装するとバグの温床になりやすいものです。
+	</p>
+	<h3 id="dilemma">ページングのジレンマ</h3>
+	<p>
+		どうしても、SQLを二回発行させる必要があることがジレンマとなります。
+		パフォーマンス上の問題もありますが、実装上、ほとんど同じ仕様(検索条件の)二つのSQLを準備する必要があることが、
+		ディベロッパーを悩めせるポイントになります。(条件が変わったときは二つとも直す必要があります)
+	</p>
+	<p>
+		また、トランザクション分離レベルが ReadCommitted の場合、厳密には総レコード数と実データ取得で結果がすれ違う可能性があります。
+		現実的に発生する可能性がかなり少ないため、かつ、更新系の処理ではないので業務的に大きな問題になりにくいため、割り切ってしまうことも多いと考えられます。
+		(RepeatableRead であれば矛盾は発生しませんが、それはそれで色々と(全く別の機能などで)考慮が必要になる可能性があります)
+	</p>
+	<h3 id="order">ページング処理の順序</h3>
+	<p>
+		総レコード数取得と実データ取得は、順序が入れ替わっても特に問題ありません。
+		但し、パフォーマンスを考慮したちょっとした要素に違いがあります。
+	</p>
+	<dl class="textlist">
+		<dt>総レコード数取得が先</dt>
+		<dd>総レコード数が 0 件だった場合に、実データ取得を省略できる</dd>
+		<dt>総レコード数取得が後</dt>
+		<dd>最後のページの検索で、実データが 1 ページのレコード数に達していない場合に、総レコード数取得を省略できる</dd>
+	</dl>
+	<h3 id="optimisticlock">ページングの排他制御</h3>
+	<p>
+		例えば、最後のページの検索を指定された場合に、その直前にDB上のデータが変更されて、該当する条件で最後のページが存在しなくなったとき、
+		どのようなアクションを取るか？
+	</p>
+	<ul>
+		<li>A. 排他制御のエラーとして検知して、エラー画面へ</li>
+		<li>B. 空っぽデータのまま検索結果画面へ</li>
+		<li>C. 本当の最後のページを再検索</li>
+	</ul>
+	<p>
+		一番避けるのは、予期せぬ例外でシステムエラーになってしまうことです。
+		これはすれ違いによる発生だけでなく、仕組み上存在しないページを指定できる場合(getパラメータにページ番号を指定する場合)や、
+		検索結果画面でそのまま削除処理などを行えるような場合には、この状況が発生する確率が高くなります。
+	</p>
+	<p>
+		但し、更新系の処理ではないため、おおげさに扱う必要はないため、"A" までやる必要もないという考えもあります。何もアクションを取らなければ "B"
+		になる可能性がありますが、想定しないちょっと矛盾のある変な状態で画面を表示してしまう可能性や、やはりそこで予期せぬエラーが発生する可能性もあり、わざわざ
+		"B" を考慮するくらいなら、"C" の処理を設けて、ユーザの画面利用をスムーズに続けさせるのもユーザにとって優しい一つの手と考えられます。
+	</p>
+
+	<h2 id="dbflutepaging">DBFluteのページング検索</h2>
+	<p>
+		DBFluteでは、できる限りこのページング検索のプロセスを定型化し、より安全な実装ができるように考慮しています。
+		ConditionBean、外だしSQL両方においてその恩恵を得ることができます。
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/pagingselect/index.html">現場フィット - ページング検索</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

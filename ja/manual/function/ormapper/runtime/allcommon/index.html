@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,DBFluteRuntime,DBFluteランタイム,DBFluteフレームワーク,allcommon" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>allcommon | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>allcommon</h1>
+	<ul class="indexlist">
+		<li><a href="#about">allcommonとは？</a></li>
+		<li><a href="#allcommon">allcommonのクラス</a>
+			<ul>
+				<li><a href="#cdef">CDef</a></li>
+				<li><a href="#dbcurrent">DBCurrent</a></li>
+				<li><a href="#dbfluteconfig">DBFluteConfig</a></li>
+				<li><a href="#dbfluteinitializer">DBFluteInitializer</a></li>
+				<li><a href="#dbmetainstancehandler">DBMetaInstanceHandler</a></li>
+				<li><a href="#entitydefinedcommoncolumn">EntityDefinedCommonColumn</a></li>
+				<li><a href="#implementedbehaviorselector">ImplementedBehaviorSelector</a></li>
+				<li><a href="#implementedcommoncolumnautosetupper">ImplementedCommonColumnAutoSetupper</a></li>
+				<li><a href="#implementedinvokerassistant">ImplementedInvokerAssistant</a></li>
+				<li><a href="#implementedsqlclausecreator">ImplementedSqlClauseCreator</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="about">allcommonとは？</h2>
+	<p>
+		DBFluteランタイムと自動生成されるクラス(Entityなど)の架け橋となる
+		<em class="keyword">Generateタスクで自動生成される業務依存の共通クラス</em> です。
+	</p>
+	<dl class="textlist">
+		<dt><a href="#cdef">CDef</a></a></dt><dd>区分値の定義(ENUMの集まり)</dd>
+		<dt><a href="#dbcurrent">DBCurrent</a></dt><dd>現在のDBの定義(種類)</dd>
+		<dt><a href="#dbfluteconfig">DBFluteConfig</a></dt><dd>DBFluteのランタイム環境を調整するコンフィグ</dd>
+		<dt><a href="#dbfluteinitializer">DBFluteInitializer</a></dt><dd>DBFluteの初期化クラス (DIコンポーネント)</dd>
+		<dt><a href="#dbmetainstancehandler">DBMetaInstanceHandler</a></dt><dd>DBMeta のインスタンスを扱うクラス</dd>
+		<dt><a href="#entitydefinedcommoncolumn">EntityDefinedCommonColumn</a></dt><dd>共通カラムが定義されている Entity のためのインターフェース</dd>
+		<dt><a href="#implementedbehaviorselector">ImplementedBehaviorSelector</a></dt><dd>BehaviorSelector の標準的な実装クラス (DIコンポーネント)</dd>
+		<dt><a href="#implementedcommoncolumnautosetupper">ImplementedCommonColumnAutoSetupper</a></dt><dd>CommonColumnAutoSetupper の標準的な実装クラス (DIコンポーネント)</dd>
+		<dt><a href="#implementedinvokerassistant">ImplementedInvokerAssistant</a></dt><dd>InvokerAssistant の標準的な実装クラス (DIコンポーネント)</dd>
+		<dt><a href="#implementedsqlclausecreator">ImplementedSqlClauseCreator</a></dt><dd>SqlClauseCreator の標準的な実装クラス (DIコンポーネント)</dd>
+	</dl>
+
+	<h2 id="allcommon">allcommonのクラス</h2>
+	<h3 id="cdef">CDef</h3>
+	<p>
+		区分値機能を利用したときに、区分値の情報がENUMとして定義されるクラスです。
+	</p>
+	<p>
+		区分値は基本的にメソッド名解決のメソッドとして利用できるため、アプリケーションではあまり意識することは多くありませんが、
+		複数の区分値要素を指定するConditionBeanのInScopeやNotInScopeにおいては、このCDefを利用します。
+		また、DBFluteの区分値機能の届かない領域で区分値を利用するような場合はこのクラスを利用します。
+		(例えば、DBFluteが自動生成しないクラス(DTOなど)にて区分値を利用する場合)
+	</p>
+	<div class="relatedpage"><a href="../../entity/index.html#classification">Entity - 区分値</a></div>
+	<div class="relatedpage"><a href="../../conditionbean/howto.html#classification">ConditionBean - 区分値</a></div>
+<pre><span class="codetitle">ex) CDefの利用 @Java</span><code>
+String code = CDef.MemberStatus.Formalized.code();
+</code></pre>
+	<h4>抽象的な取扱い</h4>
+	<p>
+		CDef自体は、CDef内で定義される全ての区分値で実装されるインターフェースであり、区分値を抽象的に取り扱うことができます。
+		(コードや名称などを抽象的に取得することができます)
+	</p>
+<pre><span class="codetitle">ex) CDefによる抽象的な取扱い @Java</span><code>
+CDef cdef = CDef.MemberStatus.Formalized;
+String code = cdef.code();
+String name = cdef.name();
+String alias = cdef.alias();
+</code></pre>
+	<h4>Classification</h4>
+	<p>
+		CDef インターフェースは、DBFluteランタイム内の Classification
+		インターフェースを拡張しています。この Classification
+		インターフェースは、基本的にはDBFluteランタイム内部で抽象的に取り扱うために利用するもので、アプリで意識する必要はありません。
+	</p>
+<pre><span class="codetitle">ex) Classificationとして扱う @Java</span><code>
+Classification cls = CDef.MemberStatus.Formalized;
+</code></pre>
+	<h4>DefMeta</h4>
+	<p>
+		区分値自体を表現するENUMとして、DefMeta というクラスが用意されています。ClassificationMeta
+		インターフェースを実装しており、codeOf() メソッドを抽象的に利用することができます。
+	</p>
+<pre><span class="codetitle">ex) DefMetaを利用して抽象的に codeOf() を利用 @Java</span><code>
+ClassificationMeta meta = CDef.DefMeta.MemberStatus;
+Classification cls = meta.codeOf(code);
+</code></pre>
+	<p>
+		DefMeta は、区分値要素から取得から取得することもできます。
+	</p>
+<pre><span class="codetitle">ex) DefMetaを区分値要素から取得 @Java</span><code>
+ClassificationMeta meta = CDef.MemberStatus.Formalized.meta();
+</code></pre>
+	<h3 id="dbcurrent">DBCurrent</h3>
+	<p>
+		<em class="keyword">アプリケーションでは、基本的に意識する必要のないクラスです。</em>
+	</p>
+	<p>
+		現在のDBのタイプ(OracleやMySQLなど)を保持するクラスです。内部的には該当するDBの DBDef
+		を保持します。<em class="keyword">内部情報を壊すようなプログラムを書いてはいけません。</em>
+	</p>
+	<h3 id="dbfluteconfig">DBFluteConfig</h3>
+	<p>
+		DBFluteのランタイム環境を調整するコンフィグです。
+	</p>
+	<div class="detailpage"><a href="./dbfluteconfig.html">DBFluteConfig</a></div>
+	<h3 id="dbfluteinitializer">DBFluteInitializer</h3>
+	<p>
+		<em class="keyword">アプリケーションでは、基本的に意識する必要のないクラスです。</em>
+	</p>
+	<p>
+		DBFluteを初期化するクラスです。内部的にはこのクラスのコンストラクタに初期化処理があります。
+		DIコンテナ経由でインスタンスが生成され、初期化処理が実行されます。
+		<em class="keyword">アプリケーションで new してはいけません。</em>
+	</p>
+	<p>
+		初期化が終わると、DBFluteConfig にロックを掛けます。
+	</p>
+	<h4>Seasar(S2Container) 利用時</h4>
+	<p>
+		SqlLogRegistryの初期化(オプション)、そして、HotDeploy機能との相性を調整するために、
+		HotDeploy対象になって欲しくないクラスをHotDeploy対象外になるようにしています。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/diway/seasar/index.html#hotdeploy">Seasar(S2Container) - HotDeployの取扱い</a></div>
+	<div class="relatedpage"><a href="../../../../reference/diway/seasar/index.html#sqllogregistry">Seasar(S2Container) - SqlLogRegistryの取扱い</a></div>
+	<h4>Spring Framework 利用時</h4>
+	<p>
+		Commons DBCP に対する DataSourceHandler の初期化処理が行われます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/diway/spring/index.html#commonsdbcp">Spring Framework - Commons DBCPの取扱い</a></div>
+	<h3 id="dbmetainstancehandler">DBMetaInstanceHandler</h3>
+	<p>
+		(staticメソッドで)テーブル名から対応する DBMeta インスタンスを取得するためのクラスです。
+		DBFluteの内部的には、ここから DBMeta を取得することが満載です。
+	</p>
+	<p>
+		<em class="keyword">アプリケーションではあまり意識する必要はありませんが</em>、
+		アプリケーションで独自の仕組みを作る際に、テーブル名(だけ)から DBMeta の情報が欲しい場合に利用します。
+	</p>
+	<p>
+		テーブル名は、大文字小文字を区別なし、アンダースコアも吸収、スキーマ名やダブルクォーテーションの囲いも吸収されます。
+	</p>
+<pre><span class="codetitle">ex) DBMetaInstanceHandlerの利用 {テーブル名} @Java</span><code>
+DBMeta dbmeta = DBMetaInstanceHandler.findDBMeta(<span class="literal">"MEMBER_STATUS"</span>);
+</code></pre>
+<pre><span class="codetitle">ex) DBMetaInstanceHandlerの利用 {プロパティ名} @Java</span><code>
+DBMeta dbmeta = DBMetaInstanceHandler.findDBMeta(<span class="literal">"memberStatus"</span>);
+</code></pre>
+<pre><span class="codetitle">ex) DBMetaInstanceHandlerの利用 {スキーマ名付き} @Java</span><code>
+DBMeta dbmeta = DBMetaInstanceHandler.findDBMeta(<span class="literal">"EXAMPLEDB.MEMBER_STATUS"</span>);
+</code></pre>
+	<p>
+		DBMetaは、指定されたテーブルのものだけを初期化(クラスロード)します。
+		そうすることで、アプリケーション起動時一発目のDBアクセスで、全テーブルのDBMetaの初期化(クラスロード)が発生しないようにしています。
+		(DBFluteが内部でこのクラスを利用しています)
+	</p>
+	<p>
+		逆に一括で初期化(クラスロード)するためのメソッドもあります。アプリケーション起動と同時に初期化することで、
+		その後のDBアクセスのパフォーマンスを向上されるためのものです(例えば、結合環境、本番環境など)。
+		但し、それはこのクラスから直接呼び出すのではなく、<em class="keyword">BehaviorSelector に正式にアプリケーションで呼び出してもOKなメソッドがあります</em>。
+	</p>
+	<h3 id="entitydefinedcommoncolumn">EntityDefinedCommonColumn</h3>
+	<p>
+		
+	</p>
+	<h3 id="implementedbehaviorselector">ImplementedBehaviorSelector</h3>
+	<p>
+		
+	</p>
+	<h3 id="implementedcommoncolumnautosetupper">ImplementedCommonColumnAutoSetupper</h3>
+	<p>
+		<em class="keyword">アプリケーションでは、基本的に意識する必要のないクラスです。</em>
+	</p>
+	<h3 id="implementedinvokerassistant">ImplementedInvokerAssistant</h3>
+	<p>
+		<em class="keyword">アプリケーションでは、基本的に意識する必要のないクラスです。</em>
+	</p>
+	<h3 id="implementedsqlclausecreator">ImplementedSqlClauseCreator</h3>
+	<p>
+		<em class="keyword">アプリケーションでは、基本的に意識する必要のないクラスです。</em>
+	</p>
+
+<p>TODO jflute now writing</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

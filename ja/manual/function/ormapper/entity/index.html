@@ -1,0 +1,448 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Entity,エンティティ" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>Entity | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Entity</h1>
+	<ul class="indexlist">
+		<li><a href="#about">Entityとは？</a>
+			<ul>
+				<li><a href="#autogenerate">自動生成される</a></li>
+				<li><a href="#classname">Entityのクラス名</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">Entityの使い方</a></li>
+		<li><a href="#classification">区分値 (Classification)</a>
+			<ul>
+				<li><a href="#classify">区分値の設定</a></li>
+				<li><a href="#determination">区分値の判定</a></li>
+				<li><a href="#namealias">区分値要素の名前、別名の取得</a></li>
+			</ul>
+		</li>
+		<li><a href="#commoncolumn">共通カラム (CommonColumn)</a></li>
+		<li><a href="#equals">equals()メソッド</a></li>
+		<li><a href="#hashcode">hashCode()メソッド</a></li>
+		<li><a href="#tostring">toString()メソッド</a></li>
+		<li><a href="#structure">Entityの構造</a>
+			<ul>
+				<li><a href="#elementlist">Entity要素の一覧</a></li>
+			</ul>
+		</li>
+		<li><a href="#valuetype">ValueTypeの調整</a></li>
+	</ul>
+
+	<h2 id="about">Entityとは？</h2>
+	<p>
+		DBのデータをプログラム上に反映させるためのオブジェクトです。<em class="keyword">えんてぃてぃ</em> と呼びます。
+	</p>
+	<p>
+		大きく分けて <em class="keyword">テーブル対応のEntity</em> と <em class="keyword">SQL対応のEntity</em>
+		があります。前者を <em class="keyword">DomainEntity(どめいんえんてぃてぃ)</em> と呼び、後者を
+		<em class="keyword">CustomizeEntity(かすたまいずえんてぃてぃ)</em>
+		と呼びます。単に Entity と言う場合は、両方を抽象的に取り扱う場合、もしくは、前者の方を示す場合が主となります。
+	</p>
+	<dl class="valuemainlist">
+		<dt>テーブル対応のEntity</dt><dd>DomainEntity</dd>
+		<dt>SQL対応のEntity</dt><dd>CustomizeEntity</dd>
+	</dl>
+	<h3 id="autogenerate">自動生成される</h3>
+	<p>
+		DBFluteでは、全てのEntityは自動生成されます。DomainEntity
+		はテーブル情報からGenerateタスクにて、CustomizeEntityはSQL情報からSql2Entityタスクにて。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/generate/index.html#generate">Generate - クラスを自動生成</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/index.html#generate">Sql2Entity - クラスを自動生成</a></div>
+	<p>
+		ジェネレーションギャップで自動生成されるため、EntityのExクラスにはアプリケーション独自のプロパティや処理を定義することができます。
+		特に、ConditionBeanの (Specify)DerivedReferrer
+		ではこの構造を活かし、子テーブルの導出カラムのプロパティをEntityのExクラスに定義することで機能を実現します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../conditionbean/specify/derivedreferrer.html"> -->ConditionBean - (Specify)DerivedReferrer<!-- </a> --></span></div>
+	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/wg.html#generationgap">GenerationGap (ジェネレーションギャップ)</a></div>
+	<h3 id="classname">Entityのクラス名</h3>
+	<p>
+		<em class="keyword">テーブル名のキャメルケース</em> です。例えば、MEMBER_STATUS なら
+		MemberStatus。もし、ProjectPrefix を指定している場合は、指定した prefix がクラス名の先頭に付与されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../genbafit/projectfit/projectprefix/index.html"> -->現場フィット - クラス名のプレフィックス<!-- </a> --></span></div>
+
+	<h3>プロパティ設定の記録</h3>
+	<p>
+		DBFluteのEntityの特徴として、プロパティ設定(セッターの呼び出し)を内部で記録していることです。
+		これにより、どのプロパティ(カラム)がアプリケーションにて更新されたかが判明するため、更新時などで
+		<em class="keyword">設定されたカラムのみを更新対象とする</em> ことができます。
+	</p>
+	<div class="relatedpage"><a href="../behavior/update/update.html">Behavior - update()</a></div>
+
+	<h2 id="howto">Entityの使い方</h2>
+	<h3>インスタンス生成</h3>
+	<p>
+		検索時は、DBFlute内部でインスタンスが生成されます。 
+	</p>
+<pre><span class="codetitle">ex) 検索時にBehaviorからEntityを受け取る {Member} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().setMemberId_Equal(<span class="literal">3</span>); <span class="comment">// 会員IDが 3 の会員を検索</span>
+<span class="point">Member member = memberBhv.selectEntity(cb);</span>
+</code></pre>
+	<p>
+		登録、更新、削除時は、アプリケーションでインスタンスを生成します。
+	</p>
+<pre><span class="codetitle">ex) 更新時にEntityを生成してBehaviorに渡す {Member} @Java</span><code>
+<span class="point">Member member = new Member();</span>
+member.setMemberId(<span class="literal">3</span>);
+member.setMemberName(<span class="literal">"foo"</span>); <span class="comment">// 会員名称を "foo" に更新</span>
+memberBhv.update(member);
+</code></pre>
+	<p>
+		インスタンスを生成するときは、必ず Exクラス の方の型で生成します。"Bs"
+		の付いたジェネレーションギャップのための(スーパー)クラスをインスタンス生成してはいけません。
+	</p>
+	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
+	<h3>カラム対応プロパティの設定、取得</h3>
+	<p>
+		<em class="keyword">set[プロパティ名](...)</em>
+		メソッドにて設定、<em class="keyword">get[プロパティ名]()</em> メソッドにて取得します。
+	</p>
+<pre><span class="codetitle">ex) カラム対応プロパティの設定、取得 {Member} @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.setMemberName(<span class="literal">"foo"</span>); <span class="comment">// 会員名称を "foo" に設定</span>
+String memberName = member.getMemberName(); <span class="comment">// 会員名称を取得 ("foo")</span>
+</code></pre>
+	<h4>検索は get、更新は set</h4>
+	<p>
+		アプリケーションは、<em class="keyword">検索時は主に get</em> を利用し(検索結果の取得)、<em class="keyword">登録、更新、削除時は主に set</em>
+		を利用する(更新内容の設定)、という形になります(例外的に、登録や更新後に自動設定された値を取得するのに get を利用することもあります)。
+	</p>
+	<h4>キャメルケースコード補完の活用</h4>
+	<p>
+		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberName()</em>
+		メソッドであれば、<em class="keyword">getMN</em> と打ち込めばかなり候補から選びやすくなるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+	<h3>リレーション対応プロパティの設定、取得</h3>
+	<p>
+		<em class="keyword">set[プロパティ名](...)</em>
+		メソッドにて設定、<em class="keyword">get[プロパティ名]()</em> メソッドにて取得します。
+	</p>
+	<div class="relatedpage"><a href="./relation.html">Entity間のリレーション</a></div>
+<pre><span class="codetitle">ex) many-to-one プロパティの設定、取得 {MEMBER_STATUS} @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.setMemberStatus(<span class="keyword">new</span> MemberStatus()); <span class="comment">// 会員ステータスを設定</span>
+MemberStatus memberName = member.getMemberStatus(); <span class="comment">// 会員ステータスを取得</span>
+</code></pre>
+<pre><span class="codetitle">ex) one-to-many プロパティの設定、取得 {PURCHASE} @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.setPurchaseList(<span class="keyword">new</span> ArrayList&lt;Purchase&gt;()); <span class="comment">// 購入リストを設定</span>
+List&lt;Purchase&gt; purchaseList = member.getPurchaseList(); <span class="comment">// 購入リストを取得</span>
+</code></pre>
+	<h4>set はあまり利用しない</h4>
+	<p>
+		<em class="keyword">リレーション対応プロパティに対してアプリケーションが設定処理(set)を行う必要性はほとんどありません</em>。
+		例えば、検索結果データのEntityへの設定処理は、DBFlute内部にて実行されます。
+		また、Entityに格納されたリレーションデータを利用して更新処理を行う機能は存在しません。
+		(Entity をアプリケーション独自に "ただの入れ物" として扱うような場合のみ、利用する可能性があるかもしれません)
+	</p>
+	<h4>キャメルケースコード補完の活用</h4>
+	<p>
+		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberStatus()</em>
+		メソッドであれば、<em class="keyword">getMS</em> と打ち込めばかなり候補から選びやすくなるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+	<h3>メタデータの取得</h3>
+	<p>
+		<em class="keyword">基本的にアプリケーションで意識する必要はありません。</em>
+	</p>
+	<p>
+		アプリケーションの中の仕組み(共通部分の実装など)で、どうしても必要になったときは、Entity
+		のインスタンスからテーブル名や DBMeta を取得することができます。
+	</p>
+<pre><span class="codetitle">ex) メタデータの取得 {MemberStatus} @Java</span><code>
+MemberStatus status = <span class="keyword">new</span> MemberStatus();
+String tableDbname = status.getTableDbName(); <span class="comment">// DB上の名前 "MEMBER_STATUS"</span>
+String propertyName = status.getPropertyName(); <span class="comment">// プロパティ名 "memberStatus"</span>
+DBMeta dbmeta = status.getDBMeta(); <span class="comment">// 会員ステータスのDBMeta</span>
+</code></pre>
+
+	<h2 id="classification">区分値 (Classification)</h2>
+	<p>
+		区分値が関連付いていると、区分値をタイプセーフに扱える区分値メソッドが利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+	<h3 id="classify">区分値の設定</h3>
+	<p>
+		<em class="keyword">set[プロパティ名]_[区分値要素の名前]()</em> の形式のメソッドを利用します。
+	</p>
+<pre><span class="codetitle">ex) 区分値の設定(メソッド解決)。会員ステータスコードに正式会員を設定 @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">setMemberStatusCode_Formalized()</span>;
+<span class="comment">// member.setMemberStatusCode("FML"); と同義</code>
+</code></pre>
+	<h4>通常のプロパティの設定と同じ set 始まり</h4>
+	<p>
+		通常のプロパティの設定と同じ set 始まりのメソッドなので、他のカラムと同様、とりあえず set
+		と打って、対象のカラムの set メソッドを補完すると、区分値メソッドが補完候補に並びますので、後はそこから選ぶだけです。
+		その時、ネイティブ型の設定メソッドしか存在しない場合は、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
+	</p>
+	<h4>キャメルケースコード補完の活用</h4>
+	<p>
+		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">setMemberStatusCode_Formalized()</em>
+		メソッドであれば、<em class="keyword">setMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">プログラミング - キャメルケースコード補完</a></div>
+	<h4>CDef を直接渡すメソッド</h4>
+	<p>
+		メソッド名解決のメソッドに対し、ENUMである CDef を直接渡すメソッドもあります。但し、<em class="keyword">基本的にはあまり利用する必要はありません</em>。
+		(アプリケーションの仕組みの都合でどうしても必要になった場合のみ利用すること)
+	</p>
+<pre><span class="codetitle">ex) 区分値の設定(CDef指定)。会員ステータスコードに正式会員を設定 @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.Formalized);
+<span class="comment">// member.setMemberStatusCode_Formalized(); と同義</code>
+</code></pre>
+	<h4>ネイティブ型の設定メソッドは残ったまま</h4>
+	<p>
+		区分値が関連付いたカラムのネイティブ型での設定メソッドは残っています。
+		これはこれで、既に区分値であることが保証されている変数(リストボックスのリクエストパラメータなど)を直接設定したり、
+		CSVやTSVなどのデータをEntityに(ツール経由で)格納したりなど、場面場面で必要になるためです。
+		このような状況以外で、区分値のコードを(特にハードコードして)設定するようなことは基本的に想定されていません(<em class="keyword">利用してはいけません</em>)。
+	</p>
+<pre><span class="codetitle">ex) (ディベロッパーが)絶対にやってはいけない設定の仕方 @Java</span><code>
+member.setMemberStatusCode(<span class="literal">"FML"</span>);
+</code></pre>
+	<p>
+		もし、プロジェクト全体で <em class="keyword">区分値メソッド経由での設定を強制させたい場合</em> は、littleAdjustmentMap.dfprop
+		の isForceClassificationSetting を有効にすることでネイティブ型の設定メソッドの可視性を protected にすることができます。
+	</p>
+	<div class="relatedpage"><a href="../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+	<h3 id="determination">区分値の判定</h3>
+	<p>
+		<em class="keyword">is[プロパティ名][区分値要素の名前]()</em> の形式のメソッドを利用します。
+	</p>
+<pre><span class="codetitle">ex) 区分値の判定。会員ステータスコードが正式会員であること @Java</span><code>
+Member member = memberBhv.selectEntity(cb);
+<span class="keyword">if</span> (member.isMemberStatusCodeFormalized()) {
+    ...
+}
+<span class="comment">// if ("FML".equalsIgnoreCase(member.getMemberStatusCode())) { と同義</code>
+</code></pre>
+	<h4>Entityで is で始まるメソッドはこれだけ</h4>
+	<p>
+		entity.is とまで打ち込めば、is[区分値] メソッドだけが補完候補となります。
+		逆に何も候補が挙がらなければ、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
+	</p>
+	<h4>キャメルケースコード補完の活用</h4>
+	<p>
+		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">isMemberStatusCodeFormalized()</em>
+		メソッドであれば、<em class="keyword">isMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+
+	<h3 id="namealias">区分値要素の名前、別名の取得</h3>
+	<p>
+		<em class="keyword">get[プロパティ名][Name or Alias]()</em> の形式のメソッドを利用します。
+	</p>
+<pre><span class="codetitle">ex) 区分値要素の名前、別名。(正式会員) @Java</span><code>
+Member member = memberBhv.selectEntity(cb);
+String name = member.getMemberStatusCodeName(); <span class="comment">// "Formalized"</span>
+String alias = member.getMemberStatusCodeAlias(); <span class="comment">// "正式会員"</span>
+</code></pre>
+	<p>
+		別名(alias)は、設定として必須ではないので、定義がない場合はメソッド自体が存在しません。
+	</p>
+	<p>
+		これらメソッドで取得される値は、自動生成時に解決されたものです。
+		特にテーブル区分値のときに関する話ですが、自動生成時にデータベース上から検索された値であり、メソッドを呼び出し瞬間のデータベース上の値ではありません。
+		これらの値を利用するかどうか、それとも検索で関連テーブルの値を取得するか、プロジェクトのポリシーを確認してからご利用下さい。
+	</p>
+
+	<h2 id="commoncolumn">共通カラム (CommonColumn)</h2>
+	<p>
+		共通カラムの設定が有効で、<em class="keyword">共通カラムを持っているテーブルのEntityは EntityDefinedCommonColumn インターフェースを実装</em>
+		します。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
+	<p>
+		ほとんどの場合において、<em class="keyword">アプリケーションでこのインターフェースを意識する必要はない</em>
+		のですが、例えば、<em class="keyword">移行プログラムの実装で、ここの処理だけ共通カラムの自動設定の機能を無効にしたいというような要件</em>
+		がある場合には、disableCommonColumnAutoSetup()
+		メソッドを利用します。旧システムの登録日時や更新日時を保ったまま新システムに移行するような場合です。
+	</p>
+<pre><span class="codetitle">ex) 共通カラムの自動設定を(この処理だけ)無効にする @Java</span><code>
+Member member = ...; <span class="comment">// 旧システムの情報を格納 (共通カラムの情報も含めて)</span>
+<span class="point">member.disableCommonColumnAutoSetup();</span>
+memberBhv.insert(member);
+</code></pre>
+
+	<h2 id="equals">equals()メソッド</h2>
+	<p>
+		TODO jflute now writing
+	</p>
+
+	<h2 id="hashcode">hashCode()メソッド</h2>
+	<p>
+		TODO jflute now writing
+	</p>
+
+	<h2 id="tostring">toString()メソッド</h2>
+	<p>
+		TODO jflute now writing
+	</p>
+
+	<h2 id="structure">Entityの構造</h2>
+	<p>
+		全ての(自動生成される)Entityは、Entity インターフェースを実装しています。共通クラス対応のEntityも同様で、EntityDefinedCommonColumn
+		インターフェース自体が Entity インターフェースの拡張インターフェースです。また、必ず Serializable インターフェースを実装しています。
+	</p>
+<pre><span class="codetitle">ex) EntityのBsクラスの宣言 {BeMember} @Java</span><code>
+<span class="keyword">public class</span> BsMember <span class="keyword">implements</span> EntityDefinedCommonColumn, Serializable {
+</code></pre>
+<pre><span class="codetitle">ex) EntityDefinedCommonColumnの宣言 @Java</span><code>
+<span class="keyword">public interface</span> EntityDefinedCommonColumn <span class="keyword">extends</span> Entity {
+</code></pre>
+	<h3 id="elementlist">Entity要素の一覧</h3>
+	<dl class="keymainlist">
+		<dt>カラム対応のプロパティ</dt><dd>get...、set...</dd>
+		<dt>関連テーブル対応のプロパティ</dt><dd>get...、set...</dd>
+		<dt>メタデータ</dt><dd>getTableDbName()、getDBMeta()、... <span class="freecomment">(internal)</span></dd>
+		<dt>共通カラム</dt><dd>enable...、disable...、can...</dd>
+		<dt>区分値</dt><dd>classify...、is...、get...</dd>
+		<dt>更新記録</dt><dd>...ModifiedPropertyNames... <span class="freecomment">(very internal)</span></dd>
+		<dt>その他</dt><dd>hasPrimaryKeyValue()、toStringWithRelation()など</dd>
+	</dl>
+	<p>
+		TODO jflute now writing
+	</p>
+
+	<h2 id="valuetype">ValueTypeの調整</h2>
+	<p>
+		TODO jflute now writing
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

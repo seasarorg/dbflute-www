@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Spring Framework,取扱い,JDBC,接続設定,URL" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>Spring Frameworkの取扱い | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Spring Frameworkの取扱い</h1>
+	<ul class="indexlist">
+		<li><a href="#basic">基本情報</a></li>
+		<li><a href="#disetting">DI設定ファイル (dbfluteBeans.xml)</a>
+			<ul>
+				<li><a href="#datasource">データソースのコンポーネント名が dataSource でない場合</a></li>
+				<li><a href="#filename">dbfluteBeans.xml の名前を変更したい場合</a></li>
+			</ul>
+		</li>
+		<li><a href="#diway">DIの方法 (Behavior)</a></li>
+		<li><a href="#commonsdbcp">Commons DBCPの取扱い</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="basic">基本情報</h2>
+	<dl class="valuemainlist">
+		<dt>対応バージョン</dt><dd>Spring Framework 2.5.x 以上</dd>
+	</dl>
+
+	<h2 id="disetting">DI設定ファイル (dbfluteBeans.xml)</h2>
+	<p>
+		DBFluteは、Generateタスクにて DBFluteのコンポーネントが登録されている <em class="keyword">dbfluteBeans.xml</em>
+		を自動生成します。主には、Behavior と allcommon のクラスが登録されています。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/generate/index.html#disetting">Generate - DI設定ファイルも自動生成</a></div>
+	<p>
+		この dbfluteBeans.xml が <em class="keyword">アプリケーションのDI設定ファイルから参照されるように設定</em>
+		することで、アプリケーションのコンポーネントからDBFluteのコンポーネント(主にBehavior)が利用できるようになります。
+	</p>
+	<div class="relatedpage"><a href="../../../../environment/setup/injection.html#spring">セットアップ - DI環境の調整</a></div>
+<pre><span class="codetitle">ex) beanRefContext.xml にて dbfluteBeans.xml を参照 @beanRefContext.xml</span><code>
+&lt;beans>
+    &lt;bean id="context" class="...context.support.ClassPathXmlApplicationContext"&gt;
+        &lt;constructor-arg&gt;
+            &lt;list&gt;
+                <span class="point">&lt;value&gt;dbfluteBeans.xml&lt;/value&gt;</span>
+                &lt;value&gt;jdbcBeans.xml&lt;/value&gt;
+            &lt;/list&gt;
+        &lt;/constructor-arg&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;
+</code></pre>
+	<h3 id="datasource">データソースのコンポーネント名が dataSource でない場合</h3>
+	<p>
+		DBFluteは、<em class="keyword">dbfluteBeans.xml の中でデータソースを dataSource</em>
+		という名前で利用しますが、アプリケーションで管理するデータソースのコンポーネント名が違う名前の場合は、
+		データソースへの参照を適切なものに変更してあげる必要があります。(dbfluteBeans.xml
+		は直接エディタで修正しても再自動生成時に上書きされます)
+	</p>
+	<p>
+		DBFluteプロパティ dependencyInjectionMap.dfprop の dbfluteBeansDataSourceName
+		プロパティに、データソースの独自のコンポーネント名を指定して再自動生成して下さい。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../manual/reference/dfprop/dependencyinjection/index.html#dbflutebeansdatasourcename"> -->dfprop - dbfluteBeansDataSourceName<!-- </a> --></span></div>
+	<h3 id="filename">dbfluteBeans.xml の名前を変更したい場合</h3>
+	<p>
+		DBFluteプロパティ dependencyInjectionMap.dfprop の dbfluteBeansFileName
+		プロパティに、独自のファイル名を指定して再自動生成して下さい。(古いファイルは手動で削除)
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../manual/reference/dfprop/dependencyinjection/index.html#dbflutebeansfilename"> -->dfprop - dbfluteBeansFileName<!-- </a> --></span></div>
+
+	<h2 id="diway">DIの方法 (Behavior)</h2>
+	<p>
+		DI管理されているコンポーネントクラスにおいて、Behavior のプロパティを定義すると、Behavior
+		がインジェクトされます。Behaviorは、dbfluteBeans.xml にて <em class="keyword">autowire="byType"</em>
+		と設定されているため、DI設定ファイル上で明示的にインジェクトする必要はありません。
+	</p>
+	<p>
+		プロパティ名は、<em class="keyword">Behaviorのクラス名の先頭を小文字(dbfluteBeans.xml上のコンポーネント名)</em>
+		にしたものになります。例えば、MemberBhv クラスなら、memberBhv となります。
+	</p>
+<pre><span class="codetitle">ex) プロパティ経由 {Pageクラス} @Java</span><code>
+<span class="keyword">public class</span> XxxPage {
+    <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
+
+    ...
+
+    <span class="keyword">public</span> MemberBhv getMemberBhv() {
+        <span class="keyword">return</span> <span class="attribute">memberBhv</span>;
+    }
+
+    <span class="keyword">public void</span> setMemberBhv(MemberBhv memberBhv) {
+        <span class="keyword">this</span>.<span class="attribute">memberBhv</span> = memberBhv;
+    }
+}
+</code></pre>
+
+	<h2 id="commonsdbcp">Commons DBCPの取扱い</h2>
+	<p>
+		Commons DBCP のデータソースは、スレッドトランザクションをサポートしていないため、DataSource
+		から Connection を取得するときに、Spring Framework の DataSourceUtils
+		を利用する必要があります。DBFluteでは、これをユーザに意識させることないようにと、(Spring Framework利用時のみ)内部的に
+		Commons DBCP 対応の DataSourceHandler が自動登録されます。その処理が DBFluteInitializer にて行われます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#datasourcehandler">DBFluteConfig - dataSourceHandler</a></div>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/index.html#dbfluteinitializer">allcommon - DBFluteInitializer</a></div>
+	<div class="relatedword"><a href="../../dictionary/alphabet/wt.html#threadtransaction">ThreadTransaction (スレッドトランザクション)</a></div>
+<pre><span class="codetitle">ex) Commons DBCP 対応の DataSourceHandler の実装 @Java</span><code>
+<span class="keyword">public</span> Connection getConnection(<span class="keyword">final</span> DataSource ds) <span class="keyword">throws</span> SQLException {
+    <span class="keyword">final</span> Connection conn = DataSourceUtils.getConnection(ds);
+    <span class="keyword">if</span> (DataSourceUtils.isConnectionTransactional(conn, ds)) {
+        <span class="keyword">return new</span> NotClosingConnectionWrapper(conn);
+    } <span class="keyword">else</span> {
+        <span class="keyword">return</span> conn;
+    }
+}
+</code></pre>
+	<p>
+		これにより、(スレッドトランザクションに対応していない) Commons DBCP
+		利用時も特に意識せずにトランザクションを利用することができるようになっています。
+		但し、アプリケーションで、DBFluteConfig に独自の DataSourceHandler を設定したときはそちらが優先されるため、
+		その独自の DataSourceHandler は、デフォルトのものと同じ機能を持つ必要があります。
+	</p>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		Spring Framework を使ったExample実装 <em class="keyword">dbflute-spring-example</em> があります。
+	</p>
+	<div class="detailpage"><a href="../../example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

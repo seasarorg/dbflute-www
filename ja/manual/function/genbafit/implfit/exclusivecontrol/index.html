@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,排他制御,exclusivecontrol,楽観的並行性制御,OptimisticLock,すれ違い,バージョン番号,VersionNo,更新日時,UpdateDate" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>排他制御(楽観的並行性制御) | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>排他制御(楽観的並行性制御)</h1>
+	<ul class="indexlist">
+		<li><a href="#about">排他制御とは？</a></li>
+		<li><a href="#solution">排他制御メソッド</a></li>
+		<li><a href="#versionno">バージョン番号</a></li>
+		<li><a href="#updatedate">更新日時</a></li>
+		<li><a href="#deletedcheck">検索時の排他制御</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="about">排他制御とは？</h2>
+	<p>
+		すれ違い更新を防ぐための処理で、DBFluteには、その中の方式の一つである楽観的並行性制御(OptimistickLock)を自動化するための支援機能が備わっています。
+		よって、DBFluteにおいて、排他制御と言う場合は、ほとんどの場合において楽観的並行性制御のことを示します。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../../topic/programming/dbaccess/exclusivecontrol.html"> -->DBアクセス - 排他制御<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../../topic/dbdesign/exclusivecontrol.html"> -->DB設計 - 排他制御<!-- </a> --></span></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wc.html#concurrentupdate">ConcurrentUpdate (すれ違い更新)</a></div>
+	<p>
+		まずは、<em class="keyword">更新時の排他制御</em>、そして、<em class="keyword">バージョン番号を使った方式</em>
+		をメインに説明を進めていきます。その後で、それ以外のポイント(更新日時を使った方式、検索時の排他制御など)を説明します。
+	</p>
+
+	<h2 id="solution">排他制御メソッド</h2>
+	<p>
+		DBFluteでは、排他制御カラムを持っているテーブルの Behavior
+		では、(もともと存在する) <em class="keyword">update() の処理に排他制御が追加</em> され、新たに排他制御なしの
+		updateNonstrict() が生成されます。(delete()、insertOrUpdate()、batchUpdate() などに関しても同様)
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclusivecontrolcolumn">ExculusiveControlColumn (排他制御カラム)</a></div>
+	<h3>排他制御あり</h3>
+	<ul>
+		<li><a href="../../../ormapper/behavior/update/update.html">update()</a></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/delete.html"> -->delete()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/insertorupdate.html"> -->insertOrUpdate()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/batchupdate.html"> -->batchUpdate()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/batchdelete.html"> -->batchDelete()<!-- </a> --></span></li>
+	</ul>
+	<p>
+		where句に、指定された(Entityにsetされた)バージョン番号による等値条件が入り、すれ違いが発生した(更新・削除結果が 0
+		件の)場合は、排他制御用例外である EntityAlreadyUpdatedException が発生します。
+		また、更新処理の場合は、排他制御カラムは
+		<em class="keyword">Entityに設定されているにプログラム上でインクリメント(+1)された値で更新</em>
+		されます。更新後のEntityには、(インクリメントされた)その値が格納されています。
+	</p>
+	<div class="relatedpage"><a href="../../runtimefit/exceptionhandling/index.html#exclusive">現場フィット - 例外ハンドリング - 排他制御の例外</a></div>
+<pre><span class="codetitle">ex) バージョン番号を利用したupdate()のSQL {MEMBER} @log4j.properties</span><code>
+<span class="keyword">update</span> MEMBER <span class="keyword">set</span> MEMBER_NAME = <span class="abbreviation">...</span>, <span class="point">VERSION_NO = </span><span class="literal">1</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="literal">3</span> <span class="keyword">and</span> <span class="point">VERSION_NO = </span><span class="literal">0</span>
+</code></pre>
+	<h3>排他制御なし</h3>
+	<ul>
+		<li><a href="../../../ormapper/behavior/update/updatenonstrict.html">updateNonstrict()</a></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/deletenonstrict.html"> -->deleteNonstrict()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/deletenonstrictignoredeleted.html"> -->deleteNonstrictIgnoreDeleted()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/insertorupdatenonstrict.html"> -->insertOrUpdateNonstrict()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/batchupdatenonstrict.html"> -->batchUpdateNonstrict()<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="../../../ormapper/behavior/update/batchdeletenonstrict.html"> -->batchDeleteNonstrict()<!-- </a> --></span></li>
+	</ul>
+	<p>
+		特に、where句にバージョン番号による等値条件は入らずに処理されます。更新処理の場合は、排他制御カラムは
+		<em class="keyword">DB上の値にSQL上でインクリメント(+1)された値で更新</em>
+		されます。ゆえに、アプリでEntityにバージョン番号を明示的にsetする必要はありません(setしてもそれは無視されます)。
+		更新後のEntityには、(インクリメントされた)その値は格納されません。
+	</p>
+<pre><span class="codetitle">ex) バージョン番号を利用したupdateNonstrict()のSQL {MEMBER} @log4j.properties</span><code>
+<span class="keyword">update</span> MEMBER <span class="keyword">set</span> MEMBER_NAME = <span class="abbreviation">...</span>, <span class="point">VERSION_NO = VERSION_NO + </span><span class="literal">1</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="literal">3</span>
+</code></pre>
+
+	<h2 id="versionno">バージョン番号</h2>
+	<p>
+		バージョン番号は、DBFluteにおいて最も推奨される楽観的並行性制御の実現方法です。
+		排他制御カラムと言った場合は、このバージョン番号を示すことが多いです。
+	</p>
+	<p>
+		もし、バージョン番号カラムの名前が、<em class="keyword">VERSION_NO</em>
+		の場合は、DBFluteで自動でそのカラムを排他制御用のカラムとして認識するため設定は不要です。
+		(バージョン番号カラムが定義されているテーブルの Behavior の排他制御が有効になります)
+	</p>
+	<p>
+		それ以外の名前の場合は、optimisticLockDefinitionMap.dfprop の versionNoFieldName にて明示的に設定をします。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/optimisticlockdefinition/index.html#versionnofieldname">dfprop - versionNoFieldName</a></div>
+
+	<h2 id="updatedate">更新日時</h2>
+	<p>
+		更新日時は、バージョン番号がどうしても設定できない環境の場合に利用することを想定した楽観的並行性制御の実現方法です。
+		排他制御の厳密さは、DBMSのミリ秒の精度に依存するため、利用するデータ型の精度に注意する必要があります。
+	</p>
+	<p>
+		利用する場合は、更新日時カラムの名前を optimisticLockDefinitionMap.dfprop の updateDateFieldName にて明示的に設定をします。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/optimisticlockdefinition/index.html#updatedatefieldname">dfprop - updateDateFieldName</a></div>
+
+	<h2 id="deletedcheck">検索時の排他制御</h2>
+	<p>
+		検索時の排他制御は、主に selectEntityWithDeletedCheck() が対応します。
+		例えば、検索一覧画面である条件で検索して、あるレコードを選択して詳細画面へ遷移する直前で、
+		そのレコードが別の人によって削除、もしくは、(詳細画面では扱えなくなる)削除に等しい更新がされた場合に、詳細画面の表示ロジックの中で
+		selectEntityWithDeletedCheck() を利用していれば、EntityAlreadyDeletedException
+		が発生します。これが検索時の排他制御の例外となります。(そのようにアプリの実装として統一されていることが前提です)
+	</p>
+	<p>
+		このようなケースが業務的にあり得るのか、はたまた、そもそもアプリとしてそこまで考慮する(要件がある)のか、グレーゾーンになりがちですので、
+		この例外をどのように扱うかはアプリの状況に合わせて検討する必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../runtimefit/exceptionhandling/index.html#exclusive">現場フィット - 例外ハンドリング - 排他制御の例外</a></div>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-basic-example では、テストケースの中で実際にバージョン番号を利用した排他制御を利用しています。
+		(他の多くのExampleでも同様に利用されています)
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+	<p>
+		また、dbflute-multipledb-seasar-example では、更新日時を利用した排他制御を利用しています(LibraryDBの方)。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#pointenv">DBFlute Example - 特定環境</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

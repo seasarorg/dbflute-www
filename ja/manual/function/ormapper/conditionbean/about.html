@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,概念,ConditionBeanとは,タイプセーフ,目的ドリブン" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>ConditionBeanについて Top | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ConditionBeanについて</h1>
+	<ul class="indexlist">
+		<li><a href="#about">ConditionBeanとは？</a>
+			<ul>
+				<li><a href="#abbreviation">省略表記</a></li>
+				<li><a href="#autogenerate">自動生成される</a></li>
+				<li><a href="#classname">ConditionBeanのクラス名</a></li>
+			</ul>
+		</li>
+		<li><a href="#typesafe">タイプセーフ</a></li>
+		<li><a href="#purpose">目的ドリブン</a></li>
+		<li><a href="#structure">ConditionBeanの構造</a>
+			<ul>
+				<li><a href="#elementlist">ConditionBean要素の一覧</a></li>
+			</ul>
+		</li>
+		<li><a href="#conditionquery">ConditionQueryとは？</a>
+			<ul>
+				<li><a href="#abbreviation">省略表記</a></li>
+			</ul>
+		</li>
+		<li><a href="#conditionkey">ConditionKeyとは？</a></li>
+		<li><a href="#sqlclause">SqlClauseとは？</a></li>
+	</ul>
+
+	<h2 id="about">ConditionBeanとは？</h2>
+	<p>
+		プログラム上で <em class="keyword">タイプセーフ</em> に <em class="keyword">目的ドリブン</em>
+		でSQLを組み立てるためのオブジェクトです。select 文が主で、update 文や delete 文の where
+		句部分に利用されることもあります。<em class="keyword">こんでぃしょんびーん</em> と呼びます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../architecture/dbaccessif.html"> -->バランス指向のDBアクセスI/F<!-- </a> --></span></div>
+	<h3 id="abbreviation">省略表記</h3>
+	<p>
+		<em class="keyword">CB</em> (しーびー)と略して表現されることがあります。主にクラス名などで利用されます。
+	</p>
+	<h3 id="autogenerate">自動生成される</h3>
+	<p>
+		ConditionBeanのクラスは、(関連するクラスも含めて)全てGenerateタスクにて自動生成されます。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/generate/index.html">Generateタスク</a></div>
+	<h3 id="classname">ConditionBeanのクラス名</h3>
+	<p>
+		<em class="keyword">[Entityの名前] + CB</em> という形式です。例えば、MEMBER なら MemberCB。
+	</p>
+	<div class="relatedpage"><a href="../entity/index.html">Entity</a></div>
+
+	<h2 id="typesafe">タイプセーフ</h2>
+	<p>
+		ConditionBeanはテーブル毎にクラスとして自動生成されます。
+		テーブル情報やFK制約情報から生成される関連テーブルの指定や条件付与のメソッドを利用することで、
+		カラム名やテーブル名などをタイプセーフに指定することができます(さようなら、スペルミス)。
+	</p>
+<pre><span class="codetitle">ex) 会員名称が[S]で始まる会員を検索(会員ステータスも取得)</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB(); <span class="comment">// 基点テーブルは "会員"</span>
+cb.setupSelect_MemberStatus(); <span class="comment">// 関連する "会員ステータス" も取得</span>
+cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>); <span class="comment">// 会員名称が'S'で始まること</span>
+</code></pre>
+	<p>
+		タイプセーフのメリットはさらにDB変更時に現れます。
+		変更の影響範囲はそのままコンパイルエラーとして検知できるため、<em class="keyword">DB変更時のデグレ防止に大きく貢献します</em>。
+	</p>
+	<h2 id="purpose">目的ドリブン</h2>
+	<p>
+		以下のような目的ドリブンの思考手順を基調とします。
+	</p>
+	<ol>
+		<li>基点テーブルは何か？</li>
+		<li>取得したい関連テーブルは何か？</li>
+		<li>どんな絞り込みをしたいか？どんな並び替えをしたいか？</li>
+		<li>一件検索なのか？リスト検索なのか？</li>
+	</ol>
+	<p>
+		これを検索処理を実装をする際の基本と考え、ConditionBeanではこの思考手順がそのまま実装にリンクします。
+		ディベロッパーはこの思考のレールに乗ってスムーズに実装に結びつけることができ、
+		そして、目的が実装として表現されるため "何をしたいのか" が一目瞭然のプログラムとなります。
+	</p>
+	<div class="detailpage"><a href="./howto.html">ConditionBeanの使い方</a></div>
+
+	<div class="inucolumn">
+		<h3>目的ドリブンの習慣</h3>
+		<p>
+			この思考手順はとても重要だと考えています。これらポイントを無視すると、実装しながら思考の迷路に迷い込んでしまうことがあり,
+			意外なことにSQLが得意な人でもそういうことがあります。SQLの実装で悩んでる人をフォローするときに "基点テーブルは何？"、"関連テーブルは何と何と何を取得したいの？"
+			と聞くと、意外にも曖昧な答えが返ってくることがあります。SQLの要件を再整理してこれらのポイントを明確にすると、実は簡単に問題が解決することもあります。
+		</p>
+		<p>
+			DBFluteはディベロッパーにConditionBeanを通して、これらポイントを身につけて欲しいという気持ちがあります。(他のO/Rマッパを利用する時、SQLを実装するときにもプラスになるはずです)
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h3>目的ドリブンの堅いAPI</h3>
+		<p>
+			ConditionBeanは目的ドリブンでの実装を主にすることにより安全で堅いAPIを提供しています。
+			わかりやすい例を一つ挙げます。SQLにおける "結合" 、これは手段でしょうか？目的でしょうか？
+			現場におけるほとんどの場合の結合は、以下の二つの目的のどちらかの "手段" になります：
+		</p>
+		<ul>
+			<li>関連テーブルのデータも取得したい</li>
+			<li>関連テーブルのカラムで絞り込み・並び替えをしたい</li>
+		</ul>
+		<p>
+			非依存のリレーション(NullableなカラムでのFK)における内部結合の場合は結合するだけで絞り込みが発生するので違った話になりますが、
+			頻繁に利用される外部結合、そして、依存のリレーション(NotNullなカラムでのFK)での内部結合は上記の目的以外の目的を持つことはほとんどありません。
+			ゆえに、ConditionBeanでは結合という手段を指定するメソッドはなく、代わりに上記の二つの目的を指定するメソッドが存在します。
+		</p>
+<pre><span class="codetitle">ex) 会員ステータスの表示順が 3 以上の会員を検索(会員ステータスも取得) @Java</span><code>
+<span class="comment">// 結合先のテーブルのデータも取得したい</span>
+cb.setupSelect_MemberStatus();
+
+<span class="comment">// 結合先のテーブルのカラムで絞り込みをしたい</span>
+cb.query().queryMemberStatus().setDisplayOrder_GreaterEqual(3);
+</code></pre>
+		<p>
+			指定された目的を達成するために手段(結合)が必要となれば、ConditionBeanが内部で判断してその手段(結合)を利用します。
+		</p>
+<pre><span class="codetitle">ex) 会員ステータスの表示順が 3 以上の会員を検索(会員ステータスも取得) @SQL</span><code>
+<span class="keyword">select</span> member.*
+     , status.* <span class="comment">-- 関連テーブルのデータも取得したい</span>
+  <span class="keyword">from</span> MEMBER member
+    <span class="keyword">left outer join</span> MEMBER_STATUS status on <span class="abbreviation">...</span>
+ <span class="keyword">where</span> status.DISPLAY_ORDER &gt;= 3 <span class="comment">-- 関連テーブルのカラムで絞り込みをしたい</span>
+</code></pre>
+		<p>
+			逆に解釈すると、結合せずに関連テーブルを取得するカラムがselect句に入ったり、結合せずに関連テーブルのカラムでの絞り込み条件がwhere句に入ったりなど、目的を達成出来ない不整合な状態が発生しません。
+		</p>
+		<p>
+			SQLと違うところはどこでしょうか？
+			SQLは最高の自由度を持っていますが、例えばConditionBeanはFK制約で関連付いたテーブルのみを関連テーブルとして扱うことができます。
+			<em class="keyword">定型的に利用されるポイントに対するサポートに徹する</em>
+			ことで、ディベロッパーがスムーズに実装しやすい目的ドリブンで安全重視の堅いAPIを提供しています。
+			それで対応できない要件が発生したときにだけ、SQLの最高の自由度を発揮出来る 外だしSQL(OutsideSql) で実装するのです。
+		</p>
+		<div class="relatedpage"><span class="working"><!-- <a href="../../../architecture/dbaccessif.html"> -->バランス指向のDBアクセスI/F<!-- </a> --></span></div>
+	</div>
+
+	<h2 id="structure">ConditionBeanの構造</h2>
+	<p>
+		全ての(自動生成される)ConditionBeanは、AbstractConditionBean
+		クラスを継承していて、それ経由で、ConditionBean インターフェースを実装しています。
+	</p>
+<pre><span class="codetitle">ex) ConditionBeanのBsクラスの宣言 {BeMemberCB} @Java</span><code>
+<span class="keyword">public class</span> BsMemberCB <span class="keyword">extends</span> AbstractConditionBean {
+</code></pre>
+<pre><span class="codetitle">ex) AbstractConditionBeanの宣言 @Java</span><code>
+<span class="keyword">public abstract class</span> AbstractConditionBean <span class="keyword">implements</span> ConditionBean {
+</code></pre>
+	<h3 id="elementlist">ConditionBean要素の一覧</h3>
+	<dl class="keymainlist">
+		<dt>関連テーブルの取得</dt><dd>setupSelect...: この後(必要であれば)、with...<span class="freecomment">(唯一の se 始まり)</span></dd>
+		<dt>select句の調整的な指定</dt><dd>specify(): この後、col...やderiv... <span class="freecomment">(唯一の sp 始まり)</span></dd>
+		<dt>検索条件の指定</dt><dd>query(): この後、set...やaddOrderBy... <span class="freecomment">(唯一の q 始まり)</span></dd>
+		<dt>union句の指定</dt><dd>union() <span class="freecomment">(唯一の u 始まり)</span></dd>
+		<dt>or句の指定</dt><dd>orScopeQuery() <span class="freecomment">(唯一の o 始まり)</span></dd>
+		<dt>カラム同士の比較</dt><dd>columnQuery() <span class="freecomment">(唯一の col 始まり)</span></dd>
+		<dt>ページング検索</dt><dd>paging() <span class="freecomment">(唯一の p 始まり)</span></dd>
+		<dt>最初のn件</dt><dd>fetchFirst() <span class="freecomment">(fF でコード補完)</span></dd>
+		<dt>更新ロック</dt><dd>lockForUpdate() <span class="freecomment">(lF でコード補完)</span></dd>
+		<dt>StatementConfigの指定</dt><dd>configure() <span class="freecomment">(唯一の con 始まり)</span></dd>
+		<dt>表示用SQL</dt><dd>toDisplaySql() <span class="freecomment">(toD でコード補完)</span></dd>
+		<dt>PKの query</dt><dd>acceptPrimaryKey(pk) <span class="freecomment">(通常は、query().set[PK]_Equal...)</span></dd>
+		<dt>PKの order-by</dt><dd>addOrderBy_PK_[Asc or Desc]() <span class="freecomment">(通常は、query().addOrderBy...)</span></dd>
+		<dt>メタデータ</dt><dd>getTableDbName()、getDBMeta()、... <span class="freecomment">(internal)</span></dd>
+		<dt>その他</dt><dd>hasWhereClause()、hasOrderByClause()など</dd>
+	</dl>
+	<p>
+		※具体的な使い方や機能の一覧に関しては、<em class="keyword">ConditionBeanの使い方</em>
+		および <em class="keyword">ConditionBeanの機能</em> を参考に。
+	</p>
+	<div class="relatedpage"><a href="./howto.html">ConditionBeanの使い方</a></div>
+	<div class="relatedpage"><a href="./index.html#function">ConditionBeanの機能</a></div>
+
+	<h2 id="conditionquery">ConditionQueryとは？</h2>
+	<p>
+		基本的には、ConditionBean という言葉だけを意識していれば実装はできますが、ConditionQuery
+		の理解もしておくと、特別な機能などを利用する際に理解が深まります。<em class="keyword">こんでぃしょんくえり</em> と呼びます。
+	</p>
+	<p>
+		ConditionQueryは、ConditionBeanの中で検索条件(主にはwhere句やorder by句)を補完するオブジェクトです。
+		ConditionBeanはConditionQueryを複数保持しています(基点テーブル + 関連テーブルの分)。ConditionBeanで query()
+		とメソッドを呼び出すときに戻ってくるオブジェクトは(そのテーブルの)ConditionQueryです。
+		但し、明示的にConditionQueryの型で変数として受け取ることはほとんどなく、内部的なメソッドをアプリケーションから明示的に呼び出すことは推奨されません。
+	</p>
+	<p>
+		主に意識するタイミングは、where句の再利用メソッドを定義・利用するときです。
+	</p>
+	<div class="detailpage"><a href="../../genbafit/implfit/whererecycle/index.html">現場フィット - where句の再利用</a></div>
+	<h3 id="abbreviation">省略表記</h3>
+	<p>
+		<em class="keyword">CQ</em> と略して表現されることがあります。特にクラス名でよく利用されます。
+		例えば、MemberCB のConditionQueryは MemberCQ です。
+	</p>
+
+	<h2 id="conditionkey">ConditionKeyとは？</h2>
+	<p>
+		ConditionBeanにおける比較条件(演算子)のキー名称のことを示します。例えば、等値条件の
+		Equal、大なり小なり条件の GreaterThan、LessThan、GreaterEqual、LessEqual
+		のことです。<em class="keyword">こんでぃしょんきー</em> と呼びます。
+	</p>
+	<p>
+		条件設定メソッドは、メソッド名に含まれている ConditionKey を選択して、比較条件を指定します。
+	</p>
+<pre><span class="codetitle">ex) ConditionBeanのEqual条件 {MEMBER_ID} @Java</span><code>
+<span class="attribute">cb</span>.query().setMemberId_<span class="point">Equal</span>(memberId)
+</code></pre>
+
+	<h2 id="sqlclause">SqlClauseとは？</h2>
+	<p>
+		ConditionQueryよりももっとConditionBeanの奥深くに住んでいるのが SqlClause
+		です。CBやCQで指定された条件情報からSQLの文字列を組み立てる役割をもっています。DBMSごとの方言を吸収しているのもこのクラスです。
+		<em class="keyword">えすきゅーえるくろーず</em> と呼びます。
+	</p>
+	<p>
+		こちらは、まずアプリケーションで意識することはないでしょう。ConditionBeanからインスタンスを取得しようと思えばできるのですが、
+		SqlClause のメソッドをアプリケーションから直接呼び出すことは推奨されません。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

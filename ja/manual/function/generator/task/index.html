@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,Ant" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>DBFluteタスク | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>DBFluteタスク</h1>
+	<ul class="indexlist">
+		<li><a href="#about">DBFluteタスクとは？</a></li>
+		<li><a href="#tasklist">DBFluteタスクの一覧</a></li>
+		<li><a href="#command">タスク実行コマンド</a></li>
+		<li><a href="#timingrole">タスクの実行タイミングと役割</a></li>
+		<li><a href="#log">タスク実行ログ</a></li>
+	</ul>
+
+	<h2 id="about">DBFluteタスクとは？</h2>
+	<p>
+		DBFluteが提供する "Antタスク" です。
+	</p>
+	<p>
+		タスクを実行することで自動生成ツールとしての機能を利用することができます。
+	</p>
+
+	<h2 id="tasklist">DBFluteタスクの一覧</h2>
+	<dl class="textlist">
+		<dt><a href="./jdbc/index.html">JDBCタスク</a></dt><dd>実際のデータベースからスキーマ情報を取得</dd>
+		<dt><a href="./generate/index.html">Generateタスク</a></dt><dd>スキーマ情報からクラスを自動生成</dd>
+		<dt><a href="./doc/index.html">Docタスク</a></dt><dd>スキーマ情報からドキュメントを自動生成</dd>
+		<dt><a href="./sql2entity/index.html">Sql2Entityタスク</a></dt><dd>外だしSQL(OutsideSql)からクラスを自動生成</dd>
+		<dt><a href="./outsidesqltest/index.html">OutsideSqlTestタスク</a></dt><dd>外だしSQL(OutsideSql)を一括実行してテスト</dd>
+		<dt><a href="./replaceschema/index.html">ReplaceSchemaタスク</a></dt><dd>スキーマを再構築(初期化・作成・データ登録・整合性チェック)</dd>
+	</dl>
+
+	<h2 id="command">タスク実行コマンド</h2>
+	<p>
+		DBFluteクライアント配下に、それぞれのタスクを実行する "<em class="keyword">スクリプトファイル(.bat|sh)</em>"
+		があり、それを実行することでDBFluteタスクを実行することができます。
+	</p>
+	<div class="relatedpage"><a href="../client/index.html">DBFluteクライアント</a></div>
+	<p>
+		Windows環境のEclipse上からは、ダブルクリックで実行できます。もしくは、"Open Resource"
+		からコマンドファイルを選択しても実行できます。
+	</p>
+
+	<h2 id="timingrole">タスクの実行タイミングと役割</h2>
+	<p>
+		DBFluteタスクのおおよそ想定される実行タイミングとその役割です。ReplaceSchemaに関しては、開発プロジェクトの利用ポリシー次第によって色々と変わってきます。
+	</p>
+	<h3>実装前</h3>
+	<dl class="textlist">
+		<dt>開発用DBスキーマの作成</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>DBスキーマを作成、マスタ・テストデータの登録 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+			</dl>
+		</dd>
+		<dt>実装開始直前 (開発用DBスキーマの作成後)</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">JDBC</em></dt>
+				<dd>メタ情報を取得 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Doc</em></dt>
+				<dd>SchemaHTMLを生成 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Generate</em></dt>
+				<dd>クラスを自動生成 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+	</dl>
+	<h3>実装中</h3>
+	<dl class="textlist">
+		<dt>アプリ実装中</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">OutsideSqlTest</em></dt>
+				<dd>外だしSQLの2Way-SQLとしての検証 <span class="supplement">(ディベロッパー)</span></dd>
+				<dt><em class="keyword">Sql2Entity</em></dt>
+				<dd>外だしSQLのクラスを自動生成 <span class="supplement">(ディベロッパー)</span></dd>
+			</dl>
+		</dd>
+		<dt>DB変更の発生</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>DBスキーマを再作成 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+				<dt><em class="keyword">JDBC</em></dt>
+				<dd>変更分のメタ情報を取得 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Doc</em></dt>
+				<dd>変更分をSchemaHTMLに反映 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Generate</em></dt>
+				<dd>変更分をクラスに反映、影響範囲の特定 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">OutsideSqlTest</em></dt>
+				<dd>外だしSQLの影響範囲の特定 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+				<dt><em class="keyword">Sql2Entity</em></dt>
+				<dd>変更分をクラスに反映、影響範囲の特定 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+		<dt>DBFluteアップグレード直後</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">JDBC</em></dt>
+				<dd>新しいDBFlute(モジュール)にメタ情報を反映 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Doc</em></dt>
+				<dd>新しいバージョンのSchemaHTMLを生成 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Generate</em></dt>
+				<dd>新しいバージョンのクラスを生成 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Sql2Entity</em></dt>
+				<dd>新しいバージョンのクラスを生成 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+		<dt>テストデータの変更・追加</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>マスタ・テストデータの変更分の反映 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+			</dl>
+		</dd>
+	</dl>
+	<h3>実装後</h3>
+	<dl class="textlist">
+		<dt>結合テスト用DBスキーマ作成</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>DBスキーマを作成、マスタ・テストデータの登録 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+		<dt>結合テスト用テストデータの変更・追加</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>マスタ・テストデータの変更分の反映 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+		<dt>本番用DBスキーマ作成</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd>DBスキーマを作成、マスタ・初期データの登録 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+		<dt>本番運用後のDB変更</dt>
+		<dd>
+			<dl class="compactlist">
+				<dt><em class="keyword">ReplaceSchema</em></dt>
+				<dd><em class="keyword">開発用</em> のDBスキーマを再作成 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+				<dt><em class="keyword">JDBC</em></dt>
+				<dd>変更分のメタ情報を取得 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Doc</em></dt>
+				<dd>変更分をSchemaHTMLに反映 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">Generate</em></dt>
+				<dd>変更分をクラスに反映、影響範囲の特定 <span class="supplement">(アーキテクト)</span></dd>
+				<dt><em class="keyword">OutsideSqlTest</em></dt>
+				<dd>外だしSQLの影響範囲の特定 <span class="supplement">(アーキテクト、ディベロッパー)</span></dd>
+				<dt><em class="keyword">Sql2Entity</em></dt>
+				<dd>変更分をクラスに反映、影響範囲の特定 <span class="supplement">(アーキテクト)</span></dd>
+			</dl>
+		</dd>
+	</dl>
+	<h4>補足</h4>
+	<p>
+		本番運用後のDB変更では ReplaceSchema は利用しません(してはいけません)。
+	</p>
+
+	<h2 id="log">タスク実行ログ</h2>
+	<p>
+		タスクの実行ログは <em class="keyword">コンソール</em> かつ <em class="keyword">[DBFluteクライアント]/log/dbflute.log</em>
+		に出力されます。エラー発生時などはこれらログを参考にエラー原因を特定します。
+	</p>
+	<div class="relatedpage"><a href="../client/index.html#log">DBFluteクライアント - タスク実行ログ (log)</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

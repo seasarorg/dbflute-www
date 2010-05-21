@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,ReplaceSchema,データ登録,LoadData,TSV,CSV,エクセルデータ" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<title>データ登録 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>データ登録</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">処理概要</a>
+			<ul>
+				<li><a href="#switchdata">登録データの環境ごとの切り替え</a></li>
+				<li><a href="#loadorder">登録データの順序</a></li>
+				<li><a href="#errorhandling">エラーハンドリング</a></li>
+				<li><a href="#transaction">トランザクション</a></li>
+				<li><a href="#directid">IDは直接指定で登録</a></li>
+				<li><a href="#dataspec">データファイルの配置仕様の概要</a></li>
+			</ul>
+		</li>
+		<li><a href="#tsv">TSVデータの登録</a></li>
+		<li><a href="#csv">CSVデータの登録</a></li>
+		<li><a href="#xls">エクセルデータの登録</a></li>
+		<li><a href="#dataloadingtype">dataLoadingTypeによる切り替え</a></li>
+		<li><a href="#defaultvaluemap">デフォルト値の設定(dataprop)</a></li>
+		<li><a href="#islogginginsertsql">登録データのロギング</a></li>
+		<li><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></li>
+		<li><a href="#debug">登録エラーが発生したら？</a></li>
+	</ul>
+
+	<h2 id="overview">処理概要</h2>
+	<p>
+		DBFluteプロパティ databaseInfoMap.dfprop
+		に定義されたスキーマに接続し、仕様に合致するファイルに定義されているデータを登録します。データの形式は三つで、以下の順番で処理されます：
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/databaseinfo/index.html">databaseInfoMap.dfprop</a></div>
+	<ol>
+		<li><a href="#tsv">TSVデータの登録</a></li>
+		<li><a href="#csv">CSVデータの登録</a></li>
+		<li><a href="#xls">エクセルデータの登録</a></li>
+	</ol>
+	<h3 id="switchdata">登録データの環境ごとの切り替え</h3>
+	<p>
+		登録するデータは、"dataLoadingType" によって環境ごとの切り替えが可能です。
+	</p>
+	<div class="relatedpage"><a href="#dataloadingtype">dataLoadingTypeによる切り替え</a></div>
+	<h3 id="loadorder">登録データの順序</h3>
+	<p>
+		"common" の全てのファイルが登録された後に、"[dataLoadingType]" のデータが登録されます。
+	</p>
+	<ol>
+		<li>"common" 配下の (TSV --&gt; CSV --&gt; エクセル)</li>
+		<li>"[dataLoadingType]" 配下の (TSV --&gt; CSV --&gt; エクセル)</li>
+	</ol>
+	<h3 id="errorhandling">エラーハンドリング</h3>
+	<p>
+		一つでもデータ登録が実行した時点で、処理(ReplaceSchemaタスク)は中断します。
+	</p>
+	<div class="detailpage"><a href="#debug">登録エラーが発生したら？</a></div>
+	<h3 id="transaction">トランザクション</h3>
+	<p>
+		これらの処理は全て "オートコミットモード" で実行されます。
+	</p>
+	<h3 id="directid">IDは直接指定で登録</h3>
+	<p>
+		"シーケンス" や "Identity"は利用せず、データファイル上のIDの直接指定で登録します。
+	</p>
+	<p>
+		シーケンスに関しては "データ登録後のシーケンスの現在値の調整" 機能の利用をお奨めします。
+	</p>
+	<div class="detailpage"><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></div>
+	<p>
+		IDの直接指定での登録方法が "完全に" 許されていないIdentityを利用されているテーブルのデータは登録できません。
+		直接指定ができるIdentityの利用をお奨めします(例えば、DB2の
+		"by default")。例えば、SQLServerのようにコマンドを実行することで直接指定が許されるような場合は、
+		ReplaceSchemaが内部的にそのコマンドを実行するので特に意識する必要はありません。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dbway/db2">DBMSの取扱い - DB2</a></div>
+	<div class="detailpage"><a href="../../../../reference/dbway/sqlserver">DBMSの取扱い - SQLServer</a></div>
+	<h3 id="dataspec">データファイルの配置仕様の概要</h3>
+<pre><span class="codetitle">ex) データファイルの配置仕様の概要(dataLoadingTypeはデフォルトの "ut") @playsql</span><code>
+playsql
+ |-data
+    |-common <span class="comment">// dataLoadingTypeに関わらず常に登録対象となる(最初に登録される)</span>
+       |-tsv <span class="comment">// 一番最初に登録される(存在しない場合はスキップ)</span>
+       |  |-[encoding]
+       |     |-<span class="literal">10-[table-name].tsv</span> 
+       |     |-<span class="literal">20-[table-name].tsv</span>
+       |     |-<span class="literal">defaultValueMap.dataprop</span>   <span class="comment">// デフォルト値プロパティ(非必須)</span>
+       |     |-<span class="literal">convertValueMap.dataprop</span>   <span class="comment">// コンバートプロパティ(非必須)</span>
+       |-csv <span class="comment">// TSVの次に登録される(存在しない場合はスキップ)</span>
+       |  |-[encoding]
+       |     |-<span class="literal">10-[table-name].csv</span>
+       |     |-<span class="literal">20-[table-name].csv</span>
+       |     |-<span class="literal">defaultValueMap.dataprop</span>   <span class="comment">// デフォルト値プロパティ(非必須)</span>
+       |     |-<span class="literal">convertValueMap.dataprop</span>   <span class="comment">// コンバートプロパティ(非必須)</span>
+       |-xls <span class="comment">// CSVの次に登録される(存在しない場合はスキップ)</span>
+       |  |-<span class="literal">10-[title].xls</span>
+       |  |-<span class="literal">20-[title].xls</span>
+       |  |-<span class="literal">defaultValueMap.dataprop</span>      <span class="comment">// デフォルト値プロパティ(非必須)</span>
+       |  |-<span class="literal">tableNameMap.dataprop</span>         <span class="comment">// テーブル名文字数制限回避プロパティ(非必須)</span>
+       |  |-<span class="literal">notTrimColumnMap.dataprop</span>     <span class="comment">// トリムしないカラム指定プロパティ(非必須)</span>
+       |  |-<span class="literal">emptyStringColumnMap.dataprop</span> <span class="comment">// 空文字許すカラム指定プロパティ(非必須)</span>
+    |-ut <span class="comment">// dataLoadingTypeが "ut" の場合に登録対象となる(commonの後に登録される)</span>
+       |-...(same structure as common directory)
+</code></pre>
+
+	<h2 id="tsv">TSVデータの登録</h2>
+	<p>
+		タブ区切りのテキストデータを登録します。
+	</p>
+	<div class="detailpage"><a href="./loadtsv.html">TSVデータの登録</a></div>
+
+	<h2 id="csv">CSVデータの登録</h2>
+	<p>
+		カンマ区切りのテキストデータを登録します。
+	</p>
+	<p>
+		ディレクトリ名やファイル拡張子などの "tsv" が "csv" に変わり、データのセパレータがカンマに変わる以外は
+		"TSVデータの登録" と全く同じ仕様となります。
+	</p>
+	<div class="relatedpage"><a href="./loadtsv.html">TSVデータの登録</a></div>
+	<h2 id="xls">エクセルデータの登録</h2>
+	<p>
+		エクセルで管理されたデータを登録します。
+	</p>
+	<div class="relatedpage"><a href="./loadxls.html">エクセルデータの登録</a></div>
+
+	<h2 id="dataloadingtype">dataLoadingTypeによる切り替え</h2>
+	<p>
+		それぞれのデータ形式ごとの "common" および "[dataLoadingType]" ディレクトリに配置データが、実行時の
+		"dataLoadingType" に合わせて登録されます。"common" は常に登録されますが、"[dataLoadingType]"
+		ディレクトリ配下のデータは実行時の "dataLoadingType" と一致するディレクトリ配下のデータのみ登録されます。
+	</p>
+	<p>
+		"dataLoadingType" は、"replaceSchemaDefinitionMap.dfprop" の "dataLoadingType"
+		にて定義されます。デフォルトは "ut" です。環境ごとに "dataLoadingType"
+		を切り替える場合は、DBFluteプロパティの環境ごとに切り替え機能を利用して切り替えます。
+	</p>
+<pre><span class="codetitle">ex) dataLoadingTypeを "it" に設定 @replaceSchemaDefinitionMap.dfprop</span><code>
+dataLoadingType = it
+</code></pre>
+	<dl class="textlist">
+		<dt>設定ファイル</dt>
+		<dd>replaceSchemaDefinitionMap.dfprop</dd>
+		<dt>プロパティ</dt>
+		<dd>dataLoadingType (default: ut)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>全てのデータファイル形式で有効</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#dataloadingtype">dfprop - dataLoadingType</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/environmenttype.html">環境ごとのDBFluteプロパティ</a></div>
+
+	<h2 id="defaultvaluemap">デフォルト値の設定(dataprop)</h2>
+	<p>
+		例えば、共通カラムのようなカラムの場合、ReplaceSchemaで登録するときは固定の値を登録しても特に問題が無い場合があります。
+		そのようなときにデータファイルにそれらカラムのデータを律儀に登録するのではなく、"あるカラムは一律のある値を登録する" ということが可能です。
+	</p>
+	<p>
+		データファイルと同じディレクトリに "<em class="keyword">defaultValueMap.dataprop</em>" という名前のテキストファイルを配置して、
+		カラム名と固定の値を定義します。すると、insert処理するときにそのカラムに対して指定された固定の値を登録するようになります。
+		データファイルのカラム定義からはそのカラムを省略することができます。
+	</p>
+<pre><span class="codetitle">ex) 共通的なカラムに固定の値を定義 @defaultValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; REGISTER_DATETIME = <span class="keyword">sysdate</span>
+    ; REGISTER_USER     = <span class="literal">foo</span>
+    ; REGISTER_PROCESS  = <span class="literal">bar</span>
+    ; UPDATE_DATETIME   = <span class="keyword">sysdate</span>
+    ; UPDATE_USER       = <span class="literal">foo</span>
+    ; UPDATE_PROCESS    = <span class="literal">bar</span>
+    ; VERSION_NO        = <span class="literal">0</span>
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>設定ファイル</dt>
+		<dd>defaultValueMap.dataprop (UTF-8)</dd>
+		<dt>プロパティ</dt>
+		<dd>カラム名と固定値の定義</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>"sysdate" が指定されている場合は、登録時の現在日時を登録</li>
+				<li>カラム名は大文字小文字区別なし</li>
+				<li>全てのデータファイル形式で有効</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		定義されたカラムの一部のカラムしか定義されていないテーブルでも、
+		その一部のカラムに対して固定の値が登録されます(Behaviorでの共通カラムの自動設定とは挙動が異なります)。
+		ここでは "共通カラムの自動設定" というよりも、"共通カラム対する疑似のデフォルト制約" という感じになります。
+	</p>
+
+	<h2 id="islogginginsertsql">登録データのロギング</h2>
+	<p>
+		登録されるデータは、一レコードずつログに出力されます。エラー発生時などの確認にとても役に立ちますが、ReplaceSchema
+		で扱うデータの規模が大きくなったときに少しでも処理スピードを速くしたい場合のために、このログをOFFにすることができます。
+	</p>
+	<p>
+		"replaceSchemaDefinitionMap.dfprop" の "isLoggingInsertSql" を "false" に設定すると、
+		データ登録での一つ一つのデータに対するログは出力されません。
+	</p>
+	<dl class="textlist">
+		<dt>設定ファイル</dt>
+		<dd>replaceSchemaDefinitionMap.dfprop</dd>
+		<dt>プロパティ</dt>
+		<dd>isLoggingInsertSql (true or false)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>全てのデータファイル形式で有効</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#islogginginsertsql">dfprop - isLoggingInsertSql</a></div>
+	<p>
+		但し、エラー発生したときは、エラー発生箇所の特定にログは欠かせません。
+		エラー発生時は、このプロパティを(一時的に)元に戻してから再度実行してログを確認することをお奨めします。
+	</p>
+
+	<h2 id="isincrementsequencetodatamax">シーケンス値の調整</h2>
+	<p>
+		データ登録後は、シーケンスの現在値と登録されているデータのIDの最大値が大きくズレてしまいます。例えば、会員IDが既にテストデータとして "20"
+		まで登録されているのに、シーケンスは再作成されたばかりで "1"
+		が取得されてしまうと、ReplaceSchema実行後、アプリケーションのテスト実行などの(シーケンスを利用した)登録処理でエラーになってしまいます。
+	</p>
+	<p>
+		"replaceSchemaDefinitionMap.dfprop" の "isIncrementSequenceToDataMax" を "true"
+		に設定することで、"sequenceDefinitionMap.dfprop"
+		にて定義されているシーケンスの値が、全てのデータファイル形式のデータ登録後に調整されます。(次のシーケンスの採番処理で、登録されたデータのIDの
+		"最大値+1" の値が取得されるようになります)
+	</p>
+	<dl class="textlist">
+		<dt>設定ファイル</dt>
+		<dd>replaceSchemaDefinitionMap.dfprop</dd>
+		<dt>プロパティ</dt>
+		<dd>isIncrementSequenceToDataMax (true or false)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>シーケンスの増分値が "1" であることを想定</li>
+				<li>シーケンスがサポートされているDBMSのみ有効</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/sequencedefinition/index.html">sequenceDefinitionMap.dfprop</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#isincrementsequencetodatamax">dfprop - isIncrementSequenceToDataMax</a></div>
+	<p>
+		内部的には、実際にシーケンスで採番して取得された値と登録されたデータのIDを比較して、適した値になるまで採番し続けることで実現しています。
+		登録されたデータが一件も存在しない場合は、そのテーブルのシーケンスに対して特に何もしません。
+		また、実際に調整処理が実行されるのは "最終チェック" の全てのSQLが終了した後です。
+	</p>
+	<div class="relatedpage"><a href="./takefinally.html">最終チェック</a></div>
+	<h3>シーケンスの増分値が "2" 以上なら？</h3>
+	<p>
+		基本的には "シーケンスの増分値" は "1" であることを想定していますが、"2"
+		以上の場合でもプロジェクトとして許容できるのであれば特に問題なく利用可能です。
+	</p>
+	<h4>データのIDの増分量がシーケンスと同じ</h4>
+	<dl class="valuemainlist">
+		<dt>シーケンスの増分値</dt><dd>10</dd>
+		<dt>データのIDの最大値</dt><dd>30 (10, 20, 30)</dd>
+		<dt>調整後の "nextval"</dt><dd>40</dd>
+	</dl>
+	<h4>データのIDの増分量がシーケンスと違う</h4>
+	<dl class="valuemainlist">
+		<dt>シーケンスの増分値</dt><dd>10</dd>
+		<dt>データのIDの最大値</dt><dd>23 (1, 3, 5, ..., 21, 23)</dd>
+		<dt>調整後の "nextval"</dt><dd>40</dd>
+	</dl>
+	<p>
+		"登録データのIDの増分量" と "シーケンスの増分値" は同じにするのがお奨めです。
+	</p>
+
+	<h2 id="debug">登録エラーが発生したら？</h2>
+	<p>
+		データ登録はReplaceSchemaの中で最もエラーが発生しやすい場所です。例えば、NotNull制約のカラムに "null"
+		が定義されていたり、数値のカラムに文字列が定義されていたりと、データ不備はすぐにエラーにつながります。
+	</p>
+	<p>
+		エラーが発生したら真っ先に <em class="keyword">コンソールログ</em> もしくは <em class="keyword">[DBFluteクライアント]/log/dbflute.log</em>
+		を確認しましょう。例外メッセージを必ず読み、そして、それまでの登録されたデータのログから
+		"どのデータでエラーが発生したのか" を特定します。
+	</p>
+	<p>
+		もし、"登録データのロギングをOFF" にしている場合は、"ON" に戻してから再度実行して登録されたデータのログを確認することをお奨めします。
+	</p>
+	<div class="relatedpage"><a href="#islogginginsertsql">登録データのロギング</a></div>
+	<p>
+		それでも、エラー箇所のデータが特定出来ない場合は、"バッチ更新をしないで登録をON" にして、再度実行することをお奨めします。
+	</p>
+	<div class="relatedpage"><a href="./loadxls.html#issuppressbatchupdate">バッチ更新をしないで登録</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

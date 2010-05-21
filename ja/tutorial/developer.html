@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ディベロッパー,Developer,チュートリアル,Tutorial,使い方,ドキュメント" />
+	<link rel="stylesheet" type="text/css" href="../../css/sub.css" />
+	<title>ディベロッパーのためのチュートリアル | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-developer">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html"><img src="../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html"><img src="../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/tutorial/architect.html"><img src="../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../ja/tutorial/developer.html"><img src="../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html"><img src="../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/environment/setup/index.html"><img src="../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../ja/environment/upgrade/index.html"><img src="../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html"><img src="../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ディベロッパーのためのチュートリアル</h1>
+	<p>
+		ディベロッパーがDBFluteを使って開発する上で必要な情報をまとめたページです。
+		ディベロッパーは真っ先にこのページを読み、開発中も調べものをするときもこのページがエントリとなります。
+	</p>
+	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wd.html#developer">Developer (ディベロッパー)</a></div>
+	<ul class="indexlist">
+		<li><a href="#exampledb">ExampleDB (前提)</a></li>
+		<li><a href="#about">DBFluteとは？</a></li>
+		<li><a href="#style">DBアクセスのスタイル</a></li>
+		<li><a href="#object">ディベロッパーが意識するクラス</a></li>
+		<li><a href="#task">ディベロッパーが意識するタスク</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+		<li><a href="#offer">アーキテクトへの相談</a></li>
+	</ul>
+
+	<h2 id="exampledb">ExampleDB (前提)</h2>
+	<p>
+		DBFluteの(至る所の)説明において ExampleDB
+		が利用されます。基本的な構造をあらかじめ理解しておくとドキュメントの理解が深まりますので、まず最初に一度は目を通しておきましょう。
+	</p>
+	<div class="detailpage"><a href="../manual/reference/example/exampledb.html">ExampleDB</a></div>
+
+	<h2 id="about">DBFluteとは？</h2>
+	<p>
+		DBFluteは、(アプリケーション)プログラム上から <em class="keyword">データベースを検索したり更新したりするためのフレームワーク</em>
+		です。ディベロッパーが利用する Entity クラスなど、<em class="keyword">DBアクセスのためのクラスはDBFluteが自動生成</em> します。
+	</p>
+	<div class="detailpage"><a href="../introduction/index.html">DBFluteの紹介</a></div>
+
+	<h2 id="style">DBアクセスのスタイル</h2>
+	<p>
+		ディベロッパーが実装する上で、必ず押さえるべきポイントです。
+	</p>
+	<dl class="valuemainlist">
+		<dt>簡単(定型的)なSQL</dt><dd><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></dd>
+		<dt>複雑(非定型)なSQL</dt><dd><a href="../manual/function/ormapper/outsidesql/index.html">外だしSQL(OutsideSql)</a> <span class="freecomment">*2Way-SQL</span></dd>
+	</dl>
+	<p>
+		実装中にどちらを利用すれば良いのか迷う場合は <em class="keyword">ConditionBeanのスコープ</em> を参考にします。
+	</p>
+	<div class="detailpage"><a href="../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
+
+	<h2 id="object">ディベロッパーが意識するクラス</h2>
+	<p>
+		ディベロッパーが(主に)意識するクラスとして、以下のものがあります。
+	</p>
+	<dl class="keymainlist">
+		<dt><a href="../manual/function/ormapper/entity/index.html">Entity</a></dt>
+		<dd>データ(レコード)を格納するクラス</dd>
+		<dt><a href="../manual/function/ormapper/behavior/index.html">Behavior</a></dt>
+		<dd>全てのDBアクセスの処理を司るクラス (DIコンポーネント)</dd>
+		<dt><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></dt>
+		<dd>検索条件を組み立てるクラス</dd>
+	</dl>
+	<div class="relatedpage"><a href="../manual/function/ormapper/index.html">O/RマッパとしてのDBFlute</a></div>
+
+	<h2 id="task">ディベロッパーが意識するタスク</h2>
+	<p>
+		ディベロッパーが(主に)意識するタスクとしては以下のものがあります。
+	</p>
+	<dl class="keymainlist">
+		<dt><a href="../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></dt>
+		<dd>ローカル環境のDBの初回作成・DB変更時都度作成</dd>
+		<dt><a href="../manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></dt>
+		<dd>外だしSQL(OutsideSql)実装時に実行 (Entityの生成)</dd>
+		<dt><a href="../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></dt>
+		<dd>外だしSQL(OutsideSql)実装時に実行 (SQLのチェック)</dd>
+	</dl>
+	<div class="relatedpage"><a href="../manual/function/generator/task/index.html">DBFluteのタスク</a></div>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		基本的なことを覚えるのにも応用的なことを覚えるのにも最適なのは Example 実装です。
+	</p>
+	<dl class="valuemainlist">
+		<dt>SVNリポジトリ</dt><dd><a href="https://www.seasar.org/svn/sandbox/dbflute">https://www.seasar.org/svn/sandbox/dbflute</a></dd>
+		<dt>Exampleプロジェクト</dt><dd><a href="https://www.seasar.org/svn/sandbox/dbflute/trunk/dbflute-basic-example">dbflute-basic-example</a></dd>
+		<dt>ExampleDBのERD</dt><dd><a href="../manual/reference/example/exampledb.html">Example DB</a></dd>
+	</dl>
+	<p>
+		自動生成済み、かつ、DBもセットアップ済み(H2 Databaseの組み込み)なので、<em class="keyword">SVNチェックアウトしたらすぐにお試し実装ならびにお試し実行(JUnit)</em>
+		ができる状態になっています。また、既に幾つものExample実装があり、プログラムを読むことでおおよその使い方を習得することが可能です。
+	</p>
+	<p>
+		とりあえず真っ先に見ておくべきクラスは、<em class="keyword">BehaviorBasicTest</em> と
+		<em class="keyword">ConditionBeanBasicTest</em> です。開発中もすぐに参照できるようにしておくことを強くお奨めします。
+	</p>
+	<div class="relatedpage"><a href="../manual/reference/example/index.html">DBFlute Example</a></div>
+
+	<h2 id="offer">アーキテクトへの相談</h2>
+	<p>
+		DBFluteでは、ディベロッパーの実装を安全なものに導く様々な全体最適な機能が備わっています。
+		例えば、DBFluteでは、登録日時や更新ユーザなどのどのテーブルにでも定義されている <em class="keyword">共通カラム</em>
+		に対して、登録・更新時に都度都度ディベロッパーがそれらの値を準備して(Entityに)設定するようなことはありません。
+		また、(ExampleDBでいう)会員ステータスなどの <em class="keyword">区分値</em>
+		を設定したり判定したりするときに、コード値をハードコードするようなことはありません(手動で定数を定義することもありません)。
+		これらはDBFluteが提供する <em class="keyword">現場フィットな機能</em> で解決されます。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
+	<div class="relatedpage"><a href="../manual/function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+	<div class="relatedpage"><a href="../manual/function/genbafit/index.html#function">現場フィットな機能</a></div>
+	<p>
+		但し、これら機能を利用するためには、多くの場合は事前にDBFluteでの設定が必要です。
+		もし、実装しているときにこれらの機能が利用できないようであれば(共通カラムの自動設定が行われない、区分値のメソッドが存在しないなど)、
+		設定漏れがあるかもしれません。そのときは、ぜひアーキテクトに相談してみて下さい。
+		そもそもその機能を認識していないようであれば、"こういう機能があるのでぜひ使いましょう"
+		と提案するのも良いでしょう。それはディベロッパー自身の実装の助けになるのです。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../"><img src="../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+				<li><a href="../../ja/tutorial/architect.html#various">雑多な情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/developer.html#exampledb">ExampleDB (前提)</a></li>
+				<li><a href="../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/developer.html#style">DBアクセスのスタイル</a></li>
+				<li><a href="../../ja/tutorial/developer.html#object">意識するクラス</a></li>
+				<li><a href="../../ja/tutorial/developer.html#task">意識するタスク</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/developer.html#example">Exampleのススメ</a></li>
+				<li><a href="../../ja/tutorial/developer.html#offer">アーキテクトへの相談</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

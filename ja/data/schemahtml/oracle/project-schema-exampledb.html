@@ -1,0 +1,5715 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>exampledb schema</title>
+  <style type="text/css">
+	* {
+		margin: 0;
+		padding: 0;
+	}
+	body {
+		font-family: Verdana, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, "メイリオ", "MS P Gothic", "MS Pゴシック", sans-serif;
+		font-size: 90%;
+		margin: 10px 5px 5px 15px;
+		background-color: #ffffe0;
+	}
+
+	/* heading */
+	h1 {
+		font-size: 1.5em;
+		border-bottom: 2px solid #af0000;
+		border-top: 2px solid #af0000;
+	}
+	h2 {
+		margin: 30px 0 5px 0;
+		font-size: 1.8em;
+		border-bottom: 2px solid #af0000;
+		border-left: 10px solid #af0000;
+		text-indent: 10px;
+	}
+	h3 {
+		padding: 0 0 0 10px;
+		margin: 1em 10% 0 0;
+		border-top: double 3px #af0000;
+		border-bottom: solid 1px #333333;
+		font-size: 1.5em;
+		color: #333333;
+	}
+	h4 {
+ 		padding: 0 0 0 10px;
+		margin: 1em 10% 0 1em;
+		border-top: solid 1px #af0000;
+		border-bottom: solid 1px #af0000;
+		font-size: 1.4em;
+		color: #333333;
+	}
+
+	/* total info */
+	.updatedate {
+		text-align: right;
+	}
+	.mainschema {
+		text-align: right;
+	}
+	.sublink {
+		text-align: right;
+	}
+
+	/* table */
+	table {
+		border-collapse:collapse;
+	}
+	table, th {
+		border: 1px solid #555;
+	}
+	th {
+		background-color: #cc9;
+		font-size: 0.8em;
+	}
+	td {
+		border-bottom: 1px dotted #aaa;
+		border-left: 1px solid #555;
+		padding:2px;
+	}
+	.schemacell {
+		font-size: 0.8em;
+		white-space: nowrap;
+	}
+	.aliascell {
+		white-space: nowrap;
+	}
+	.flgcell {
+		text-align: center;
+	}
+	.flgplus {
+		font-size: 0.7em;
+	}
+	.numcell {
+		text-align: center;
+	}
+	.linkcell {
+		font-size: 0.8em;
+	}
+	.commentcell {
+		font-size: 0.7em;
+	}
+	.subcell {
+		font-size: 0.8em;
+	}
+	.comcolcell {
+		color: #666;
+	}
+	.optcell {
+		font-style: italic;
+	}
+	.additionalpk {
+		font-size: 0.7em;
+		font-style: italic;
+	}
+	.additionalfk {
+		font-size: 0.7em;
+		font-style: italic;
+	}
+
+	/* inner table */
+	table.child {
+		margin: 3px;
+	}
+	table.child th {
+		font-size: 0.7em;
+	}
+	table.child, table.child td, table.child th {
+		border-top: none;
+		border-left: none;
+		border-bottom: 1px solid #aaa;
+		border-right: 1px solid #aaa;
+	}
+
+	/* table supplementary info */
+	span.tableschema {
+		font-size: 0.6em;
+	}
+	span.bqpcount {
+		font-size: 0.5em;
+	}
+	dl.bqplist {
+		padding-left: 2em;
+	}
+	dl.bqplist dt {
+		display: list-item;
+		font-size: 1.2em;
+		margin-top: 0.3em;
+	}
+	dl.bqplist dd {
+		font-size: 0.9em;
+		padding-left: 1em;
+	}
+	dl.bqplist dd.subinfo {
+		padding-left: 2em;
+	}
+	dl.bqplist dd.subinfo span.file {
+		font-style: italic;
+	}
+	dl.bqplist dd.subinfo span.ctet {
+		color: green;
+	}
+	dl.bqplist dd.subinfo span.pmb {
+		color: green;
+	}
+	dl.procedurelist {
+		padding-left: 2em;
+	}
+	dl.procedurelist dt {
+		display: list-item;
+		font-size: 1.2em;
+		margin-top: 0.3em;
+	}
+	dl.procedurelist dt span.type {
+		font-size: 0.7em;
+		color: green;
+	}
+	dl.procedurelist dd {
+		font-size: 0.9em;
+		padding-left: 1em;
+	}
+	dl.procedurelist dd.column {
+		font-style: italic;
+		padding-left: 2em;
+	}
+	dl.procedurelist dd.column span.type {
+		font-size: 0.9em;
+		color: green;
+	}
+	dl.procedurelist dd.column pre {
+		padding-left: 1em;
+	}
+  </style>
+</head>
+
+<body>
+<h1>Project Schema for exampledb (oracle)</h1>
+<p class="mainschema">generated from <strong>EXAMPLEDB</strong></p>
+<p class="updatedate">2010/05/02 06:21:02</p>
+<p class="sublink"><a href="#cdef">Classification Definition</a></p>
+<p class="sublink"><a href="#outsidesql">OutsideSql List</a></p>
+
+<h2>Table List</h2>
+<table summary="Tables in the Schema">
+	<thead>
+	<tr>
+		<th>Schema</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Comment</th>
+		<th>EntityName</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell">会員</td>
+		<td><a href="#MEMBER" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=13">MEMBER</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#MEMBER_ADDRESS" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*targetDate(Date)*/null and $$foreignAlias$$.VALID_END_DATE &gt;= /*targetDate(Date)*/null&quot;">MEMBER_ADDRESS(AsValid)</a>, <a href="#MEMBER_LOGIN" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = (select max(LOGIN_DATETIME) from MEMBER_LOGIN where MEMBER_ID = $$localAlias$$.MEMBER_ID)&quot;">MEMBER_LOGIN(AsLatest)</a></td>
+		<td class="subcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>, <a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a></td>
+		<td class="commentcell"> 会員登録時にInsertされる。<br />物理削除されることはない</td>
+		<td class="subcell">Member</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#MEMBER_ADDRESS" title="type=TABLE, primaryKey={MEMBER_ADDRESS_ID}, nameLength=14, columnCount=12">MEMBER_ADDRESS</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">MemberAddress</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell">会員ログイン</td>
+		<td><a href="#MEMBER_LOGIN" title="type=TABLE, primaryKey={MEMBER_LOGIN_ID}, nameLength=12, columnCount=5">MEMBER_LOGIN</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_LOGIN_MEMBER">MEMBER</a>, <a href="#MEMBER_STATUS" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> ログインの度にInsertされる</td>
+		<td class="subcell">MemberLogin</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=11">MEMBER_SECURITY</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_SECURITY_MEMBER">MEMBER</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">MemberSecurity</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell">会員ステータス</td>
+		<td><a href="#MEMBER_STATUS" title="type=TABLE, primaryKey={MEMBER_STATUS_CODE}, nameLength=13, columnCount=4">MEMBER_STATUS</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_MEMBER_STATUS">MEMBER_VENDOR_SYNONYM</a>, <a href="#SYNONYM_MEMBER" title="FK_MEMBER_MEMBER_STATUS">SYNONYM_MEMBER</a>, <a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_STATUS">SYNONYM_MEMBER_LOGIN</a>, <a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_MEMBER_STATUS">VENDOR_SYNONYM_MEMBER</a>, <a href="#MEMBER" title="FK_MEMBER_MEMBER_STATUS">MEMBER</a>, <a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_LOGIN</a></td>
+		<td class="commentcell"> 固定の区分値</td>
+		<td class="subcell">MemberStatus</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#MEMBER_WITHDRAWAL" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=17, columnCount=11">MEMBER_WITHDRAWAL</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER</a>, <a href="#WITHDRAWAL_REASON" title="FK_MEMBER_WITHDRAWAL_REASON">WITHDRAWAL_REASON</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> 退会するとInsertされる</td>
+		<td class="subcell">MemberWithdrawal</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell">商品</td>
+		<td><a href="#PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=11">PRODUCT</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a></td>
+		<td class="subcell"><a href="#PURCHASE" title="FK_PURCHASE_PRODUCT">PURCHASE</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">Product</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#PRODUCT_STATUS" title="type=TABLE, primaryKey={PRODUCT_STATUS_CODE}, nameLength=14, columnCount=2">PRODUCT_STATUS</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#PRODUCT" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a>, <a href="#SUMMARY_PRODUCT" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">SUMMARY_PRODUCT</a></td>
+		<td class="commentcell"> 商品ステータス</td>
+		<td class="subcell">ProductStatus</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell">購入</td>
+		<td><a href="#PURCHASE" title="type=TABLE, primaryKey={PURCHASE_ID}, nameLength=8, columnCount=14">PURCHASE</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_PURCHASE_MEMBER">MEMBER</a>, <a href="#PRODUCT" title="FK_PURCHASE_PRODUCT">PRODUCT</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> 購入の度ににInsertされる</td>
+		<td class="subcell">Purchase</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SUMMARY_MEMBER_PURCHASE" title="type=TABLE, primaryKey={}, nameLength=23, columnCount=3">SUMMARY_MEMBER_PURCHASE</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SummaryMemberPurchase</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#VENDOR_CHECK" title="type=TABLE, primaryKey={VENDOR_CHECK_ID}, nameLength=12, columnCount=31">VENDOR_CHECK</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">VendorCheck</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#WHITE_REF_NEXT_EXCEPT" title="type=TABLE, primaryKey={REF_NEXT_EXCEPT_ID}, nameLength=21, columnCount=2">WHITE_REF_NEXT_EXCEPT</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">WhiteRefNextExcept</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#WHITE_REF_NEXT_TARGET" title="type=TABLE, primaryKey={REF_NEXT_TARGET_ID}, nameLength=21, columnCount=2">WHITE_REF_NEXT_TARGET</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#NEXT_SCHEMA_PRODUCT_STATUS" title="FK_WHITE_REF_NEXT_TARGET">NEXT_SCHEMA_PRODUCT_STATUS</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">WhiteRefNextTarget</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#WHITE_REF_TARGET" title="type=TABLE, primaryKey={REF_TARGET_ID}, nameLength=16, columnCount=2">WHITE_REF_TARGET</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#WHITE_TARGET" title="FK_WHITE_REF_TARGET">WHITE_TARGET</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">WhiteRefTarget</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#WHITE_TARGET" title="type=TABLE, primaryKey={TARGET_ID}, nameLength=12, columnCount=2">WHITE_TARGET</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#WHITE_REF_TARGET" title="FK_WHITE_REF_TARGET">WHITE_REF_TARGET</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">WhiteTarget</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#WITHDRAWAL_REASON" title="type=TABLE, primaryKey={WITHDRAWAL_REASON_CODE}, nameLength=17, columnCount=3">WITHDRAWAL_REASON</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_REASON">SYNONYM_MEMBER_WITHDRAWAL</a>, <a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_REASON">MEMBER_WITHDRAWAL</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">WithdrawalReason</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#MEMBER_VENDOR_SYNONYM" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=21, columnCount=13">MEMBER_VENDOR_SYNONYM</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a></td>
+		<td class="subcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM1">SYNONYM_MEMBER_LOGIN</a>, <a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM1">SYNONYM_MEMBER_WITHDRAWAL</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">MemberVendorSynonym</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_EXCEPT" title="type=SYNONYM, primaryKey={EXCEPT_ID}, nameLength=14, columnCount=2">SYNONYM_EXCEPT</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#SYNONYM_REF_EXCEPT" title="FK_WHITE_REF_EXCEPT_SYNONYM1">SYNONYM_REF_EXCEPT</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymExcept</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_MEMBER" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=14, columnCount=13">SYNONYM_MEMBER</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a></td>
+		<td class="subcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM2">SYNONYM_MEMBER_LOGIN</a>, <a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM2">SYNONYM_MEMBER_WITHDRAWAL</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymMember</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_MEMBER_LOGIN" title="type=SYNONYM, primaryKey={MEMBER_LOGIN_ID}, nameLength=20, columnCount=5">SYNONYM_MEMBER_LOGIN</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM1">MEMBER_VENDOR_SYNONYM</a>, <a href="#MEMBER_STATUS" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#SYNONYM_MEMBER" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM2">SYNONYM_MEMBER</a>, <a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM3">VENDOR_SYNONYM_MEMBER</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymMemberLogin</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=25, columnCount=11">SYNONYM_MEMBER_WITHDRAWAL</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM1">MEMBER_VENDOR_SYNONYM</a>, <a href="#WITHDRAWAL_REASON" title="FK_MEMBER_WITHDRAWAL_REASON">WITHDRAWAL_REASON</a>, <a href="#SYNONYM_MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM2">SYNONYM_MEMBER</a>, <a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM3">VENDOR_SYNONYM_MEMBER</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymMemberWithdrawal</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_NEXT_LINK_SECRET" title="type=SYNONYM, primaryKey={SECRET_CODE}, nameLength=24, columnCount=3">SYNONYM_NEXT_LINK_SECRET</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymNextLinkSecret</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_NEXT_SECRET_AUTH" title="type=SYNONYM, primaryKey={SECRET_AUTH_CODE}, nameLength=24, columnCount=2">SYNONYM_NEXT_SECRET_AUTH</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymNextSecretAuth</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_PRODUCT" title="type=SYNONYM, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=11">SYNONYM_PRODUCT</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#SYNONYM_PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS_SYNONYM1">SYNONYM_PRODUCT_STATUS</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymProduct</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_PRODUCT_STATUS" title="type=SYNONYM, primaryKey={PRODUCT_STATUS_CODE}, nameLength=22, columnCount=2">SYNONYM_PRODUCT_STATUS</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#SYNONYM_PRODUCT" title="FK_PRODUCT_PRODUCT_STATUS_SYNONYM1">SYNONYM_PRODUCT</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymProductStatus</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SYNONYM_REF_EXCEPT" title="type=SYNONYM, primaryKey={REF_EXCEPT_ID}, nameLength=18, columnCount=2">SYNONYM_REF_EXCEPT</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#SYNONYM_EXCEPT" title="FK_WHITE_REF_EXCEPT_SYNONYM1">SYNONYM_EXCEPT</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SynonymRefExcept</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#VENDOR_SYNONYM_MEMBER" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=21, columnCount=13">VENDOR_SYNONYM_MEMBER</a></td>
+		<td class="subcell">SYNONYM</td>
+		<td class="subcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a></td>
+		<td class="subcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM3">SYNONYM_MEMBER_LOGIN</a>, <a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM3">SYNONYM_MEMBER_WITHDRAWAL</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">VendorSynonymMember</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> EXAMPLEDB</td>
+		<td class="aliascell"></td>
+		<td><a href="#SUMMARY_PRODUCT" title="type=VIEW, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=4">SUMMARY_PRODUCT</a></td>
+		<td class="subcell">VIEW</td>
+		<td class="subcell"><a href="#PRODUCT_STATUS" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">SummaryProduct</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> NEXTEXAMPLEDB</td>
+		<td class="aliascell">隣のスキーマ</td>
+		<td><a href="#NEXT_SCHEMA_PRODUCT" title="type=TABLE, schema=NEXTEXAMPLEDB, primaryKey={PRODUCT_ID}, nameLength=19, columnCount=11">NEXT_SCHEMA_PRODUCT</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#NEXT_SCHEMA_PRODUCT_STATUS" title="FK_NEXT_SCHEMA_PRODUCT">NEXT_SCHEMA_PRODUCT_STATUS</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> 隣のベーシックなテーブル</td>
+		<td class="subcell">NextSchemaProduct</td>
+	</tr>
+	<tr>
+		<td class="schemacell"> NEXTEXAMPLEDB</td>
+		<td class="aliascell">隣のスキステ</td>
+		<td><a href="#NEXT_SCHEMA_PRODUCT_STATUS" title="type=TABLE, schema=NEXTEXAMPLEDB, primaryKey={PRODUCT_STATUS_CODE}, nameLength=26, columnCount=2">NEXT_SCHEMA_PRODUCT_STATUS</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#WHITE_REF_NEXT_TARGET" title="FK_WHITE_REF_NEXT_TARGET">WHITE_REF_NEXT_TARGET</a>, <a href="#NEXT_SCHEMA_PRODUCT" title="FK_NEXT_SCHEMA_PRODUCT">NEXT_SCHEMA_PRODUCT</a></td>
+		<td class="commentcell"> これのみえてよい</td>
+		<td class="subcell">NextSchemaProductStatus</td>
+	</tr>
+	</tbody>
+</table>
+
+<h2 id="MEMBER" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=13">
+(会員)MEMBER
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+&nbsp;<span class="bqpcount"><a href="#MemberSql">(outsideSql=16)</a></span>
+</h2>
+<table summary="Columns in MEMBER">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043375 :: sequence=SEQ_MEMBER:minimum(1),maximum(999999999999999999999999999),increment(5),dfcache(5)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">会員ID</td>
+		<td id="MEMBERMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_ADDRESS" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*targetDate(Date)*/null and $$foreignAlias$$.VALID_END_DATE &gt;= /*targetDate(Date)*/null&quot;">MEMBER_ADDRESS(AsValid)</a>,<br /><a href="#MEMBER_LOGIN" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = (select max(LOGIN_DATETIME) from MEMBER_LOGIN where MEMBER_ID = $$localAlias$$.MEMBER_ID)&quot;">MEMBER_LOGIN(AsLatest)</a>&nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>,<br /><a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>,<br /><a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>,<br /><a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>,<br /><a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 連番</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">会員名称</td>
+		<td id="MEMBERMEMBER_NAME">MEMBER_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 会員検索の条件となる。</td>
+		<td class="subcell">memberName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_MEMBER_ACCOUNT(MEMBER_ACCOUNT)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">会員アカウント</td>
+		<td id="MEMBERMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> ログインに利用。<br />完全にユニークである</td>
+		<td class="subcell">memberAccount</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">会員ステータスコード</td>
+		<td id="MEMBERMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell">正式会員日時</td>
+		<td id="MEMBERFORMALIZED_DATETIME">FORMALIZED_DATETIME</td>
+		<td>TIMESTAMP(3)</td>
+		<td class="numcell"> 11, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 正式会員になったら値が格納される</td>
+		<td class="subcell">formalizedDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell">生年月日</td>
+		<td id="MEMBERBIRTHDATE">BIRTHDATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> わからない場合はnull</td>
+		<td class="subcell">birthdate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">登録日時</td>
+		<td class="comcolcell" id="MEMBERREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">登録ユーザ</td>
+		<td class="comcolcell" id="MEMBERREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">登録プロセス</td>
+		<td class="comcolcell" id="MEMBERREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">更新日時</td>
+		<td class="comcolcell" id="MEMBERUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">更新ユーザ</td>
+		<td class="comcolcell" id="MEMBERUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell">更新プロセス</td>
+		<td class="comcolcell" id="MEMBERUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell">バージョンNO</td>
+		<td class="optcell" id="MEMBERVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 排他制御に利用される</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_ADDRESS" title="type=TABLE, primaryKey={MEMBER_ADDRESS_ID}, nameLength=14, columnCount=12">
+MEMBER_ADDRESS
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in MEMBER_ADDRESS">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043388 :: sequence=SEQ_MEMBER_ADDRESS:minimum(1),maximum(999999999999999999999999999),increment(1)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_ADDRESSMEMBER_ADDRESS_ID">MEMBER_ADDRESS_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberAddressId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_ADDRESS(MEMBER_ID, VALID_BEGIN_DATE)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_ADDRESSMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_ADDRESS(MEMBER_ID, VALID_BEGIN_DATE)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_ADDRESSVALID_BEGIN_DATE">VALID_BEGIN_DATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">validBeginDate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_ADDRESSVALID_END_DATE">VALID_END_DATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">validEndDate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_ADDRESSADDRESS">ADDRESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">address</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_ADDRESSUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="MEMBER_ADDRESSVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_LOGIN" title="type=TABLE, primaryKey={MEMBER_LOGIN_ID}, nameLength=12, columnCount=5">
+(会員ログイン)MEMBER_LOGIN
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in MEMBER_LOGIN">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043394 :: sequence=SEQ_MEMBER_LOGIN:minimum(1),maximum(999999999999999999999999999),increment(1),dfcache(12)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_LOGINMEMBER_LOGIN_ID">MEMBER_LOGIN_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberLoginId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_LOGIN(MEMBER_ID, LOGIN_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_LOGINMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_MEMBER_LOGIN_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_LOGIN(MEMBER_ID, LOGIN_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_LOGINLOGIN_DATETIME">LOGIN_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">loginDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_LOGINMOBILE_LOGIN_FLG">MOBILE_LOGIN_FLG</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 1 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#FlgCls">Flg</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">mobileLoginFlg</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_LOGINLOGIN_MEMBER_STATUS_CODE">LOGIN_MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">loginMemberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=11">
+MEMBER_SECURITY
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in MEMBER_SECURITY">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043351">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SECURITYMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_MEMBER_SECURITY_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SECURITYLOGIN_PASSWORD">LOGIN_PASSWORD</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">loginPassword</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SECURITYREMINDER_QUESTION">REMINDER_QUESTION</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">reminderQuestion</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SECURITYREMINDER_ANSWER">REMINDER_ANSWER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">reminderAnswer</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SECURITYUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="MEMBER_SECURITYVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_STATUS" title="type=TABLE, primaryKey={MEMBER_STATUS_CODE}, nameLength=13, columnCount=4">
+(会員ステータス)MEMBER_STATUS
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+&nbsp;<span class="bqpcount"><a href="#MemberStatusSql">(outsideSql=1)</a></span>
+</h2>
+<table summary="Columns in MEMBER_STATUS">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043406">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_STATUSMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_MEMBER_STATUS">MEMBER_VENDOR_SYNONYM</a>,<br /><a href="#SYNONYM_MEMBER" title="FK_MEMBER_MEMBER_STATUS">SYNONYM_MEMBER</a>,<br /><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_STATUS">SYNONYM_MEMBER_LOGIN</a>,<br /><a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_MEMBER_STATUS">VENDOR_SYNONYM_MEMBER</a>,<br /><a href="#MEMBER" title="FK_MEMBER_MEMBER_STATUS">MEMBER</a>,<br /><a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_LOGIN</a>&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_STATUS_M_S_NAME(MEMBER_STATUS_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_STATUSMEMBER_STATUS_NAME">MEMBER_STATUS_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_STATUSDESCRIPTION">DESCRIPTION</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">description</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_STATUS_DISPLAY_ORDER(DISPLAY_ORDER)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_STATUSDISPLAY_ORDER">DISPLAY_ORDER</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">displayOrder</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_WITHDRAWAL" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=17, columnCount=11">
+MEMBER_WITHDRAWAL
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in MEMBER_WITHDRAWAL">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043339">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_WITHDRAWALMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#WITHDRAWAL_REASON" title="FK_MEMBER_WITHDRAWAL_REASON">WITHDRAWAL_REASON</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_WITHDRAWALWITHDRAWAL_REASON_INPUT_TEXT">WITHDRAWAL_REASON_INPUT_TEXT</td>
+		<td>CLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonInputText</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_WITHDRAWALWITHDRAWAL_DATETIME">WITHDRAWAL_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_WITHDRAWALUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="MEMBER_WITHDRAWALVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=11">
+(商品)PRODUCT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in PRODUCT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043363 :: sequence=SYNONYM_NEXT_SEQUENCE:minimum(1),maximum(999999999999999999999999999),increment(1),dfcache(24)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#PURCHASE" title="FK_PURCHASE_PRODUCT">PURCHASE</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PRODUCT_PRODUCT_HANDLE_CODE(PRODUCT_HANDLE_CODE)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_HANDLE_CODE">PRODUCT_HANDLE_CODE</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 100 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productHandleCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PRODUCTUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="PRODUCTVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="PRODUCT_STATUS" title="type=TABLE, primaryKey={PRODUCT_STATUS_CODE}, nameLength=14, columnCount=2">
+PRODUCT_STATUS
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in PRODUCT_STATUS">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043401">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCT_STATUSPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a>,<br /><a href="#SUMMARY_PRODUCT" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">SUMMARY_PRODUCT</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PRODUCT_STATUS_P_S_NAME(PRODUCT_STATUS_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCT_STATUSPRODUCT_STATUS_NAME">PRODUCT_STATUS_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="PURCHASE" title="type=TABLE, primaryKey={PURCHASE_ID}, nameLength=8, columnCount=14">
+(購入)PURCHASE
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in PURCHASE">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043329 :: sequence=SEQ_PURCHASE:minimum(1),maximum(999999999999999999999999999),increment(1)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPURCHASE_ID">PURCHASE_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">purchaseId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PURCHASE(MEMBER_ID, PRODUCT_ID, PURCHASE_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_PURCHASE_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PURCHASE(MEMBER_ID, PRODUCT_ID, PURCHASE_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPRODUCT_ID">PRODUCT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT" title="FK_PURCHASE_PRODUCT">PRODUCT</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PURCHASE(MEMBER_ID, PRODUCT_ID, PURCHASE_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPURCHASE_DATETIME">PURCHASE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">purchaseDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPURCHASE_COUNT">PURCHASE_COUNT</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">purchaseCount</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPURCHASE_PRICE">PURCHASE_PRICE</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">purchasePrice</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PURCHASEPAYMENT_COMPLETE_FLG">PAYMENT_COMPLETE_FLG</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 1 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#FlgCls">Flg</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">paymentCompleteFlg</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="PURCHASEUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="PURCHASEVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SUMMARY_MEMBER_PURCHASE" title="type=TABLE, primaryKey={}, nameLength=23, columnCount=3">
+SUMMARY_MEMBER_PURCHASE
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SUMMARY_MEMBER_PURCHASE">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_MEMBER_PURCHASEMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_MEMBER_PURCHASEALLSUM_PURCHASE_PRICE">ALLSUM_PURCHASE_PRICE</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 22 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">allsumPurchasePrice</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_MEMBER_PURCHASELATEST_PURCHASE_DATETIME">LATEST_PURCHASE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">latestPurchaseDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+</table>
+<h2 id="VENDOR_CHECK" title="type=TABLE, primaryKey={VENDOR_CHECK_ID}, nameLength=12, columnCount=31">
+VENDOR_CHECK
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+&nbsp;<span class="bqpcount"><a href="#VendorCheckSql">(outsideSql=4)</a></span>
+</h2>
+<table summary="Columns in VENDOR_CHECK">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043427">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKVENDOR_CHECK_ID">VENDOR_CHECK_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">vendorCheckId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_CHAR">TYPE_OF_CHAR</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfChar</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NCHAR">TYPE_OF_NCHAR</td>
+		<td>NCHAR</td>
+		<td class="numcell"> 6 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNchar</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_VARCHAR2">TYPE_OF_VARCHAR2</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 32 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfVarchar2</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_VARCHAR2_MAX">TYPE_OF_VARCHAR2_MAX</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfVarchar2Max</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NVARCHAR2">TYPE_OF_NVARCHAR2</td>
+		<td>NVARCHAR2</td>
+		<td class="numcell"> 64 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNvarchar2</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_CLOB">TYPE_OF_CLOB</td>
+		<td>CLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfClob</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NCLOB">TYPE_OF_NCLOB</td>
+		<td>NCLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNclob</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_LONG">TYPE_OF_LONG</td>
+		<td>LONG</td>
+		<td class="numcell"> &nbsp;</td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfLong</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_XMLTYPE">TYPE_OF_XMLTYPE</td>
+		<td>XMLTYPE</td>
+		<td class="numcell"> 2000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfXmltype</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_INTEGER">TYPE_OF_INTEGER</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 22 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfInteger</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_INTEGER">TYPE_OF_NUMBER_INTEGER</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 5 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberInteger</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_BIGINT">TYPE_OF_NUMBER_BIGINT</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 12 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberBigint</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_DECIMAL">TYPE_OF_NUMBER_DECIMAL</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 5, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberDecimal</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_INTEGER_MIN">TYPE_OF_NUMBER_INTEGER_MIN</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 1 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberIntegerMin</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_INTEGER_MAX">TYPE_OF_NUMBER_INTEGER_MAX</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 9 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberIntegerMax</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_BIGINT_MIN">TYPE_OF_NUMBER_BIGINT_MIN</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberBigintMin</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_BIGINT_MAX">TYPE_OF_NUMBER_BIGINT_MAX</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 18 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberBigintMax</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_SUPERINT_MIN">TYPE_OF_NUMBER_SUPERINT_MIN</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 19 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberSuperintMin</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_SUPERINT_MAX">TYPE_OF_NUMBER_SUPERINT_MAX</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 38 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberSuperintMax</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_NUMBER_MAXDECIMAL">TYPE_OF_NUMBER_MAXDECIMAL</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 38, 127 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfNumberMaxdecimal</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_BINARY_FLOAT">TYPE_OF_BINARY_FLOAT</td>
+		<td>BINARY_FLOAT</td>
+		<td class="numcell"> 4 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfBinaryFloat</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_BINARY_DOUBLE">TYPE_OF_BINARY_DOUBLE</td>
+		<td>BINARY_DOUBLE</td>
+		<td class="numcell"> 8 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfBinaryDouble</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_DATE">TYPE_OF_DATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfDate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_TIMESTAMP">TYPE_OF_TIMESTAMP</td>
+		<td>TIMESTAMP(6)</td>
+		<td class="numcell"> 11, 6 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfTimestamp</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_INTERVAL_YEAR_TO_MONTH">TYPE_OF_INTERVAL_YEAR_TO_MONTH</td>
+		<td>INTERVAL YEAR(2) TO MONTH</td>
+		<td class="numcell"> 2 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfIntervalYearToMonth</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_INTERVAL_DAY_TO_SECOND">TYPE_OF_INTERVAL_DAY_TO_SECOND</td>
+		<td>INTERVAL DAY(2) TO SECOND(6)</td>
+		<td class="numcell"> 2, 6 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfIntervalDayToSecond</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_BLOB">TYPE_OF_BLOB</td>
+		<td>BLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfBlob</td>
+		<td class="subcell">byte[]</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_RAW">TYPE_OF_RAW</td>
+		<td>RAW</td>
+		<td class="numcell"> 512 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfRaw</td>
+		<td class="subcell">byte[]</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_BFILE">TYPE_OF_BFILE</td>
+		<td>BFILE</td>
+		<td class="numcell"> 530 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfBfile</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_CHECKTYPE_OF_ROWID">TYPE_OF_ROWID</td>
+		<td>ROWID</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">typeOfRowid</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="WHITE_REF_NEXT_EXCEPT" title="type=TABLE, primaryKey={REF_NEXT_EXCEPT_ID}, nameLength=21, columnCount=2">
+WHITE_REF_NEXT_EXCEPT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in WHITE_REF_NEXT_EXCEPT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043438">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_NEXT_EXCEPTREF_NEXT_EXCEPT_ID">REF_NEXT_EXCEPT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">refNextExceptId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_NEXT_EXCEPTNEXT_EXCEPT_CODE">NEXT_EXCEPT_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">nextExceptCode</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="WHITE_REF_NEXT_TARGET" title="type=TABLE, primaryKey={REF_NEXT_TARGET_ID}, nameLength=21, columnCount=2">
+WHITE_REF_NEXT_TARGET
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in WHITE_REF_NEXT_TARGET">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043446">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_NEXT_TARGETREF_NEXT_TARGET_ID">REF_NEXT_TARGET_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">refNextTargetId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_NEXT_TARGETNEXT_TARGET_CODE">NEXT_TARGET_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#NEXT_SCHEMA_PRODUCT_STATUS" title="FK_WHITE_REF_NEXT_TARGET">NEXT_SCHEMA_PRODUCT_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">nextTargetCode</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="WHITE_REF_TARGET" title="type=TABLE, primaryKey={REF_TARGET_ID}, nameLength=16, columnCount=2">
+WHITE_REF_TARGET
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in WHITE_REF_TARGET">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043442">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_TARGETREF_TARGET_ID">REF_TARGET_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">refTargetId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_REF_TARGETTARGET_ID">TARGET_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#WHITE_TARGET" title="FK_WHITE_REF_TARGET">WHITE_TARGET</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">targetId</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="WHITE_TARGET" title="type=TABLE, primaryKey={TARGET_ID}, nameLength=12, columnCount=2">
+WHITE_TARGET
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in WHITE_TARGET">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043431">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_TARGETTARGET_ID">TARGET_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#WHITE_REF_TARGET" title="FK_WHITE_REF_TARGET">WHITE_REF_TARGET</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">targetId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="WHITE_TARGETTARGET_NAME">TARGET_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 256 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">targetName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="WITHDRAWAL_REASON" title="type=TABLE, primaryKey={WITHDRAWAL_REASON_CODE}, nameLength=17, columnCount=3">
+WITHDRAWAL_REASON
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in WITHDRAWAL_REASON">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043398">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WITHDRAWAL_REASONWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_REASON">SYNONYM_MEMBER_WITHDRAWAL</a>,<br /><a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_REASON">MEMBER_WITHDRAWAL</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WITHDRAWAL_REASONWITHDRAWAL_REASON_TEXT">WITHDRAWAL_REASON_TEXT</td>
+		<td>CLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonText</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_WITHDRAWAL_R_D_ORDER(DISPLAY_ORDER)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="WITHDRAWAL_REASONDISPLAY_ORDER">DISPLAY_ORDER</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">displayOrder</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_VENDOR_SYNONYM" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=21, columnCount=13">
+MEMBER_VENDOR_SYNONYM
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in MEMBER_VENDOR_SYNONYM">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043375">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM1">SYNONYM_MEMBER_LOGIN</a>,<br /><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM1">SYNONYM_MEMBER_WITHDRAWAL</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMMEMBER_NAME">MEMBER_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_MEMBER_ACCOUNT(MEMBER_ACCOUNT)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberAccount</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMFORMALIZED_DATETIME">FORMALIZED_DATETIME</td>
+		<td>TIMESTAMP(3)</td>
+		<td class="numcell"> 11, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">formalizedDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_VENDOR_SYNONYMBIRTHDATE">BIRTHDATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">birthdate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_VENDOR_SYNONYMUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="MEMBER_VENDOR_SYNONYMVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_EXCEPT" title="type=SYNONYM, primaryKey={EXCEPT_ID}, nameLength=14, columnCount=2">
+SYNONYM_EXCEPT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_EXCEPT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043429">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_EXCEPTEXCEPT_ID">EXCEPT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_REF_EXCEPT" title="FK_WHITE_REF_EXCEPT_SYNONYM1">SYNONYM_REF_EXCEPT</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">exceptId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_EXCEPTEXCEPT_NAME">EXCEPT_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 256 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">exceptName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_MEMBER" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=14, columnCount=13">
+SYNONYM_MEMBER
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_MEMBER">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043375">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM2">SYNONYM_MEMBER_LOGIN</a>,<br /><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM2">SYNONYM_MEMBER_WITHDRAWAL</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERMEMBER_NAME">MEMBER_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_MEMBER_ACCOUNT(MEMBER_ACCOUNT)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberAccount</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERFORMALIZED_DATETIME">FORMALIZED_DATETIME</td>
+		<td>TIMESTAMP(3)</td>
+		<td class="numcell"> 11, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">formalizedDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBERBIRTHDATE">BIRTHDATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">birthdate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBERUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="SYNONYM_MEMBERVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_MEMBER_LOGIN" title="type=SYNONYM, primaryKey={MEMBER_LOGIN_ID}, nameLength=20, columnCount=5">
+SYNONYM_MEMBER_LOGIN
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_MEMBER_LOGIN">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043394">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_LOGINMEMBER_LOGIN_ID">MEMBER_LOGIN_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberLoginId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_LOGIN(MEMBER_ID, LOGIN_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_LOGINMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM1">MEMBER_VENDOR_SYNONYM</a>,<br /><a href="#SYNONYM_MEMBER" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM2">SYNONYM_MEMBER</a>,<br /><a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM3">VENDOR_SYNONYM_MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_LOGIN(MEMBER_ID, LOGIN_DATETIME)">o<span class="flgplus">+</span></td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_LOGINLOGIN_DATETIME">LOGIN_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">loginDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_LOGINMOBILE_LOGIN_FLG">MOBILE_LOGIN_FLG</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 1 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#FlgCls">Flg</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">mobileLoginFlg</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_LOGINLOGIN_MEMBER_STATUS_CODE">LOGIN_MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">loginMemberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_MEMBER_WITHDRAWAL" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=25, columnCount=11">
+SYNONYM_MEMBER_WITHDRAWAL
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_MEMBER_WITHDRAWAL">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043339">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_WITHDRAWALMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_VENDOR_SYNONYM" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM1">MEMBER_VENDOR_SYNONYM</a>,<br /><a href="#SYNONYM_MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM2">SYNONYM_MEMBER</a>,<br /><a href="#VENDOR_SYNONYM_MEMBER" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM3">VENDOR_SYNONYM_MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_WITHDRAWALWITHDRAWAL_REASON_CODE">WITHDRAWAL_REASON_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#WITHDRAWAL_REASON" title="FK_MEMBER_WITHDRAWAL_REASON">WITHDRAWAL_REASON</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_WITHDRAWALWITHDRAWAL_REASON_INPUT_TEXT">WITHDRAWAL_REASON_INPUT_TEXT</td>
+		<td>CLOB</td>
+		<td class="numcell"> 4000 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalReasonInputText</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_MEMBER_WITHDRAWALWITHDRAWAL_DATETIME">WITHDRAWAL_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">withdrawalDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_MEMBER_WITHDRAWALUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="SYNONYM_MEMBER_WITHDRAWALVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_NEXT_LINK_SECRET" title="type=SYNONYM, primaryKey={SECRET_CODE}, nameLength=24, columnCount=3">
+SYNONYM_NEXT_LINK_SECRET
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_NEXT_LINK_SECRET">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0042887">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_NEXT_LINK_SECRETSECRET_CODE">SECRET_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">secretCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_NEXT_SCHEMA_SECRET(SECRET_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_NEXT_LINK_SECRETSECRET_NAME">SECRET_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">secretName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_NEXT_LINK_SECRETSECRET_AUTH_CODE">SECRET_AUTH_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">secretAuthCode</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_NEXT_SECRET_AUTH" title="type=SYNONYM, primaryKey={SECRET_AUTH_CODE}, nameLength=24, columnCount=2">
+SYNONYM_NEXT_SECRET_AUTH
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_NEXT_SECRET_AUTH">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0042890">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_NEXT_SECRET_AUTHSECRET_AUTH_CODE">SECRET_AUTH_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">secretAuthCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_NEXT_SECRET_AUTHSECRET_AUTH_NAME">SECRET_AUTH_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">secretAuthName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_PRODUCT" title="type=SYNONYM, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=11">
+SYNONYM_PRODUCT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_PRODUCT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043363">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PRODUCT_PRODUCT_HANDLE_CODE(PRODUCT_HANDLE_CODE)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCTPRODUCT_HANDLE_CODE">PRODUCT_HANDLE_CODE</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 100 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productHandleCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS_SYNONYM1">SYNONYM_PRODUCT_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SYNONYM_PRODUCTUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="SYNONYM_PRODUCTVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_PRODUCT_STATUS" title="type=SYNONYM, primaryKey={PRODUCT_STATUS_CODE}, nameLength=22, columnCount=2">
+SYNONYM_PRODUCT_STATUS
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_PRODUCT_STATUS">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043401">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCT_STATUSPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_PRODUCT" title="FK_PRODUCT_PRODUCT_STATUS_SYNONYM1">SYNONYM_PRODUCT</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PRODUCT_STATUS_P_S_NAME(PRODUCT_STATUS_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_PRODUCT_STATUSPRODUCT_STATUS_NAME">PRODUCT_STATUS_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+<h2 id="SYNONYM_REF_EXCEPT" title="type=SYNONYM, primaryKey={REF_EXCEPT_ID}, nameLength=18, columnCount=2">
+SYNONYM_REF_EXCEPT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SYNONYM_REF_EXCEPT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043434">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_REF_EXCEPTREF_EXCEPT_ID">REF_EXCEPT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">refExceptId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SYNONYM_REF_EXCEPTEXCEPT_ID">EXCEPT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_EXCEPT" title="FK_WHITE_REF_EXCEPT_SYNONYM1">SYNONYM_EXCEPT</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">exceptId</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="VENDOR_SYNONYM_MEMBER" title="type=SYNONYM, primaryKey={MEMBER_ID}, nameLength=21, columnCount=13">
+VENDOR_SYNONYM_MEMBER
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in VENDOR_SYNONYM_MEMBER">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0043375">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERMEMBER_ID">MEMBER_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#SYNONYM_MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER_SYNONYM3">SYNONYM_MEMBER_LOGIN</a>,<br /><a href="#SYNONYM_MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER_SYNONYM3">SYNONYM_MEMBER_WITHDRAWAL</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERMEMBER_NAME">MEMBER_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_MEMBER_MEMBER_ACCOUNT(MEMBER_ACCOUNT)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERMEMBER_ACCOUNT">MEMBER_ACCOUNT</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberAccount</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERMEMBER_STATUS_CODE">MEMBER_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#MemberStatusCls">MemberStatus</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERFORMALIZED_DATETIME">FORMALIZED_DATETIME</td>
+		<td>TIMESTAMP(3)</td>
+		<td class="numcell"> 11, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">formalizedDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="VENDOR_SYNONYM_MEMBERBIRTHDATE">BIRTHDATE</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">birthdate</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="VENDOR_SYNONYM_MEMBERUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="VENDOR_SYNONYM_MEMBERVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SUMMARY_PRODUCT" title="type=VIEW, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=4">
+SUMMARY_PRODUCT
+&nbsp;<span class="tableschema">on EXAMPLEDB</span>
+</h2>
+<table summary="Columns in SUMMARY_PRODUCT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell additionalpk">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT_STATUS" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell"></td>
+		<td id="SUMMARY_PRODUCTLATEST_PURCHASE_DATETIME">LATEST_PURCHASE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">latestPurchaseDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+</table>
+<h2 id="NEXT_SCHEMA_PRODUCT" title="type=TABLE, schema=NEXTEXAMPLEDB, primaryKey={PRODUCT_ID}, nameLength=19, columnCount=11">
+(隣のスキーマ)NEXT_SCHEMA_PRODUCT
+&nbsp;<span class="tableschema">on NEXTEXAMPLEDB</span>
+</h2>
+<table summary="Columns in NEXT_SCHEMA_PRODUCT">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0042881 :: sequence=NEXTEXAMPLEDB.SEQ_NEXT_SCHEMA_PRODUCT:minimum(1),maximum(999999999999999999999999999),increment(1),dfcache(36)">o</td>
+		<td class="flgcell">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">隣の商品ID</td>
+		<td id="NEXT_SCHEMA_PRODUCTPRODUCT_ID">PRODUCT_ID</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 16 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 隣のベーシックなPK</td>
+		<td class="subcell">productId</td>
+		<td class="subcell">Long</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">隣の商品名称</td>
+		<td id="NEXT_SCHEMA_PRODUCTPRODUCT_NAME">PRODUCT_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 隣のベーシックなName</td>
+		<td class="subcell">productName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="NEXT_SCHEMA_PRODUCTPRODUCT_HANDLE_CODE">PRODUCT_HANDLE_CODE</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 100 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productHandleCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="NEXT_SCHEMA_PRODUCTPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#NEXT_SCHEMA_PRODUCT_STATUS" title="FK_NEXT_SCHEMA_PRODUCT">NEXT_SCHEMA_PRODUCT_STATUS</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>DATE</td>
+		<td class="numcell"> 7 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Date</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="NEXT_SCHEMA_PRODUCTUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="NEXT_SCHEMA_PRODUCTVERSION_NO">VERSION_NO</td>
+		<td>NUMBER</td>
+		<td class="numcell"> 38 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+</table>
+<h2 id="NEXT_SCHEMA_PRODUCT_STATUS" title="type=TABLE, schema=NEXTEXAMPLEDB, primaryKey={PRODUCT_STATUS_CODE}, nameLength=26, columnCount=2">
+(隣のスキステ)NEXT_SCHEMA_PRODUCT_STATUS
+&nbsp;<span class="tableschema">on NEXTEXAMPLEDB</span>
+</h2>
+<table summary="Columns in NEXT_SCHEMA_PRODUCT_STATUS">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="SYS_C0042884">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="NEXT_SCHEMA_PRODUCT_STATUSPRODUCT_STATUS_CODE">PRODUCT_STATUS_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#WHITE_REF_NEXT_TARGET" title="FK_WHITE_REF_NEXT_TARGET">WHITE_REF_NEXT_TARGET</a>,<br /><a href="#NEXT_SCHEMA_PRODUCT" title="FK_NEXT_SCHEMA_PRODUCT">NEXT_SCHEMA_PRODUCT</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_NEXT_SCHEMA_PRODUCT_STATUS(PRODUCT_STATUS_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="NEXT_SCHEMA_PRODUCT_STATUSPRODUCT_STATUS_NAME">PRODUCT_STATUS_NAME</td>
+		<td>VARCHAR2</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productStatusName</td>
+		<td class="subcell">String</td>
+	</tr>
+</table>
+
+<h2 id="cdef">Classification Definition</h2>
+<table summary="Classifications in the Schema">
+	<thead>
+	<tr>
+		<th>Classification</th>
+		<th>Top Comment</th>
+		<th>Definition</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td>Flg</td>
+		<td>general boolean classification for every flg-column</td>
+		<td>
+			<table class="child">
+			<tr>
+				<th><a name="FlgCls"/>Code</th>
+				<th>Name</th>
+				<th>Alias</th>
+				<th>Comment</th>
+			</tr>
+			<tr>
+				<td>1</td>
+				<td>True</td>
+				<td>Yes</td>
+				<td>means valid</td>
+			</tr>
+			<tr>
+				<td>0</td>
+				<td>False</td>
+				<td>No</td>
+				<td>means invalid</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td>MemberStatus</td>
+		<td>status of member from entry to withdrawal</td>
+		<td>
+			<table class="child">
+			<tr>
+				<th><a name="MemberStatusCls"/>Code</th>
+				<th>Name</th>
+				<th>Alias</th>
+				<th>Comment</th>
+			</tr>
+			<tr>
+				<td>FML</td>
+				<td>Formalized</td>
+				<td>FORMALIZED</td>
+				<td>as formal member, allowed to use all service</td>
+			</tr>
+			<tr>
+				<td>WDL</td>
+				<td>Withdrawal</td>
+				<td>WITHDRAWAL</td>
+				<td>withdrawal is fixed, not allowed to use service</td>
+			</tr>
+			<tr>
+				<td>PRV</td>
+				<td>Provisional</td>
+				<td>PROVISIONAL</td>
+				<td>first status after entry, allowed to use only part of service</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	</tbody>
+</table>
+
+<h2 id="outsidesql">OutsideSql List</h2>
+<h3 id="MemberSql"><a href="#MEMBER">MEMBER</a></h3>
+<dl class="bqplist">
+	<dt>&nbsp;selectLatestFormalizedDatetime</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectLatestFormalizedDatetime.sql</span>
+	</dd>
+	<dt>&nbsp;selectMemberName</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectMemberName.sql</span>
+	</dd>
+	<dt>&nbsp;selectOptionMember</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectOptionMember.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
+	</dd>
+	<dt>(Manual Paging Example for Oracle)selectPurchaseMaxPriceMember</dt>
+	<dd>
+		<pre> This SQL uses 'rownum'.</pre>
+	</dd>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectPurchaseMaxPriceMember.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb extends SPB)</span>
+	</dd>
+	<dt>&nbsp;selectPurchaseSummaryMember</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectPurchaseSummaryMember.sql</span>
+		<span class="ctet">(df:entity *cursor)</span>
+		<span class="pmb">(df:pmb)</span>
+	</dd>
+	<dt>(Simple Member Select)selectSimpleMember</dt>
+	<dd>
+		<pre> This SQL is the most basic example for outsideSql.</pre>
+	</dd>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectSimpleMember.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
+	</dd>
+	<dt>&nbsp;selectUnpaidSummaryMember</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectUnpaidSummaryMember.sql</span>
+		<span class="ctet">(UnpaidSummaryMember)</span>
+		<span class="pmb">(UnpaidSummaryMemberPmb extends SPB)</span>
+	</dd>
+	<dt>&nbsp;updateForcedWithdrawal</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_updateForcedWithdrawal.sql</span>
+	</dd>
+	<dt>&nbsp;subdirectory_selectSubDirectoryCheck</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectSubDirectoryCheck.sql</span>
+	</dd>
+	<dt>&nbsp;various_cmentitycheck_selectCommonColumnMember</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectCommonColumnMember.sql</span>
+		<span class="ctet">(CommonColumnMember)</span>
+	</dd>
+	<dt>&nbsp;various_cmentitycheck_selectForcedType</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectForcedType.sql</span>
+		<span class="ctet">(df:entity)</span>
+	</dd>
+	<dt>&nbsp;various_pmbcheck_selectCompareDate</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectCompareDate.sql</span>
+		<span class="pmb">(CompareDatePmb)</span>
+	</dd>
+	<dt>&nbsp;various_pmbcheck_selectResolvedPackageName</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectResolvedPackageName.sql</span>
+		<span class="pmb">(ResolvedPackageNamePmb)</span>
+	</dd>
+	<dt>&nbsp;various_wrongexample_selectBindVariableNotFoundProperty</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectBindVariableNotFoundProperty.sql</span>
+	</dd>
+	<dt>&nbsp;various_wrongexample_selectIfCommentNotBooleanResult</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectIfCommentNotBooleanResult.sql</span>
+	</dd>
+	<dt>&nbsp;various_wrongexample_selectIfCommentWrongExpression</dt>
+	<dd class="subinfo">
+		<span class="file">MemberBhv_selectIfCommentWrongExpression.sql</span>
+	</dd>
+</dl>
+<h3 id="MemberStatusSql"><a href="#MEMBER_STATUS">MEMBER_STATUS</a></h3>
+<dl class="bqplist">
+	<dt>&nbsp;selectDisplayMemberStatus</dt>
+	<dd class="subinfo">
+		<span class="file">MemberStatusBhv_selectDisplayMemberStatus.sql</span>
+	</dd>
+</dl>
+<h3 id="VendorCheckSql"><a href="#VENDOR_CHECK">VENDOR_CHECK</a></h3>
+<dl class="bqplist">
+	<dt>&nbsp;various_vendorcheck_selectDoubleByteOnSql</dt>
+	<dd class="subinfo">
+		<span class="file">VendorCheckBhv_selectDoubleByteOnSql.sql</span>
+		<span class="ctet">(df:entity)</span>
+	</dd>
+	<dt>&nbsp;various_vendorcheck_selectSimpleVendorCheck</dt>
+	<dd class="subinfo">
+		<span class="file">VendorCheckBhv_selectSimpleVendorCheck.sql</span>
+		<span class="ctet">(SimpleVendorCheck)</span>
+	</dd>
+	<dt>&nbsp;various_vendorcheck_selectVendorCheckDecimalSum</dt>
+	<dd class="subinfo">
+		<span class="file">VendorCheckBhv_selectVendorCheckDecimalSum.sql</span>
+		<span class="ctet">(VendorCheckDecimalSum)</span>
+	</dd>
+	<dt>&nbsp;various_vendorcheck_selectVendorCheckIntegerSum</dt>
+	<dd class="subinfo">
+		<span class="file">VendorCheckBhv_selectVendorCheckIntegerSum.sql</span>
+		<span class="ctet">(VendorCheckIntegerSum)</span>
+	</dd>
+</dl>
+<h3 id="procedure">Procedure</h3>
+<dl class="procedurelist">
+	<dt>FN_IN_OUT_PARAMETER <span class="type">(ReturnsResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		(result) - VARCHAR2 <span class="type">(Return)</span>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>FN_NO_PARAMETER <span class="type">(ReturnsResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		(result) - VARCHAR2 <span class="type">(Return)</span>
+	</dd>
+	<dt>SP_IN_OUT_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>SP_NO_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>SP_NULL_OUT_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_INTEGER - NUMBER(38) <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_NUMBER - NUMBER(22) <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_DATE - DATE <span class="type">(Out)</span>
+	</dd>
+	<dt>SP_ORACLE_CHAR_INOUT_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		V_INOUT_CHAR - CHAR <span class="type">(InOut)</span>
+	</dd>
+	<dt>MAIN_PKG.SP_PKG_IN_OUT_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Packaged procedure</pre>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>SAME_PKG.SP_PKG_IN_OUT_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Packaged procedure</pre>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>MAIN_PKG.SP_PKG_NO_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Packaged procedure</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>SAME_PKG.SP_PKG_NO_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Packaged procedure</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>SP_RESULT_SET_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		CUR_MEMBER - REF CURSOR <span class="type">(Out)</span>
+	</dd>
+	<dt>SP_RESULT_SET_PARAMETER_MORE <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		CUR_MEMBER - REF CURSOR <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		CUR_MEMBER_STATUS - REF CURSOR <span class="type">(Out)</span>
+	</dd>
+	<dt>SP_RESULT_SET_PARAMETER_WITH <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		CUR_MEMBER - REF CURSOR <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		CUR_MEMBER_STATUS - REF CURSOR <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_IN_CHAR - CHAR <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>SP_TRANSACTION_INHERIT <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>SP_VARIOUS_TYPE_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_NVARCHAR - NVARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_CHAR - CHAR <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_INTEGER - NUMBER(38) <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_NUMBER_INTEGER - NUMBER(22) <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_NUMBER_LONG - NUMBER(22) <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_NUMBER_DECIMAL - NUMBER(22) <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_DATE - DATE <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_IN_TIMESTAMP - TIMESTAMP(6) <span class="type">(In)</span>
+	</dd>
+	<dt>FN_NEXT_SYNONYM_SAME_NAME <span class="type">(ReturnsResult, Synonym)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		(result) - VARCHAR2 <span class="type">(Return)</span>
+	</dd>
+	<dt>SYNONYM_NEXT_FUNCTION <span class="type">(ReturnsResult, Synonym)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		(result) - VARCHAR2 <span class="type">(Return)</span>
+	</dd>
+	<dt>SYNONYM_NEXT_PROCEDURE <span class="type">(NoResult, Synonym)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>SYNONYM_PROCEDURE_IN_OUT <span class="type">(NoResult, Synonym)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		V_IN_VARCHAR - VARCHAR2 <span class="type">(In)</span>
+	</dd>
+	<dd class="column">
+		V_OUT_VARCHAR - VARCHAR2 <span class="type">(Out)</span>
+	</dd>
+	<dd class="column">
+		V_INOUT_VARCHAR - VARCHAR2 <span class="type">(InOut)</span>
+	</dd>
+	<dt>NEXTEXAMPLEDB.FN_NEXT_NO_PARAMETER <span class="type">(ReturnsResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">
+		(result) - VARCHAR2 <span class="type">(Return)</span>
+	</dd>
+	<dt>NEXTEXAMPLEDB.SP_NEXT_NO_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>NEXTEXAMPLEDB.NEXT_PKG.SP_NEXT_PKG_NO_PARAMETER <span class="type">(NoResult)</span></dt>
+	<dd>
+		<pre>Packaged procedure</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+	<dt>NEXTEXAMPLEDB.NEXT_SYNONYM_PROCEDURE <span class="type">(NoResult, Synonym)</span></dt>
+	<dd>
+		<pre>Standalone procedure or function</pre>
+	</dd>
+	<dd class="column">*no arguments</dd>
+</dl>
+</body>
+</html>

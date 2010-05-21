@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,トピック,Topic,DBアクセス,カーソル検索,CursorSelect,メモリ節約,OutOfMemory" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<title>DBアクセス - カーソル検索 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>DBアクセス - カーソル検索</h1>
+	<ul class="indexlist">
+		<li><a href="#about">カーソル検索とは？</a>
+			<ul>
+				<li><a href="#internalcursor">内部的にはみんなカーソル検索</a></li>
+				<li><a href="#onmemorymerit">メモリ上に保持する検索のメリット</a></li>
+				<li><a href="#onmemorydemerit">メモリ上に保持する検索のデメリット</a></li>
+				<li><a href="#nocursormapper">カーソル検索がないO/Rマッパだと</a></li>
+			</ul>
+		</li>
+		<li><a href="#dbflutecursor">DBFluteのカーソル検索</a></li>
+		<li><a href="#oneloopdestroy">厳密には 1 ループで破棄しないことも</a></li>
+	</ul>
+
+	<h2 id="about">カーソル検索とは？</h2>
+	<p>
+		多くのO/Rマッパは、検索結果を全てメモリ上に保持して、その SQL(Statement)
+		のDBとの接続は閉じます。検索結果は全て保持されているので、アプリケーションはそれ以降、DBとの関わりなしにデータを扱うことができます。
+		DBFluteも基本仕様はそのようになっています。
+	</p>
+<pre><span class="codetitle">ex) DBFluteでデータを一気にメモリ上に保持する検索(普通の検索) @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+<span class="comment">// memberListには、検索されたデータが全て格納されている</span>
+<span class="comment">// (この時点で、データはアプリケーション上のメモリに存在する)</span>
+</code></pre>
+	<p>
+		一方、カーソル検索は、検索結果を全てメモリ上に保持せず、一レコードずつ業務的な処理をします。
+		処理し終わったレコードのデータはアプリケーション上のメモリから破棄しつつ、また次のレコードの処理を行います。
+		プリミティブなインターフェースである JDBC は、この方法で検索をします。(ResultSet や DataReaderなど)
+	</p>
+<pre><span class="codetitle">ex) JDBCでデータを一レコードずつ取得(フェッチ) @Java</span><code>
+ResultSet rs = ps.executeQuery();
+<span class="keyword">while</span> (rs.next()) { <span class="comment">// 行がなくなるまでループ</span>
+    <span class="comment">// 一レコードだけメモリ上に保持</span>
+    String memberName = rs.getString("MEMBER_NAME");
+    <span class="abbreviation">...</span> <span class="comment">// 業務的な処理</span>
+    <span class="comment">// 一ループ終わったらループ内で取得データは破棄され、</span>
+    <span class="comment">// また、次のループで次のレコードを取得する。</span>
+}
+</code></pre>
+	<p>
+		この場合、(トランザクション内での検索の)データの取得は、必ずトランザクション内で処理する必要があります。トランザクションが終わると(コミット
+		or ロールバック)、このカーソルの接続が切断されます。
+	</p>
+	<h3 id="internalcursor">内部的にはみんなカーソル検索</h3>
+	<p>
+		実は、メモリ上に全て保持するやり方も、内部的にはカーソル検索をしています。
+		カーソル検索をして、全てのデータをメモリ上に保持し、全て取得し終わったらDBとの接続を切断しているのです。
+		基本的にO/Rマッパは、JDBC をラップして作られているためです。
+	</p>
+	<h3 id="onmemorymerit">メモリ上に保持する検索のメリット</h3>
+	<p>
+		アプリケーションの実装として利用しやすいのは、メモリ上に一気に保持する検索です。
+		DBとの接続の切断を気にする必要はなく、トランザクションの外でもデータを利用することができます。
+	</p>
+	<h3 id="onmemorydemerit">メモリ上に保持する検索のデメリット</h3>
+	<p>
+		唯一、困ることは、大量データ(大量件数のレコード)を検索する場合です。
+		検索した大量データを全てメモリに保持することになりますので、アプリケーションのメモリが圧迫されることになります。
+		圧迫されるだけならまだしも、実行環境のメモリ許容量を超えてメモリのオーバーフローエラー(OutOfMemoryError)が発生して、
+		アプリケーションが続行できなくなる可能性があります。主には、(夜間の)バッチ処理などで、この問題を抱えることが多いです。
+	</p>
+	<h3 id="nocursormapper">カーソル検索がないO/Rマッパだと</h3>
+	<p>
+		アプリケーションで利用できるメモリの量を増やしたり、データ構造を変えてそもそも扱う件数を減らしたり、
+		などの外部要素での回避ができれば良いですが、そうでない場合は、大半はO/Rマッパ経由で検索するけれども、
+		必要になったところだけでJDBCを直接利用して回避、ということになる可能性があります。
+		(要件次第では、アプリケーションでの大量データの扱い方の工夫次第で回避できるかもしれません)
+	</p>
+	<div class="relatedpage"><a href="./batchloop.html">DBアクセス - バッチループ</a></div>
+
+	<h2 id="dbflutecursor">DBFluteのカーソル検索</h2>
+	<p>
+		DBFluteでは、(先述の通り)通常はメモリ上に保持する検索がメインですが、大量データを扱うようなときのためにカーソル検索を利用することもできます。
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/cursorselect/index.html">現場フィット - カーソル検索</a></div>
+
+	<div class="inucolumn">
+		<h2 id="oneloopdestroy">厳密には 1 ループで破棄しないことも</h2>
+		<p>
+			JDBCでデータを 1 レコードずつ取得する際ですが、ResultSetタイプの設定次第では、
+			次のループでも前のレコードのデータをJDBC内部で保持し続けている可能性があります。
+		</p>
+<pre><span class="codetitle">ex) JDBCでデータを一レコードずつ取得するけど @Java</span><code>
+ResultSet rs = ps.executeQuery();
+<span class="keyword">while</span> (rs.next()) { <span class="comment">// 行がなくなるまでループ</span>
+    <span class="comment">// 1 レコードだけメモリ上に保持</span>
+    String memberName = rs.getString("MEMBER_NAME");
+    <span class="abbreviation">...</span> <span class="comment">// 業務的な処理</span>
+    <span class="comment">// 1 ループ終わったらループ内で取得データは破棄されるのが基本だけど、</span>
+    <span class="comment">// 設定次第では、JDBC内部で持ち続けてる可能性も。</span>
+}
+</code></pre>
+		<p>
+			主なResultSetタイプは以下の通りです。
+		</p>
+		<ul>
+			<li>TYPE_FORWARD_ONLY</li>
+			<li>TYPE_SCROLL_INSENSITIVE</li>
+			<li>TYPE_SCROLL_SENSITIVE</li>
+		</ul>
+		<p>
+			カーソルのスクロール(データポインタを前に戻したり)ができるタイプ(TYPE_SCROLL_XXX)にしている場合は、
+			一度読み込んだデータを再度(DBから)読み込み直さないように次のループになっても保持している可能性があります。
+			但し、これはJDBCドライバの実装次第と考えられます。
+		</p>
+		<p>
+			よって、大量データを扱うためのカーソル検索で、このタイプがスクロール可能なものになっていると、
+			なんのためにカーソル検索をしているのかわかりません(結局、メモリのオーバーフローに)。<em class="keyword">DBFluteでは、
+			通常の検索も含めて、デフォルトを TYPE_FORWARD_ONLY にしているので、(明示的に設定を変えない限りは)この問題が発生することはありません</em>。
+			(昔々、発生してこの辺を調整したことがあります...)
+		</p>
+	</div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/architect/index.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/developer/index.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
