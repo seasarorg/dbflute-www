@@ -59,12 +59,14 @@
 				<li><a href="#likesearch">LikeSearch条件のオプション</a></li>
 				<li><a href="#fromto">DateFromTo条件のオプション</a></li>
 				<li><a href="#classification">区分値条件のオプション</a></li>
+				<li><a href="#reference">参照カラムのオプション</a></li>
 				<li><a href="#packageresolve">プログラム型のパッケージ解決</a></li>
 			</ul>
 		</li>
 		<li><a href="#structure">ParameterBeanの構造</a>
 			<ul>
 				<li><a href="#emptystring">getメソッドの空文字フィルタ</a></li>
+				<li><a href="#serializable">Serializableである</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -191,7 +193,7 @@ pmb.<span class="point">paging(20, 3)</span>;
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchmatchdirection">LikeSearchMatchDirection (LikeSearch条件の一致の方向)</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchescape">LikeSearchEscape (LikeSearch条件のエスケープ)</a></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":[オプション]"
+		プロパティ定義のプロパティ名の後ろに ":[like-search-option]"
 		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。利用できるオプションは以下の通りです。
 	</p>
 	<dl class="keymainlist">
@@ -266,7 +268,7 @@ pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">
 	</p>
 	<div class="detailpage"><span class="working"><!-- <a href="../../../genbafit/implfit/datefromtocondition/index.html"> -->現場フィット - DateFromTo条件<!-- </a> --></span></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":[オプション]"
+		プロパティ定義のプロパティ名の後ろに ":[fromto-option]"
 		と追加することで、ParameterBeanにてDateFromTo条件を指定することができます。利用できるオプションは以下の通りです。
 	</p>
 	<dl class="keymainlist">
@@ -299,7 +301,7 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 	</p>
 	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":cls[区分値名称]" と追加することで、ParameterBeanにて区分値メソッドが利用できます。
+		プロパティ定義のプロパティ名の後ろに ":cls([classification-name])" と追加することで、ParameterBeanにて区分値メソッドが利用できます。
 	</p>
 <pre><span class="codetitle">ex) memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
@@ -312,6 +314,44 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
 pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 </code></pre>
+	<h3 id="reference">参照カラムのオプション</h3>
+	<p>
+		ParameterBeanのプロパティの "参照カラム"
+		を定義して、プロパティのJavaDocコメントなどでカラムの情報を利用することができます。
+		そのプロパティがどのカラムに対するパラメータなのか、ドキュメントに目をやらずに実装しながら情報を得ることができます。
+	</p>
+	<p>
+		プロパティ定義のプロパティ名の後ろに ":ref([table-name].[column-name])"
+		と追加することで、そのプロパティの参照カラムを定義できます。
+	</p>
+<pre><span class="codetitle">ex) 会員名称を参照するプロパティ @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberName:<span class="point">ref(MEMBER.MEMBER_NAME)</span>!!</span>
+</code></pre>
+	<p>
+		もし、プロパティ名がカラム名と "FlexibleName"
+		として同名であれば、":ref([table-name])" というようにカラム名の指定は省略できます。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wf.html#flexiblename">FlexibleName</a></div>
+<pre><span class="codetitle">ex) プロパティと参照カラムが同名の場合 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberName:<span class="point">ref(MEMBER)</span>!!</span>
+</code></pre>
+	<p>
+		他のオプションと組み合わせる場合は、オプション表記の中で "|"
+		を区切り文字として利用することで、複数のオプションが指定できます。
+	</p>
+<pre><span class="codetitle">ex) プロパティと参照カラムが同名の場合 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberStatusCode:ref(MemberStatus)<span class="point">|</span>ref(MEMBER)!!</span>
+</code></pre>
+	<h4 id="shortchar">ShortCharHandlingで必要</h4>
+	<p>
+		この機能は、基本的にカラム情報の参照などによるささやかな実装支援のためのものですが、ShortCharHandling
+		の機能をParameterBeanで利用する場合には、このオプションが必須となります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/deprecatedfit/shortcharhandling/index.html"> -->現場フィット - char型の桁数不足の取扱い<!-- </a> --></span></div>
+
 	<h3 id="packageresolve">プログラム型のパッケージ解決</h3>
 	<p>
 		指定するプログラム型のパッケージ名は、頻繁に利用されることが想定されるクラスに関しては自動で解決されます。
@@ -372,7 +412,10 @@ select ...
 		但し、内部構造が変わる可能性もありますので、必ずオーバーライド漏れを検知できるように拡張して下さい。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
-	
+	<h3 id="serializable">Serializableである</h3>
+	<p>
+		ParameterBeanは、Serializable です。<span class="freecomment">@since 0.9.7.0</span>
+	</p>
 
 </div>
 </div>

@@ -53,9 +53,9 @@
 		</li>
 		<li><a href="#ifcomment">IFコメント</a>
 			<ul>
-				<li><a href="#ifnest">IFコメントのネスト</a></li>
 				<li><a href="#ifcondition">IFコメントの条件表現</a></li>
 				<li><a href="#complexcondition">複雑な条件はメソッド化</a></li>
+				<li><a href="#ifnest">IFコメントのネスト</a></li>
 				<li><a href="#withbegin">BEGINコメントとの併用</a></li>
 			</ul>
 		</li>
@@ -67,10 +67,22 @@
 		</li>
 		<li><a href="#begincomment">BEGINコメント</a>
 			<ul>
+				<li><a href="#sqlconnector">連結文字の調整</a></li>
 				<li><a href="#beginnest">BEGINコメントのネスト</a></li>
 			</ul>
 		</li>
 		<li><a href="#endcomment">ENDコメント</a></li>
+		<li><a href="#forcomment">FORコメント</a>
+			<ul>
+				<li><a href="#detailspec">細かい仕様</a></li>
+				<li><a href="#loopindex">カレント変数</a></li>
+				<li><a href="#loopvariablecomment">ループ変数コメント</a></li>
+				<li><a href="#sameadjustment">BEGINコメント内ではIFコメントと同じ扱い</a></li>
+				<li><a href="#fornest">FORコメントのネスト</a></li>
+				<li><a href="#forexample">FORコメントのExampleのススメ</a></li>
+				<li><a href="#forneeds">FORコメントの存在価値</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">パラメータコメントとは？</h2>
@@ -84,15 +96,19 @@
 	<dl class="textlist">
 		<dt>コメントの構文</dt>
 		<dd>
-			コメントの構文として基本的に "/**/" を利用する。但し、一部機能(ELSE)で "--" も利用する。
+			コメントの構文として基本的にブロックコメント "/**/" を利用する。但し、一部機能(ELSE)で行コメント "--" も利用する。
 		</dd>
 		<dt>パラメータコメントの判断</dt>
 		<dd>
-			"/*" の後に空白を入れるとパラメータコメントと認識されない。<span class="freecomment">("/* IF ...*/" はただのSQLコメント)</span>
+			"/*" の後に空白や改行を入れるとパラメータコメントと認識されない。例えば、"/* IF ...*/"
+			と記述すると、パラメータコメントとしては処理されないの注意。
+			逆に、通常のSQLコメントを記述する場合は、パラメータコメントとして誤動作しないために、
+			このように空白を一つ空けるか、改行を入れて記述することが推奨される。
 		</dd>
 		<dt>大文字小文字</dt>
 		<dd>
-			パラメータコメント中の変数名やプロパティ名は大文字小文字を区別する。
+			パラメータコメントのコメント名(IFやBEGINなど)やプロパティ名("pmb.memberName"
+			など)は、大文字小文字を区別する。
 		</dd>
 	</dl>
 
@@ -127,16 +143,20 @@
 	<h2 id="embeddedvariable">埋め込み変数コメント</h2>
 	<p>
 		アプリケーションから渡されるパラメータを実行されるSQL上に埋め込むパラメータコメントです。
-		(めったにありませんが)バインド変数を使いたくない場合や、SQLの一部分をプログラム上で組み立てる場合に利用します。
-		画面ユーザ入力のパラメータの場合でこのコメントを利用する場合は、SQLインジェクションに注意する必要があります。
+		SQLの一部分をプログラム上で組み立てる場合に利用します。<em class="keyword">ページングの条件などでバインド変数が利用できない場合</em>
+		に利用します(DBMSの仕様次第)。それ以外の状況では、<em class="keyword">基本的に利用ケースが想定されていません</em>。本当にいざってときの技です。
+		画面ユーザ入力のパラメータに対するこのコメントを利用は、<em class="keyword">SQLインジェクションのリスクが発生しますので厳重に注意</em>
+		して下さい。
 	</p>
+	<div class="relatedpage"><a href="../../../reference/dbway/mysql/index.html#outsidesqlpaging">MySQL - OutsideSqlのManualPaging</a></div>
 	<p>
-		"/**/" 形式のコメントの中で、"$pmb.[property-name]" という形式で記述します。
+		"/**/" 形式のコメントの中で、"$pmb.[property-name]"
+		という形式で記述します。パラメータの中の文字列がそのままSQL上に展開されます。
+		(クォーテーションなどが必要な場合は、自前で調整する必要があります)
 	</p>
 <pre><span class="codetitle">ex) 埋め込み変数コメントの利用 @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_ID = <span class="comment">/*$pmb.memberId*/</span><span class="literal">3</span>
-  <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
-  <span class="keyword">and</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.memberStatusCodeList*/</span>(<span class="literal">'FML'</span>, <span class="literal">'WDL'</span>)
+  <span class="comment">/*$pmb.dynamicSql*/</span>
 </code></pre>
 	<h3 id="embeddedspec">その他仕様</h3>
 	<p>
@@ -144,10 +164,10 @@
 	</p>
 	<h3 id="dynamicbinding">埋め込み変数コメント内のバインド</h3>
 	<p>
-		デフォルトでは、埋め込み変数コメントに指定されるパラメータの中にバインド変数コメントが含まれていても、それはバインド変数として認識されません。
-		しかし、不定数の条件を組み立てたいときなど、それができないと困ることもあるため、プログラム側のオプションでそれを有効にすることが可能です
+		埋め込み変数の値の中に、バインド変数コメントやIFコメントなどを含めることができます(動的に解析されます)。
+		但し、不定数の条件はFORコメントを利用することで実現できるため、あまり利用が想定されていません。<span class="freecomment">@since 0.9.7.0</span>
 	</p>
-	<div class="detailpage"><a href="./option/dynamicbinding.html">外だしSQL - DynamicBinding</a></div>
+	<div class="relatedpage"><a href="#forcomment">this - FORコメント</a></div>
 
 	<h2 id="ifcomment">IFコメント</h2>
 	<p>
@@ -170,10 +190,6 @@
  <span class="keyword">order by</span> MEMBER_NAME <span class="keyword">desc</span>
  <span class="comment">/*END*/</span>
 </code></pre>
-	<h3 id="ifnest">IFコメントのネスト</h3>
-	<p>
-		IFコメントは、ネストさせて利用することもできます。
-	</p>
 	<h3 id="ifcondition">IFコメントの条件表現</h3>
 	<p>
 		条件表現として、以下のポイントがあります。
@@ -210,7 +226,12 @@
          <span class="abbreviation">...</span>
  <span class="comment">/*END*/</span>
 </code></pre>
-
+	<h3 id="ifnest">IFコメントのネスト</h3>
+	<p>
+		IFコメントは、ネストさせて利用することができます。但し、単なる AND
+		条件などは、一つのIFコメントで演算子を利用するか、ParameterBeanでメソッド化するのが良いでしょう。
+		色々できるとは言っても、あくまでタイプセーフでないパラメータコメント上なので、できる限りシンプルにすることを心がけましょう。
+	</p>
 	<h3 id="withbegin">BEGINコメントとの併用</h3>
 	<p>
 		where 句における条件有無の判定は、全ての条件が無効だった場合の "where" の除去、"and" や "or" の調整などをするために、
@@ -255,35 +276,113 @@
 
 	<h2 id="begincomment">BEGINコメント</h2>
 	<p>
-		スコープ内のIFコメントが全て false の場合に、スコープ内をまるごと削除するパラメータコメントです。
-		また、IFコメント直後の "and" や "or"、"," (カンマ)の有無を調整する役割もあります。主に、where 句において利用されます。
+		スコープ内の判定対象のコメントが全て無効の場合に、スコープ内をまるごと削除するパラメータコメントです。
+		条件がなかった場合に where だけ取り残されるのを防ぐことができます。判定対象のコメントは以下の通りです。
 	</p>
+	<ul>
+		<li>IFコメント</li>
+		<li>ELSEコメント</li>
+		<li>FORコメント <span class="freecomment">@since 0.9.7.0</span></li>
+	</ul>
 	<p>
 		"/*BEGIN*/" という形式で記述し、ENDコメントでスコープを定義します。where
 		句をまるごと囲って利用するのが最も想定される使い方です。
 	</p>
 	<div class="relatedpage"><a href="#endcomment">this - ENDコメント</a></div>
-<pre><span class="codetitle">ex) BEGINコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">ex) BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
+<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
    <span class="comment">/*IF pmb.memberId != null*/</span>
    MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
    <span class="comment">/*END*/</span>
    <span class="comment">/*IF pmb.memberName != null*/</span>
-   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*FOR pmb.memberAccountList*/</span>
+   <span class="keyword">and</span> MEMBER_ACCOUNT = <span class="comment">/*#current*/</span><span class="literal">'foo'</span><span class="comment">/*END*/</span>
    <span class="comment">/*END*/</span>
  <span class="comment">/*END*/</span>
+ <span class="keyword">order by</span> MEMBER_ID
+</code></pre>
+<pre><span class="codetitle">ex) 実行して囲った中の判定対象のコメントが全て無効だった場合 @DisplaySql</span><code>
+<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
+ <span class="keyword">order by</span> MEMBER_ID
+</code></pre>
+	<h3 id="sqlconnector">連結文字の調整</h3>
+	<p>
+		また、連結文字の調整として、スコープ内で最初に有効になった調整対象のコメントの直後の {and, or, ","}
+		が除去されます。こうすることで例えば、調整なしだと "where and ..."
+		となってしまうような場合に、"where ..." というように調整することができます。調整対象のコメントは以下の通りです。
+	</p>
+	<ul>
+		<li>IFコメント</li>
+		<li>ELSEコメント</li>
+		<li>FORコメント <span class="freecomment">@since 0.9.7.0</span></li>
+		<li>FIRSTコメント <span class="freecomment">@since 0.9.7.0</span></li>
+		<li>ネストしたBEGINコメント(後述) <span class="freecomment">@since 0.9.7.0</span></li>
+	</ul>
+<pre><span class="codetitle">ex) BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
+<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberName != null*/</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*FOR pmb.memberAccountList*/</span>
+   <span class="keyword">and</span> MEMBER_ACCOUNT = <span class="comment">/*#current*/</span><span class="literal">'foo'</span><span class="comment">/*END*/</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+ <span class="keyword">order by</span> MEMBER_ID
+</code></pre>
+<pre><span class="codetitle">ex) 実行して二番目のmemberNameだけが有効な場合 (and が消える) @DisplaySql</span><code>
+<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span>
+   MEMBER_NAME <span class="keyword">like</span> <span class="literal">'M%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
+ <span class="keyword">order by</span> MEMBER_ID
 </code></pre>
 	<h3 id="beginnest">BEGINコメントのネスト</h3>
 	<p>
-		BEGINコメントをネストさせることはできます。
+		BEGINコメントをネストさせることができます。"and" や "or"
+		などの連結文字の調整は、ネストしたBEGINコメントごとに独立して処理されながらも、
+		(上位の)BEGINコメントの判定対象として、ネストしたBEGINコメントのスコープ内のIFコメントやFORコメントなどもしっかり含まれるため、サブクエリの
+		where 句などに利用することができます。<span class="freecomment">@since 0.9.7.0</span>
 	</p>
 	<p>
-		但し、<em class="keyword">上位のBEGINコメントが考慮するIFコメントには、ネストしたBEGINコメント内のIFコメントが含まれません</em>。
+		また、ネストしたBEGINコメント自体の直後の "and" や "or"
+		も調整されます。以下の例のようにサブクエリ内の条件が全て無効の場合に、サブクエリ自体を削除するというような記述が可能です。
+		ネストしたBEGINの直後の and も調整され、かつ、ネストしたBEGIN内の(最初に有効になった)IFコメントの直後の and も同時に調整されます。
+		(memberId が null の場合、ネストしたBEGIN直後の and が削除されます)
+		<span class="freecomment">@since 0.9.7.0</span>
+	</p>
+<pre><span class="codetitle">ex) サブクエリの条件でネストしたBEGINコメントを利用 @OutsideSql</span><code>
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*BEGIN*/</span>
+   <span class="keyword">and in</span> (<span class="keyword">select</span> PURCHASE_ID
+             <span class="keyword">from</span> PURCHASE
+            <span class="keyword">where</span>
+              <span class="comment">/*IF pmb.purchaseCount != null*/</span>
+              PURCHASE_COUNT &gt;= <span class="comment">/*pmb.purchaseCount*/</span><span class="literal">2</span>
+              <span class="comment">/*END*/</span>
+              <span class="comment">/*IF pmb.purchasePrice != null*/</span>
+              <span class="keyword">and</span> PURCHASE_PRICE &gt;= <span class="comment">/*pmb.purchasePrice*/</span><span class="literal">2000</span>
+              <span class="comment">/*END*/</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+	<h4>0.9.7.0より前のバージョン</h4>
+	<p>
+		<em class="keyword">上位のBEGINコメントが考慮するIFコメントには、ネストしたBEGINコメント内のIFコメントが含まれません</em>。
 		よって、ネストしたBEGINコメント内のIFコメントが true であっても、上位のBEGINコメント直下のIFコメントが全て false
 		の場合は、(ネストされたスコープも含めて)上位スコープから丸ごと削除されます。例えば、サブクエリの where
-		句において、(AND条件やOR条件の調整をするために)ネストしたBEGINコメントを利用する場合は、
-		以下のようにサブクエリ自体を丸ごと分岐させるIFコメントを活用すると良いでしょう。
+		句において、ネストしたBEGINコメントを利用する場合は、以下のようにサブクエリ自体を丸ごと分岐させるIFコメントを活用すると良いでしょう。
 	</p>
 <pre><span class="codetitle">ex) サブクエリの条件を分岐 @OutsideSql</span><code>
  <span class="comment">/*BEGIN*/</span>
@@ -309,11 +408,168 @@
 
 	<h2 id="endcomment">ENDコメント</h2>
 	<p>
-		IFコメントやBEGINコメントのスコープを定義するための終端を表すパラメータコメントです。
+		スコープを定義するための終端を表すパラメータコメントです。<em class="keyword">/*END*/</em>
+		という形式で記述します。ENDコメントを忘れると、スコープが定義できないため、明示的な例外が発生します。
+	</p>
+
+	<h2 id="forcomment">FORコメント</h2>
+	<p>
+		アプリケーションから渡されるパラメータをもとにループして可変なSQLを展開するパラメータコメントです。主に、where
+		句における不定数の条件に利用します。<span class="freecomment">@since 0.9.7.0</span>
 	</p>
 	<p>
-		"/*END*/" という形式で記述します。
+		"/**/" 形式のコメントの中で、"FOR [list-expression]" という形式で記述し、ENDコメントでスコープを定義します。
 	</p>
+<pre><span class="codetitle">ex) FORコメントの利用 @OutsideSql</span><code>
+<span class="comment">/*FOR pmb.memberNameList*/</span>
+<span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">ex) FORコメントで展開された条件 {listSize=3} @ExecutedSql</span><code>
+<span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+<span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+<span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="detailspec">細かい仕様</h3>
+	<ul>
+		<li>指定するリストは、java.util.List の実装クラスである必要がある</li>
+		<li>FORコメントの中に、FORコメントを定義することはできる</li>
+		<li>FORコメントの中に、別のコメント(IFコメントなど)を定義することができる</li>
+		<li>リストが null や空リストの場合は何も展開されない(スコープがまるごと削除される)</li>
+	</ul>
+	<h3 id="loopindex">カレント変数</h3>
+	<p>
+		FORコメント内に、バインド変数コメントを含めることができます。
+		その際、バインド変数コメントでループの現在要素を利用するための <em class="keyword">カレント変数</em>
+		を利用することができます。FORコメント内で "/*#current*/"
+		と記述すると、そのバインド変数コメントは、現在要素の値を利用します。"/*#current.memberName*/"
+		と続けてプロパティを辿ることもできます。また、IFコメントやFORコメント、埋め込み変数コメントでも同様に利用できます。
+	</p>
+<pre><span class="codetitle">ex) FORコメントの利用 @OutsideSql</span><code>
+<span class="comment">/*FOR pmb.memberNameList*/</span>
+<span class="keyword">and</span> member.MEMBER_NAME = <span class="comment">/*#current*/</span><span class="literal">'foo%'</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+	<h3 id="loopvariablecomment">ループ変数コメント</h3>
+	<p>
+		また、細かい制御をするための <em class="keyword">ループ変数コメント</em>
+		が用意されています。これらを利用して、実行時のSQLと2Way-SQLとの整合性と保つように調整します。
+	</p>
+	<dl class="keymainlist">
+		<dt>FIRSTコメント</dt>
+		<dd>最初のループで有効になる</dd>
+		<dt>NEXTコメント</dt>
+		<dd>二回目以降のループで有効になる</dd>
+		<dt>LASTコメント</dt>
+		<dd>最後のループで有効になる</dd>
+	</dl>
+<pre><span class="codetitle">ex) where句の最初の条件としてFORコメントを利用 (NEXTコメント) @OutsideSql</span><code>
+<span class="comment">/*BEGIN*/</span>
+<span class="keyword">where</span>
+  <span class="comment">/*FOR pmb.memberNameList*/</span>
+  <span class="comment">/*NEXT 'and '*/</span>member.MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*#current*/</span><span class="literal">'S%'</span>
+  <span class="comment">/*END*/</span>
+  <span class="comment">/*IF pmb.memberStatusCode != null*/</span>
+  <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+  <span class="comment">/*END*/</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">ex) FORコメントを利用して展開された表示用SQL(where句の最初の条件) @DisplaySql</span><code>
+<span class="keyword">where</span>
+  member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'foo%'</span>
+  <span class="keyword">and</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'bar%'</span>
+  <span class="keyword">and</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'baz%'</span>
+</code></pre>
+<pre><span class="codetitle">ex) where句の二番目以降の条件としてFORコメントを利用(FIRST, NEXT, LASTコメント) @OutsideSql</span><code>
+<span class="comment">/*BEGIN*/</span>
+<span class="keyword">where</span>
+  <span class="comment">/*IF pmb.memberId != null*/</span>
+  member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+  <span class="comment">/*END*/</span>
+  <span class="comment">/*FOR pmb.memberNameList*//*FIRST*/</span>and (<span class="comment">/*END*/</span>
+    <span class="comment">/*NEXT 'or '*/</span>member.MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberNameList.get(index)*/</span><span class="literal">'S%'</span>
+  <span class="comment">/*LAST*/</span>)<span class="comment">/*END*//*END*/</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">ex) FORコメントを利用して展開された表示用SQL(where句の二番目以降の条件) @DisplaySql</span><code>
+<span class="keyword">where</span>
+  member.MEMBER_ID = <span class="literal">3</span>
+  <span class="keyword">and</span> (
+    member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'foo%'</span>
+    <span class="keyword">or</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'bar%'</span>
+    <span class="keyword">or</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'baz%'</span>
+  )
+</code></pre>
+	<h4>ENDコメントで囲ったSQL文字を展開</h4>
+	<p>
+		ENDコメントで囲ったSQL文字を、有効となるループタイミングで展開することができます。
+		囲われた文字は、Sql2Entityタスクなどで実行される 2Way-SQL
+		としてのSQLの一部として評価されます。
+	</p>
+<pre><span class="codetitle">ex) "and (" が最初のループのときにだけ有効になる @OutsideSql</span><code>
+<span class="comment">/*FIRST*/</span>and (<span class="comment">/*END FIRST*/</span>
+</code></pre>
+	<h4>コメント上で定義した値を展開</h4>
+	<p>
+		ENDコメントを省略して、コメントを定義した場所に、コメント上で定義した値を展開することができます。"[comment-name] '[value]'"
+		という形式で記述します。(この場合、ENDコメントを定義してはいけません)
+	</p>
+<pre><span class="codetitle">ex) "or " が二回目以降のループのときにコメントと置き換わる @OutsideSql</span><code>
+<span class="comment">/*NEXT 'or '*/</span>
+</code></pre>
+	<h3 id="sameadjustment">BEGINコメント内ではIFコメントと同じ扱い</h3>
+	<p>
+		BEGINコメント内ではIFコメントと同じように扱われます。BEGINで定義したスコープの判定要素として、FORコメントも考慮されます。
+		また、FORコメント内の先頭の "and" や "or"
+		などの連結文字は、BEGINコメント内であればIFコメントと同じように調整されます。例えば、"where and ..."
+		となってしまう場合は、"where ..." と調整されます。ゆえに、ループ内で単純に and
+		条件で連結するだけのような場合は、ループ変数コメントを利用しなくても解決が可能です。
+	</p>
+	<div class="relatedpage"><a href="#begincomment">Beginコメント</a></div>
+<pre><span class="codetitle">ex) ループ変数コメントを利用しなくてもいいような場合 @OutsideSql</span><code>
+<span class="comment">/*BEGIN*/</span>
+<span class="keyword">where</span>
+  <span class="comment">/*IF pmb.memberId != null*/</span>
+  member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+  <span class="comment">/*END*/</span>
+  <span class="comment">/*FOR pmb.memberNameList*/</span>
+  <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+  <span class="comment">/*END*/</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">ex) where句の先頭の条件になっても and が調整される @DisplaySql</span><code>
+<span class="keyword">where</span>
+  member.MEMBER_NAME = <span class="abbreviation">...</span>
+  <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+  <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="fornest">FORコメントのネスト</h3>
+	<p>
+		FORコメントをネストさせることができます。但し、あまり利用ケースは想定されていません。
+		パラメータコメント上であまりに複雑になるようであれば、プログラム側でパラメータコメント上で扱いやすい形に変換する方が良いでしょう。
+	</p>
+	<h3 id="forexample">FORコメントのExampleのススメ</h3>
+	<p>
+		dbflute-basic-example の MemberBhv_selectPurchaseMaxPriceMember.sql
+		および MemberBhv_selectPurchaseSummaryMember.sql にて、このFORコメントを利用したExample実装があります。
+		また、それら外だしSQLを実行するテストケースもありますので合わせてご覧下さい。
+	</p>
+	<div class="relatedpage"><a href="../../../reference/example/index.html#dicontainer">Example - DIコンテナ</a></div>
+	<div class="inucolumn">
+		<h3 id="forneeds">FORコメントの存在価値</h3>
+		<p>
+			DBFluteでは、実はそんなにFORコメントが利用されることは多くはないと想定されます。なぜなら、ConditionBean
+			があるからです。不定数の条件を扱うときはそれ以外の条件があまり存在しないことも多く、それであればなおさら ConditionBean
+			で済みます。さらに、不定数の条件が LikeSearch 条件(曖昧検索の条件)であれば、ConditionBean で LikeSearchOption の SplitBy
+			機能を使うことで、非常に簡単に安全に実装できます。
+		</p>
+		<div class="relatedpage"><span class="working"><!-- <a href="../conditionbean/query/likesearch.html"> -->ConditionBean - LikeSearch<!-- </a> --></span></div>
+		<p>
+			もちろん、FORコメントが要らない訳ではなく、DBFluteでの外だしSQLの役割を考えるときに、
+			"いざとなれば何でもできる" という安心感が保たれていることが重要です。
+			現実、ConditionBean の枠組みから外れたDBアクセスで不定数の条件を扱いたいときは必要になるのです。
+		</p>
+	</div>
 
 </div>
 </div>

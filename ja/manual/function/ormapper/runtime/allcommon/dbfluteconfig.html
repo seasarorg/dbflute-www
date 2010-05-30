@@ -39,6 +39,7 @@
 		<li><a href="#about">DBFluteConfigとは？</a>
 			<ul>
 				<li><a href="#beforeinit">初期化される前に設定すること</a></li>
+				<li><a href="#unitconfig">単体テストの環境でも設定すること</a></li>
 				<li><a href="#settinglog">設定されたときのログ</a></li>
 			</ul>
 		</li>
@@ -52,6 +53,7 @@
 				<li><a href="#datasourcehandler">dataSourceHandler</a></li>
 				<li><a href="#sequencecachekeygenerator">sequenceCacheKeyGenerator</a></li>
 				<li><a href="#outsidesqlpackage">outsideSqlPackage</a></li>
+				<li><a href="#outsidesqlexecutorfactory">outsideSqlExecutorFactory</a></li>
 				<li><a href="#usesqllogregistry">useSqlLogRegistry</a></li>
 				<li><a href="#fulltextsearchoperand">fullTextSearchOperand</a></li>
 				<li><a href="#valuetype">valueType</a></li>
@@ -68,25 +70,28 @@
 		自動生成時に(挙動を)固定してしまうのではなく、アプリケーションの実行環境で柔軟に切り替えられるようにするためです。
 	</p>
 <pre><span class="codetitle">ex) DBFluteConfigインスタンスの取得 @Java</span><code>
-DBFluteConfig config = DBFluteConfig.getInstance();
+DBFluteConfig config = DBFluteConfig.<span class="point">getInstance()</span>;
 </code></pre>
 	<p>
 		様々なコンフィグが用意されていて、それぞれのメソッドで設定を行うことができます。
+		おいそれと変更してはいけないプロパティがオンパレードなため、
+		設定するときは、必ず設定前にロックを解除し、設定後にロックを掛けるという微妙に面倒な作業と共にすることを習慣としています。
 	</p>
 <pre><span class="codetitle">ex) DBFluteConfigで queryTimeout の設定 {300秒} @Java</span><code>
 DBFluteConfig config = DBFluteConfig.getInstance();
-config.setDefaultStatementConfig(<span class="keyword">new</span> StatementConfig().queryTimeout(<span class="literal">300</span>));
+config.<span class="point">unlock()</span>;
+config.<span class="point">setDefaultStatementConfig</span>(<span class="keyword">new</span> StatementConfig().queryTimeout(<span class="literal">300</span>));
+config.<span class="point">lock()</span>;
 </code></pre>
 	<h3 id="beforeinit">初期化される前に設定すること</h3>
 	<p>
 		<em class="keyword">DBFluteが初期化される前(DIコンテナが初期化される前)に設定されることが大前提</em>
-		です。それ以降の設定は推奨されません。DBFluteの初期化が終わると、DBFluteConfig
-		にはロックが掛かり、明示的に解除しないと設定ができないようになっています。
+		です。それ以降の設定は推奨されません。(DBFluteの初期化が終わると、ロックし忘れを防止するために自動的にロックが掛けられます)
 	</p>
-<pre><span class="codetitle">ex) DBFluteConfigインスタンスの取得 @Java</span><code>
-DBFluteConfig config = DBFluteConfig.getInstance();
-config.unlock();
-</code></pre>
+	<h3 id="unitconfig">単体テストの環境でも設定すること</h3>
+	<p>
+		単体テストの環境でも共通の設定がある場合は、テストケースの初期化時などにDBFluteConfigの設定をすることを忘れないようにして下さい。
+	</p>
 	<h3 id="settinglog">設定されたときのログ</h3>
 	<p>
 		どのコンフィグにおいても、設定されたときはINFOレベルのログが出力されます。
@@ -160,6 +165,11 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 	</p>
 
 	<h3 id="outsidesqlpackage">outsideSqlPackage</h3>
+	<p>
+		
+	</p>
+
+	<h3 id="outsidesqlexecutorfactory">outsideSqlExecutorFactory</h3>
 	<p>
 		
 	</p>

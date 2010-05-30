@@ -54,6 +54,7 @@
 				<li><a href="#filtervariablesmap">filterVariablesMap</a></li>
 				<li><a href="#additionalusermap">additionalUserMap</a></li>
 				<li><a href="#additionaldropmaplist">additionalDropMapList</a></li>
+				<li><a href="#applicationplaysqldirectory">applicationPlaySqlDirectory</a></li>
 				<li><a href="#issuppresstruncatetable">isSuppressTruncateTable</a></li>
 				<li><a href="#issuppressdropforeignkey">isSuppressDropForeignKey</a></li>
 				<li><a href="#issuppressdroptable">isSuppressDropTable</a></li>
@@ -247,9 +248,13 @@ additionalUserMap = <span class="keyword">map</span>:{
 	</dl>
 	<h3 id="additionaldropmaplist">additionalDropMapList</h3>
 	<p>
-		メインスキーマのテーブル削除の処理の前に、別スキーマのテーブルを削除することができます。
+		テーブル削除時に、追加的にテーブルを削除する設定を指定します。
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/initializeschema.html#additionaldrop">ReplaceSchema - 別スキーマのテーブル削除</a></div>
+	<p>
+		メインスキーマのテーブル削除の処理の前に、別スキーマのテーブルを削除することができます。
+		FK制約などで自スキーマを参照しているスキーマを削除する必要がある場合に有効です。
+	</p>
 <pre><span class="codetitle">ex) additionalDropMapListの仕様 @replaceSchemaDefinitionMap.dfprop</span><code>
 ; additionalDropMapList = <span class="keyword">list:</span>{
     ; <span class="keyword">map:</span>{
@@ -265,11 +270,35 @@ additionalUserMap = <span class="keyword">map</span>:{
     }
 }
 </code></pre>
-
 	<dl class="textlist">
 		<dt>値候補</dt><dd>list型プロパティの中に、map型プロパティの key-value</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 	</dl>
+	<h3 id="applicationplaysqldirectory">applicationPlaySqlDirectory</h3>
+	<p>
+		アプリごとのReplaceSchemaの処理が評価する playsql ディレクトリを指定します。<span class="freecomment">@since 0.9.7.0</span>
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/genbafit/projectfit/applicationplaysql/index.html"> -->現場フィット - アプリごとのPlaySql(テストデータ)<!-- </a> --></span></div>
+	<p>
+		テーブル作成、データ登録、最終チェックの三つの処理において、それぞれのタイミングでメインの playsql
+		の評価が終わった後に、指定された playsql 配下のリソースが同様に処理されます。
+	</p>
+	<ol>
+		<li>メインの playsql のテーブル作成 (replace-schema.sql)</li>
+		<li>追加の playsql のテーブル作成 (同上)</li>
+		<li>メインの playsql のデータ登録 (common と dataLoadingTypeのもの)</li>
+		<li>追加の playsql のデータ登録 (同上)</li>
+		<li>メインの playsql の最終チェック (take-finally.sql)</li>
+		<li>追加の playsql の最終チェック (同上)</li>
+	</ol>
+<pre><span class="codetitle">ex) applicationPlaySqlDirectoryの利用例 @replaceSchemaDefinitionMap.dfprop</span><code>
+; applicationPlaySqlDirectory = ../../foo-project/dbflute_apbranch/playsql
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>DBFluteクライアントからの相対パス</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+	</dl>
+
 	<h3 id="issuppresstruncatetable">isSuppressTruncateTable</h3>
 	<p>
 		テーブル削除の前の truncate 処理を抑制するか否かを指定します。

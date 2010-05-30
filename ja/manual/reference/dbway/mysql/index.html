@@ -69,13 +69,21 @@
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
 			<ul>
+				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
 				<li><a href="#lowercase">MySQLの小文字管理のススメ</a></li>
 				<li><a href="#sqlmode">SQLモードのススメ</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
 		<li><a href="#internal">DBFlute内部での取扱い</a></li>
-		<li><a href="#supplement">MySQL補足資料</a></li>
+		<li><a href="#supplement">MySQL補足資料</a>
+			<ul>
+				<li><a href="#identitysetting">Identity設定</a></li>
+				<li><a href="#enginesetting">ストレージエンジンの設定</a></li>
+				<li><a href="#isolationsetting">トランザクション分離レベルの設定</a></li>
+				<li><a href="#charsetsetting">キャラセットの設定</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="basic">基本情報</h2>
@@ -153,9 +161,11 @@
 	</p>
 	<p>
 		一つ注意なのは、MySQLの仕様としてトランザクション外での insert
-		後の採番された値の取得ができません。採番された値を利用する場合は、トランザクション内で実行するようにして下さい。
+		後の採番された値の取得ができません。(トランザクションをサポートしているストレージエンジンであることが前提として)
+		採番された値を登録後に利用する場合は、トランザクション内で実行するようにして下さい。
 	</p>
 	<div class="detailpage"><a href="../../../function/genbafit/implfit/autoincrement/index.html">現場フィット - AutoIncrement</a></div>
+	<div class="relatedpage"><a href="#engine">this - MySQLのストレージエンジンに注意</a></div>
 
 	<h2 id="paging">ページング検索の条件</h2>
 	<p>
@@ -295,6 +305,23 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 	<div class="relatedword"><a href="../../dictionary/alphabet/wo.html#otherdatabase">別データベース(OtherDatabase)</a></div>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
+	<h3 id="engine">MySQLのストレージエンジンに注意</h3>
+	<p>
+		MySQLには、ストレージエンジンという概念があり、同じMySQLとはいえストレージエンジンが違えば挙動が変わります。
+	</p>
+	<p>
+		例えば、MyISAM では外部キー制約がないため、DBFluteではテーブル間のリレーションを自動生成時に活用することができません。AdditionalForeignKey
+		を使って、DBFlute側で手動でリレーションを定義する必要があります。また、MyISAM
+		にはトランザクションがないため、例外発生時のロールバックが効かないという大きな問題があるのもさることながら、
+		DBFluteでデータを登録(insert)したときに、Identityで自動採番をした後の採番された後の値の取得ができないという細かい問題も発生します。
+	</p>
+	<div class="relatedpage"><a href="../../dfprop/additionalforeignkey/index.html">additionalForeignKeyMap.dfprop</a></div>
+	<div class="relatedpage"><a href="#autoincrement">this - 主キーでの自動採番</a></div>
+	<p>
+		もし、MyISAM である特別な理由がないのであれば、外部キー制約をサポートしている InnoDB
+		などのストレージエンジンを利用することで、そういった手間の発生を抑えることができます。
+	</p>
+	<div class="relatedpage"><a href="#enginesetting">this - ストレージエンジンの設定</a></div>
 	<h3 id="lowercase">MySQLの小文字管理のススメ</h3>
 	<p>
 		Linux 上でのMySQLは、SQL文でのテーブル名やカラム名の大文字小文字を区別します。
@@ -359,7 +386,7 @@ sql_mode=<span class="literal">"PIPES_AS_CONCAT,ONLY_FULL_GROUP_BY,ANSI_QUOTES,I
 	</dl>
 
 	<h2 id="supplement">MySQL補足資料</h2>
-	<h3>Identity設定</h3>
+	<h3 id="identitysetting">Identity設定</h3>
 <pre><span class="codetitle">ex) Identity設定 {MEMBER_IDにIdentity} @SQL</span><code>
 <span class="keyword">create table</span> MEMBER (
     MEMBER_ID <span class="dbtype">INTEGER</span> <span class="attribute">AUTO_INCREMENT NOT NULL</span>,
@@ -371,15 +398,15 @@ sql_mode=<span class="literal">"PIPES_AS_CONCAT,ONLY_FULL_GROUP_BY,ANSI_QUOTES,I
 <pre><span class="codetitle">ex) 発行された連番を insert 実行後に取得 @SQL</span><code>
 <span class="keyword">select</span> last_insert_id();
 </code></pre>
-	<h3>データベースエンジンの設定</h3>
+	<h3 id="enginesetting">ストレージエンジンの設定</h3>
 	<p>
-		DBFluteと直接関係のある話ではありませんが、MySQLのデータベースエンジンの設定の仕方を紹介します。InnoDBにするには以下のように設定します。
+		例えば、(デフォルトのストレージエンジンとして) InnoDB を利用する場合以下のように設定します。
 	</p>
-<pre><span class="codetitle">ex) データベースエンジンを InnoDB に設定 @my.cnf</span><code>
+<pre><span class="codetitle">ex) ストレージエンジンを InnoDB に設定 @my.cnf</span><code>
 [mysqld]
 default-table-type=<span class="literal">InnoDB</span>
 </code></pre>
-	<h3>トランザクション分離レベルの設定</h3>
+	<h3 id="isolationsetting">トランザクション分離レベルの設定</h3>
 	<p>
 		MySQLではトランザクション分離レベルはデフォルトで "Repeatable Read" になっていますが、
 		他のデータベースのデフォルトである "Read Committed" に合わせたい場合があります。
@@ -388,7 +415,7 @@ default-table-type=<span class="literal">InnoDB</span>
 [mysqld]
 transaction-isolation=<span class="literal">Read-Committed</span>
 </code></pre>
-	<h3>キャラセットの設定</h3>
+	<h3 id="charsetsetting">キャラセットの設定</h3>
 <pre><span class="codetitle">ex) キャラセットを "UTF-8" に設定 @my.cnf</span><code>
 [mysqld]
 default-character-set=<span class="literal">utf8</span>
