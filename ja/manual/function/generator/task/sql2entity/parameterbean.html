@@ -202,7 +202,13 @@ pmb.<span class="point">paging(20, 3)</span>;
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchescape">LikeSearchEscape (LikeSearch条件のエスケープ)</a></div>
 	<p>
 		プロパティ定義のプロパティ名の後ろに ":[like-search-option]"
-		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。利用できるオプションは以下の通りです。
+		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。
+		文字列型のプロパティを利用するバインド変数コメントと埋め込み変数コメントに対して有効です。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#bindvariable">バインド変数コメント</a></div>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#embeddedvariable">埋め込み変数コメント</a></div>
+	<p>
+		利用できるオプションは以下の通りです。
 	</p>
 	<dl class="keymainlist">
 		<dt>like</dt>
@@ -265,6 +271,11 @@ pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">
 		バインド変数コメントのテスト値の中にワイルドカードがあってもなくても関係ありません。
 		(2Way-SQLとして実行したときに曖昧検索となるか完全一致となるかの違いでしかありません)
 	</p>
+	<h4>オプションの適用法則</h4>
+	<p>
+		文字列型のプロパティだけでなく、ネストしたプロパティに反映させることを前提にリスト型やDTO型などのプロパティにも指定できます。
+	</p>
+	<div class="detailpage"><a href="../../../ormapper/outsidesql/pmcomment.html#bindlikesearch">バインド変数コメント - LikeSearch条件のオプション</a></div>
 	<h4>オプションを利用しない(外だしSQLでの)曖昧検索</h4>
 	<p>
 		オプションを利用しなくても曖昧検索は可能ですが、エスケープ処理の考慮漏れなどが発生するリスクがありますので、
@@ -381,29 +392,65 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="comment">-- !!Date birthdate!!</span>
 <span class="comment">-- !!Timestamp formalizedDatetime!!</span>
 <span class="comment">-- !!List&lt;Integer&gt; countList!!</span>
-select ...
-  from ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
+	<h4>DomainEntityのパッケージ解決</h4>
+	<p>
+		DBFluteが自動生成する DomainEntity に関しては、"$$Domain$$.[entity-name]"
+		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
+	</p>
+<pre><span class="codetitle">ex) DomainEntityを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!$$Domain$$.Member member!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h4>CustomizeEntityのパッケージ解決</h4>
+	<p>
+		同様に、CustomizeEntity に関して、"$$Customize$$.[entity-name]"
+		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
+	</p>
+<pre><span class="codetitle">ex) CustomizeEntityを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!$$Customize$$.SimpleMember member!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h4>ParameterBeanのパッケージ解決</h4>
+	<p>
+		さらに、ParameterBean に関して、"$$Pmb$$.[pmb-name]"
+		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
+	</p>
+<pre><span class="codetitle">ex) (別の)ParameterBeanを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!$$Pmb$$.SimpleMemberPmb memberPmb!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h4>CDefのパッケージ解決</h4>
+	<p>
+		また、区分値定義の "CDef" クラスに関して、"$$CDef$$"
+		と記述することでパッケージ名が解決されます。ENUMをプロパティ型にしたい場合に有効ですが、
+		区分値を条件にする際の支援機能が別途ありますので、基本的には利用ケースは想定されていません。
+	</p>
+	<div class="relatedpage"><a href="#classification">this - 区分値条件のオプション</a></div>
+<pre><span class="codetitle">ex) CDefを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!$$CDef$$.MemberStatus memberStatus!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h4>それ以外はフルパッケージ指定</h4>
 	<p>
 		それ以外で、かつ、プログラミング言語上の文法的にパッケージ補完が必要なクラスに関しては、フルパッケージで指定します。
 	</p>
 <pre><span class="codetitle">ex) フルパッケージでプロパティの型を指定 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!com.example.DokujiDate fromBirthdate!!</span>
-select ...
-  from ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<p>
-		但し、DBFluteが自動生成する "CDef" クラスに関しては、"$$CDef$$" と記述することでパッケージ指定を省略できます。
-		ENUMをプロパティ型にしたい場合に有効ですが、区分値を条件にする際の支援機能が別途ありますので、基本的には利用されることは想定されていません。
-	</p>
-<pre><span class="codetitle">ex) フルパッケージでプロパティの型を指定 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!$$CDef$$.MemberStatus memberStatus!!</span>
-select ...
-  from ...
-</code></pre>
-	<div class="relatedpage"><a href="#classification">this - 区分値条件のオプション</a></div>
 
 	<h2 id="structure">ParameterBeanの構造</h2>
 	<p>
