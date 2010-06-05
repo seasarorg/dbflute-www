@@ -79,12 +79,20 @@
 	</p>
 	<h3 id="emptyasnull">空文字は null として扱われる</h3>
 	<p>
-		ConditionBeanと同様に、空文字は null
+		ParameterBeanのString型のプロパティの空文字は null
 		として扱われます。そうすることで、外だしSQLのパラメータコメント上で空文字なのか null
-		なのかを意識する必要はありません(全て
-		"nullでないこと" という条件で分岐可能)。地味なことですが、画面側フレームワークによっては
+		なのかを意識する必要はなく、IFコメントで "nullでないこと"
+		という条件で分岐可能です。(但し、ListやMap型プロパティの要素のString型の値はそのまま空文字として扱われます)
+	</p>
+<pre><span class="codetitle">ex) String型プロパティは空文字かどうかは条件に含めてなくてもOK @OutsideSql</span><code>
+<span class="comment">/*IF pmb.memberName != null*/</span>
+<span class="abbreviation">...</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+	<p>
+		地味なことですが、画面側フレームワークによっては
 		"存在しない値" の表現が空文字だったり null
-		だったりとします。ParameterBeanを利用することでそういった細かいことを気にする必要がありません。
+		だったりとします。ParameterBeanを利用することでそういった細かいことを極力気にしないで済むようにしています。
 	</p>
 	<div class="relatedpage"><a href="#emptystring">this - getメソッドの空文字フィルタ</a></div>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
