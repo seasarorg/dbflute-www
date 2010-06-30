@@ -40,8 +40,16 @@
 	<h1>移行 0.9.7.1 to 0.9.7.2</h1>
 	<ul class="indexlist">
 		<li><a href="#basic">お約束の注意点</a></li>
-		<li><a href="#env">環境上の注意点</a></li>
-		<li><a href="#impl">実装上の注意点</a></li>
+		<li><a href="#env">環境上の注意点</a>
+			<ul>
+				<li><a href="#notequal">非等値の演算子が "!=" から "&lt;&gt;" へ</a></li>
+			</ul>
+		</li>
+		<li><a href="#impl">実装上の注意点</a>
+			<ul>
+				<li><a href="#selectentity">条件なしの一件検索は例外</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="basic">お約束の注意点</h2>
@@ -53,11 +61,15 @@
 	</dl>
 
 	<h2 id="env">環境上の注意点</h2>
+	<h3 id="notequal">非等値の演算子が "!=" から "&lt;&gt;" へ</h3>
 	<p>
-		特になし
+		ConditionBeanで発行されるSQLの非等値の演算子が、"!=" からSQLの標準である "&lt;&gt;"
+		に変わりました。この変更での問題は想定されませんが、万が一、元に戻したい場合は、littleAdjustmentMap.dfprop
+		にて isMakeConditionQueryNotEqualAsStandard を false に設定して下さい。
 	</p>
 
 	<h2 id="impl">実装上の注意点</h2>
+	<h3 id="selectentity">条件なしの一件検索は例外</h3>
 	<p>
 		Behaviorの selectEntity(CB) において、絞り込み条件の全くない ConditionBean
 		を指定したときに、明示的な例外が発生するようになりました。ConditionBean
