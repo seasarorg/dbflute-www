@@ -139,6 +139,11 @@ member.update(member); <span class="comment">// common columns are auto set-up h
 	</p>
 <pre><span class="codetitle">ex) 共通カラムの自動設定のために、InterceptorでAccessContextに値を設定 @Java</span><code>
 <span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
+    if (AccessContext.isExistAccessContextOnThread()) {
+        <span class="comment">// 既に設定されていたら何もしないで次へ</span>
+        <span class="comment">// (二度呼び出しされたときのために念のため)</span>
+        <span class="keyword">return</span> invocation.proceed();
+    }
     <span class="keyword">try</span> {
         <span class="comment">// [アクセス日時]</span>
         <span class="comment">// 例えば、アプリで日時を取得する統一したインターフェースからの日時を利用。</span>
@@ -161,9 +166,9 @@ member.update(member); <span class="comment">// common columns are auto set-up h
         context.setAccessProcess(accessProcess);
         AccessContext.setAccessContextOnThread(context);
 
-        return invocation.proceed();
+        <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">finally</span> {
-        <span class="comment">// 最後はしっかりクリアすること。</span>
+        <span class="comment">// 最後はしっかりクリアすること (必須)</span>
         AccessContext.clearAccessContextOnThread();
     }
 }
