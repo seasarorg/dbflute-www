@@ -50,6 +50,7 @@
 				<li><a href="#referrer">一方通行のリレーション</a></li>
 				<li><a href="#bindvariable">バインド変数コメント利用時の仕様</a></li>
 				<li><a href="#timing">設定のタイミング</a></li>
+				<li><a href="#over">別リレーションのカラム利用</a></li>
 			</ul>
 		</li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
@@ -172,6 +173,88 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 			(RDBとして未解決なデータ構造をディベロッパーに未解決のまま渡すではなく、少なくともDBFluteとして解決されている状態で横展開)
 		</p>
 	</div>
+	<h3 id="over">別リレーションのカラム利用</h3>
+	<p>
+		該当リレーションとは別のリレーションを経由したテーブルのカラムを fixedCondition
+		の条件で利用することができます。これを FixedCondition の <em class="keyword">OverRelation</em>
+		と呼びます。<span class="freecomment">@since 0.9.7.5</span>
+	</p>
+	<p>
+		例えば、会員と会員住所情報の業務的one-to-oneにおける fixedCondition
+		の中で、会員ステータスのカラムや会員退会情報のカラムを利用することができます。
+		主に有効日時を利用した場合において、プログラムから与える一律の日時(現在日時など)ではなく、別リレーションのテーブルで保持する日時を利用する場合に有効です。
+	</p>
+	<p>
+		fixedCondition の定義の中で、<em class="keyword">$$over([テーブル名].[リレーション名])$$</em>
+		と記述することで、該当するリレーションを探して alias 名として自動解決します。
+	</p>
+<pre><span class="codetitle">ex) ローカルテーブルの親テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="point">$$over(MEMBER.memberStatus)$$</span>.UPDATE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<h4>自動解決の処理</h4>
+	<p>
+		DBFluteは、この OverRelation で指定されたテーブルをローカルテーブルの関連するテーブルの中から探します。
+		この処理は、この業務的one-to-oneのリレーションを SetupSelect や Query で指定したときに実行されます。
+	</p>
+	<ol>
+		<li>ローカルテーブルの、SetupSelect などで指定されたリレーションの無限階層の親テーブルを探す</li>
+		<li>ローカルテーブルの、指定されていないリレーションの 2 階層までの親テーブルを探す</li>
+		<li>ローカルテーブルを参照したテーブルで同じように探す</li>
+		<li>ConditionBeanの基点に辿り着くまで繰り返す...</li>
+	</ol>
+	<p>
+		該当テーブルが SetupSelect や Query などで指定されていないリレーションで見つかった場合は、そのリレーションは自動的に
+		Query(Relation) されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/conditionbean/query/relation.html"> -->ConditionBean - Query(Relation)<!-- </a> --></span></div>
+	<h4>基点テーブルの限定</h4>
+	<p>
+		ローカルテーブルを参照したテーブル(の関連の中)で見つかった場合は、その業務的one-to-oneのリレーションを利用するときの
+		ConditionBean の基点テーブルは、その業務的one-to-oneのリレーションと OverRelation
+		で指定されたテーブルの両方を参照できるテーブルに限られます。
+	</p>
+<pre><span class="codetitle">ex) many-to-many のカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="attribute">$$over(PRODUCT.productStatus)$$</span>.UPDATE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<h4>リレーション名の数珠つなぎ</h4>
+	<p>
+		リレーション名の指定を "." を使って、数珠つなぎにすることができます。
+	</p>
+<pre><span class="codetitle">ex) リレーション名を数珠つなぎに (PRODUCT から PRODUCT_STATUS) @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="attribute">$$over(PURCHASE.product.productStatus)$$</span>.UPDATE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<p>
+		指定されたテーブルが見つかるポイントをローカルテーブルから近いものにすることができます。
+		そうすることで、自己参照リレーションやリレーションの経由が複数存在する場合など、見るかるポイントが曖昧になるパターンでリレーションを明確にすることができます。
+	</p>
+	<h4>リレーション名のきまぐれ</h4>
+	<p>
+		リレーション名は、同じテーブルに対して複数FKになる場合に、単なるテーブル名のキャメルケースではなくなりますのでご注意下さい(特に後から二つ目のFKが追加された場合)。
+		例えば、会員が複数の会員ステータス参照のカラムを持っていた場合は、それぞれ memberStatusByFooCode、memberStatusByBarCode
+		というように By[FKカラム] が後ろに付与されます。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/entity/relation.html">Entity間のリレーションのタイプ</a></div>
 
 	<h2 id="schemahtml">SchemaHTMLでの表示</h2>
 	<p>
