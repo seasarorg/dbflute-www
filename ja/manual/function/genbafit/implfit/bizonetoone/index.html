@@ -108,7 +108,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		additionalForeignKeyMap.dfprop を利用して、リレーションを定義すると共に、固定条件 fixedCondition
 		を指定することで、業務的one-to-oneのリレーションを定義することができます。
 	</p>
-	<div class="detailpage"><a href="../../../../reference/dfprop/additionalforeignkey/index.html">additionalForeignKeyMap.dfprop</a></div>
+	<div class="detailpage"><a href="../../../../reference/dfprop/additionalforeignkey/index.html#fixedcondition">additionalForeignKeyMap.dfprop - fixedCondition</a></div>
 <pre><span class="codetitle">ex) 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
@@ -186,9 +186,11 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 	</p>
 	<p>
 		fixedCondition の定義の中で、<em class="keyword">$$over([テーブル名].[リレーション名])$$</em>
-		と記述することで、該当するリレーションを探して alias 名として自動解決します。
+		と記述することで、該当するリレーションを探して alias
+		名として自動解決します。例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員ステータスの更新日時を利用したい場合は、テーブル名は
+		MEMBER、リレーション名は memberStatus と指定します。
 	</p>
-<pre><span class="codetitle">ex) ローカルテーブルの親テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">ex) 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -198,56 +200,69 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
     ; fixedSuffix = AsValid
 }
 </code></pre>
-	<h4>自動解決の処理</h4>
+	<dl class="textlist">
+		<dt>テーブル名</dt>
+		<dd>
+			参照元テーブルと利用したいカラムを持つテーブルを両方参照できるテーブル(ポイントテーブル)。
+			<ul class="supplementlist">
+				<li>A. 該当の業務的one-to-oneの参照元テーブル(Local)</li>
+				<li>B. 参照元テーブルを参照するテーブル(Referrer)</li>
+				<li>C. 参照元テーブルを参照するテーブルを参照するテーブル(無限階層のReferrer)</li>
+			</ul>
+		</dd>
+		<dd>
+			<span class="freecomment">※(自己参照FKなど)参照元テーブルを Referrer として指定することはできない(機能制限)</span>
+		</dd>
+		<dt>リレーション名</dt>
+		<dd>
+			指定されたテーブルが参照する、条件に利用したいカラムを持つテーブル(Foreign)へのリレーション。
+			リレーション名はEntityのプロパティ名に相当し、"." (ドット)区切りで無限階層にリレーションを辿ることができる。
+		</dd>
+		<dd>
+			<span class="freecomment">※(別の)業務的one-to-oneのリレーションを辿ることはできない(機能制限)</span>
+		</dd>
+		<dd>
+			<span class="freecomment">※利用したいカラムを持っているテーブルが "B" と "C" の場合は省略可能(指定の必要がないため：後述)</span>
+		</dd>
+	</dl>
+	<h4>基点テーブル限定パターン</h4>
 	<p>
-		DBFluteは、この OverRelation で指定されたテーブルをローカルテーブルの関連するテーブルの中から探します。
-		この処理は、この業務的one-to-oneのリレーションを SetupSelect や Query で指定したときに実行されます。
+		指定されたテーブルが、参照元テーブル(Local)ではなく、そのテーブルを参照したテーブル(Referrer)、
+		もしくは、そのテーブル(Referrer)を参照するテーブルである場合は、該当の業務的one-to-oneのリレーションを利用するときの
+		ConditionBean の基点テーブルは、その Referrer テーブル自身、もしくは、そのテーブルを参照するさらなる
+		Referrer テーブル(無限階層)に限られます。
+		(もし、そうでないテーブルを基点にしてその業務的one-to-oneを利用すると、エリアス名が解決できないためSQL上でエラーになります)
 	</p>
-	<ol>
-		<li>ローカルテーブルの、SetupSelect などで指定されたリレーションの無限階層の親テーブルを探す</li>
-		<li>ローカルテーブルの、指定されていないリレーションの 2 階層までの親テーブルを探す</li>
-		<li>ローカルテーブルを参照したテーブルで同じように探す</li>
-		<li>ConditionBeanの基点に辿り着くまで繰り返す...</li>
-	</ol>
 	<p>
-		該当テーブルが SetupSelect や Query などで指定されていないリレーションで見つかった場合は、そのリレーションは自動的に
-		Query(Relation) されます。
+		参照元テーブルを参照したテーブル自体(Referrer)のカラムを利用する場合は、リレーション名を省略します。
+		(省略記法は、この場合のみ利用可能です)
+	</p>
+<pre><span class="codetitle">ex) Referrer テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="point">$$over(PURCHASE)$$</span>.PURCHASE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+<pre><span class="codetitle">ex) Referrer の Foreign テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="point">$$over(PURCHASE.product.productStatus)$$</span>.UPDATE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<h4>結合の自動解決</h4>
+	<p>
+		指定されたリレーションが SetupSelect や Query で指定されていない場合は、そのリレーションまで自動的に
+		Query(Relation) されます。(SQL上の join 句は自動で解決されます)
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/conditionbean/query/relation.html"> -->ConditionBean - Query(Relation)<!-- </a> --></span></div>
-	<h4>基点テーブルの限定</h4>
-	<p>
-		ローカルテーブルを参照したテーブル(の関連の中)で見つかった場合は、その業務的one-to-oneのリレーションを利用するときの
-		ConditionBean の基点テーブルは、その業務的one-to-oneのリレーションと OverRelation
-		で指定されたテーブルの両方を参照できるテーブルに限られます。
-	</p>
-<pre><span class="codetitle">ex) many-to-many のカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
-     &gt;= <span class="attribute">$$over(PRODUCT.productStatus)$$</span>.UPDATE_DATETIME
-    ; fixedSuffix = AsValid
-}
-</code></pre>
-	<h4>リレーション名の数珠つなぎ</h4>
-	<p>
-		リレーション名の指定を "." を使って、数珠つなぎにすることができます。
-	</p>
-<pre><span class="codetitle">ex) リレーション名を数珠つなぎに (PRODUCT から PRODUCT_STATUS) @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
-     &gt;= <span class="attribute">$$over(PURCHASE.product.productStatus)$$</span>.UPDATE_DATETIME
-    ; fixedSuffix = AsValid
-}
-</code></pre>
-	<p>
-		指定されたテーブルが見つかるポイントをローカルテーブルから近いものにすることができます。
-		そうすることで、自己参照リレーションやリレーションの経由が複数存在する場合など、見るかるポイントが曖昧になるパターンでリレーションを明確にすることができます。
-	</p>
 	<h4>リレーション名のきまぐれ</h4>
 	<p>
 		リレーション名は、同じテーブルに対して複数FKになる場合に、単なるテーブル名のキャメルケースではなくなりますのでご注意下さい(特に後から二つ目のFKが追加された場合)。
