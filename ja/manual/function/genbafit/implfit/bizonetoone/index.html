@@ -185,33 +185,21 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		主に有効日時を利用した場合において、プログラムから与える一律の日時(現在日時など)ではなく、別リレーションのテーブルで保持する日時を利用する場合に有効です。
 	</p>
 	<p>
-		fixedCondition の定義の中で、<em class="keyword">$$over([テーブル名].[リレーション名])$$</em>
-		と記述することで、該当するリレーションを探して alias
-		名として自動解決します。例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員ステータスの更新日時を利用したい場合は、テーブル名は
-		MEMBER、リレーション名は memberStatus と指定します。
+		fixedCondition の定義の中で、<em class="keyword">$$over([テーブル名表現].[リレーション名])$$</em>
+		と記述することで、該当するリレーションを探して alias 名として自動解決します。
 	</p>
-<pre><span class="codetitle">ex) 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
-     &gt;= <span class="point">$$over(MEMBER.memberStatus)$$</span>.UPDATE_DATETIME
-    ; fixedSuffix = AsValid
-}
-</code></pre>
 	<dl class="textlist">
 		<dt>テーブル名</dt>
 		<dd>
-			参照元テーブルと利用したいカラムを持つテーブルを両方参照できるテーブル(ポイントテーブル)。
+			参照元テーブルと利用カラムのテーブルを両方参照できるポイントとなるテーブル(ポイントテーブル)。
 			<ul class="supplementlist">
 				<li>A. 該当の業務的one-to-oneの参照元テーブル(Local)</li>
-				<li>B. 参照元テーブルを参照するテーブル(Referrer)</li>
-				<li>C. 参照元テーブルを参照するテーブルを参照するテーブル(無限階層のReferrer)</li>
+				<li>B. 該当の業務的one-to-oneの参照先テーブル(Foreign)</li>
+				<li>C. 参照元テーブルを参照するテーブル(Referrer)</li>
+				<li>D. 参照元テーブルを参照するテーブルを参照するテーブル(無限階層のReferrer)</li>
 			</ul>
-		</dd>
-		<dd>
-			<span class="freecomment">※(自己参照FKなど)参照元テーブルを Referrer として指定することはできない(機能制限)</span>
+			"A" の場合は固定で <em class="keyword">$localTable</em>、"B" の場合は <em class="keyword">$foreignTable</em>
+			と指定する(それぞれ決められたワードの前に "$" マーク)。それ以外の場合(Refererr)はテーブル名そのままを指定する。
 		</dd>
 		<dt>リレーション名</dt>
 		<dd>
@@ -222,9 +210,23 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 			<span class="freecomment">※(別の)業務的one-to-oneのリレーションを辿ることはできない(機能制限)</span>
 		</dd>
 		<dd>
-			<span class="freecomment">※利用したいカラムを持っているテーブルが "B" と "C" の場合は省略可能(指定の必要がないため：後述)</span>
+			<span class="freecomment">※利用したいカラムを持っているテーブルが "C" の場合は省略可能(指定の必要がないため：後述)</span>
 		</dd>
 	</dl>
+	<p>
+		例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員ステータスの更新日時を利用したい場合は、テーブル名は
+		!localTable!、リレーション名は memberStatus と指定します。
+	</p>
+<pre><span class="codetitle">ex) 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="point">$$over($localTable.memberStatus)$$</span>.UPDATE_DATETIME
+    ; fixedSuffix = AsValid
+}
+</code></pre>
 	<h4>基点テーブル限定パターン</h4>
 	<p>
 		指定されたテーブルが、参照元テーブル(Local)ではなく、そのテーブルを参照したテーブル(Referrer)、
