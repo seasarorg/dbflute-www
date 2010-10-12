@@ -185,7 +185,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		主に有効日時を利用した場合において、プログラムから与える一律の日時(現在日時など)ではなく、別リレーションのテーブルで保持する日時を利用する場合に有効です。
 	</p>
 	<p>
-		fixedCondition の定義の中で、<em class="keyword">$$over([テーブル名表現].[リレーション名])$$</em>
+		fixedCondition の定義の中で、alias 名変数として、<em class="keyword">$$over([テーブル名表現].[リレーション名])$$</em>
 		と記述することで、該当するリレーションを探して alias 名として自動解決します。
 	</p>
 	<dl class="textlist">
@@ -204,7 +204,8 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		<dt>リレーション名</dt>
 		<dd>
 			指定されたテーブルが参照する、条件に利用したいカラムを持つテーブル(Foreign)へのリレーション。
-			リレーション名はEntityのプロパティ名に相当し、"." (ドット)区切りで無限階層にリレーションを辿ることができる。
+			リレーション名はEntityのプロパティ名に相当し、"." (ドット)区切りで無限階層にリレーションを辿ることができる。また、SetupSelect
+			や Query されていないリレーションは、自動で Query(Relation) される。
 		</dd>
 		<dd>
 			<span class="freecomment">※(別の)業務的one-to-oneのリレーションを辿ることはできない(機能制限)</span>
@@ -214,18 +215,67 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		</dd>
 	</dl>
 	<p>
-		例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員ステータスの更新日時を利用したい場合は、テーブル名は
-		!localTable!、リレーション名は memberStatus と指定します。
+		例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員退会情報の退会日時を利用したい場合は、テーブル名は
+		$localTable、リレーション名は memberWithdrawalAsOne と指定します。
 	</p>
 <pre><span class="codetitle">ex) 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
-     &gt;= <span class="point">$$over($localTable.memberStatus)$$</span>.UPDATE_DATETIME
+     <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE
+     &gt;= <span class="point">$$over($localTable.memberWithdrawalAsOne)$$</span>.WITHDRAWAL_DATETIME
     ; fixedSuffix = AsValid
 }
+</code></pre>
+	<p>
+		例えば、会員と会員ログイン情報との関係で、会員ログイン情報経由の会員ステータスの表示順が 2
+		のときに業務的one-to-oneになるとしたら、テーブル名は $foreignTable、リレーション名は memberStatus
+		と指定します。SQLでは、参照先テーブルがインラインビューになり、その中で結合をして該当カラムを利用できるようにします。ゆえに、解決される alias
+		名は、参照先テーブルと同じものになります。
+	</p>
+<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+     <span class="point">$$over($foreignTable.memberStatus)$$</span>.DISPLAY_ORDER = 2
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを利用する時のSQL @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> (<span class="keyword">select</span> dffixedbase.*, <span class="point">dffixedjoin_0_0.DISPLAY_ORDER</span>
+                       <span class="keyword">from</span> MEMBER_LOGIN dffixedbase
+                         <span class="keyword">left outer join</span> MEMBER_STATUS dffixedjoin_0_0 <span class="abbreviation">...</span>
+                    ) dfrelation_4
+      <span class="keyword">on</span> dflocal.MEMBER_ID = dfrelation_4.MEMBER_ID
+     <span class="keyword">and</span> dfrelation_0.DISPLAY_ORDER = <span class="point">dfrelation_4</span>.DISPLAY_ORDER
+</code></pre>
+	<p>
+		もし、参照元テーブルのカラムの中に該当のカラムと同名のものが存在する場合は、名前が曖昧になるので、
+		そのときは over() の第二引数に該当のカラム名を指定することで、alias 名変数の後に続くカラムを任意の alias
+		名で指定できるようになります。インラインビューの中では select 句で as を使って alias 名が宣言されます。
+	</p>
+<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを alias 名で扱う @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+     <span class="point">$$over($foreignTable.memberStatus, DISPLAY_ORDER)$$</span>.STATUS_ORDER = 2
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを alias 名で扱うときのSQL @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> (<span class="keyword">select</span> <span class="abbreviation">...</span>, <span class="abbreviation">...</span>DISPLAY_ORDER <span class="keyword">as</span> <span class="point">STATUS_ORDER</span>
+                       <span class="keyword">from</span> MEMBER_LOGIN dffixedbase
+                         <span class="keyword">left outer join</span> MEMBER_STATUS dffixedjoin_0_0 <span class="abbreviation">...</span>
+                    ) dfrelation_4
+      <span class="keyword">on</span> dflocal.MEMBER_ID = dfrelation_4.MEMBER_ID
+     <span class="keyword">and</span> dfrelation_0.DISPLAY_ORDER = dfrelation_4.STATUS_ORDER
 </code></pre>
 	<h4>基点テーブル限定パターン</h4>
 	<p>
