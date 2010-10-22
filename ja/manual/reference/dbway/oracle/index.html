@@ -74,6 +74,7 @@
 				<li><a href="#additionalschema">別スキーマの利用</a></li>
 				<li><a href="#recyclebin">Recyclebin の一掃</a></li>
 				<li><a href="#dateliteral">日付リテラル</a></li>
+				<li><a href="#oracledate">Oracleの日付型の最適化</a></li>
 			</ul>
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
@@ -392,6 +393,26 @@ member.FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*
 	<ul class="codeoutro">
 		<li>この場合に限り、テスト値の中に空白(date や timestamp の後ろ)が含まれていても正常に認識される</li>
 	</ul>
+	<h3 id="oracledate">Oracleの日付型の最適化</h3>
+	<p>
+		Oracle のDATE型(時分秒あり)に対する検索条件では、java.sql.Timestamp でバインドするよりも、oracle.sql.DATE
+		でバインドする方がインデックス利用効率が良いことが報告されています。
+		(Timestamp でもインデックスが利用されないわけではなく、oracle.sql.DATE の方がより効率のよいインデックス利用をする)
+	</p>
+	<p>
+		デフォルトでは前者ですが、オプションにて後者を利用するように最適化することができます。littleAdjustmentMap.dfprop
+		の isAvailableDatabaseNativeJDBC を有効にすると、上記の最適化を利用することができます。具体的には、java.util.Date
+		型のプロパティに対するバインドの型が Timestamp ではなく oracle.sql.DATE
+		に差し替えられます。<span class="freecomment">@since 0.9.7.5</span>
+	</p>
+	<div class="detailpage"><a href="../../dfprop/littleadjustment/index.html#isavailabledatabasenativejdbc">dfprop - isAvailableDatabaseNativeJDBC</a></div>
+	<p>
+		但し、これはJavaやJDBCドライバ、Oracle自体のバージョンに結果が依存するかもしれません。
+		プロジェクトの環境に最適だと思われる場合に限り利用するようにして下さい。dbflute-oracle-example
+		(Java6, ojdbc6.jar, Oracle10g XE)においては、30万件のテーブルのDATE型に対する検索条件で、
+		わずかながらパフォーマンスが向上されたことが確認されています。
+		(テスト環境のPC上において、平均 50ms の検索処理が 平均 30ms に。そもそもインデックスが付いていない場合だと、平均 200ms ほど)
+	</p>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
 	<h3 id="procedureescape">プロシージャのエスケープ</h3>
