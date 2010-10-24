@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,setupSelect,関連テーブル,結合" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query(),絞り込み条件,where句" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>SetupSelect(Relation) | DBFlute</title>
+	<title>Query(Relation) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,157 +37,74 @@
 </div>
 
 <div id="content">
-	<h1>SetupSelect(Relation)</h1>
+	<h1>Query(Relation)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#severalcall">同じメソッドの複数回の呼び出し</a></li>
-				<li><a href="#noncall">SetupSelect しなければ null</a></li>
-				<li><a href="#nullable">関連データが存在しなければ null</a></li>
-				<li><a href="#beforeunion">UnionQuery よりも先に呼び出す</a></li>
-			</ul>
-		</li>
+		<li><a href="#methodspec">メソッド仕様</a></li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
-		<li><a href="#specifycolumn">関連テーブルの取得カラムの指定</a></li>
-		<li><a href="#queryrelation">Query(Relation) で同じ関連テーブル</a></li>
-		<li><a href="#unnecessary">SetupSelect が不要なケース</a></li>
+		<li><a href="#query">SetupSelect で同じ関連テーブル</a></li>
 		<li><a href="#joinway">結合方式：基本的に outer join</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		<em class="keyword">関連テーブルを取得</em> するために、その関連テーブルの(全ての)カラムを select
-		句に展開します(結合処理は内部的に解決されます)。すると、取得した基本テーブルの Entity
-		から、指定した関連テーブルの(検索されたデータが格納された) Entity を取得することができます。
+		関連テーブルに対する Query
+		です。指定された関連テーブルの絞り込み条件などを付与することができます(結合処理は内部的に解決されます)。 
 	</p>
+	<div class="relatedpage"><a href="./index.html">Query</a></div>
 	<p>
-		会話上では、<em class="keyword">せっとあっぷせれくと</em> と表現します。SetupSelect(Relation)
-		は、関連テーブルのみ対する機能なので、<em class="keyword">りれーしょん</em>
-		を入れなくても伝わりやすいです。(ドキュメント上も SetupSelect と表現することが多いです)
+		会話上では、<em class="keyword">くえりぃりれーしょん</em> と表現します。Query
+		という名前自体には、関連テーブルへの絞り込み条件も含まれますが、"関連テーブルに対して"
+		ということを強調したい場合に明示的な表現として利用されます。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		<em class="keyword">setupSelect_[relation-table]()</em>
-		を呼び出します。さらにネストした関連テーブルを取得する場合は、続けて
-		<em class="keyword">with[nested-relation-table]()</em>
-		を呼び出します(以降、ネストは with 始まり)。
+		query() の後、<em class="keyword">query[relation-table]()</em>
+		を呼び出します。その後に続けて、関連テーブルに関する条件設定メソッドを呼び出すことができます。(基本的な)絞り込み条件であれば
+		<em class="keyword">.set[column-name]...</em>、並び替え条件であれば .addOrderBy...
+		を呼び出します。(他にも色々な機能が利用できます)
 	</p>
-<pre><span class="codetitle">ex) SetupSelectの実装手順 (Eclipseでコード補完) {MEMBER_STATUS} @Java</span><code>
+<pre><span class="codetitle">ex) Query(Relation)の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.se <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
+cb.q <span class="comment">// ".q" とだけ打って enter</span>
 --
-cb.<span class="point">setupSelect_MemberStatus()</span>;
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    MemberStatus status = member.<span class="point">getMemberStatus()</span>;
-    <span class="abbreviation">...</span> = status.getMemberStatusName();
-}
-</code></pre>
-<pre><span class="codetitle">ex) ネストした関連テーブル (Eclipseでコード補完) {MEMBER_WITHDRAWAL,...} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.seSMW <span class="comment">// ".seSMW" と打って enter</span>
+cb.query().<span class="point">q</span><span class="abbreviation">...</span> <span class="comment">// ".q" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
 --
-cb.<span class="point">setupSelect_MemberWithdrawalAsOne()</span>.wiWR <span class="comment">// ".wiWR" と打って enter</span>
---
-cb.setupSelect_MemberWithdrawalAsOne().<span class="point">withWithdrawalReason()</span>;
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    MemberWithdrawal withdrawal = member.<span class="point">getMemberWithdrawalAsOne()</span>;
-    WithdrawalReason reason = withdrawal.<span class="point">getWithdrawalReason()</span>;
-    <span class="abbreviation">...</span> = reason.getWithdrawalReasonText();
-}
+cb.query().<span class="point">queryMemberStatus()</span><span class="abbreviation">...</span> <span class="comment">// 続けて、呼び出したい機能を呼び出す</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="severalcall">同じメソッドの複数回の呼び出し</h3>
 	<p>
-		二回目以降の呼び出しは、無意味な呼び出しとなります。
-		同階層の複数のネストした関連テーブルを呼び出すときに、必要になりますので特に例外にはなりません。
-		また、SQL上で結合回数が(無駄に)増えてしまうことはありません。
+		基本的に Query と同じです。
 	</p>
-<pre><span class="codetitle">ex) 同階層の複数のネストした関連テーブル {PURCHASE,MEMBER,MEMBER_STATUS...} @Java</span><code>
-PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
-cb.<span class="point">setupSelect_Member()</span>.withMemberStatus();
-cb.<span class="point">setupSelect_Member()</span>.withMemberWithdrawalAsOne();
-</code></pre>
-
-	<h3 id="noncall">SetupSelect しなければ null</h3>
+	<div class="relatedpage"><a href="./index.html">Query</a></div>
 	<p>
-		SetupSelect しなかった関連テーブルの、(基点テーブルの) Entity での取得メソッドは null
-		を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
+		"同じメソッドの複数回の呼び出し" に関しては、SetupSelect と同じです。
 	</p>
-
-	<h3 id="nullable">関連データが存在しなければ null</h3>
-	<p>
-		(基点テーブルのデータに対応する)関連テーブルのデータが存在しない場合は、(その基点テーブルの) Entity
-		において、その関連テーブルの取得メソッドは null を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
-	</p>
-	<p>
-		例えば、many-to-one でNotNull制約のFKカラムによる関連テーブルであれば、null
-		が戻ることはありえません。NullableなFKカラムの場合、もしくは、OnClause や InlineView
-		にて関連テーブルを結合前に絞り込んだ場合などにおいては null が戻る可能性があります。
-	</p>
-
-	<h3 id="beforeunion">UnionQuery よりも先に呼び出す</h3>
-	<p>
-		UnionQuery よりも前に呼び出す必要があります。ただ、そもそも SetupSelect
-		は、習慣的に他のどの設定メソッドよりも先(の方)に呼び出すことが推奨されていますので、
-		通常はあまり意識する必要はないと想定されます。(万が一、UnionQueryよりも後に呼び出した場合は、明示的な例外となります)
-	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
-<pre><span class="codetitle">ex) UnionQueryよりも先に呼び出すこと {MEMBER_STATUS} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.setupSelect_MemberStatus(); <span class="comment">// o</span>
-cb.union(<span class="keyword">new</span> UnionQuery<span class="abbreviation">...</span>)
-<span class="comment">//cb.setupSelect_MemberStatus(); x</span>
-</code></pre>
+	<div class="relatedpage"><a href="../setupselect/index.html#supported">SetupSelect(Relation)</a></div>
 
 	<h2 id="supported">サポートされる関連テーブル</h2>
-	<ul>
-		<li>many-to-one</li>
-		<li>one-to-one</li>
-		<li>業務的one-to-one</li>
-	</ul>
-	<div class="relatedpage"><a href="../../entity/relation.html">Entity間のリレーションのタイプ</a></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="./bizonetoone.html"> -->SetupSelect(BizOneToOne)<!-- </a> --></span></div>
-
-	<h2 id="specifycolumn">関連テーブルの取得カラムの指定</h2>
 	<p>
-		基点テーブルと同じように、関連テーブルの取得カラムも明示的に指定して、
-		(主にパフォーマンス考慮のために)取得するカラムを選ぶことができます。
-		但し、明示的にカラムを指定した場合も、その関連テーブルに対する SetupSelect
-		の呼び出しは必要です。(SetupSelect された上で、取得するカラムを明示的に指定)
+		SetupSelect と同じです。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../specify/specifycolumn.html"> -->SpecifyColumn<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../setupselect/index.html#supported">SetupSelect(Relation)</a></div>
 
-	<h2 id="queryrelation">Query(Relation) で同じ関連テーブル</h2>
+	<h2 id="query">SetupSelect で同じ関連テーブル</h2>
 	<p>
 		Query(Relation) で、SetupSelect で指定した同じ関連テーブルを利用した場合でも、SQL上は一つの結合で表現されます。
-		同じ関連テーブルに対して、"取得" と "絞り込み" が同時に行われる場合は、その関連テーブルに対する SetupSelect
-		と Query(Relation) の両方を利用して実装します。
 	</p>
-	<div class="relatedpage"><a href="../query/relation.html">Query(Relation)</a></div>
-<pre><span class="codetitle">ex) Query(Relation)で同じ関連テーブル {MEMBER_STATUS} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.setupSelect_MemberStatus(); <span class="comment">// 会員ステータスを取得</span>
-cb.query().queryMemberStatus().set<span class="abbreviation">...</span>; <span class="comment">// 会員ステータスで絞り込み</span>
-</code></pre>
-
-	<h2 id="unnecessary">SetupSelect が不要なケース</h2>
-	<p>
-		カウント検索やスカラ検索のとき、また、ExistsReferrer(SubQuery) や UnionQuery などの、ConditionBeanの Query
-		情報だけを必要とする場合においては、SetupSelect の呼び出しは必要ありません。
-		(そもそも処理として必要とされないため、呼び出しても利用されません)
-	</p>
+	<div class="relatedpage"><a href="../setupselect/index.html#queryrelation">SetupSelect(Relation)</a></div>
 
 	<h2 id="joinway">結合方式：基本的に outer join</h2>
 	<p>
-		Query(Relation) と同じです。
+		結合方式は、基本的に left outer join が利用されます。
+		つまり、結合処理だけで基点テーブルが絞り込まれるようなことはなく、関連テーブルを利用した絞り込みは明示的に指定することで実現します。
+		DBMSの実行計画の微調整など、どうしてもパフォーマンス上の考慮で inner join
+		が利用したい場合は、別途メソッドで変更することができます。
 	</p>
-	<div class="relatedpage"><a href="../query/relation.html">Query(Relation)</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/innerjoin.html"> -->結合方式の変更 - InnerJoin<!-- </a> --></span></div>
 
 </div>
 </div>

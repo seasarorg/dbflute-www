@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query(),絞り込み条件,where句" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,equal,等値" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Query | DBFlute</title>
+	<title>NotEqual | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,56 +37,75 @@
 </div>
 
 <div id="content">
-	<h1>Query</h1>
+	<h1>NotEqual</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#severalcall">条件連結は and 条件</a></li>
-			</ul>
-		</li>
+		<li><a href="#methodspec">メソッド仕様</a></li>
+		<li><a href="#supported">サポートされる型</a></li>
+		<li><a href="#classification">区分値メソッドの利用</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		基点テーブル、もしくは、関連テーブルの<em class="keyword">絞り込み・並び替えの条件を設定</em>
-		するための前準備をします。ConditionBean自体にはその機能が備わっていないため、ConditionBeanが保持する基点テーブルの
-		ConditionQuery を取得し、絞り込み・並び替えの条件を設定します(続けて、関連テーブルの ConditionQuery
-		も取得できます)。但し、通常 ConditionQuery
-		を変数に受け取ったりすることはなく(変数に受け取ることは推奨されません)、その存在を意識する必要はありません。
+		非等値条件(&lt;&gt;)を設定します。NotEqualは、等値条件を表す ConditionKey です。
 	</p>
+	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
 	<p>
-		会話上では、<em class="keyword">くえり</em> もしくは <em class="keyword">くえりメソッド</em> と表現します。
+		会話上では、<em class="keyword">のっといこーる</em> と表現します。文脈上、曖昧で伝わりにくい場合は
+		<em class="keyword">ConditionBeanののっといこーる(条件)</em>
+		などと言うとわかりやすいでしょう。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		<em class="keyword">query()</em>
-		を呼び出します。その後に続けて、基点テーブルに関する条件設定メソッドを呼び出すことができます。(基本的な)絞り込み条件であれば
-		<em class="keyword">.set[column-name]...</em>、並び替え条件であれば .addOrderBy...
-		を呼び出します。(他にも色々な機能が利用できます)
+		query() の後、<em class="keyword">set[column-name]_NotEqual()</em>
+		を呼び出し、条件値を指定します。
 	</p>
-<pre><span class="codetitle">ex) Queryの実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<pre><span class="codetitle">ex) NotEqual条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.q <span class="comment">// ".q" とだけ打って enter</span>
+cb.q <span class="comment">// .q と打って enter</span>
 --
-cb.<span class="point">query()</span>.set<span class="abbreviation">...</span> <span class="comment">// 続けて、呼び出したい機能を呼び出す</span>
+cb.query().setMINE <span class="comment">// .setMINE と打って enter</span>
+--
+cb.query().<span class="point">setMemberId_NotEqual(memberId)</span>;
 </code></pre>
-	<p>
-		関連テーブルに関する条件設定に関しては、<em class="keyword">query()</em>
-		の後に続けて、query[relation-table]() を呼び出し、同様の手順で条件設定メソッドを呼び出すことができます。
-	</p>
-	<div class="detailpage"><a href="./relation.html">Query(Relation)</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="severalcall">条件連結は and 条件</h3>
 	<p>
-		<em class="keyword">複数の絞り込み条件は and 条件</em>
-		として連結されます。(or 条件は OrScopeQuery にて)
+		以下項目、全て Equal と同じ仕様となります。
 	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="./orscopequery.html"> -->OrScopeQuery<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="./equal.html">絞り込み条件 - Equal</a></div>
+	<ul>
+		<li>nullや空文字の指定</li>
+		<li>同カラムに対する複数条件の指定</li>
+		<li>同カラムに対する同じ条件値での複数指定</li>
+		<li>大文字小文字の区別</li>
+		<li>char型でサイズ不足の値</li>
+	</ul>
+	<p>
+		同カラムに対して foo と bar と qux ではない、というような条件は NotInScope にて実現できます
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./notinscope.html"> -->絞り込み条件 - NotInScope<!-- </a> --></span></div>
+
+	<h2 id="supported">サポートされる型</h2>
+	<ul>
+		<li>String</li>
+		<li>Number 全般 <span class="freecomment">(IntegerやLongなど)</span></li>
+		<li>Date 全般 <span class="freecomment">(DateやTimestampなど)</span></li>
+	</ul>
+	<p>
+		Date 型に関しては、日付の非等値という条件が業務的に必要になることが少ないと考えられ、includeQueryMap.dfprop
+		のセットアップデフォルトでメソッドの生成が抑制されています。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/index.html#setupdefault">dfprop - セットアップデフォルト</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/includequery/index.html">includeQueryMap.dfprop</a></div>
+
+	<h2 id="classification">区分値メソッドの利用</h2>
+	<p>
+		区分値カラムの場合は、区分値メソッドが存在します。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#classification">ConditionBeanの使い方 - 区分値メソッドの利用</a></div>
 
 </div>
 </div>
