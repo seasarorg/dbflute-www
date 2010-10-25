@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LessThan | DBFlute</title>
+	<title>InScope | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,38 +37,57 @@
 </div>
 
 <div id="content">
-	<h1>LessThan</h1>
+	<h1>NotEqual</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#methodspec">メソッド仕様</a></li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#severalcall">同カラムに対する複数条件の指定</a></li>
+				<li><a href="#severalcall">同カラムに対する同じ条件値での複数指定</a></li>
+				<li><a href="#listreadonly">指定されたリストは読み取るだけ</a></li>
+			</ul>
+		</li>
 		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#classification">区分値の場合は利用不可</a></li>
+		<li><a href="#classification">区分値メソッドの利用</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		小なり条件(&lt;)を設定します。LessThanは、絞り込み条件を表す ConditionKey です。
+		対象値の列挙する条件(in ('a', 'b'))を設定します。InScopeは、絞り込み条件を表す ConditionKey です。
 	</p>
 	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
 	<p>
-		会話上では、<em class="keyword">れすざん</em> と表現します。文脈上、曖昧で伝わりにくい場合は
-		<em class="keyword">ConditionBeanのれすざん(条件)</em>
+		会話上では、<em class="keyword">いんすこーぷ</em> と表現します。文脈上、曖昧で伝わりにくい場合は
+		<em class="keyword">ConditionBeanのいんすこーぷ(条件)</em>
 		などと言うとわかりやすいでしょう。
 	</p>
+	<div class="inucolumn">
+		<h3>会話上間違いのないように命名</h3>
+		<p>
+			InScopeは完全にDBFlute用語です。"in" もしくは "in句"、"inの条件"
+			などと呼ぶのが通常でしょう。ただ、あまりにも一般用語で、かつ、短いため、会話で聞き返されることが多いです。
+			DBFluteでは、会話でのコミュニケーションの円滑さも踏まえて、ユニークな名前として InScope
+			という名前を付けました。列挙した値の "範囲(Scope)" の中(In)、という捉え方をしています。
+		</p>
+	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">set[column-name]_LessThan()</em>
-		を呼び出し、条件値を指定します。
+		query() の後、<em class="keyword">set[column-name]_InScope()</em>
+		を呼び出し、条件値を指定します。条件値は、Collection 型のリストとなります。(つまり、List 型や Set 型もOK)
 	</p>
-<pre><span class="codetitle">ex) LessThan条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
+<pre><span class="codetitle">ex) InScope条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
+List&lt;Integer&gt; memberIdList = <span class="keyword">new</span> ArrayList&lt;Integer&gt;();
+memberIdList.add(3);
+memberIdList.add(6);
+memberIdList.add(7);
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
 --
-cb.query().setMILT <span class="comment">// .setMILT と打って enter</span>
+cb.query().setMIIS <span class="comment">// .setMIIS と打って enter</span>
 --
-cb.query().<span class="point">setMemberId_LessThan(memberId)</span>;
+cb.query().<span class="point">setMemberId_InScope(memberIdList)</span>;
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
@@ -78,23 +97,45 @@ cb.query().<span class="point">setMemberId_LessThan(memberId)</span>;
 	<div class="relatedpage"><a href="./equal.html">絞り込み条件 - Equal</a></div>
 	<ul>
 		<li>nullや空文字の指定</li>
-		<li>同カラムに対する複数条件の指定</li>
-		<li>同カラムに対する同じ条件値での複数指定</li>
 		<li>大文字小文字の区別</li>
 		<li>char型でサイズ不足の値</li>
 	</ul>
+	<h3 id="severalcall">同カラムに対する複数条件の指定</h3>
+	<p>
+		追加条件となります。(指定した分だけ条件になる)
+	</p>
+	<h3 id="severalcall">同カラムに対する同じ条件値での複数指定</h3>
+	<p>
+		追加条件となります。(指定した分だけ条件になる)
+	</p>
+	<h3 id="listreadonly">指定されたリストは読み取るだけ</h3>
+	<p>
+		指定されたリストに対して、一時的にでも内部処理で要素を追加したりするようなことはありません。
+		よって、読み取り専用のリストを指定しても問題ありません。
+	</p>
+<pre><span class="codetitle">ex) InScope条件で読み取り専用のリストを指定 {MEMBER_ID} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().setMemberId_InScope(<span class="point">Arrays.asList(3, 6, 7)</span>);
+</code></pre>
 
 	<h2 id="supported">サポートされる型</h2>
+	<ul>
+		<li>String</li>
+		<li>Number 全般 <span class="freecomment">(IntegerやLongなど)</span></li>
+		<li>Date 全般 <span class="freecomment">(DateやTimestampなど)</span></li>
+	</ul>
 	<p>
-		GreaterThan と同じです。
+		Date 型に関しては、日付の対象値の列挙という条件が業務的に必要になることが少ないと考えられ、includeQueryMap.dfprop
+		のセットアップデフォルトでメソッドの生成が抑制されています。
 	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/index.html#setupdefault">dfprop - セットアップデフォルト</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/includequery/index.html">includeQueryMap.dfprop</a></div>
 
-	<h2 id="classification">区分値の場合は利用不可</h2>
+	<h2 id="classification">区分値メソッドの利用</h2>
 	<p>
-		GreaterThan と同じです。
+		区分値カラムの場合は、区分値メソッド(CDef を直接渡すメソッド)が存在します。
 	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+	<div class="relatedpage"><a href="../howto.html#classification">ConditionBeanの使い方 - 区分値メソッドの利用</a></div>
 
 </div>
 </div>

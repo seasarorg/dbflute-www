@@ -70,10 +70,7 @@
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		<em class="keyword">setupSelect_[relation-table]()</em>
-		を呼び出します。さらにネストした関連テーブルを取得する場合は、続けて
-		<em class="keyword">with[nested-relation-table]()</em>
-		を呼び出します(以降、ネストは with 始まり)。
+		<em class="keyword">setupSelect_[relation-table]()</em> を呼び出します。
 	</p>
 <pre><span class="codetitle">ex) SetupSelectの実装手順 (Eclipseでコード補完) {MEMBER_STATUS} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -86,11 +83,22 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
     <span class="abbreviation">...</span> = status.getMemberStatusName();
 }
 </code></pre>
+<pre><span class="codetitle">ex) SetupSelectを利用したときのSQL {MEMBER_STATUS} @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID, dflocal.MEMBER_NAME, <span class="abbreviation">...</span>
+     <span class="point">, dfrelation_0.MEMBER_STATUS_CODE, dfrelation_0.MEMBER_STATUS_NAME, ...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="point">left outer join MEMBER_STATUS dfrelation_0 on ...</span> 
+</code></pre>
+	<p>
+		さらにネストした関連テーブルを取得する場合は、続けて
+		<em class="keyword">with[nested-relation-table]()</em>
+		を呼び出します(以降、ネストは with 始まり)。
+	</p>
 <pre><span class="codetitle">ex) ネストした関連テーブル (Eclipseでコード補完) {MEMBER_WITHDRAWAL,...} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.seSMW <span class="comment">// ".seSMW" と打って enter</span>
 --
-cb.<span class="point">setupSelect_MemberWithdrawalAsOne()</span>.wiWR <span class="comment">// ".wiWR" と打って enter</span>
+cb.setupSelect_MemberWithdrawalAsOne().wiWR <span class="comment">// ".wiWR" と打って enter</span>
 --
 cb.setupSelect_MemberWithdrawalAsOne().<span class="point">withWithdrawalReason()</span>;
 List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
@@ -99,6 +107,14 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
     WithdrawalReason reason = withdrawal.<span class="point">getWithdrawalReason()</span>;
     <span class="abbreviation">...</span> = reason.getWithdrawalReasonText();
 }
+</code></pre>
+<pre><span class="codetitle">ex) SetupSelectを利用したときのSQL {MEMBER_WITHDRAWAL,...} @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID, dflocal.MEMBER_NAME, <span class="abbreviation">...</span>
+     , dfrelation_0.MEMBER_ID, dfrelation_0.WITHDRAWAL_REASON_CODE, <span class="abbreviation">...</span>
+     <span class="point">, dfrelation_1.WITHDRAWAL_REASON_CODE, dfrelation_1...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+    left outer join MEMBER_WITHDRAWAL dfrelation_0 on <span class="abbreviation">...</span> 
+    <span class="point">left outer join WITHDRAWAL_REASON dfrelation_1 on ...</span> 
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
