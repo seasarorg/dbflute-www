@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,lessEqual,小なりイコール" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,DateFromTo,範囲条件,範囲検索" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LessEqual | DBFlute</title>
+	<title>日時の汎用的なFromTo条件 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,62 +37,63 @@
 </div>
 
 <div id="content">
-	<h1>LessEqual</h1>
+	<h1>日付の汎用的なFromTo条件</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#methodspec">メソッド仕様</a></li>
-		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#classification">区分値の場合は利用不可</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		小なりイコール条件(&lt;=)を設定します。LessEqualは、絞り込み条件を表す ConditionKey です。
+		日付の汎用的なFromTo条件を設定します。DateFromToは、絞り込み条件を表す ConditionKey です。
 	</p>
 	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
 	<p>
-		会話上では、<em class="keyword">れすいこーる</em> と表現します。
+		FromTo 条件のパターンの比較条件の一つである "日付による範囲条件"
+		を独立させたものです。利用頻度が高いと考えられるため、オプションの指定なしに簡易に指定できるようにしています。
+	</p>
+	<p>
+		単なるエリアスメソッドと言えるので、もろもろの仕様などは FromTo と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="./fromto.html">FromTo</a></div>
+	<p>
+		会話上では、<em class="keyword">でいとふろむとぅ</em>、<em class="keyword">日付のFromTo</em> などと表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">set[column-name]_LessEqual()</em>
-		を呼び出し、条件値を指定します。
+		query() の後、<em class="keyword">set[date-column-name]_DateFromTo()</em>
+		を呼び出し、第一引数に from に相当する条件値、第二引数に to に相当する条件値を指定します。
 	</p>
-<pre><span class="codetitle">ex) LessEqual条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
+	<div class="relatedpage"><span class="working"><!-- <a href="../../runtime/fromtooption.html"> -->DBFluteランタイム - FromToOption<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) FromTo条件の実装手順 (Eclipseでコード補完) {FORMALIZED_DATETIME} @Java</span><code>
+Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/10 08:24:53</span>
+Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/16 14:36:29</span>
 cb.q <span class="comment">// .q と打って enter</span>
 --
-cb.query().setMILE <span class="comment">// .setMILE と打って enter</span>
+cb.query().setFDDFT <span class="comment">// .setFDDFT と打って enter</span>
 --
-cb.query().<span class="point">setMemberId_LessEqual(memberId)</span>;
+cb.query().<span class="point">setFormalizedDatetime_DateFromTo(fromDate, toDate)</span>;
 </code></pre>
-
-	<h2 id="methodspec">メソッド仕様</h2>
+<pre><span class="codetitle">ex) 日付で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+ <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2007/04/10 00:00:00'</span>
+   <span class="keyword">and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2007/04/17 00:00:00'</span>
+</code></pre>
 	<p>
-		以下項目、全て Equal と同じ仕様となります。
+		時分秒は考慮せずに指定された条件値の日付の範囲内であるかどうかを判定する条件が組み立てられます。
+		指定された toDate の条件値の時分秒が幾つであろうと、次の日に進めて LessThan
+		を利用し、該当の日のデータが完全に含まれるように自動的に調整されます。
+		(同時に fromDate の時分秒は切り捨てられます)
 	</p>
-	<div class="relatedpage"><a href="./equal.html">絞り込み条件 - Equal</a></div>
-	<ul>
-		<li>nullや空文字の指定</li>
-		<li>同カラムに対する複数条件の指定</li>
-		<li>同カラムに対する同じ条件値での複数指定</li>
-		<li>大文字小文字の区別</li>
-		<li>char型でサイズ不足の値</li>
-	</ul>
-
-	<h2 id="supported">サポートされる型</h2>
 	<p>
-		GreaterThan と同じです。
+		特に、人が入力・指定した日付で "2007/04/16"
+		までと言った場合、16日中全てが含まれることを意味することが多いですが、素直にコンピュータに読み取らせると
+		"2007/04/16 00:00:00" までと解釈してしまう可能性があり、"2007/04/16 12:34:56"
+		のデータが対象外になってしまいます。
+		一方で、日付操作はバグの温床、こういった定型的な調整をする機能を使ってできるだけミスを無くすのが良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
-
-	<h2 id="classification">区分値の場合は利用不可</h2>
-	<p>
-		GreaterThan と同じです。
-	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../genbafit/implfit/datefromtocondition/index.html"> -->現場フィット - 日付範囲の条件指定を定型化(安全に)<!-- </a> --></span></div>
 
 </div>
 </div>

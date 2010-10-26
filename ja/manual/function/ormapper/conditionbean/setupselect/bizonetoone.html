@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,lessEqual,小なりイコール" />
+	<meta name="keywords" content="DBFlute,ConditionBean,setupSelect,関連テーブル,結合,select句,join,関連テーブル,親テーブル,ForeignTable,業務的one-to-one,BizOneToOne,FixedCondition" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LessEqual | DBFlute</title>
+	<title>SetupSelect(BizOneToOne) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,62 +37,45 @@
 </div>
 
 <div id="content">
-	<h1>LessEqual</h1>
+	<h1>SetupSelect(BizOneToOne)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
 		<li><a href="#methodspec">メソッド仕様</a></li>
-		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#classification">区分値の場合は利用不可</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		小なりイコール条件(&lt;=)を設定します。LessEqualは、絞り込み条件を表す ConditionKey です。
+		業務的one-to-one に対する SetupSelect(Relation) です。
+		固定条件に対してバインド変数がある場合は引数が定義されます。
 	</p>
-	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
 	<p>
-		会話上では、<em class="keyword">れすいこーる</em> と表現します。
+		会話上では、<em class="keyword">せっとあっぷせれくとびずわんとぅわん</em>、<em class="keyword">業務的one-to-oneのせっとあっぷせれくと</em>
+		などと表現します。SetupSelect(Relation)
+		という名前自体に、業務的one-to-oneの関連テーブルへの絞り込み条件も含まれますが、"業務的one-to-oneのテーブルに対して"
+		ということを強調したい場合に明示的な表現として利用されます。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">set[column-name]_LessEqual()</em>
-		を呼び出し、条件値を指定します。
+		<em class="keyword">setupSelect_[biz-one-to-one-table]()</em> を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) LessEqual条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
+<pre><span class="codetitle">ex) SetupSelectの実装手順 (Eclipseでコード補完) {MEMBER_ADDRESS} @Java</span><code>
+Date targetDate = <span class="abbreviation">...</span>;
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.q <span class="comment">// .q と打って enter</span>
+cb.seSMAA <span class="comment">// ".seSMAA" と打って enter</span>
 --
-cb.query().setMILE <span class="comment">// .setMILE と打って enter</span>
---
-cb.query().<span class="point">setMemberId_LessEqual(memberId)</span>;
+cb.<span class="point">setupSelect_MemberAddressAsValid</span>(targetDate);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<p>
-		以下項目、全て Equal と同じ仕様となります。
+		基本的な仕様は通常の SetupSelect と同じです。バインド変数や別リレーションのカラムを利用した場合に特有の仕様が存在します。
 	</p>
-	<div class="relatedpage"><a href="./equal.html">絞り込み条件 - Equal</a></div>
-	<ul>
-		<li>nullや空文字の指定</li>
-		<li>同カラムに対する複数条件の指定</li>
-		<li>同カラムに対する同じ条件値での複数指定</li>
-		<li>大文字小文字の区別</li>
-		<li>char型でサイズ不足の値</li>
-	</ul>
-
-	<h2 id="supported">サポートされる型</h2>
-	<p>
-		GreaterThan と同じです。
-	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
-
-	<h2 id="classification">区分値の場合は利用不可</h2>
-	<p>
-		GreaterThan と同じです。
-	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+	<div class="detailpage"><a href="../../../genbafit/implfit/bizonetoone/index.html#bindvariable">業務的one-to-one - バインド変数コメント</a></div>
+	<div class="detailpage"><a href="../../../genbafit/implfit/bizonetoone/index.html#over">業務的one-to-one - 別リレーションのカラム利用</a></div>
+	<div class="relatedpage"><a href="./index.html">SetupSelect(Relation)</a></div>
 
 </div>
 </div>
