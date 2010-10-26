@@ -40,11 +40,17 @@
 	<h1>LikeSearch</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
-		<li><a href="#howto">実装方法</a>
+		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#direction">一致の方向の指定</a>
 			<ul>
-				<li><a href="#direction">一致の方向の指定</a></li>
-				<li><a href="#split">区切り文字でスプリットして複数条件</a></li>
+				<li><a href="#escape">エスケープ処理の自動解決</a></li>
 				<li><a href="#plain">条件値にワイルドカードを含める</a></li>
+			</ul>
+		</li>
+		<li><a href="#split">区切り文字でスプリットして複数条件</a>
+			<ul>
+				<li><a href="#delimiter">デリミタの調整</a></li>
+				<li><a href="#splitlimit">Split のリミット指定</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -91,7 +97,8 @@ cb.query().<span class="point">setMemberName_LikeSearch(memberName, option)</spa
 cb.query().setMemberName_LikeSearch(<span class="point">"S"</span>
         , <span class="keyword">new</span> LikeSearchOption().<span class="point">likePrefix()</span>); <span class="comment">// "S" で始まる会員</span>
 </code></pre>
-	<h3 id="direction">一致の方向の指定</h3>
+
+	<h2 id="direction">一致の方向の指定</h2>
 	<p>
 		LikeSearchOption の like[direction]() メソッドを呼び出すことで指定します。
 	</p>
@@ -103,7 +110,7 @@ cb.query().setMemberName_LikeSearch(<span class="point">"S"</span>
 	<p>
 		一致方向が指定された場合は、条件値の中にワイルドカードを含める必要はありません。内部的に一致の方向を踏まえてワイルドカードを付与します。
 	</p>
-	<h4>エスケープ処理の自動解決</h4>
+	<h3 id="escape">エスケープ処理の自動解決</h3>
 	<p>
 		同時にエスケープ処理は自動解決されます。
 		SQLではエスケープ句が付与され、かつ、指定された条件値の中にエスケープ対象(ワイルドカードとエスケープ文字自体)の文字があった場合は、
@@ -123,7 +130,13 @@ cb.query().setMemberName_LikeSearch(<span class="point">"100%Juice"</span>
 		全角がワイルドカードにならないDBMSでも、そのエスケープ文字は単に無視されるだけですので動作に影響はありません。
 		少なくとも、DBFluteがサポートしているDBMSにおいてはテストで確認がされています。
 	</p>
-	<h3 id="split">区切り文字でスプリットして複数条件</h3>
+	<h3 id="plain">条件値にワイルドカードを含める</h3>
+	<p>
+		一致の方向を条件値に含まれたワイルドカードで表現する場合は、likeXxx()
+		メソッドを呼び出さずに指定します。その場合、エスケープ処理もされません。
+	</p>
+
+	<h2 id="split">区切り文字でスプリットして複数条件</h2>
 	<p>
 		例えば、条件値が "FOO BAR QUX" と空白区切りになっていて、"FOO" を含む、かつ、"BAR" を含む、かつ、"QUX"
 		を含む、というような複数条件の曖昧検索をしたい場合、この空白区切りを内部的に分解して自動的に複数条件として扱う機能があります。
@@ -154,7 +167,7 @@ cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
     <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%BAR%' escape '|'</span>
     <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%QUX%' escape '|'</span>)
 </code></pre>
-	<h4>デリミタの調整</h4>
+	<h3 id="delimiter">デリミタの調整</h3>
 	<p>
 		デリミタ(区切り文字)の調整がメソッドで用意されています。
 		特に空白に近いもの、例えば、全角空白やタブ、改行など、
@@ -173,16 +186,11 @@ cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
 			の継承クラスをアプリ独自に作成し、デリミタの指定を再利用することが推奨される。
 		</dd>
 	</dl>
-	<h4>Split のリミット指定</h4>
+	<h3 id="splitlimit">Split のリミット指定</h3>
 	<p>
 		また、それぞれのメソッドがオーバーロードで "int splitLimitCount" という引数を受け取れるようになっています。
 		例えば、"幾つ区切り文字があっても最大で 5 つまでの条件しか作らない"
 		というような仕様があった場合に、splitLimitCount に 5 を指定します。この場合 6 つ目以降の要素は無視されます。
-	</p>
-	<h3 id="plain">条件値にワイルドカードを含める</h3>
-	<p>
-		一致の方向を条件値に含まれたワイルドカードで表現する場合は、likeXxx()
-		メソッドを呼び出さずに指定します。その場合、エスケープ処理もされません。
 	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
