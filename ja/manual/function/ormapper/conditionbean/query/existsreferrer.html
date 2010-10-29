@@ -1,0 +1,352 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,ExistsReferrer,子テーブルの条件で絞り込み,exists句,相関サブクエリ,one-to-many" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ExistsReferrer | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ExistsReferrer</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
+				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
+				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
+				<li><a href="#emptysubquery">サブクエリが空条件でも意味あり</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#severalcall">同テーブルに対する複数条件の指定</a></li>
+				<li><a href="#subcbean">サブクエリのConditionBean</a></li>
+				<li><a href="#inlineorclause">OnClause や InlineView では不可</a></li>
+			</ul>
+		</li>
+		<li><a href="#supported">サポートされる関連テーブル</a></li>
+		<li><a href="#notexistsreferrer">否定条件：NotExistsReferrer</a></li>
+		<li><a href="#inscoperelation">代替方法：InScopeRelation</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		子テーブルの条件で絞り込みをする条件(exists (select ... from ...))を設定します。ExistsReferrer は、絞り込み条件を表す ConditionKey です。
+	</p>
+	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
+	<p>
+		例えば、"モバイルからログインをしたことのある会員(一覧)" というように、
+		子テーブル(会員ログイン情報)のカラムの条件を利用して、基点テーブル(会員)を絞り込むのに有効です。
+		また、子テーブル(one-to-many) だけでなく、"とある名前の商品を購入したことのある会員(一覧)"
+		というように、子テーブルの親テーブル(many-to-many)のカラムを利用した絞り込みにも利用できます。
+		このような条件が exists 句を利用した相関サブクエリで実現されます。
+	</p>
+	<p>
+		これは、あくまで子テーブルを使った絞り込みであって、子テーブルのデータの取得ではありません。
+		DBFluteでは、この違いを混同させずに機能として明確に分けています。
+	</p>
+	<p>
+		会話上では、<em class="keyword">いぐじすつりふぁらぁ</em> と表現します。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<p>
+		query() の後、<em class="keyword">exists[referrer-table]List()</em>
+		を呼び出し、引数にサブクエリの中の条件を指定する、SubQuery のコールバック実装を指定します。
+	</p>
+<pre><span class="codetitle">ex) ExistsReferrer条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.q <span class="comment">// .q と打って enter</span>
+--
+cb.query()
+--
+<span class="comment">// 1. .ex まで打つと関連テーブル選択</span>
+<span class="comment">// 2. PL (PurchaseList) で enter</span>
+cb.query().exPL
+--
+<span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
+cb.query().<span class="point">existsPurchaseList(subQuery)</span>
+--
+<span class="comment">// "new " (new + 空白一つ) と打って ctrl (or control) + space そして enter</span>
+cb.query().existsPurchaseList(<span class="point">new </span>)
+--
+<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        <span class="comment">// TODO Auto-generated method stub</span>
+        
+    }
+})
+--
+<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
+<span class="comment">// サブクエリ(子テーブル)の絞り込み条件を指定</span>
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+    }
+}); <span class="comment">// セミコロンを忘れずに</span>
+</code></pre>
+	<p>
+		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
+	</p>
+<pre><span class="codetitle">ex) ExistsReferrerを使って2000円以上の購入をしたことのある会員を検索 {PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+ <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE dfsublocal_0
+                <span class="keyword">where</span> <span class="point">dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID</span>
+                  <span class="keyword">and</span> dfsublocal_0.PURCHASE_PRICE &gt;= <span class="literal">2000</span>
+       )
+</code></pre>
+	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
+	<p>
+		子テーブルの親テーブル(many-to-many)のカラムも条件として利用できます。ExistsReferrer の中で Query(Relation)
+		を使って実現します。
+	</p>
+<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {PURCHASE, PRODUCT} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().<span class="point">queryProduct()</span>.setProductName_PrefixSearch(<span class="literal">"S"</span>);
+    }
+});
+</code></pre>
+	<h3 id="onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</h3>
+	<p>
+		子テーブルの子テーブル(one-to-many-to-many)のカラムも条件として利用できます。ExistsReferrer の中でさらに ExistsReferrer
+		を使って実現します。
+	</p>
+<pre><span class="codetitle">ex) 子テーブルの子テーブル(one-many-to-many)のカラムで絞り込み {MEMBER, PURCHASE} @Java</span><code>
+MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
+cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB subCB) {
+        subCB.query().<span class="point">existsPurchaseList</span>(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+            <span class="keyword">public void</span> query(PurchaseCB subCB) {
+                subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
+            }
+        });
+    }
+});
+</code></pre>
+	<h3 id="manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</h3>
+	<p>
+		親テーブルの子テーブル(many-to-one-to-many)のカラムも条件として利用できます。Query(Relation) の後に ExistsReferrer
+		を使って実現します。
+	</p>
+<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {MEMBER_LOGIN, PURCHASE} @Java</span><code>
+MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
+cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
+    }
+});
+</code></pre>
+
+	<h3 id="emptysubquery">サブクエリが空条件でも意味あり</h3>
+	<p>
+		サブクエリに何も条件がなくても、ExistsReferrer
+		は有効です。会員と購入の関係で言えば、"(一度でも何かしら)購入したことのある会員(一覧)"
+		という業務的な条件を意味します。
+	</p>
+<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        <span class="comment">// 空条件：(一度でも何かしら)購入したことのある会員(一覧)</span>
+    }
+});
+</code></pre>
+<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+ <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE dfsublocal_0
+                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
+       )
+</code></pre>
+	<p>
+		もし、サブクエリ内の条件値が存在しないときに ExistsReferrer
+		自体を無効にしたいというのであれば、if 文で分岐させます。
+	</p>
+<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+<span class="keyword">final</span> Integer price = <span class="abbreviation">...</span>; 
+<span class="keyword">if</span> (price != <span class="keyword">null</span>) {
+    cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+        <span class="keyword">public void</span> query(PurchaseCB subCB) {
+            subCB.query().setPurchasePrice_GreaterEqual(price);
+        }
+    });
+}
+</code></pre>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="severalcall">同テーブルに対する複数条件の指定</h3>
+	<p>
+		同じ関連テーブルに対して、ExistsReferrer
+		を複数回呼び出した場合は、呼び出した分だけ条件になります。
+	</p>
+	<h3 id="subcbean">サブクエリのConditionBean</h3>
+	<p>
+		サブクエリの ConditionBean は、絞り込み条件だけの指定に利用するものです。
+		SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+	</p>
+	<h3 id="inlineorclause">OnClause や InlineView では不可</h3>
+	<p>
+		OnClause や InlineView の中の条件では利用できません。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./onclause.html"> -->OnClause<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./inlineview.html"> -->InlineView<!-- </a> --></span></div>
+
+	<h2 id="supported">サポートされる関連テーブル</h2>
+	<p>
+		Referrer と定義付けられる one-to-many
+		の関連に対してサポートされます。
+	</p>
+	<p>
+		one-to-one は、DBFluteでは ForeignTable として扱われ、Query(Relation)
+		で簡単に条件を設定できるので ExistsReferrer のサポート外です。
+	</p>
+
+	<h2 id="notexistsreferrer">否定条件：NotExistsReferrer</h2>
+	<p>
+		否定条件の対象値の列挙として、NotExistsReferrer もあります。条件が否定になっただけで仕様は ExistsReferrer と全く同じです。
+	</p>
+
+	<h2 id="inscoperelation">代替方法：InScopeRelation</h2>
+	<p>
+		全く同じの結果を返す別の方法として、InScopeRelation
+		があります。DBFluteとしては、基本的に "子テーブルの条件で絞り込み" をする場合は、ExistsReferrer
+		を基本にすることをお奨めしています。
+	</p>
+	<div class="relatedpage"><a href="./inscoperelation.html">InScopeRelation</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,lessThan,小なり" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,InScopeRelation,in句,サブクエリ" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LessThan | DBFlute</title>
+	<title>InScopeRelation | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,67 +37,147 @@
 </div>
 
 <div id="content">
-	<h1>LessThan</h1>
+	<h1>InScopeRelation</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#whichuse">ExistsReferrer と InScopeRelation</a></li>
+			</ul>
+		</li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#methodspec">メソッド仕様</a></li>
-		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#classification">区分値の場合は利用不可</a></li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#inlineorclause">OnClause では不可</a></li>
+			</ul>
+		</li>
+		<li><a href="#supported">サポートされる関連テーブル</a></li>
+		<li><a href="#notexistsreferrer">否定条件：NotInScopeRelation</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		小なり条件(&lt;)を設定します。LessThan は、絞り込み条件を表す ConditionKey です。
+		in句のサブクエリを使って関連テーブルの条件で絞り込みをする条件(in (select ... from ...))を設定します。InScopeRelation
+		は、絞り込み条件を表す ConditionKey です。
 	</p>
 	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
 	<p>
-		会話上では、<em class="keyword">れすざん</em> と表現します。
+		FKの関連を辿り、in句のサブクエリ(相関ではない)を使って、関連テーブルの条件で基点テーブルを絞り込みます。
+		この条件は、他の方法で実現する "関連テーブルの条件で絞り込み" の代替方法となります。
 	</p>
+	<p>
+		例えば、親テーブル(ForeignTable: one-to-oneも含む)のカラムの条件で基点テーブルを絞り込むのであれば、Query(Relation)
+		を使って親テーブルの条件を設定し、join を経由して絞り込みを実現するのが通常です。
+		また、子テーブル(Referrer)のカラムの条件で基点テーブルを絞り込むのであれば、ExistsReferrer
+		を使って子テーブルの条件を設定し、exists を経由して絞り込みを実現するのが通常です。(少なくともDBFluteにおいては)
+	</p>
+	<div class="relatedpage"><a href="./relation.html">Query(Relation)</a></div>
+	<div class="relatedpage"><a href="./existsreferrer.html">ExistsReferrer</a></div>
+	<p>
+		実際に、InScopeRelation を使った場合と、上記の他の方法を使った場合で、絞り込み条件としての結果は全く同じになります。
+		InScopeRelation をどういうときに利用するかというと、SQLのパフォーマンスチューニングにおいて、InScopeRelation
+		の方が良い実行計画がたてられる場合が想定されます。ほとんどの場合は意識する必要はないと想定されていますが、状況によっては
+		InScopeRelation の方が良いパフォーマンスを出す可能性もあります。そのときのために代替機能として用意されています。
+		但し、例外として、InlineView の中では InScopeRelation を利用します(InlineView の中での
+		ExistsReferrerがサポートされていないため)。
+	</p>
+	<p>
+		会話上では、<em class="keyword">いんすこーぷりれーしょん</em> と表現します。
+	</p>
+	<div class="inucolumn">
+		<h3 id="whichuse">ExistsReferrer と InScopeRelation</h3>
+		<p>
+			exists句とin句のサブクエリは、どちらが速いか？よく取り上げられる話題です。
+			結局、状況とDBMSに依存するので一概にどちらかというのはなかなか結論付けづらいものです。
+		</p>
+		<p>
+			DBFluteでは、少なくとも "子テーブル対する、exists句の相関サブクエリ、相関でないin句のサブクエリ"
+			において、速度に違い(業務上問題になるほどの違い)が発生するケースは(経験上)多くないと捉え、かつ、業務的な意味合いのフィット感を優先し、
+			ExistsReferrer をメインとしています。チューニングが必要になったら、InScopeRelation
+			を検討すると。(jfluteは、実務ではほとんど ExistsReferrer を使っています)
+		</p>
+		<p>
+			SQLの結果が同じなのですから、将来的には、どちらを記述したとしても差が出ないようにDBMS側で完全な最適化がされるようになることを期待したいと思います。
+			実際、dbflute-oracle-example(Oracle 10g XE) で基点テーブル 10000　件、子テーブル 300000
+			件で幾つかのパターンを試してみましたが、特にスピードに差は出ませんでした。
+			(もちろん、もっと色々なパターン、もしくは、データ量を増やせば差が出るのかもしれませんが)
+		</p>
+	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">set[column-name]_LessThan()</em>
-		を呼び出し、条件値を指定します。
+		query() の後、<em class="keyword">inScope[relation-table]()</em>
+		を呼び出し、引数にサブクエリの中の条件を指定する、SubQuery のコールバック実装を指定します。
 	</p>
-<pre><span class="codetitle">ex) LessThan条件の実装手順 (Eclipseでコード補完) {MEMBER_ID} @Java</span><code>
+<pre><span class="codetitle">ex) InScopeRelation条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
 --
 cb.query()
 --
-<span class="comment">// 1. .set まで打つとカラム選択</span>
-<span class="comment">// 2. MI (MemberId) でカラム確定</span>
-<span class="comment">// 3. LT (LessThan) で enter</span>
-cb.query().setMILT
+<span class="comment">// 1. .ex まで打つと関連テーブル選択</span>
+<span class="comment">// 2. PL (PurchaseList) で enter</span>
+cb.query().inSPL
 --
-cb.query().<span class="point">setMemberId_LessThan(memberId)</span>;
+<span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
+cb.query().<span class="point">inScopePurchaseList(subQuery)</span>
+--
+<span class="comment">// "new " (new + 空白一つ) と打って ctrl (or control) + space そして enter</span>
+cb.query().inScopePurchaseList(<span class="point">new </span>)
+--
+<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
+cb.query().inScopePurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        <span class="comment">// TODO Auto-generated method stub</span>
+        
+    }
+})
+--
+<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
+<span class="comment">// サブクエリ(子テーブル)の絞り込み条件を指定</span>
+cb.query().inScopePurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+    }
+}); <span class="comment">// セミコロンを忘れずに</span>
 </code></pre>
+	<p>
+		SQL上では、コールバックの中で指定された条件がサブクエリの中に展開されます。
+	</p>
+<pre><span class="codetitle">ex) InScopeRelationを使って2000円以上の購入をしたことのある会員を検索 {PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+ <span class="keyword">where</span> dflocal.MEMBER_ID <span class="keyword">in</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
+                               <span class="keyword">from</span> PURCHASE dfsublocal_0
+                              <span class="keyword">where</span> <span class="point">dfsublocal_0.PURCHASE_PRICE &gt;= 2000</span>
+       )
+</code></pre>
+	<p>
+		その他、サブクエリの中では、ExistsReferrer と同じような要領で様々なパターンが実現できます。
+	</p>
+	<div class="relatedpage"><a href="./existsreferrer.html#howto">ExistsReferrer - 実装方法</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<p>
-		以下項目、全て Equal と同じ仕様となります。
+		一部を除き、ExistsReferrer と同じです。
 	</p>
-	<div class="relatedpage"><a href="./equal.html">絞り込み条件 - Equal</a></div>
-	<ul>
-		<li>nullや空文字の指定</li>
-		<li>同カラムに対する複数条件の指定</li>
-		<li>同カラムに対する同じ条件値での複数指定</li>
-		<li>大文字小文字の区別</li>
-		<li>char型でサイズ不足の値</li>
-	</ul>
-
-	<h2 id="supported">サポートされる型</h2>
+	<div class="relatedpage"><a href="./existsreferrer.html#methodspec">ExistsReferrer - メソッド仕様</a></div>
+	<h3 id="inlineorclause">OnClause では不可</h3>
 	<p>
-		GreaterThan と同じです。
+		OnClause の中の条件では利用できません。InlineView の中では利用できます。
 	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./onclause.html"> -->OnClause<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./inlineview.html"> -->InlineView<!-- </a> --></span></div>
 
-	<h2 id="classification">区分値の場合は利用不可</h2>
+	<h2 id="supported">サポートされる関連テーブル</h2>
 	<p>
-		GreaterThan と同じです。
+		全ての関連テーブルに対してサポートされます。
 	</p>
-	<div class="relatedpage"><a href="./greaterthan.html">絞り込み条件 - GreaterThan</a></div>
+
+	<h2 id="notexistsreferrer">否定条件：NotInScopeRelation</h2>
+	<p>
+		否定条件の対象値の列挙として、NotInScopeRelation もあります。条件が否定になっただけで仕様は InScopeRelation と全く同じです。
+	</p>
 
 </div>
 </div>
