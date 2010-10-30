@@ -404,10 +404,11 @@ web2
 	<p>
 		Exクラスにアプリ独自のメソッドを定義するのは Behavior だけではなく、Entity
 		も同様です。特に ConditionBean の (Specify)DerivedReferrer
-		を利用するときは、ディベロッパー自身が Entity のExクラスにメソッドを定義することが望まれます。この
+		を利用するときは、ディベロッパー自身が Entity のExクラスにメソッドを定義することが求められます。この
 		ApplicationBehavior を利用して、ライブラリプロジェクトの編集なしで (Specify)DerivedReferrer
 		を実現することができます。アプリケーション独自の Entity を作成して、それを利用します。
 	</p>
+	<div class="relatedpage"><a href="../../../ormapper/conditionbean/specify/derivedreferrer.html">ConditionBean - (Specify)DerivedReferrer</a></div>
 	<h4>ApplicationEntityの手動作成</h4>
 	<p>
 		アプリケーション独自の Entity (ApplicationEntity)は、手動で作成します。
@@ -429,22 +430,11 @@ web1
 	</p>
 <pre><span class="codetitle">ex) ApplicationEntityの実装(プロパティの追加など) {MEMBER} @Java</span><code>
 <span class="keyword">public class</span> MemberAp <span class="keyword">extends</span> Member {
-
-    <span class="keyword">private static final long</span> serialVersionUID = 1L;
-
-    <span class="comment">// ===================================================================================</span>
-    <span class="comment">//                                                                          Definition</span>
-    <span class="comment">//                                                                          ==========</span>
+    <span class="abbreviation">...</span>
     <span class="keyword">public static final</span> String ALIAS_firstLoginDatetime = <span class="literal">"FIRST_LOGIN_DATETIME"</span>;
 
-    <span class="comment">// ===================================================================================</span>
-    <span class="comment">//                                                                           Attribute</span>
-    <span class="comment">//                                                                           =========</span>
     <span class="keyword">protected</span> Date _firstLoginDatetime;
 
-    <span class="comment">// ===================================================================================</span>
-    <span class="comment">//                                                                            Accessor</span>
-    <span class="comment">//                                                                            ========</span>
     <span class="keyword">public</span> Date getFirstLoginDatetime() {
         <span class="keyword">return</span> _firstLoginDatetime;
     }
@@ -452,6 +442,7 @@ web1
     <span class="keyword">public void</span> setFirstLoginDatetime(Date firstLoginDatetime) {
         _firstLoginDatetime = firstLoginDatetime;
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<h4>ApplicationBehaviorにメソッド定義</h4>
@@ -460,7 +451,7 @@ web1
 		を利用するメソッドを定義します。例えば、ConditionBean のリスト検索 であれば、doSelectList()
 		の第二引数に ApplicationEntity の型を指定することで実現することができます。
 	</p>
-<pre><span class="codetitle">ex) ApplicationEntityの実装(プロパティの追加など) {MEMBER} @Java</span><code>
+<pre><span class="codetitle">ex) ApplicationEntityを利用するリスト検索を追加 {MEMBER} @Java</span><code>
 <span class="keyword">public class</span> MemberBhvAp <span class="keyword">extends</span> BsMemberBhvAp {
 
     <span class="keyword">public</span> ListResultBean&lt;MemberAp&gt; <span class="point">selectApList</span>(MemberCB cb) {
@@ -472,7 +463,7 @@ web1
 	<p>
 		このメソッド経由で、(Specify)DerivedReferrer のデータを(LibraryEntity の編集なしで)受け取ることができます。
 	</p>
-<pre><span class="codetitle">ex) ApplicationEntityの実装(プロパティの追加など) {MEMBER} @Java</span><code>
+<pre><span class="codetitle">ex) ApplicationEntityを利用した(Specify)DerivedReferrer {MEMBER} @Java</span><code>
 <span class="keyword">public void</span> doSearch() {
     MemberCB cb = <span class="keyword">new</span> MemberCB();
     cb.specify().derivedMemberLoginList().min(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
