@@ -1,0 +1,482 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Behavior,LoadReferrer,one-to-many,OneToMany,バッチフェッチ,子テーブル,ConditionBean" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LoadReferrer | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LoadReferrer</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#role">子テーブル対応の役割を明確に</a></li>
+				<li><a href="#balance">バランスをとったone-to-manyのアプローチ</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#referrerorderby">子テーブルのソート条件</a></li>
+				<li><a href="#onetomanytoone">子テーブルの親テーブルの取得</a></li>
+				<li><a href="#onetomanytomany">子テーブルの子テーブルの取得</a></li>
+				<li><a href="#branchreferrer">枝分かれの子テーブルの取得</a></li>
+				<li><a href="#originalcb">独自のCBインスタンス</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#override">オーバーライド</a></li>
+				<li><a href="#severalcall">同じリストに対して二度呼び出し</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		関連する子テーブル(Referrer)のデータを取得(Load)します。
+	</p>
+	<p>
+		例えば、以下のような基点テーブル(会員)と子テーブル(購入)の関連があるとします；
+	</p>
+	<dl class="valuemainlist">
+		<dt>会員(1)</dt><dd>購入(3, 6, 7)</dd>
+		<dt>会員(2)</dt><dd>購入(2, 9)</dd>
+		<dt>会員(3)</dt><dd>購入(1, 4)</dd>
+		<dt>会員(4)</dt><dd>購入(5, 8, 10)</dd>
+	</dl>
+	<p>
+		まず ConditionBean を使って会員の一覧、会員(1, 2, 3, 4)を取得します。その後、LoadReferrer
+		を使って会員(一覧)に関連する全ての購入(3, 6, 7, 2, 9, 1, 4, 5, 8, 10)を <em class="keyword">一括取得</em>
+		します。取得後、LoadReferrer の処理の中でそれぞれの会員と購入のマッピングをして、DomainEntity
+		のオブジェクトグラフを構築します。
+	</p>
+	<p>
+		SQLの合計は、<em class="keyword">基点テーブルの検索一回 + 子テーブルの数(LoadReferrerの回数)</em>
+		となります。上記の例の場合は、"会員(リスト検索) + 購入(LoadReferrer)" で合計 2
+		回のSQLとなります。このような方式をDBFluteでは、<em class="keyword">バッチフェッチ</em> と呼んでいます。
+	</p>
+	<ol>
+		<li>ConditionBeanで会員の一覧を取得(selectListなど)</li>
+		<li>LoadReferrerで関連する購入の一覧を取得＆マッピング</li>
+	</ol>
+<pre><span class="codetitle">ex) LoadReferrerの基本的な実装 {MEMBER, PURCHASE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+<span class="comment">// 会員(1, 2, 3, 4)を取得</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+<span class="comment">// 購入(3, 6, 7, 2, 9, 1, 4, 5, 8, 10)を取得</span>
+cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.query().setPaymentCompleteFlg_Equal_True(); <span class="comment">// 支払が完了したものだけ</span>
+        cb.query().addOrderBy_PurchaseDatetime_Desc(); <span class="comment">// 購入日時の降順で取得</span>
+    }
+})
+
+<span class="keyword">for</span> (Member member : memberList) {
+    <span class="comment">// 関連する子テーブルの一覧を取得</span>
+    <span class="comment">// (LoadReferrerしていない場合はこれが空リスト)</span>
+    List&lt;Purchase&gt; purchaseList = member.<span class="point">getPurchaseList()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		会話上では、<em class="keyword">ろーどりふぁらぁ</em> と表現します。
+	</p>
+	<h3 id="role">子テーブル対応の役割を明確に</h3>
+	<p>
+		これは、あくまで子テーブルのデータ取得であって、子テーブルを使った絞り込み(ExistsReferrer)ではありません。
+		DBFluteでは、この違いを混同させずに機能として明確に分けています。
+	</p>
+	<div class="relatedpage"><a href="../../conditionbean/query/existsreferrer.html">ConditionBean - ExistsReferrer</a></div>
+	<p>
+		また、LoadReferrer は、子テーブルを many として、many のまま取得するための機能であり、
+		子テーブルの導出カラム(とあるカラムの max や sum など、実質的にone-to-oneとなるデータ)の取得は、別途機能
+		(Specify)DerivedReferrer として用意されています。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../conditionbean/specify/derivedreferrer.html"> -->ConditionBean - (Specify)DerivedReferrer<!-- </a> --></span></div>
+	<div class="inucolumn">
+		<h3 id="balance">バランスをとったone-to-manyのアプローチ</h3>
+		<p>
+			DBFluteでは、one-to-many のアプローチで明確なポリシーがあります。
+		</p>
+		<p>
+			一つ目は、データ取得と絞り込みを明確に分けること。これは、子テーブルに対してに限らず、ConditionBean
+			全体のポリシーに通じる話です。これを混同したまま one-to-many
+			のアプローチを議論するのをよく聞きますが、DBFluteでは機能自体が明確に分かれています。
+			(LoadReferrer と ExistsReferrer)
+		</p>
+		<p>
+			二つ目は、データ取得において、安全であることと安定したパフォーマンスの両方を考慮すること。
+			LoadReferrer が
+			DBFluteでは以下のやり方は採用しません。
+		</p>
+		<ul>
+			<li>A. Getter が呼ばれたときにSQLを発行して取得する (LazyLoad)</li>
+			<li>B. 基点テーブルのレコードごとにSQLを発行して取得する ("A" の実現方法の一つ)</li>
+			<li>C. 一発のSQLで子テーブルも結合して、フラット構造をマッピングする</li>
+		</ul>
+		<p>
+			DBFluteとしては、"A" は安全でないと考えています。"何のデータを取得したのか？"
+			をプログラム上で明確にすることが大事であるというポリシーを持っているからです。
+		</p>
+		<p>
+			また、"B" はパフォーマンス上の問題があります。例えば、50 件の会員一覧があるとして購入を取得する場合、合計で 51
+			回ものSQLが発行されることになります。
+		</p>
+		<p>
+			そして、最速と思われる "C" は、実は速度的に安定しません。
+			単純な会員と購入だけの関係ならば速いですが、会員に対して購入と会員ログイン、会員セキュリティ情報などと枝分かれの子テーブルを取得しようとした場合、
+			SQLが返す結果セットは膨大なものとなり、逆に遅くなってしまう可能性があります。実は、昔のDBFluteにはこの機能がありました。HierarchyArranger
+			というクラスがその名残です。実際に業務に照らし合わせると、速い時はものすごい速く処理されますが、ちょっと複雑になったり、扱うデータ量が増えたりすると、
+			途端に遅くなる現象がありました。その原因はまさしく結果セットは膨張です。
+		</p>
+		<p>
+			DBFluteは、これらの問題を回避した折衷案の機能 LoadReferrer を提供し、"C"
+			のように最速ではないにしても、やってることが単純でわかりやすく、安全な実装、安定したパフォーマンスを出せるようにしています。
+		</p>
+	</div>
+
+	<h2 id="howto">実装方法</h2>
+	<p>
+		Behaviorの <em class="keyword">load[referrer-table]List()</em>
+		を呼び出し、第一引数に会員(一覧)のデータ、第二引数に ConditionBeanSetupper、もしくは、LoadReferrerOption を指定します。
+	</p>
+<pre><span class="codetitle">ex) LoadReferrerの実装手順 (Eclipseでコード補完) {MEMBER, PURCHASE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb); <span class="comment">// まずは普通に会員一覧</span>
+
+<span class="comment">// 1. .lo まで打つと関連テーブル選択</span>
+<span class="comment">// 2. PL (PurchaseList) で関連テーブル確定</span>
+<span class="comment">// 3. オーバーロードのメソッドが四つ：</span>
+<span class="comment">//   A. リスト型引数、ConditionBeanSetupper</span>
+<span class="comment">//   B. リスト型引数、LoadReferrerOption</span>
+<span class="comment">//   C. Entity型引数、ConditionBeanSetupper</span>
+<span class="comment">//   D. Entity型引数、LoadReferrerOption</span>
+<span class="comment">//  ※ここでは、"A" を選択して enter ("A" の JavaDoc に Example あり)</span>
+<span class="attribute">memberBhv</span>.loPL
+--
+<span class="comment">// メソッドが補完されて、引数の "memberList" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList(memberList, conditionBeanSetupper)</span>;
+--
+<span class="comment">// 1. tab を一回押して、第二引数の方を選択状態に</span>
+<span class="comment">// 2. "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
+<span class="attribute">memberBhv</span>.loadPurchaseList(memberList, <span class="point">new </span>);
+--
+cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        <span class="comment">// TODO Auto-generated method stub</span>
+        
+    }
+})
+--
+<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
+<span class="comment">// 子テーブルを取得するための検索条件を指定</span>
+cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+        cb.query().addOrderBy_PurchaseDatetime_Desc();
+    }
+})
+--
+fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
+--
+<span class="keyword">for</span> (Member member : memberList) {
+    <span class="comment">// 関連する子テーブルの一覧を取得</span>
+    <span class="comment">// (LoadReferrerしていない場合はこれが空リスト)</span>
+    List&lt;Purchase&gt; purchaseList = member.<span class="point">getPurchaseList()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">ex) LoadReferrerを使って関連する購入を一括取得 {PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE dflocal 
+ <span class="keyword">where</span> <span class="point">dflocal.MEMBER_ID in (1, 2, 3, 4)</span>
+   <span class="keyword">and</span> dflocal.PURCHASE_COUNT >= <span class="literal">2000</span> 
+ <span class="keyword">order by</span> <span class="point">dflocal.MEMBER_ID asc</span>, dflocal.PURCHASE_DATETIME <span class="keyword">desc</span>
+</code></pre>
+	<h3 id="referrerorderby">子テーブルのソート条件</h3>
+	<p>
+		ConditionBeanSetupper で、子テーブルのソート条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
+		OrderBy が利用できます。業務的にほとんどの場合、ソート条件が必要になると想定されています。
+	</p>
+<pre><span class="codetitle">ex) LoadReferrerでOrderBy {MEMBER, PURCHASE} @Java</span><code>
+<span class="abbreviation">...</span>
+cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.query().<span class="point">addOrderBy_PurchaseDatetime_Desc()</span>; <span class="comment">// 購入日時の降順で</span>
+    }
+})
+</code></pre>
+<pre><span class="codetitle">ex) 関連する購入を購入日時の降順で並べて取得 {PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE dflocal 
+ <span class="keyword">where</span> dflocal.MEMBER_ID <span class="keyword">in</span> (1, 2, 3, 4)
+ <span class="keyword">order by</span> dflocal.MEMBER_ID asc, <span class="point">dflocal.PURCHASE_DATETIME desc</span>
+</code></pre>
+	<p>
+		一つ目のソートキーは、関連のためのカラムが自動的に付与されます。
+		明示的に指定したソート条件は、二つ目以降のソートキーとして展開されます。
+		(但し、上記の例で MEMBER_ID 絞り込みが一つだけの場合は、一つ目のソートキー MEMBER_ID のソートは省略される)
+	</p>
+	<h3 id="onetomanytoone">子テーブルの親テーブルの取得</h3>
+	<p>
+		ConditionBeanSetupper で、子テーブルのデータ取得条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
+		SetupSelect も利用でき、子テーブルの親テーブル(one-to-many-to-one)も一緒に取得することができます。
+	</p>
+<pre><span class="codetitle">ex) LoadReferrerでSetupSelect {MEMBER, PURCHASE} @Java</span><code>
+<span class="abbreviation">...</span>
+cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.<span class="point">setupSelect_Product()</span>; <span class="comment">// 商品も同時に取得</span>
+        cb.query().addOrderBy_PurchaseDatetime_Desc();
+    }
+})
+
+<span class="keyword">for</span> (Member member : memberList) {
+    List&lt;Purchase&gt; purchaseList = member.getPurchaseList();
+    <span class="keyword">for</span> (Purchase purchase : purchaseList) {
+        <span class="comment">// 商品も取得できる</span>
+        Product product = purchase.<span class="point">getProduct()</span>;
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<h3 id="onetomanytomany">子テーブルの子テーブルの取得</h3>
+	<p>
+		ここで、LoadReferrerOption の出番です。ConditionBeanSetupper
+		は、シンプルに一階層までの子テーブルを取得するのに向いています。さらに二階層以上先の子テーブルを取得する場合は、LoadReferrerOption
+		を利用します。
+	</p>
+	<p>
+		LoadReferrerOption に EntityListSetupper のコールバックを設定し、そのコールバックの中でさらに深い階層の LoadReferrer
+		を実装します。
+	</p>
+<pre><span class="codetitle">ex) LoadReferrerでEntityListSetupper {MEMBER_STATUS, MEMBER, PURCHASE} @Java</span><code>
+<span class="comment">// 会員ステータス (基点テーブル)</span>
+MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
+cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+List&lt;MemberStatus&gt; memberStatusList = <span class="attribute">memberStatusBhv</span>.selectList(cb);
+
+LoadReferrerOption&lt;MemberCB, Member&gt; loadReferrerOption = <span class="keyword">new</span> LoadReferrerOption&lt;MemberCB, Member&gt;();
+
+<span class="comment">// 会員 (一階層目の子テーブル)</span>
+loadReferrerOption.setConditionBeanSetupper(<span class="keyword">new</span> ConditionBeanSetupper&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> setup(MemberCB cb) {
+        cb.query().addOrderBy_FormalizedDatetime_Desc();
+    }
+});
+
+<span class="comment">// 購入 (二階層目の子テーブル)</span>
+loadReferrerOption.<span class="point">setEntityListSetupper</span>(<span class="keyword">new</span> EntityListSetupper&lt;MemberCB&gt;() {
+    <span class="comment">// ここでさらにネストさせれば、どこまでも階層を辿って子テーブルを取得できる</span>
+    <span class="keyword">public void</span> setup(List&lt;Member&gt; entityList) {
+        <span class="comment">// 一階層目の子テーブルの Behavior も用意しておく必要あり</span>
+        <span class="attribute">memberBhv</span>.loadPurchaseList(entityList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+            <span class="keyword">public void</span> setup(PurchaseCB cb) {
+                cb.query().addOrderBy_PurchaseCount_Desc();
+                cb.query().addOrderBy_ProductId_Desc();
+            }
+        });
+    }
+});
+
+<span class="attribute">memberStatusBhv</span>.loadMemberList(memberStatusList, <span class="point">loadReferrerOption</span>);
+
+<span class="keyword">for</span> (MemberStatus memberStatus : memberStatusList) {
+    List&lt;Member&gt; memberList = memberStatus.getMemberList();
+    <span class="keyword">for</span> (Member member : memberList) {
+        List&lt;Purchase&gt; purchaseList = member.<span class="point">getPurchaseList()</span>;
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<h3 id="branchreferrer">枝分かれの子テーブルの取得</h3>
+	<p>
+		それぞれの関連に対して LoadReferrer を呼び出せば、枝分かれの子テーブルが設定されたオブジェクトグラフを構築することができます。
+	</p>
+<pre><span class="codetitle">ex) LoadReferrerで枝分かれの子テーブル {MEMBER, PURCHASE, MEMBER_LOGIN} @Java</span><code>
+<span class="abbreviation">...</span>
+cb.query().<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.query().addOrderBy_PurchaseDatetime_Desc();
+    }
+})
+cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
+    <span class="keyword">public void</span> setup(MemberLoginCB cb) {
+        cb.query().addOrderBy_LoginDatetime_Desc();
+    }
+})
+</code></pre>
+
+	<h3 id="originalcb">独自のCBインスタンス</h3>
+	<p>
+		通常、子テーブルのための ConditionBean のインスタンスは内部で生成されますが、
+		LoadReferrerOption の setReferrerConditionBean() で設定することで、独自インスタンスを利用することができます。
+		業務的な必要性はあまり想定されていませんが、アプリでの特殊な都合がある場合に有効です。
+		(そういった特殊な状況以外での利用は非推奨です)
+	</p>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<p>
+		一つの関連に付き、オーバーロードで四つのメソッドがあります。
+	</p>
+	<ul>
+		<li>リスト型引数、ConditionBeanSetupper</li>
+		<li>リスト型引数、LoadReferrerOption</li>
+		<li>Entity型引数、ConditionBeanSetupper</li>
+		<li>Entity型引数、LoadReferrerOption</li>
+	</ul>
+	<h3 id="argument">引数</h3>
+	<p>
+		第一引数は、該当のBehaviorに対応するテーブルのEntity型(のリスト)となります。
+		第二引数は、該当の子テーブルのEntityやConditionBeanに型付いたものとなります。
+	</p>
+	<p>
+		第一引数、第二引数共に null を指定した場合は例外です。但し、第一引数で空リストは許容されます(何も処理が実行されないだけ)。
+	</p>
+	<h3 id="result">戻り値</h3>
+	<p>
+		void型となります。
+	</p>
+	<h3 id="override">オーバーライド</h3>
+	<p>
+		オーバーライドして拡張することもできますが、難しいです。
+	</p>
+	<h3 id="severalcall">同じリストに対して二度呼び出し</h3>
+	<p>
+		子テーブルの情報は上書きされます。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
