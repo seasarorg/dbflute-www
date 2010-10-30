@@ -123,7 +123,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/query/existsreferrer.html">ConditionBean - ExistsReferrer</a></div>
 	<p>
-		また、LoadReferrer は、子テーブルを many として、many のまま取得するための機能であり、
+		また、LoadReferrer は、子テーブルを many として(many のまま)、取得するための機能であり、
 		子テーブルの導出カラム(とあるカラムの max や sum など、実質的にone-to-oneとなるデータ)の取得は、別途機能
 		(Specify)DerivedReferrer として用意されています。
 	</p>
@@ -235,7 +235,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 		ConditionBeanSetupper で、子テーブルのソート条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
 		OrderBy が利用できます。業務的にほとんどの場合、ソート条件が必要になると想定されています。
 	</p>
-<pre><span class="codetitle">ex) LoadReferrerでOrderBy {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 会員に関連する購入を購入日時の降順で取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
@@ -243,7 +243,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
     }
 })
 </code></pre>
-<pre><span class="codetitle">ex) 関連する購入を購入日時の降順で並べて取得 {PURCHASE} @DisplaySql</span><code>
+<pre><span class="codetitle">ex) 会員に関連する購入を購入日時の降順で取得 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> PURCHASE dflocal 
  <span class="keyword">where</span> dflocal.MEMBER_ID <span class="keyword">in</span> (1, 2, 3, 4)
@@ -259,7 +259,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 		ConditionBeanSetupper で、子テーブルのデータ取得条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
 		SetupSelect も利用でき、子テーブルの親テーブル(one-to-many-to-one)も一緒に取得することができます。
 	</p>
-<pre><span class="codetitle">ex) LoadReferrerでSetupSelect {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 会員に関連する購入と共に商品も取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
@@ -287,7 +287,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 		LoadReferrerOption に EntityListSetupper のコールバックを設定し、そのコールバックの中でさらに深い階層の LoadReferrer
 		を実装します。
 	</p>
-<pre><span class="codetitle">ex) LoadReferrerでEntityListSetupper {MEMBER_STATUS, MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 会員ステータスに関連する会員とさらに購入を取得 @Java</span><code>
 <span class="comment">// 会員ステータス (基点テーブル)</span>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
@@ -330,7 +330,7 @@ loadReferrerOption.<span class="point">setEntityListSetupper</span>(<span class=
 	<p>
 		それぞれの関連に対して LoadReferrer を呼び出せば、枝分かれの子テーブルが設定されたオブジェクトグラフを構築することができます。
 	</p>
-<pre><span class="codetitle">ex) LoadReferrerで枝分かれの子テーブル {MEMBER, PURCHASE, MEMBER_LOGIN} @Java</span><code>
+<pre><span class="codetitle">ex) 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {

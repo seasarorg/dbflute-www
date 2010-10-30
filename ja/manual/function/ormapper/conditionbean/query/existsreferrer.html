@@ -89,7 +89,7 @@
 	<h2 id="howto">実装方法</h2>
 	<p>
 		query() の後、<em class="keyword">exists[referrer-table]List()</em>
-		を呼び出し、引数にサブクエリの中の条件を指定する、SubQuery のコールバック実装を指定します。
+		を呼び出し、SubQuery のコールバック実装を引数に指定します。
 	</p>
 <pre><span class="codetitle">ex) ExistsReferrer条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -127,7 +127,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	<p>
 		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
 	</p>
-<pre><span class="codetitle">ex) ExistsReferrerを使って2000円以上の購入をしたことのある会員を検索 {PURCHASE} @DisplaySql</span><code>
+<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員一覧 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dflocal
  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
@@ -141,7 +141,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		子テーブルの親テーブル(many-to-many)のカラムも条件として利用できます。ExistsReferrer の中で Query(Relation)
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {PURCHASE, PRODUCT} @Java</span><code>
+<pre><span class="codetitle">ex) 商品名が "S" で始まる商品を購入したことのある会員一覧 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
@@ -154,13 +154,13 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		子テーブルの子テーブル(one-to-many-to-many)のカラムも条件として利用できます。ExistsReferrer の中でさらに ExistsReferrer
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの子テーブル(one-many-to-many)のカラムで絞り込み {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員の会員ステータス一覧 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
         subCB.query().<span class="point">existsPurchaseList</span>(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
             <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
+                subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
             }
         });
     }
@@ -171,15 +171,14 @@ cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberC
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも条件として利用できます。Query(Relation) の後に ExistsReferrer
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {MEMBER_LOGIN, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員の会員ログイン一覧 @Java</span><code>
 MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
 cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
+        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
     }
 });
 </code></pre>
-
 	<h3 id="emptysubquery">サブクエリが空条件でも意味あり</h3>
 	<p>
 		サブクエリに何も条件がなくても、ExistsReferrer
@@ -219,6 +218,9 @@ MemberCB cb = <span class="keyword">new</span> MemberCB();
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
+	<p>
+		引数の SubQuery は必須です。
+	</p>
 	<h3 id="severalcall">同テーブルに対する複数条件の指定</h3>
 	<p>
 		同じ関連テーブルに対して、ExistsReferrer

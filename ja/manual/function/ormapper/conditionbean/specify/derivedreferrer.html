@@ -49,215 +49,246 @@
 				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
-				<li><a href="#emptysubquery">サブクエリが空条件でも意味あり</a></li>
+				<li><a href="#funcfilter">導出値の関数によるフィルタ</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#severalcall">同テーブルに対する複数条件の指定</a></li>
 				<li><a href="#subcbean">サブクエリのConditionBean</a></li>
-				<li><a href="#inlineorclause">OnClause や InlineView では不可</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
-		<li><a href="#notexistsreferrer">否定条件：NotDerivedReferrer</a></li>
-		<li><a href="#inscoperelation">代替方法：InScopeRelation</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
 		子テーブルの導出カラム(とあるカラムの最大値や合計値)も基点テーブルの一覧と一緒に取得します。
 	</p>
-	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
 	<p>
-		例えば、"モバイルからログインをしたことのある会員(一覧)" というように、
-		子テーブル(会員ログイン情報)のカラムの条件を利用して、基点テーブル(会員)を絞り込むのに有効です。
-		また、子テーブル(one-to-many) だけでなく、"とある名前の商品を購入したことのある会員(一覧)"
-		というように、子テーブルの親テーブル(many-to-many)のカラムを利用した絞り込みにも利用できます。
-		このような条件が exists 句を利用した相関サブクエリで実現されます。
+		例えば、"会員一覧と共に、それぞれの会員の最終ログイン日時や購入金額合計も一緒に取得" というように、
+		子テーブルのカラムの値を元に導出したカラムを基点テーブルと共に取得することができます。
+		select 句の相関サブクエリを使って基点テーブルと同じ粒度のレベルのデータとして取得し、
+		その導出カラムの値は、基点テーブルの ExEntity で手動で追加されたプロパティに格納されます。
 	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exentity">ExEntity</a></div>
 	<p>
-		会話上では、<em class="keyword">いぐじすつりふぁらぁ</em> と表現します。
+		会話上では、<em class="keyword">すぺしふぁいでぃらいゔどりふぁらぁ</em>
+		と表現します。単に <em class="keyword">でぃらいゔどりふぁらぁ</em> と言った場合、厳密には (Query)DerivedReferrer
+		を含みますが、前後関係で分かる場合は、この (Specify)DerivedReferrer のことを示すことが多くあります。
+		(ドキュメント上でも前後関係で明らかな場合に、単に DerivedReferrer と表記して (Specify)DerivedReferrer を指すこともあります)
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/derivedreferrer"> -->(Query)DerivedReferrer<!-- </a> --></span></div>
 	<h3 id="role">子テーブル対応の役割を明確に</h3>
 	<p>
-		これは、あくまで子テーブルを使った絞り込みであって、子テーブルのデータ取得(LoadReferrer)ではありません。
-		DBFluteでは、この違いを混同させずに機能として明確に分けています。
+		これは、あくまで子テーブルの導出カラム(とあるカラムの max や sum など、実質的にone-to-oneとなるデータ)の取得であって、
+		子テーブルを many として(many のまま)、データを取得(LoadReferrer)するものではありません。
 	</p>
 	<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html">Behavior - LoadReferrer</a></div>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">exists[referrer-table]List()</em>
-		を呼び出し、引数にサブクエリの中の条件を指定する、SubQuery のコールバック実装を指定します。
+		まずは、導出カラムを受け取るためのプロパティを ExEntity に定義します。
 	</p>
-<pre><span class="codetitle">ex) DerivedReferrer条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exentity">ExEntity</a></div>
+	<p>
+		インスタンス変数、Getter・Setter、そしてエリアス名の定数定義を定義します。エリアス名の定数の値は、FlexibleName
+		としてプロパティを判断できるものであれば何でも良いですが、DB上の命名ポリシーに変換したものが推奨されます。
+		また、定数の名前は任意ですが、習慣的に以下のようにすると良いでしょう。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wf.html#flexiblename">FlexibleName</a></div>
+<pre><span class="codetitle">ex) (Specify)DerivedReferrerのためのプロパティ定義 {MEMBER, MEMBER_LOGIN} @Java</span><code>
+<span class="keyword">public class</span> Member <span class="keyword">extends</span> BsMember {
+    <span class="abbreviation">...</span>
+    <span class="keyword">public static final</span> String ALIAS_latestLoginDatetime = <span class="literal">"LATEST_LOGIN_DATETIME"</span>;
+
+    <span class="keyword">protected</span> Date <span class="attribute">_latestLoginDatetime</span>;
+
+    <span class="keyword">public</span> Date getLatestLoginDatetime() {
+        <span class="keyword">return</span> <span class="attribute">_latestLoginDatetime</span>;
+    }
+
+    <span class="keyword">public void</span> setLatestLoginDatetime(Date latestLoginDatetime) {
+        <span class="attribute">_latestLoginDatetime</span> = latestLoginDatetime;
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		specify() の後、<em class="keyword">derived[referrer-table]List()</em>
+		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
+		のコールバック実装を引数に指定します。第二引数は、導出カラムを受け取るためのプロパティに対応するエリアス名、
+		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption を指定します。
+	</p>
+	<div class="relatedpage"><a href="#funcfilter">this - 導出値の関数によるフィルタ</a></div>
+<pre><span class="codetitle">ex) (Specify)DerivedReferrer条件の実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.q <span class="comment">// .q と打って enter</span>
+cb.sp <span class="comment">// .sp と打って enter</span>
 --
-cb.query()
+cb.specify()
 --
-<span class="comment">// 1. .ex まで打つと関連テーブル選択</span>
-<span class="comment">// 2. PL (PurchaseList) で enter</span>
-cb.query().exPL
+<span class="comment">// 1. .d まで打つと関連テーブル選択</span>
+<span class="comment">// 2. MLL (MemberLoginList) で enter</span>
+cb.specify().dMLL
+--
+cb.query().<span class="point">derivedMemberLoginList()</span>
+--
+<span class="comment">// max() や min()、sum() などの関数メソッドを選んで enter</span>
+<span class="comment">//  =&gt; max(), min(), avg(), sum(), count(), countDistinct()</span>
+<span class="comment">// それぞれに、オーバーロードで DerivedReferrerOption が指定できる</span>
+<span class="comment">//  =&gt; 導出値が null の可能性がある場合のために、coalesce 関数も利用できる</span>
+cb.query().derivedMemberLoginList().max
 --
 <span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
-cb.query().<span class="point">existsPurchaseList(subQuery)</span>
+cb.query().derivedMemberLoginList().max(subQuery, aliasName)
 --
 <span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
-cb.query().existsPurchaseList(<span class="point">new </span>)
+cb.query().derivedMemberLoginList().max(<span class="point">new </span>, aliasName)
 --
 <span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+    <span class="keyword">public void</span> query(MemberLoginCB subCB) {
         <span class="comment">// TODO Auto-generated method stub</span>
         
     }
-})
+};, aliasName, aliasName) <span class="comment">// ちょっと変なことになる (Eclipse-3.5 において)</span>
 --
 <span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
-<span class="comment">// サブクエリ(子テーブル)の絞り込み条件を指定</span>
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+<span class="comment">// サブクエリ(子テーブル)の導出カラムと絞り込み条件を指定</span>
+cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
+    <span class="keyword">public void</span> query(MemberLoginCB subCB) {
+        subCB.specify().<span class="point">columnLoginDatetime()</span>; <span class="comment">// 導出カラムの指定</span>
+        subCB.query().setMobileLoginFlg_Equal_False(); <span class="comment">// 絞り込み条件</span>
     }
-}); <span class="comment">// セミコロンを忘れずに</span>
+}, Member.ALIAS_latestLoginDatetime); <span class="comment">// エリアス名を指定 (変になってたのは直す)</span>
+--
+fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
+--
+<span class="keyword">for</span> (Member member : memberList) {
+    Date latestLoginDatetime = member.<span class="point">getLatestLoginDatetime()</span>;
+    <span class="abbreviation">...</span>
+}
 </code></pre>
 	<p>
 		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
 	</p>
-<pre><span class="codetitle">ex) DerivedReferrerを使って2000円以上の購入をしたことのある会員を検索 {PURCHASE} @DisplaySql</span><code>
-<span class="abbreviation">...</span>
+<pre><span class="codetitle">ex) (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , (<span class="keyword">select</span> max(dfsublocal_0.LOGIN_DATETIME)
+          <span class="keyword">from</span> MEMBER_LOGIN dfsublocal_0 
+         <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
+           <span class="keyword">and</span> dfsublocal_0.MOBILE_LOGIN_FLG = <span class="literal">0</span>
+       ) <span class="keyword">as</span> LATEST_LOGIN_DATETIME
   <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
-                 <span class="keyword">from</span> PURCHASE dfsublocal_0
-                <span class="keyword">where</span> <span class="point">dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID</span>
-                  <span class="keyword">and</span> dfsublocal_0.PURCHASE_PRICE &gt;= <span class="literal">2000</span>
-       )
+<span class="abbreviation">...</span>
 </code></pre>
 	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
 	<p>
-		子テーブルの親テーブル(many-to-many)のカラムも条件として利用できます。DerivedReferrer の中で Query(Relation)
-		を使って実現します。
+		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
+		one-to-one のテーブルのカラムを導出カラムに、というのが実用的と考えられます。
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {PURCHASE, PRODUCT} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().<span class="point">queryProduct()</span>.setProductName_PrefixSearch(<span class="literal">"S"</span>);
+<pre><span class="codetitle">ex) 会員ステータスから会員を経由した会員セキュリティの更新日時を導出 @Java</span><code>
+MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
+cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB subCB) {
+        subCB.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime();
     }
 });
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</h3>
 	<p>
-		子テーブルの子テーブル(one-to-many-to-many)のカラムも条件として利用できます。DerivedReferrer の中でさらに DerivedReferrer
-		を使って実現します。
+		残念ながら、子テーブルの子テーブル(one-to-many-to-many)のカラムを導出カラムにすることはできません。
+		(つまり、DerivedReferrer の中で、DerivedReferrer を利用することはできません)
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの子テーブル(one-many-to-many)のカラムで絞り込み {MEMBER, PURCHASE} @Java</span><code>
-MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
-cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.query().<span class="point">existsPurchaseList</span>(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
-            }
-        });
-    }
-});
-</code></pre>
 	<h3 id="manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</h3>
 	<p>
-		親テーブルの子テーブル(many-to-one-to-many)のカラムも条件として利用できます。Query(Relation) の後に DerivedReferrer
-		を使って実現します。
+		親テーブルの子テーブル(many-to-one-to-many)のカラムも導出カラムとして利用できます。Specify(Relation) の後に
+		DerivedReferrer を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 子テーブルの親テーブル(many-to-many)のカラムで絞り込み {MEMBER_LOGIN, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 会員ログインから会員を経由した購入金額の合計を導出 {PURCHASE} @Java</span><code>
 MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
-cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">5000</span>);
+        subCB.specify().columnPurchasePrice();
     }
 });
 </code></pre>
-
-	<h3 id="emptysubquery">サブクエリが空条件でも意味あり</h3>
+	<h3 id="funcfilter">導出値の関数によるフィルタ</h3>
 	<p>
-		サブクエリに何も条件がなくても、DerivedReferrer
-		は有効です。会員と購入の関係で言えば、"(一度でも何かしら)購入したことのある会員(一覧)"
-		という業務的な条件を意味します。
+		導出値をSQLの関数で基本的なフィルタを掛けることができます。関数メソッドのオーバーロードの第三引数である DerivedReferrerOption
+		にて、そのフィルタ処理を指定することができます。利用できるフィルタメソッドは以下の通りです。
 	</p>
-<pre><span class="codetitle">ex) 空条件のDerivedReferrer {MEMBER, PURCHASE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        <span class="comment">// 空条件：(一度でも何かしら)購入したことのある会員(一覧)</span>
+	<dl class="textlist">
+		<dt>coalesce(Object coalesce)</dt>
+		<dd>
+			max() や sum() など、多くの場合はデータ一件も存在しなかった場合は null
+			を戻します。このメソッドで、導出値が null になった場合の代わりの値を指定することができます。SQL上では coalesce
+			関数が利用されます。日付型に対して文字列を指定した場合は、内部的にパースして(DfTypeUtil.toDate()を利用)、日付型に変換します。
+			絞り込み条件も考慮して、<em class="keyword">関連する子テーブルのレコードが一件も存在しない可能性がある場合</em> に有効です。
+		</dd>
+		<dt>round(Object round)</dt>
+		<dd>
+			導出値を指定された精度で四捨五入することができます。SQL上では round
+			関数が利用されます。基本的には数値型を想定していますが、日付型に対して round
+			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのround関数の仕様に依存します。
+		</dd>
+		<dt>trunc(Object trunc)</dt>
+		<dd>
+			導出値を指定された精度で切り捨てすることができます。SQL上では trunc
+			関数が利用されます(DBMSごとの違いは内部的に吸収)。基本的には数値型を想定していますが、日付型に対して trunc
+			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのtrunc関数の仕様に依存します。
+		</dd>
+	</dl>
+	<p>
+		これらは、細かい動作はDBMSの該当のSQL関数の仕様に依存します。
+		また、同じ動作をする関数が存在しないDBMSではサポートされません。
+	</p>
+<pre><span class="codetitle">ex) 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
+cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
+    <span class="keyword">public void</span> query(MemberLoginCB subCB) {
+        <span class="comment">// 一度もログインしていない、もしくは、モバイルでしか</span>
+        <span class="comment">// ログインしていない会員の場合は、null の可能性がある</span>
+        subCB.specify().columnLoginDatetime();
+        subCB.query().setMobileLoginFlg_Equal_False();
     }
-});
+}, Member.ALIAS_<span class="abbreviation">...</span>, <span class="point">new DerivedReferrerOption().coalesce("1192-01-01")</span>);
 </code></pre>
-<pre><span class="codetitle">ex) 空条件のDerivedReferrer {MEMBER, PURCHASE} @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
-                 <span class="keyword">from</span> PURCHASE dfsublocal_0
-                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-       )
-</code></pre>
+	<h4>フィルタ処理の組み合わせ</h4>
 	<p>
-		もし、サブクエリ内の条件値が存在しないときに DerivedReferrer
-		自体を無効にしたいというのであれば、if 文で分岐させます。
+		フィルタ処理を組み合わせることもできます。例えば、coalesce() を指定した上で round()
+		するなど。DerivedReferrerOption のメソッドを呼び出した順番でSQL上でも同じ順番で処理されます。
 	</p>
-<pre><span class="codetitle">ex) 空条件のDerivedReferrer {MEMBER, PURCHASE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-<span class="keyword">final</span> Integer price = <span class="abbreviation">...</span>; 
-<span class="keyword">if</span> (price != <span class="keyword">null</span>) {
-    cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-        <span class="keyword">public void</span> query(PurchaseCB subCB) {
-            subCB.query().setPurchasePrice_GreaterEqual(price);
-        }
-    });
-}
+<pre><span class="codetitle">ex) null の場合は 0 に置き換えて、その後、精度 2 桁で四捨五入 @Java</span><code>
+<span class="keyword">new</span> DerivedReferrerOption().<span class="point">coalesce</span>(0).<span class="point">round</span>(2)
 </code></pre>
+	<h4>フィルタ処理の拡張</h4>
+	<p>
+		フィルタ処理を拡張したい場合は(別の関数を使うなど)、DerivedReferrerOption を拡張することで実現できます。
+		但し、内部的なメソッドは予告なく構成などが変更される可能性がありますのでご注意を。
+	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="severalcall">同テーブルに対する複数条件の指定</h3>
 	<p>
-		同じ関連テーブルに対して、DerivedReferrer
-		を複数回呼び出した場合は、呼び出した分だけ条件になります。
+		引数の SubQuery、エリアス名は必須です。DerivedReferrerOption
+		もオーバーロードのメソッドを指定している場合は必須です。但し、エリアス名に関しては、ColumnQuery
+		内で利用される (Specify)DerivedReferrer の場合に限り null が許容されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/columnquery.html"> -->ColumnQuery<!-- </a> --></span></div>
+	<p>
+		エリアス名は導出カラムの定義のユニークキーとなります。同テーブルに対する複数呼び出しであってもエリアス名が違えば有効です。
+		同じエリアス名を指定した場合は、上書きとなります。また、存在しないプロパティのエリアス名が指定すると例外となります。
 	</p>
 	<h3 id="subcbean">サブクエリのConditionBean</h3>
 	<p>
-		サブクエリの ConditionBean は、絞り込み条件だけの指定に利用するものです。
+		サブクエリの ConditionBean は、導出カラムと絞り込み条件だけの指定に利用するものです。
 		SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
 	</p>
-	<h3 id="inlineorclause">OnClause や InlineView では不可</h3>
-	<p>
-		OnClause や InlineView の中の条件では利用できません。
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./onclause.html"> -->OnClause<!-- </a> --></span></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="./inlineview.html"> -->InlineView<!-- </a> --></span></div>
 
 	<h2 id="supported">サポートされる関連テーブル</h2>
 	<p>
 		Referrer と定義付けられる one-to-many
 		の関連に対してサポートされます。
 	</p>
-	<p>
-		one-to-one は、DBFluteでは ForeignTable として扱われ、Query(Relation)
-		で簡単に条件を設定できるので DerivedReferrer のサポート外です。
-	</p>
-
-	<h2 id="notexistsreferrer">否定条件：NotDerivedReferrer</h2>
-	<p>
-		否定条件の対象値の列挙として、NotDerivedReferrer もあります。条件が否定になっただけで仕様は DerivedReferrer と全く同じです。
-	</p>
-
-	<h2 id="inscoperelation">代替方法：InScopeRelation</h2>
-	<p>
-		全く同じの結果を返す別の方法として、InScopeRelation
-		があります。DBFluteとしては、基本的に "子テーブルの条件で絞り込み" をする場合は、DerivedReferrer
-		を基本にすることをお奨めしています。
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./inscoperelation.html"> -->InScopeRelation<!-- </a> --></span></div>
 
 </div>
 </div>
