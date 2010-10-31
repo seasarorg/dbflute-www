@@ -41,7 +41,6 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
-		<li><a href="#manual">手動で比較条件を調整</a></li>
 		<li><a href="#pattern">パターンの比較条件</a>
 			<ul>
 				<li><a href="#date">日付による範囲条件 (yyyy/MM/dd)</a></li>
@@ -49,6 +48,7 @@
 				<li><a href="#year">年による範囲条件 (yyyy)</a></li>
 			</ul>
 		</li>
+		<li><a href="#manual">手動で比較条件を調整</a></li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#nullargument">nullの指定</a></li>
@@ -97,16 +97,6 @@ cb.query().<span class="point">setFormalizedDatetime_FromTo(fromDate, toDate, op
 --
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
         , <span class="keyword">new</span> FromToOption().<span class="point">compareAsMonth()</span>);
-</code></pre>
-
-	<h2 id="manual">手動で比較条件を調整</h2>
-	<p>
-		何もオプションが設定されていない FromToOption を指定した場合は、指定された条件値そのままに対して、単なる GreaterEqual と LessEqual
-		を利用した範囲検索になります。Equal を Than に変えたい場合は、greaterThan(), lessThan() を呼び出すことで変更できます。
-	</p>
-<pre><span class="codetitle">ex) from を GreaterThan に変更して FromTo {FORMALIZED_DATETIME} @Java</span><code>
-cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">greaterThan()</span>);
 </code></pre>
 
 	<h2 id="pattern">パターンの比較条件</h2>
@@ -175,6 +165,62 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 <span class="abbreviation">...</span>
  <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2007/01/01 00:00:00'</span>
    <span class="keyword">and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2008/01/01 00:00:00'</span>
+</code></pre>
+
+	<h2 id="manual">手動で比較条件を調整</h2>
+	<p>
+		用意されているパターンの比較条件に合致しない場合は、手動で比較条件を調整することができます。
+	</p>
+	<p>
+		何もオプションが設定されていない FromToOption を指定した場合は、指定された条件値そのままに対して、単なる GreaterEqual と LessEqual
+		を利用した範囲検索になります。Equal を Than に変えたい場合は、greaterThan(), lessThan() を呼び出すことで変更できます。
+	</p>
+<pre><span class="codetitle">ex) from を GreaterThan に変更して FromTo {FORMALIZED_DATETIME} @Java</span><code>
+cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
+        , <span class="keyword">new</span> FromToOption().<span class="point">greaterThan()</span>);
+</code></pre>
+	<p>
+		さらに、FromToOption には日付を操作する幾つかの便利メソッドが用意されています。
+		これらを活用して、業務にフィットする FromTo 条件を作り上げると良いでしょう。
+	</p>
+	<dl class="textlist">
+		<dt>[from/to]PatternDayStart()</dt>
+		<dd>[from/to]Date を、その日の最初の瞬間(時分秒ミリ秒を切り捨て)にして比較</dd>
+		<dt>[from/to]PatternMonthStart()</dt><dd>[from/to]Date を、その月の最初の瞬間(日を 01、時分秒ミリ秒を切り捨て)にして比較</dd>
+		<dt>[from/to]PatternYearStart()</dt><dd>[from/to]Date を、その年の最初の瞬間(月日を 01、時分秒ミリ秒を切り捨て)にして比較</dd>
+		<dt>[from/to]DateWithNoon()</dt>
+		<dd>
+			[from/to]Date を、その日の正午ジャスト(日を 12、時分秒ミリ秒を切り捨て)にして比較 <span class="freecomment">@since 0.9.7.5</span>
+		</dd>
+		<dt>[from/to]DateWithHour(int hourOfDay)</dt>
+		<dd>[from/to]Date を、その日の指定された時間ジャストにして比較 <span class="freecomment">@since 0.9.7.5</span></dd>
+	</dl>
+	<p>
+		手動で設定する内容がアプリの複数箇所で利用される場合は、FromToOption 自体を拡張して、業務に合わせたアプリ独自の
+		FromToOption を作って横展開すると良いでしょう。
+	</p>
+<pre><span class="codetitle">ex) アプリ独自の FromToOption を作成 @Java</span><code>
+<span class="keyword">public class</span> AppFromToOption <span class="keyword">extends</span> FromToOption {
+
+    <span class="keyword">public</span> AppFromToOption() {
+        <span class="comment">// アプリ全体で統一の比較条件の調整</span>
+        <span class="abbreviation">...</span>
+    }
+
+    <span class="keyword">public</span> AppFromToOption arrangeAsPurchase<span class="abbreviation">...</span>() {
+        <span class="comment">// 業務ごとに独自の比較条件の調整</span>
+        clearAll();
+        <span class="abbreviation">...</span>
+        return this;
+    }
+
+    <span class="keyword">public</span> AppFromToOption arrangeAsLogin<span class="abbreviation">...</span>() {
+        <span class="comment">// 業務ごとに独自の比較条件の調整</span>
+        clearAll();
+        <span class="abbreviation">...</span>
+        return this;
+    }
+}
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
