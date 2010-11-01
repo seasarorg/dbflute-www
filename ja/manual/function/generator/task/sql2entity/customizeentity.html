@@ -139,8 +139,9 @@ select ...
 	<p>
 		生成されるCustomizeEntityが持つ情報として、<em class="keyword">そのSQL(の結果レコード)をユニークに識別するPK</em>
 		を設定することができます。そうすることでは、CustomizeEntityの equals()メソッド や hasPrimaryKey()メソッド
-		にて指定されたPKを利用するようになります。
+		にて指定されたPKを利用するようになります。また、外だしSQLの LoadReferrer を利用する場合はこのPKマークの指定が必須です。
 	</p>
+	<div class="relatedpage"><a href="../../../ormapper/behavior/select/loadreferrer.html#outsidesql">Behavior - 外だしSQLでもLoadReferrer</a></div>
 	<p>
 		SQLの行コメント で、<em class="keyword">*[主キー]*</em>
 		という形で記述します(複数指定する場合はカンマ区切りで指定)。これを
@@ -148,16 +149,42 @@ select ...
 	</p>
 <pre><span class="codetitle">ex) MEMBER_IDをPKとして扱いたい場合 @SQL-File</span><code>
 <span class="comment">-- #df:entity#</span>
-<span class="comment">-- *MEMBER_ID*</span>
-select MEMBER_ID, MAX(...), ...
-  from PURCHASE
-    left outer join ...
- group by MEMBER_ID
+<span class="point">-- *MEMBER_ID*</span>
+<span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE
+    <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
+ <span class="keyword">group by</span> MEMBER_ID
+</code></pre>
+	<p>
+		ここでは、元のカラム名ではなく、検索結果上で利用される名前を指定します。例えば、エリアス名が付いている場合は、エリアス名を指定します。
+	</p>
+<pre><span class="codetitle">ex) エリアス名が付いているのでPK_IDをPKマークに指定 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="point">-- *PK_ID*</span>
+<span class="keyword">select</span> MEMBER_ID <span class="point">as PK_ID</span>, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE
+    <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
+ <span class="keyword">group by</span> MEMBER_ID
+</code></pre>
+	<p>
+		メタデータから該当カラムの関連するテーブルの情報が取得できない DBMS
+		のときのために、PKカラムに関しては、このPKマークにて関連テーブルを明示的に指定することができます(他の DBMS で設定しても問題はありませんが特に意味はありません)。外だしSQLの
+		LoadReferrer では関連テーブルの情報が必要なため(本来、メタデータから自動解決される)、単にJavaDocコメントでの表示だけの話でなく、そういった
+		DBMS の場合においての補完機能となります。<span class="freecomment">@since 0.9.7.5</span>
+	</p>
+<pre><span class="codetitle">ex) 指定したPKの関連テーブルを明示的に指定 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- *<span class="point">MEMBER</span>.MEMBER_ID*</span>
+<span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE
+    <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
+ <span class="keyword">group by</span> MEMBER_ID
 </code></pre>
 	<div class="inucolumn">
 		<h4>コラム：SQLのユニーク性の明示</h4>
 		<p>
-			CustomizeEntityを利用してBehaviorから更新処理を行うというようなことはないので、実際にPKの設定が必要になる場面はあまりないかもしれません。
+			CustomizeEntityを利用してBehaviorから更新処理を行うというようなことはないので、LoadReferrer
+			を使わないのであれば、実際にPKの設定が必要になる場面はあまりないかもしれません。
 			ですが、"外だしSQLは結果のユニーク性" がわかりづらいものになりがちで、そのような場合にある種 "ドキュメントという位置付け"
 			でそのSQLのユニーク性を宣言しておくことは、後でそのSQLをメンテナンスする人にとってはとてもありがたいことでしょう。
 			(SQLが)複雑でわかりにくいかもとふと思ったときに、このPKの設定をしておくと良いでしょう。

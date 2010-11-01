@@ -51,8 +51,8 @@
 				<li><a href="#onetomanytoone">子テーブルの親テーブルの取得</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブルの取得</a></li>
 				<li><a href="#branchreferrer">枝分かれの子テーブルの取得</a></li>
-				<li><a href="#outsidesql">外だしSQLでもLoadReferrer</a></li>
 				<li><a href="#originalcb">独自のCBインスタンス</a></li>
+				<li><a href="#outsidesql">外だしSQLでもLoadReferrer</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -345,17 +345,86 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
     }
 })
 </code></pre>
-	<h3 id="outsidesql">外だしSQLでもLoadReferrer</h3>
-	<p>
-		受け取れる Entity の型は DomainEntity なので、外だしSQLで CustomizeEntity を使わずに DomainEntity
-		にマッピングすれば利用可能です。
-	</p>
 	<h3 id="originalcb">独自のCBインスタンス</h3>
 	<p>
 		通常、子テーブルのための ConditionBean のインスタンスは内部で生成されますが、
 		LoadReferrerOption の setReferrerConditionBean() で設定することで、独自インスタンスを利用することができます。
 		業務的な必要性はあまり想定されていませんが、アプリでの特殊な都合がある場合に有効です。
 		(そういった特殊な状況以外での利用は非推奨です)
+	</p>
+	<h3 id="outsidesql">外だしSQLでもLoadReferrer</h3>
+	<p>
+		外だしSQLは、基本的にフラット構造でデータを取り扱います。親テーブル(many-to-one や
+		one-to-one)や子テーブルの導出カラムに関しては、基点テーブルと同じ粒度で扱えるので特に問題ありません。
+		ただ、それでは one-to-many の構造は補完できません。フラット構造に対して紐づく子テーブルを many
+		のまま扱うために、外だしSQLで取得するフラットな CustomizeEntity に、LoadReferrer
+		で取得するオブジェクトグラフの DomainEntity を連携させます。<span class="freecomment">@since 0.9.7.5</span>
+	</p>
+	<h4>基点テーブルの主キーをPKマークに</h4>
+	<p>
+		まず、CustomizeEntity マークにおいて、必ず基点テーブルの主キーを <em class="keyword">PKマーク</em> に設定します。
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/customizeentity.html#pkmark">CustomizeEntity - PKマーク</a></div>
+<pre><span class="codetitle">ex) LoadReferrer を利用するためにPKマークを設定 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="point">-- *MEMBER_ID*</span>
+<span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE
+    <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
+ <span class="keyword">group by</span> MEMBER_ID
+</code></pre>
+	<p>
+		もし、メタデータから該当カラムの関連するテーブルの情報が取得できない DBMS
+		の場合は(例えば、PostgreSQL)、必ずPKマーク上で関連テーブルの情報を指定します。
+		そのとき、さらに複合PKの場合は、PKマーク上の指定の順序とDB定義上のPKの順序を合わせます。
+	</p>
+<pre><span class="codetitle">ex) メタデータが取得できないDBMS(PostgreSQL)の場合は関連テーブルを @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- *<span class="point">MEMBER</span>.MEMBER_ID*</span>
+<span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE
+    <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
+ <span class="keyword">group by</span> MEMBER_ID
+</code></pre>
+	<h4>CustomizeEntity を利用して LoadReferrer</h4>
+	<p>
+		この設定で Sql2Entity を実行すると、CustomizeEntity に prepareDomain()
+		というメソッドが生成されます。このメソッドを呼ぶと、関連付いている基点テーブルの DomainEntity
+		のインスタンスが、LoadReferrer できる状態で CustomizeEntity 内で保持されます。戻された DomainEntity
+		をリストに詰め込み、そのリストを LoadReferrer で実行します。すると、CustomizeEntity
+		から子テーブルを取得することができます。
+	</p>
+<pre><span class="codetitle">ex) CustomizeEntity を利用して購入を LoadReferrer @Java</span><code>
+List&lt;UnpaidSummaryMember&gt; memberList = <span class="attribute">memberBhv</span>.outsideSql()<span class="abbreviation">...</span>
+
+List&lt;Member&gt; domainList = <span class="keyword">new</span> ArrayList&lt;Member&gt;(); 
+<span class="keyword">for</span> (UnpaidSummaryMember member : memberList) {
+    domainList.add(member.<span class="point">prepareDomain()</span>);
+}
+
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList</span>(domainList, <span class="keyword">new</span> ConditionBeanSetu<span class="abbreviation">...</span> {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        <span class="abbreviation">...</span>
+    }
+});
+
+<span class="keyword">for</span> (UnpaidSummaryMember member : memberList) {
+    List&lt;Purchase&gt; = member.<span class="point">getPurchaseList()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		CustomizeEntity のリストをループさせて、DomainEntity
+		のリストを構築するところがちょっとベタですが、こうすることで外だしSQLでも LoadReferrer
+		が利用できます。サポートされる前のバージョンでも、prepareDomain() のソースを参考に
+		ExEntity で同じような実装をすれば実現できます。
+	</p>
+	<p>
+		prepareDomain() が生成されないときは、PKマークの設定に失敗している可能性があります。
+		例えば、PKでないカラムを指定してしまっている、メタデータを取得できない DBMS
+		なのに関連テーブルの指定がないなど。また、メタデータを取得できる DBMS
+		であってもSQLの複雑度によっては取得できない可能性もあるかもしれませんので、もし CustomizeEntity
+		のJavaDocコメントに関連テーブルの表示が無い場合は、関連テーブル明示的な指定も試してみると良いでしょう。
 	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
