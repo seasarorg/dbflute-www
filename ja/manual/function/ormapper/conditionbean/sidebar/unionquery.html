@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,union,UnionQuery,パフォーマンス" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>UnionQuery | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>UnionQuery</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#severalunion">UnionQuery の連結</a></li>
+				<li><a href="#collaboration">他の機能との組み合わせ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#aftersetupselect">必ず SetupSelect の後に指定</a></li>
+				<li><a href="#beforeorderby">必ず OrderBy の前に指定</a></li>
+				<li><a href="#nocasewhen">OrderBy で case when 構文がNG</a></li>
+				<li><a href="#nestedunion">UnionQuery の中の UnionQuery</a></li>
+			</ul>
+		</li>
+		<li><a href="#performance">パフォーマンス考慮での union</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		基点テーブルに対する二つ以上の検索結果を統合します(union句の利用)。
+	</p>
+	<p>
+		union all も可能です。業務的に重複がないことが確定するのであれば、(SQL内部での)重複チェックが行われない union all
+		の方が(若干)パフォーマンス的に優位です。
+	</p>
+	<p>
+		パフォーマンス考慮としての union に関するポリシーがあります。 
+	</p>
+	<div class="detailpage"><a href="#performance">パフォーマンス考慮での union</a></div>
+	<p>
+		会話上では、<em class="keyword">ゆにおんくえり</em> もしくは単に <em class="keyword">ゆにおん</em>
+		と表現します。また、union で統合される中の一つの select 文のことを UnionQuery と表現することもあります。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<p>
+		まずは通常通り、取得対象のテーブルを確定します。基点テーブルだけであれば、単に new
+		するだけ。関連テーブルがある場合は、SetupSelect を指定。その後、union() を呼び出して、UnionQuery
+		のコールバック実装を引数に指定します。
+	</p>
+<pre><span class="codetitle">ex) 会員の名称だけを取得 (Eclipseでコード補完) @Java</span><code>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus(); <span class="comment">// 取得テーブル(カラム)を確定させて</span>
+cb.query().setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>); <span class="comment">// メインの絞り込み条件</span>
+cb.u <span class="comment">// .u と打って enter (union all なら、.uA + enter)</span>
+--
+<span class="comment">// メソッドが補完されて、引数の "unionQuery" が選択状態に</span>
+cb.<span class="point">union</span>(unionQuery)
+--
+<span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
+cb.union(<span class="point">new </span>)
+--
+<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
+cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        <span class="comment">// TODO Auto-generated method stub</span>
+        
+    }
+})
+--
+<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
+<span class="comment">// UnionQuery での絞り込み条件を指定</span>
+cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        unionCB.query().setBirthdate_GreaterEqual</span>(toDate(<span class="literal">"2000/01/01"</span>));
+    }
+});
+cb.query().addOrderBy_Birthdate_Asc(); <span class="comment">// order-by は union の後に設定</span>
+</code></pre>
+	<p>
+		UnionQuery 内で SetupSelect をする必要はありません(してはいけません)。メインの ConditionBean での SetupSelect
+		が UnionQuery に引き継がれます。また、SpecifyColumn も同様です。
+	</p>
+	<div class="relatedpage"><a href="#aftersetupselect">this - 必ず SetupSelect の後に指定</a></div>
+	<p>
+		また、OrderBy でのカラムへの参照はエリアス名で解決されます。また、OrderBy に関する幾つかの機能制限があります。
+	</p>
+	<div class="relatedpage"><a href="#beforeorderby">this - 必ず OrderBy の前に指定</a></div>
+	<div class="relatedpage"><a href="#nocasewhen">this - OrderBy で case when 構文がNG</a></div>
+<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> dflocal.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
+ <span class="point">union</span> 
+<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> dflocal.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span>
+ <span class="keyword">order by</span> <span class="point">c6</span> <span class="keyword">asc</span>
+</code></pre>
+	<h3 id="severalunion">UnionQuery の連結</h3>
+	<p>
+		UnionQuery を何度も連結させることができます。
+	</p>
+<pre><span class="codetitle">ex) UnionQueryの複数回の連結 @Java</span><code>
+cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        cb.query().setMemberStatusCode_Equal_Formalized();
+    }
+});
+cb.unionAll(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        cb.query().setBirthdate_IsNotNull();
+    }
+});
+cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        cb.query().setFormalizedDatetime_IsNotNull();
+    }
+});
+</code></pre>
+	<h3 id="collaboration">他の機能との組み合わせ</h3>
+	<p>
+		ExistsReferrer や (Specify)DerivedReferrer などの SubQuery 内でも UnionQuery
+		は利用できます。また、そういうときでも、発行されるSQLの整形が乱れることはありません。
+	</p>
+	<div class="relatedpage"><a href="../query/existsreferrer.html">ExistsReferrer</a></div>
+	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
+<pre><span class="codetitle">ex) ExistsReferrer の中で UnionQuery @Java</span><code>
+cb.query().<span class="point">existsPurchaseList</span>(new SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().setPaymentCompleteFlg_Equal_True();
+        subCB.<span class="point">union</span>(<span class="keyword">new</span> UnionQuery&lt;PurchaseCB&gt;() {
+            <span class="keyword">public void</span> query(PurchaseCB unionCB) {
+                unionCB.query().setPurchaseCount_GreaterEqual(<span class="literal">2</span>);
+            }
+        });
+    }
+});
+</code></pre>
+<pre><span class="codetitle">ex) ExistsReferrer の中で UnionQuery @DisplaySql</span><code>
+ <span class="keyword">where exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE dfsublocal_0 
+                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
+                  <span class="keyword">and</span> dfsublocal_0.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
+                <span class="keyword">union</span> 
+               <span class="keyword">select</span> dfsublocal_0.MEMBER_ID 
+                 <span class="keyword">from</span> PURCHASE dfsublocal_0 
+                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
+                  <span class="keyword">and</span> dfsublocal_0.PURCHASE_COUNT >= <span class="literal">2</span>
+       )
+</code></pre>
+
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="aftersetupselect">必ず SetupSelect の後に指定</h3>
+	<p>
+		呼び出しの順番の制約として、UnionQuery は必ず SetupSelect および SpecifyColumn
+		の後に指定します。順番通りでない場合は例外が発生します。
+	</p>
+	<div class="relatedpage"><a href="../setupselect/index.html">SetupSelect(Relation)</a></div>
+	<div class="relatedpage"><a href="../specify/specifycolumn.html">SpecifyColumn</a></div>
+	<h3 id="beforeorderby">必ず OrderBy の前に指定</h3>
+	<p>
+		呼び出しの順番の制約として、UnionQuery は必ず OrderBy の前に指定します。順番通りでない場合は例外が発生します。
+	</p>
+	<div class="relatedpage"><a href="../query/orderby/index.html">OrderBy</a></div>
+	<h3 id="nocasewhen">OrderBy で case when 構文がNG</h3>
+	<p>
+		UnionQuery を使った場合、ManualOrder はサポートされません。また、NullsFirst/Last
+		は、case when 構文で実現する DBMS の場合にサポートされません。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/orderby/manualorder.html"> -->ManualOrder<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../query/orderby/nullsfirstlast.html"> -->NullsFirst/Last<!-- </a> --></span></div>
+	<h3 id="nestedunion">UnionQuery の中の UnionQuery</h3>
+	<p>
+		無意味ですが、特に例外にもならず、無視されます。
+	</p>
+
+	<div class="inucolumn">
+		<h2 id="performance">パフォーマンス考慮での union</h2>
+		<p>
+			union は、or 条件の代替として利用されることがあります。or
+			条件は、テーブルスキャンが発生してしまう可能性がありますが、union
+			に分解すれば、それぞれの select
+			文でインデックスが利用され(されるように条件を書く)、パフォーマンス的に安定するためです。
+		</p>
+		<p>
+			但し、昨今のDBMSでは(2010/11/05時点)、or 条件でもインデックスを利用し、極端なパフォーマンス劣化を防ごうという動きもあります。
+			例えば、MySQL-5.1のインデックス結合最適化(index_merge)など。そういう意味では、あまり union
+			にこだわる必要はないかもしれませんが、どの程度それを信頼して良いのかはアプリの要件や状況次第になるかと思います。
+			union でないと実現できない、or 条件でないと実現できない、という明確な要件がある場合を除くとして、どちらを利用するかは悩みます。
+		</p>
+		<p>
+			DBFluteとしては、もちろん、時間が許せば、両方試して実行計画や実行時間を吟味するのが一番ですが、
+			少なくとも大量データのテーブルに対して安易な or 条件を発行するよりかは、union
+			を使うことをお奨めしています。union と聞くと "SQL書くのが面倒そう"
+			と思われる方が多いと思われますが、確かに外だしSQLで書けば入力文字は圧倒的に増えますが、ConditionBean
+			であれば、コールバックで絞り込み条件を指定するだけとなります(select 句や from, join 句は自動解決)。
+			また、"SQLが見づらくなりそう" という問題も、union を使ってもしっかり整形されたSQLとなります。
+		</p>
+<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>);
+cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB unionCB) {
+        unionCB.query().<span class="point">setBirthdate_GreaterEqual</span>(toDate(<span class="literal">"2000/01/01"</span>));
+    }
+});
+</code></pre>
+<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> <span class="point">dflocal.MEMBER_NAME like <span class="literal">'S%'</span> escape '|'</span>
+ <span class="keyword">union</span> 
+<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> <span class="point">dflocal.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span></span>
+</code></pre>
+	</div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

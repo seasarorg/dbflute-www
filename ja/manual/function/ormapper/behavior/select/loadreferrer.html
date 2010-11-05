@@ -42,7 +42,6 @@
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#role">子テーブル対応の役割を明確に</a></li>
-				<li><a href="#balance">バランスをとったone-to-manyのアプローチ</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -65,6 +64,7 @@
 				<li><a href="#caseinsensitive">PKの値の大文字小文字</a></li>
 			</ul>
 		</li>
+		<li><a href="#balance">one-to-manyアプローチのバランス</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -72,7 +72,7 @@
 		関連する子テーブル(Referrer)のデータを取得(Load)します。
 	</p>
 	<p>
-		例えば、以下のような基点テーブル(会員)と子テーブル(購入)の関連があるとします；
+		例えば、以下のような基点テーブル(会員)と子テーブル(購入)の関連があるとします。
 	</p>
 	<dl class="valuemainlist">
 		<dt>会員(1)</dt><dd>購入(3, 6, 7)</dd>
@@ -86,36 +86,19 @@
 		します。取得後、LoadReferrer の処理の中でそれぞれの会員と購入のマッピングをして、DomainEntity
 		のオブジェクトグラフを構築します。
 	</p>
+	<ol>
+		<li>ConditionBeanで会員の一覧を取得(selectListなど)</li>
+		<li>LoadReferrerで関連する購入の一覧を取得＆マッピング</li>
+	</ol>
 	<p>
 		SQLの合計は、<em class="keyword">基点テーブルの検索一回 + 子テーブルの数(LoadReferrerの回数)</em>
 		となります。上記の例の場合は、"会員(リスト検索) + 購入(LoadReferrer)" で合計 2
 		回のSQLとなります。このような方式をDBFluteでは、<em class="keyword">バッチフェッチ</em> と呼んでいます。
 	</p>
-	<ol>
-		<li>ConditionBeanで会員の一覧を取得(selectListなど)</li>
-		<li>LoadReferrerで関連する購入の一覧を取得＆マッピング</li>
-	</ol>
-<pre><span class="codetitle">ex) LoadReferrerの基本的な実装 {MEMBER, PURCHASE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
-<span class="comment">// 会員(1, 2, 3, 4)を取得</span>
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-
-<span class="comment">// 購入(3, 6, 7, 2, 9, 1, 4, 5, 8, 10)を取得</span>
-cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        cb.query().setPaymentCompleteFlg_Equal_True(); <span class="comment">// 支払が完了したものだけ</span>
-        cb.query().addOrderBy_PurchaseDatetime_Desc(); <span class="comment">// 購入日時の降順で取得</span>
-    }
-})
-
-<span class="keyword">for</span> (Member member : memberList) {
-    <span class="comment">// 関連する子テーブルの一覧を取得</span>
-    <span class="comment">// (LoadReferrerしていない場合はこれが空リスト)</span>
-    List&lt;Purchase&gt; purchaseList = member.<span class="point">getPurchaseList()</span>;
-    <span class="abbreviation">...</span>
-}
-</code></pre>
+	<p>
+		LoadReferrer に絡んで、DBFlute には one-to-many の明確なポリシーがあります。 
+	</p>
+	<div class="detailpage"><a href="#balance">one-to-manyアプローチのバランス</a></div>
 	<p>
 		会話上では、<em class="keyword">ろーどりふぁらぁ</em> と表現します。
 	</p>
@@ -131,49 +114,6 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 		(Specify)DerivedReferrer として用意されています。
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/specify/derivedreferrer.html">ConditionBean - (Specify)DerivedReferrer</a></div>
-	<div class="inucolumn">
-		<h3 id="balance">バランスをとったone-to-manyのアプローチ</h3>
-		<p>
-			DBFluteでは、one-to-many のアプローチで明確なポリシーがあります。
-		</p>
-		<p>
-			一つ目は、データ取得と絞り込みを明確に分けること。これは、子テーブルに対してに限らず、ConditionBean
-			全体のポリシーに通じる話です。これを混同したまま one-to-many
-			のアプローチの議論をよく聞きますが、DBFluteでは機能自体が明確に分かれています。
-			(LoadReferrer と ExistsReferrer)
-		</p>
-		<p>
-			二つ目は、データ取得において、安全であることと安定したパフォーマンスの両方を考慮すること。
-			DBFluteでは以下のやり方は採用しません。
-		</p>
-		<ul>
-			<li>A. Getter が呼ばれたときにSQLを発行して取得 (LazyLoad)</li>
-			<li>B. 基点テーブルのレコードごとにSQLを発行して取得 ("A" の実現方法の一つでもある)</li>
-			<li>C. 一発のSQLで子テーブルも結合して、フラット構造をマッピング</li>
-		</ul>
-		<p>
-			DBFluteとしては、"A" は安全でないと考えています。"何のデータを取得したのか？"
-			をプログラム上で明確にすることが大事であるというポリシーを持っているからです。
-			取得するのを忘れても動作するので気付かずそのまま、にするケースを懸念しています。完全に任せてもパフォーマンス上の問題が発生しない LazyLoad
-			の機構が作れれば良いですが、それはなかなか難しいことです。現実的なところ、少なくとも DBFlute
-			では、取得するのを忘れたらデータが無くて気付いて、(効率の良い方法で)明確にデータを取得するように実装し直す方が良いと考えています。
-		</p>
-		<p>
-			また、"B" はパフォーマンス上の問題があります("A" の話とも関連があります)。例えば、50 件の会員一覧があるとして購入を取得する場合、合計で 51
-			回ものSQLが発行されることになります。
-		</p>
-		<p>
-			そして、最速と思われる "C" は、実は速度的に安定しません。
-			単純な会員と購入だけの関係ならば速いですが、会員に対して購入と会員ログインなどと枝分かれの子テーブルを取得しようとした場合、
-			SQLが返す結果セットは膨大なものとなり、逆に遅くなってしまう可能性があります。実は、昔のDBFluteにはこの機能がありました。HierarchyArranger
-			というクラスがその名残です。実際に業務に照らし合わせると、速い時はものすごい速く処理されますが、ちょっと複雑になったり、扱うデータ量が増えたりすると、
-			途端に遅くなる現象がありました。その原因はまさしく結果セットの膨張です。
-		</p>
-		<p>
-			DBFluteは、これらの問題を回避した折衷案の機能 LoadReferrer を提供し、"C"
-			のように最速ではないにしても、やってることが単純でわかりやすく、安全な実装、安定したパフォーマンスを出せるようにしています。
-		</p>
-	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
@@ -469,6 +409,50 @@ List&lt;Member&gt; domainList = <span class="keyword">new</span> ArrayList&lt;Me
 	<p>
 		マッピング処理にてPKの値を利用しますが、大文字小文字は区別せずに処理します。
 	</p>
+
+	<div class="inucolumn">
+		<h2 id="balance">one-to-manyアプローチのバランス</h2>
+		<p>
+			DBFluteでは、one-to-many のアプローチで明確なポリシーがあります。
+		</p>
+		<p>
+			一つ目は、データ取得と絞り込みを明確に分けること。これは、子テーブルに対してに限らず、ConditionBean
+			全体のポリシーに通じる話です。これを混同したまま one-to-many
+			のアプローチの議論をよく聞きますが、DBFluteでは機能自体が明確に分かれています。
+			(LoadReferrer と ExistsReferrer)
+		</p>
+		<p>
+			二つ目は、データ取得において、安全であることと安定したパフォーマンスの両方を考慮すること。
+			DBFluteでは以下のやり方は採用しません。
+		</p>
+		<ul>
+			<li>A. Getter が呼ばれたときにSQLを発行して取得 (LazyLoad)</li>
+			<li>B. 基点テーブルのレコードごとにSQLを発行して取得 ("A" の実現方法の一つでもある)</li>
+			<li>C. 一発のSQLで子テーブルも結合して、フラット構造をマッピング</li>
+		</ul>
+		<p>
+			DBFluteとしては、"A" は安全でないと考えています。"何のデータを取得したのか？"
+			をプログラム上で明確にすることが大事であるというポリシーを持っているからです。
+			取得するのを忘れても動作するので気付かずそのまま、にするケースを懸念しています。完全に任せてもパフォーマンス上の問題が発生しない LazyLoad
+			の機構が作れれば良いですが、それはなかなか難しいことです。現実的なところ、少なくとも DBFlute
+			では、取得するのを忘れたらデータが無くて気付いて、(効率の良い方法で)明確にデータを取得するように実装し直す方が良いと考えています。
+		</p>
+		<p>
+			また、"B" はパフォーマンス上の問題があります("A" の話とも関連があります)。例えば、50 件の会員一覧があるとして購入を取得する場合、合計で 51
+			回ものSQLが発行されることになります。
+		</p>
+		<p>
+			そして、最速と思われる "C" は、実は速度的に安定しません。
+			単純な会員と購入だけの関係ならば速いですが、会員に対して購入と会員ログインなどと枝分かれの子テーブルを取得しようとした場合、
+			SQLが返す結果セットは膨大なものとなり、逆に遅くなってしまう可能性があります。実は、昔のDBFluteにはこの機能がありました。HierarchyArranger
+			というクラスがその名残です。実際に業務に照らし合わせると、速い時はものすごい速く処理されますが、ちょっと複雑になったり、扱うデータ量が増えたりすると、
+			途端に遅くなる現象がありました。その原因はまさしく結果セットの膨張です。
+		</p>
+		<p>
+			DBFluteは、これらの問題を回避した折衷案の機能 LoadReferrer を提供し、"C"
+			のように最速ではないにしても、やってることが単純でわかりやすく、安全な実装、安定したパフォーマンスを出せるようにしています。
+		</p>
+	</div>
 
 </div>
 </div>

@@ -39,11 +39,7 @@
 <div id="content">
 	<h1>SpecifyColumn</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a>
-			<ul>
-				<li><a href="#balance">データ取得のポリシーもバランス指向</a></li>
-			</ul>
-		</li>
+		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#basepoint">基点テーブル</a></li>
@@ -61,6 +57,7 @@
 			</ul>
 		</li>
 		<li><a href="#onlyonecolumn">他の機能から間借りされる</a></li>
+		<li><a href="#balance">データ取得のポリシーもバランス指向</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -74,49 +71,12 @@
 		特に、一つのテーブルにおける定義カラム数があまりに多い場合に有効です。
 	</p>
 	<p>
+		SpecifyColumn に絡んで、DBFlute にはデータ取得の明確なポリシーがあります。 
+	</p>
+	<div class="detailpage"><a href="#balance">データ取得のポリシーもバランス指向</a></div>
+	<p>
 		会話上では、<em class="keyword">すぺしふぁいからむ</em> と表現します。
 	</p>
-	<div class="inucolumn">
-		<h3 id="balance">データ取得のポリシーもバランス指向</h3>
-		<p>
-			ConditionBean のデータ取得のポリシーは以下の通りです。
-		</p>
-		<dl class="valuemainlist">
-			<dt>テーブル</dt><dd>明示的に指定されたものを取得</dd>
-			<dt>カラム</dt><dd>デフォルトでは全て取得 (必要であれば明示的に指定)</dd>
-		</dl>
-		<p>
-			まず、テーブルもデフォルトで全て取得、はあり得ません。
-			どの階層までの関連テーブルを取得するか、という限界的な問題もありますし、パフォーマンス劣化の温床です。
-			SetupSelect(Relation) を使って、明示的に取得したい関連テーブルを指定して下さい。LazyLoad
-			に関しては、子テーブル(one-to-many)におけるポリシーと同様にサポートしません。
-		</p>
-		<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html#balance">バランスをとったone-to-manyのアプローチ</a></div>
-		<p>
-			そして、デフォルトでカラムを明示的な指定、にしなかったのは、妥協点をどこに持ってくるかを考えて結果です。
-			常に必要なカラムだけを指定すればパフォーマンス上は一番良いに決まっています。ですが、カラムの指定は意外に時間の掛かるもの、
-			そして、実装しながらあれが必要これが必要と都度都度追加するような状況も生まれ、実はあまり効率がよくありません。
-			同じことは当然テーブルにも言えますが、粒度が違うのでその影響度は大きく変わります。
-			パフォーマンスに関しても、テーブル単位の話よりもカラム単位の話の方が影響度は遥かに少なく、不要なカラムを幾つか取得しても、
-			人が感じるレベルどころか、コンピュータでミリ秒単位で計っても差がでないことが多いです。
-			この辺のところを踏まえて、カラムに関しては、デフォルトでは全て取得、必要であれば明示的に指定、というスタンスになっています。
-		</p>
-		<p>
-			また、SpecifyColumn は、<em class="keyword">テーブル単位で</em>
-			カラムの指定ができるので、例えば名称カラムだけ利用したいけどその他カラムの数が多い関連テーブル、があった場合に、
-			(基点テーブルは全カラム取得で)その関連テーブルに対してだけ取得カラムを指定するようなことができます。
-			現場ではこういったパターンが意外に多く、カラムが指定できると一言で言っても、こういった考慮がないとやはり現場では使いづらいという話になります。
-			かなり悩んだ仕様、かつ、後付けの仕様<span class="freecomment">(@since 0.7.4)</span>ですが、DBFlute
-			らしいバランスの良いものになったと思います。カラムをタイプセーフに、かつ、メソッド選択形式になっているのも DBFlute っぽいところですね。
-		</p>
-		<p>
-			一方で、パフォーマンスに影響が出るほど、一つのテーブルに定義カラム数が多いDB設計自体があまりお奨めではありません。
-			大抵の場合、ライフサイクルやカテゴリの分析をすることで、one-to-oneのテーブルに分離することができるかと思います。
-			本来は、SpecifyColumn が活躍する場面がないのが理想です。
-			この件は詳しくは別途テーマとして扱いますが、例えば、ExampleDB の会員退会情報テーブルはその典型的な例です。
-		</p>
-		<div class="relatedpage"><span class="working"><!-- <a href="../../../../topic/dbdesign/onetoone.html"> -->DB設計 - one-to-oneの活用<!-- </a> --></span></div>
-	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
@@ -258,6 +218,48 @@ cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
 	<div class="relatedpage"><span class="working"><!-- <a href="../query/columnquery.html"> -->ColumnQuery<!-- </a> --></span></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../query/scalarcondition.html"> -->ScalarCondition<!-- </a> --></span></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/scalarselect.html"> -->ScalarSelect<!-- </a> --></span></div>
+
+	<div class="inucolumn">
+		<h2 id="balance">データ取得のポリシーもバランス指向</h2>
+		<p>
+			ConditionBean のデータ取得のポリシーは以下の通りです。
+		</p>
+		<dl class="valuemainlist">
+			<dt>テーブル</dt><dd>明示的に指定されたものを取得</dd>
+			<dt>カラム</dt><dd>デフォルトでは全て取得 (必要であれば明示的に指定)</dd>
+		</dl>
+		<p>
+			まず、テーブルもデフォルトで全て取得、はあり得ません。
+			どの階層までの関連テーブルを取得するか、という限界的な問題もありますし、パフォーマンス劣化の温床です。
+			SetupSelect(Relation) を使って、明示的に取得したい関連テーブルを指定して下さい。LazyLoad
+			に関しては、子テーブル(one-to-many)におけるポリシーと同様にサポートしません。
+		</p>
+		<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html#balance">バランスをとったone-to-manyのアプローチ</a></div>
+		<p>
+			そして、デフォルトでカラムを明示的な指定、にしなかったのは、妥協点をどこに持ってくるかを考えて結果です。
+			常に必要なカラムだけを指定すればパフォーマンス上は一番良いに決まっています。ですが、カラムの指定は意外に時間の掛かるもの、
+			そして、実装しながらあれが必要これが必要と都度都度追加するような状況も生まれ、実はあまり効率がよくありません。
+			同じことは当然テーブルにも言えますが、粒度が違うのでその影響度は大きく変わります。
+			パフォーマンスに関しても、テーブル単位の話よりもカラム単位の話の方が影響度は遥かに少なく、不要なカラムを幾つか取得しても、
+			人が感じるレベルどころか、コンピュータでミリ秒単位で計っても差がでないことが多いです。
+			この辺のところを踏まえて、カラムに関しては、デフォルトでは全て取得、必要であれば明示的に指定、というスタンスになっています。
+		</p>
+		<p>
+			また、SpecifyColumn は、<em class="keyword">テーブル単位で</em>
+			カラムの指定ができるので、例えば名称カラムだけ利用したいけどその他カラムの数が多い関連テーブル、があった場合に、
+			(基点テーブルは全カラム取得で)その関連テーブルに対してだけ取得カラムを指定するようなことができます。
+			現場ではこういったパターンが意外に多く、カラムが指定できると一言で言っても、こういった考慮がないとやはり現場では使いづらいという話になります。
+			かなり悩んだ仕様、かつ、後付けの仕様<span class="freecomment">(@since 0.7.4)</span>ですが、DBFlute
+			らしいバランスの良いものになったと思います。カラムをタイプセーフに、かつ、メソッド選択形式になっているのも DBFlute っぽいところですね。
+		</p>
+		<p>
+			一方で、パフォーマンスに影響が出るほど、一つのテーブルに定義カラム数が多いDB設計自体があまりお奨めではありません。
+			大抵の場合、ライフサイクルやカテゴリの分析をすることで、one-to-oneのテーブルに分離することができるかと思います。
+			本来は、SpecifyColumn が活躍する場面がないのが理想です。
+			この件は詳しくは別途テーマとして扱いますが、例えば、ExampleDB の会員退会情報テーブルはその典型的な例です。
+		</p>
+		<div class="relatedpage"><span class="working"><!-- <a href="../../../../topic/dbdesign/onetoone.html"> -->DB設計 - one-to-oneの活用<!-- </a> --></span></div>
+	</div>
 
 </div>
 </div>
