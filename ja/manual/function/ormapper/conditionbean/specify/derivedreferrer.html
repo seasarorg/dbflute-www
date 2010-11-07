@@ -46,6 +46,7 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
+				<li><a href="#function">利用できる関数メソッド</a></li>
 				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
@@ -183,6 +184,42 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
   <span class="keyword">from</span> MEMBER dflocal
 <span class="abbreviation">...</span>
 </code></pre>
+	<h3 id="function">利用できる関数メソッド</h3>
+	<p>
+		利用できる関数メソッドは以下の通りです。
+	</p>
+	<dl class="textlist">
+		<dt>max()</dt>
+		<dd>最大値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
+		<dt>min()</dt>
+		<dd>最小値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
+		<dt>avg()</dt>
+		<dd>
+			平均値。数値のみ。関連データが無い場合は null となる(coalesce()
+			の検討)。値が小数点になる可能性があるので、受け取るプロパティの型を小数点を扱える型(BigDecimal
+			など)にしたり、round() や trunc() を利用したり検討する良い。
+		</dd>
+		<dt>sum()</dt>
+		<dd>
+			合計値。数値のみ。関連データが無い場合は null となる(coalesce() 利用の検討)。
+			受け取るプロパティの型がカラムに対応する型だと、(合計値なので)オーバーフローする可能性もあるので、業務的な可能性を踏まえてサイズの大きい型(Long
+			や BigDecimal など)を利用すると良い。
+		</dd>
+		<dt>count()</dt>
+		<dd>
+			レコード数。純粋に関連するレコードの数を求めるには、主キーカラムを指定すること(null でないカラムであることが求められる)。もし、Nullable
+			なカラムを指定した場合は、null のデータ(を持つレコード)を除外した件数となる。関連データが無い場合は 0 となる。
+		</dd>
+		<dt>countDistinct()</dt>
+		<dd>
+			種類数。例えば、"(会員の)購入した商品の種類数" など。count(disctinct [column-name]) 構文が利用される。
+			その他、count() と同じ仕様。
+		</dd>
+	</dl>
+	<p>
+		関数の特徴によって、適切な関数フィルタを合わせると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#funcfilter">導出値の関数によるフィルタ</a></div>
 	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
