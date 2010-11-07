@@ -43,6 +43,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル</a></li>
+				<li><a href="#nullsfirstlast">NullsFirst/Last の活用</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -101,6 +102,17 @@ cb.query().<span class="point">addSpecifiedDerivedOrderBy_Desc</span>(Member.ALI
 	<p>
 		Query(Relation) で親テーブルの Query にて指定しても動作します。特に違いはありません。
 	</p>
+	<h3 id="nullsfirstlast">NullsFirst/Last の活用</h3>
+	<p>
+		導出カラムは関数の仕様として、データ存在しない場合に null
+		になるケースが想定されますので、DerivedReferrerOption で coalesce を利用していない場合は、NullsFirst/Last が必要になる場面が多いと想定されます。
+	</p>
+	<div class="relatedpage"><a href="../../specify/derivedreferrer.html#funcfilter">(Specify)DerivedReferrer - 導出値の関数によるフィルタ</a></div>
+	<div class="relatedpage"><a href="./nullsfirstlast.html">NullsFirst/Last</a></div>
+<pre><span class="codetitle">ex) 最終ログイン日時の昇順で、ログインしたことない人を後に並べる @Java</span><code>
+<span class="abbreviation">...</span>
+cb.query().addSpecifiedDerivedOrderBy_Asc(Member.ALIAS_latest<span class="abbreviation">...</span>).<span class="point">withNullsFirst()</span>;
+</code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="nullargument">エリアス名は必須</h3>
