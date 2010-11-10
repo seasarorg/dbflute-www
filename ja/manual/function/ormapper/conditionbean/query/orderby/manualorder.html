@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,ManualOrder,order by,手動で並べる,指定した値でソート" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ManualOrder | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html"><img src="../../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html"><img src="../../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/tutorial/architect.html"><img src="../../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/tutorial/developer.html"><img src="../../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html"><img src="../../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/environment/setup/index.html"><img src="../../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html"><img src="../../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ManualOrder</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#nullargument">nullの指定</a></li>
+				<li><a href="#emptyargument">空リストの指定</a></li>
+				<li><a href="#readonlylist">読み取り専用リストでも可</a></li>
+				<li><a href="#nullcompare">isNull, isNotNullは不可</a></li>
+				<li><a href="#elementtype">リスト要素の型</a></li>
+				<li><a href="#unioncasewhen">UnionQuery と case when</a></li>
+				<li><a href="#afterorderby">必ず OrderBy の後に</a></li>
+				<li><a href="#severalcall">同カラムに対する複数回呼び出し</a></li>
+			</ul>
+		</li>
+		<li><a href="#supported">サポートされる型</a></li>
+		<li><a href="#concept">いざってとき技、でも概念を明確化</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		指定された値(リスト)の順番通りに並べる設定をします。
+	</p>
+	<p>
+		例えば、会員ステータスに表示順(DisplayOrder)のようなカラムが存在しない場合(かつ、どうしてもカラム追加できない場合)でも、"正式会員、仮会員、退会会員"
+		という決まった順番で並べて検索することができます。
+		また、仮会員だけは最初に並べて、それ以外の会員は単に更新日時で並べるというような、ある値だけを優先するソート要件がある場合などにも対応できます。
+	</p>
+	<div class="relatedpage"><a href="#concept">this - いざってとき技、でも概念を明確化</a></div>
+	<p>
+		アプリでは、並べる順番の値のリストを指定することで、order by の中で case when 構文を使ってそのソート条件を実現します。
+		必ず OrderBy と組み合わせて指定します。
+	</p>
+	<p>
+		会話上では、<em class="keyword">まにゅあるおーだー</em> と表現します。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<p>
+		まずは、OrderBy のメソッド呼び出しの直後に続けて、withManualOrder()
+		を呼び出し、並べる順番の値のリスト(manualValueList)を引数に指定します。
+	</p>
+<pre><span class="codetitle">ex) 指定された値の順番通りに並べる実装手順 (Eclipseでコード補完) {MEMBER_STATUS_CODE} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+
+<span class="comment">// 区分値カラムであれば、CDef 自体を値としてそのまま利用できる</span>
+List&lt;CDef&gt; manualValueList = <span class="keyword">new</span> ArrayList&lt;CDef&gt;();
+manualValueList.add(CDef.MemberStatus.Formalized);  <span class="comment">// 正式会員</span>
+manualValueList.add(CDef.MemberStatus.Provisional); <span class="comment">// 仮会員</span>
+manualValueList.add(CDef.MemberStatus.Withdrawal);  <span class="comment">// 退会会員</span>
+
+cb.query().addOrderBy_MemberStatusCode_Asc().wi <span class="comment">// .wi まで打ってメソッドを選択</span>
+--
+cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder(manualValueList)</span>;
+cb.query().addOrderBy_Birthdate_Desc().withNullsLast(); <span class="comment">// その後のソート順を設定</span>
+cb.query().addOrderBy_MemberName_Asc();
+</code></pre>
+<pre><span class="codetitle">ex) 正式会員、仮会員、退会会員の順番で並べる @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal  
+ <span class="keyword">order by</span> 
+   <span class="keyword">case</span>
+     <span class="keyword">when</span> dflocal.MEMBER_STATUS_CODE = <span class="literal">'FML'</span> <span class="keyword">then</span> <span class="literal">0</span>
+     <span class="keyword">when</span> dflocal.MEMBER_STATUS_CODE = <span class="literal">'PRV'</span> <span class="keyword">then</span> <span class="literal">1</span>
+     <span class="keyword">when</span> dflocal.MEMBER_STATUS_CODE = <span class="literal">'WDL'</span> <span class="keyword">then</span> <span class="literal">2</span>
+     <span class="keyword">else</span> <span class="literal">3</span>
+   <span class="keyword">end asc</span>, dflocal.BIRTHDATE <span class="keyword">desc nulls last</span>, dflocal.MEMBER_NAME <span class="keyword">asc</span>
+</code></pre>
+	<p>
+		降順(Desc)を指定すると、指定されたリストの逆順に並びますが、必要性はあまりないでしょう。
+	</p>
+	<p>
+		リストで指定する値は、そのカラムが持つ値の一部でも構いません。その指定された値だけが優先して並び、それ以外は二番目以降のソート条件通りに並びます。
+	</p>
+<pre><span class="codetitle">ex) "Pixy" というアカウントの会員だけ最初に並べて、後は更新日時の降順 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+List&lt;String&gt; manualValueList = Arrays.asList(<span class="literal">"Pixy"</span>); <span class="comment">// 読み取り専用リストでもOK</span>
+cb.query().addOrderBy_MemberAccount_Asc().<span class="point">withManualOrder(manualValueList)</span>;
+cb.query().addOrderBy_UpdateDatetime_Desc();
+</code></pre>
+<pre><span class="codetitle">ex) "Pixy" というアカウントの会員だけ最初に並べて、後は更新日時の降順 @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal  
+ <span class="keyword">order by</span> 
+   <span class="keyword">case</span>
+     <span class="keyword">when</span> dflocal.MEMBER_ACCOUNT = <span class="literal">'Pixy'</span> <span class="keyword">then</span> <span class="literal">0</span>
+     <span class="keyword">else</span> <span class="literal">1</span>
+   <span class="keyword">end asc</span>, dflocal.UPDATE_DATETIME <span class="keyword">desc</span>
+</code></pre>
+	<h3 id="specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</h3>
+	<p>
+		SpecifiedDerivedOrderBy に対しても利用できますが、必要になる場面はあまり想定されません。
+	</p>
+	<div class="relatedpage"><a href="./specifiedderivedorderby.html">SpecifiedDerivedOrderBy</a></div>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<p>
+		ManualOrder は、直前の OrderBy に対してのみ適用されます。
+	</p>
+	<h3 id="nullargument">nullの指定</h3>
+	<p>
+		nullが指定されたら例外です。また、リストの中の null 要素は無視されます。
+	</p>
+	<h3 id="emptyargument">空リストの指定</h3>
+	<p>
+		空リストが指定されたらその ManualOrder は無効です。もし、同じカラムに対して既に一度 ManualOrder
+		を設定している場合は、その設定を上書きして、ManualOrder を無効化します。
+	</p>
+	<h3 id="readonlylist">読み取り専用リストでも可</h3>
+	<p>
+		内部では指定されたリストに更新操作はしないので、読み取り専用リストも指定できます。よって、Arrays.asList()
+		を使って、シンプルにリストを構築することもできます。
+	</p>
+	<h3 id="nullcompare">isNull, isNotNullは不可</h3>
+	<p>
+		is null, is not null は利用できません。null でない値の等値条件のみを指定できます。
+	</p>
+	<h3 id="elementtype">リスト要素の型</h3>
+	<p>
+		基本的には、カラムに対応するプログラム型が推奨されます。但し、バインド変数は使わないので、SQL上のクォーテーションの有無のつじつまが合えば動作はします。Number
+		型のサブクラス(Integer や Long など)が指定された場合は、クォーテーションが付かず、それ以外は付きます。
+		逆に、対応するプログラム型だとリテラル展開で都合が悪いような場合は、String 型などを利用すると良いでしょう。
+	</p>
+	<p>
+		区分値カラムに関しては、CDef型(厳密には Classification
+		型)の値をそのまま利用できます。(SQL上ではコード値が利用されます)
+	</p>
+	<div class="relatedpage"><a href="../../../runtime/allcommon/index.html#cdef">allcommon - CDef</a></div>
+	<h3 id="unioncasewhen">UnionQuery と case when</h3>
+	<p>
+		DBMSに関わらず、UnionQuery を使った時の ManualOrder はサポートされません。
+	</p>
+	<h3 id="afterorderby">必ず OrderBy の後に</h3>
+	<p>
+		OrderBy のメソッド呼び出し直後以外のタイミングでは呼び出してはいけません。
+	</p>
+	<h3 id="severalcall">同カラムに対する複数回呼び出し</h3>
+	<p>
+		一つのカラムに対して、ManualOrder を複数回呼び出しても上書きされるだけです。
+	</p>
+
+	<h2 id="supported">サポートされる型</h2>
+	<p>
+		全ての型に対してサポートされますが、実際に動作するのはSQL上でリテラル表現ができるもの(String, Number, Boolean など)に限ります。
+	</p>
+
+	<div class="inucolumn">
+		<h2 id="concept">いざってとき技、でも概念を明確化</h2>
+		<p>
+			まず、会員ステータスのようなテーブルに表示順カラムがない場合は、カラムを追加する方が良いです。
+			また、例えば、特別な扱いをする "得意先の会社"
+			を常に先に並べたいというような優先する値があるような場合も、そういう情報をDB上で持ってシンプルな OrderBy
+			で実現できるようにする方が良いです。
+			それがどうしてもできないときの "いざってとき技" が ManualOrder
+			です。(制限も幾つかあるので、使わないに越したことはないです)
+		</p>
+		<p>
+			ただ、こういう ManualOrder という概念が機能として存在することが大事だと考えています。
+			DB設計する上で忘れていた、そういう考慮を知らなかった、というような状態が少しでも少なくなればと。
+			また、"頻繁に扱うある特別なデータだけは常に先に並べられるようにする" という隠れやすい業務要件も忘れずに。
+			、全てのデータに対してフラットな扱いをするわけではありません。DB構造ではフラットな扱いでも、
+			人から見るとデータごとに着目の濃度に違いがあることがあります。ソート設計をするときに、データの構造だけにとらわれず、
+			その辺も考慮できるとよりユーザにとって使いやすいものになります(もちろん、パフォーマンスや実装などの現実問題も考える必要ありますが)。
+			逆に、その辺を十分理解して、あらかじめDB構造に反映できれば一番良いでしょう。すると ManualOrder も不要で実装もシンプルになります。
+			適応できる場面は少ないかもしれませんが、そういう概念を知っておくことが、より良い業務仕様の策定につながると考えます。
+		</p>
+	</div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../../"><img src="../../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

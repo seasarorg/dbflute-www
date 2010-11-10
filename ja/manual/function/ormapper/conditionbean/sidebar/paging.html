@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,fetchFirst,先頭の,先頭から,最初の,最初から" />
+	<meta name="keywords" content="DBFlute,ConditionBean,paging,ページング,paginate,pagination" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>FetchFirst | DBFlute</title>
+	<title>Paging | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,72 +37,84 @@
 </div>
 
 <div id="content">
-	<h1>FetchFirst</h1>
+	<h1>Paging</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#notzerominus">引数の fetchSize は正の値</a></li>
+				<li><a href="#notzerominus">引数は正の値</a></li>
 				<li><a href="#severalcall">複数回呼び出しは上書き</a></li>
-				<li><a href="#paginginit">Paging 設定を上書き</a></li>
+				<li><a href="#paginginit">FetchFirst 設定を上書き</a></li>
+				<li><a href="#oldstyle">その昔は、FetchFirst + FetchPage</a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		先頭から n 件のデータのみを取得(フェッチ)します。(通常の絞り込み条件とは別に絞り込む)
+		ページングの設定をします。この機能を使うことで Behavior の selectPage(cb) が利用できます。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/selectpage.html"> -->Behavior - selectPage(cb)<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html">Topic - ページング検索</a></div>
 	<p>
-		例えば、"若い会員トップ３" というような検索をする場合、OrderBy で生年月日を降順にして、FetchFirst
-		で 3 を設定します。
+		ページングの実現方法は、DBMSごとに異なりますが、基本的にDBMS固有のSQL構文を使って実現します。
+		例えば、MySQL なら limit、PostgreSQL なら limit, offset、Oracle なら rounum。
 	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#paging">MySQL - ページング検索の条件</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dbway/postgresql/index.html#paging">PostgreSQL - ページング検索の条件</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/index.html#paging">Oracle - ページング検索の条件</a></div>
 	<p>
-		n 件の絞り込みの実現方法は Paging と同じです。(要は Paging での 1 ページ目の検索とも言える)
-	</p>
-	<div class="relatedpage"><a href="./paging.html">ConditionBean - Paging</a></div>
-	<p>
-		会話上では、<em class="keyword">ふぇっちふぁーすと</em> と表現します。
+		会話上では、<em class="keyword">ぺーじんぐ</em> と表現します。文脈上、曖昧で伝わりにくい場合は
+		<em class="keyword">ConditionBeanのぺーじんぐ(機能)</em>
+		などと言うとわかりやすいでしょう。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		まずは通常通り、ConditionBean の設定をし、実行する前に fetchFirst()
-		を呼び出して、先頭から何件取得するかを引数(fetchSize)で設定します。
+		まずは通常通り、ConditionBean の設定をし、実行する前に paging()
+		を呼び出して、第一引数(pageSize)に <em class="keyword">1 ページのレコード数(ページサイズ)</em>、第二引数(pageNumber)に
+		<em class="keyword">検索するページ番号</em> を設定します。その後、Behavior の selectPage() を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) 先頭の 3 件を取得 (Eclipseでコード補完) @Java</span><code>
+<pre><span class="codetitle">ex) 1 ページに付き20件で、3 ページ目を検索 (Eclipseでコード補完) @Java</span><code>
+<span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
 MemberCB() cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus();
 cb.query().addOrderBy_Birthdate_Desc();
-cb.feF <span class="comment">// .feF と打って enter</span>
+cb.pa <span class="comment">// .pa と打って enter</span>
 --
-cb.<span class="point">fetchFirst</span>(<span class="literal">3</span>); <span class="comment">// fetchSize を設定</span>
+cb.<span class="point">paging</span>(<span class="literal">20</span>, currentPageNumber);
+PagingResultBean&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.<span class="point">selectPage</span>(cb);
 </code></pre>
 	<p>
-		FetchFirst が設定されると、検索結果として戻ってくるリストの件数は、必ず指定された件数以下となります。
-		fetchSize が 1 の場合は、必ず一件検索となります(Behavior の一件検索が利用可能に)。
+		PagingResultBean には、指定されたページ番号のデータが格納されています。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/selectentity.html"> -->Behavior - selectEntity(cb)<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../behavior/resultbean/paging/index.html">Behavior - PagingResultBean</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="notzerominus">引数の fetchSize は正の値</h3>
+	<h3 id="notzerominus">引数は正の値</h3>
 	<p>
-		引数の fetchSize には必ず正の値を入れます。(0 や マイナス値は例外)
+		引数の pageSize, pageNumber には必ず正の値を入れます。0 や マイナス値が指定された場合、pageSize
+		は例外ですが、pageNumber は 1 が指定されたときと同じ動きをします。pageNumber
+		は、ユーザ入力値(指定値)である可能性が想定されるため(任意の値を指定される可能性があるため)、不用意に例外にしないようにしています。
 	</p>
 	<h3 id="severalcall">複数回呼び出しは上書き</h3>
 	<p>
-		複数回、FetchFirst を呼び出した場合は、最後に設定された値が有効(上書き)になります。
+		複数回、Paging を呼び出した場合は、最後に設定された値が有効(上書き)になります。
 	</p>
-	<h3 id="paginginit">Paging 設定を上書き</h3>
+	<h3 id="paginginit">FetchFirst 設定を上書き</h3>
 	<p>
-		Paging が設定がされている状態で、FetchFirst を呼び出すと、ページングの設定は無効になります。
+		FetchFirst が設定がされている状態で、Paging を呼び出すと、FetchFirstの設定は無効になります。
 	</p>
-	<div class="relatedpage"><a href="./paging.html">ConditionBean - Paging</a></div>
-	<p>
-		FetchFirst は、1 ページ目の n 件を取得するページング検索になる、とも言え、実際に、FetchFirst を設定するだけでも、Behavior
-		の selectPage(cb) を利用することができる(但し、ページング目的の場合は明示的に Paging を利用することが推奨される)。
-	</p>
+	<div class="relatedpage"><a href="./fetchfirst.html">ConditionBean - FetchFirst</a></div>
+	<div class="inucolumn">
+		<h3 id="oldstyle">その昔は、FetchFirst + FetchPage</h3>
+		<p>
+			その昔は、paging() はなく、fetchFirst() を呼び出した後に、fetchPage()
+			というメソッドでページ番号を指定することでページングを指定していました。
+			その名残はまだありますが、paging() がサポートされている今では意識する必要は全くありません。
+		</p>
+	</div>
 
 </div>
 </div>
