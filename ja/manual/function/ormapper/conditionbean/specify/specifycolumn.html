@@ -156,7 +156,8 @@ cb.specify().specifyMemberStatus().<span class="point">columnMemberStatus()</spa
 	<h3 id="referrer">子テーブル</h3>
 	<p>
 		LoadReferrer の子テーブルに対する ConditionBean の中でも SpecifyColumn
-		は利用できます。但し、関連をつなぐカラム(基点テーブルへの子テーブルのFKカラム)を明示的に指定しないと、子テーブル自体が取得できなくなりますのでご注意下さい。
+		は利用できます。関連をつなぐカラム(基点テーブルへの子テーブルのFKカラム)はマッピング処理で利用するため必要なのですが、
+		明示的に指定しなくても内部的に解決されます<span class="freecomment">(@since 0.9.7.6)</span>。
 	</p>
 <pre><span class="codetitle">ex) 購入の購入日時だけを取得 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -164,7 +165,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetu<span class="abbreviation">...</span>() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
         cb.specify().<span class="point">columnPurchaseDatetime()</span>;
-        cb.specify().<span class="point">columnMemberId()</span>; <span class="comment">// 忘れると子テーブル自体が取得できない</span>
+        <span class="comment">//cb.specify().columnMemberId(); 不要 (但し、旧バージョンでは必要)</span>
         cb.query().setPaymentCompleteFlg_Equal_True(); <span class="comment">// 支払が完了したものだけ</span>
         cb.query().addOrderBy_PurchaseDatetime_Desc(); <span class="comment">// 購入日時の降順で取得</span>
     }
