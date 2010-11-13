@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,InScopeRelation,in句,サブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,query,innerJoin,inner join,内部結合" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InScopeRelation | DBFlute</title>
+	<title>InnerJoin | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,145 +37,93 @@
 </div>
 
 <div id="content">
-	<h1>InScopeRelation</h1>
+	<h1>InnerJoin</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a>
-			<ul>
-				<li><a href="#whichuse">ExistsReferrer と InScopeRelation</a></li>
-			</ul>
-		</li>
+		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a></li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#inlineorclause">OnClause では不可</a></li>
+				<li><a href="#relationonly">リレーションに対してのみ利用</a></li>
+				<li><a href="#severalcall">複数回の呼び出し</a></li>
 			</ul>
 		</li>
-		<li><a href="#supported">サポートされる関連テーブル</a></li>
-		<li><a href="#notexistsreferrer">否定条件：NotInScopeRelation</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		in句のサブクエリを使って関連テーブルの条件で絞り込みをする条件(in (select ... from ...))を設定します。InScopeRelation
-		は、絞り込み条件を表す ConditionKey です。
-	</p>
-	<div class="relatedpage"><a href="../about.html#conditionkey">ConditionBeanについて - ConditionKeyとは？</a></div>
-	<p>
-		FKの関連を辿り、in句のサブクエリ(相関ではない)を使って、関連テーブルの条件で基点テーブルを絞り込みます。
-		この条件は、他の方法で実現する "関連テーブルの条件で絞り込み" の代替方法となります。
+		指定されたリレーションの結合方式を内部結合(inner join)にします。
 	</p>
 	<p>
-		例えば、親テーブル(ForeignTable: one-to-oneも含む)のカラムの条件で基点テーブルを絞り込むのであれば、Query(Relation)
-		を使って親テーブルの条件を設定し、join を経由して絞り込みを実現するのが通常です。
-		また、子テーブル(Referrer)のカラムの条件で基点テーブルを絞り込むのであれば、ExistsReferrer
-		を使って子テーブルの条件を設定し、exists を経由して絞り込みを実現するのが通常です。(少なくともDBFluteにおいては)
+		結合方式は、基本的に外部結合(left outer join)が利用されます。
 	</p>
-	<div class="relatedpage"><a href="./relation.html">Query(Relation)</a></div>
-	<div class="relatedpage"><a href="./existsreferrer.html">ExistsReferrer</a></div>
+	<div class="relatedpage"><a href="./relation.html#joinway">Query(Relation) - 結合方式の基本は外部結合</a></div>
 	<p>
-		実際に、InScopeRelation を使った場合と、上記の他の方法を使った場合で、絞り込み条件としての結果は全く同じになります。
-		InScopeRelation をどういうときに利用するかというと、ほとんどの場合は意識する必要はないと想定されていますが、状況によっては
-		InScopeRelation の方が良いパフォーマンスを出す可能性もあります(もちろん、その逆もあります)。そのときのための代替機能として用意されています。
-		但し、例外として、InlineView の中では InScopeRelation を利用します(InlineView の中での
-		ExistsReferrerがサポートされていないため)。
+		但し、ごく稀な状況で、外部結合から内部結合に変えることでパフォーマンスが改善することがあります。
+		例えば、数百万件を超えるデータ、古いバージョンのDBMS、様々な要素が絡み合ってそういう状況が発生する可能性があります。
+		そういったパフォーマンス上の調整のために、内部結合が利用できるようになっています。(つまり、普段の実装で意識する機能ではありません)
 	</p>
 	<p>
-		会話上では、<em class="keyword">いんすこーぷりれーしょん</em> と表現します。
+		InnerJoin は、リレーションのカージナリティ次第では、(絞り込み条件を指定していない場合でも)基点テーブルに絞り込みが発生する可能性があります。
+		利用する時は業務的なカージナリティをよく考慮した上で細心の注意を払って利用して下さい。以下、特に注意すべきパターンです。
 	</p>
-	<div class="inucolumn">
-		<h3 id="whichuse">ExistsReferrer と InScopeRelation</h3>
-		<p>
-			exists句とin句のサブクエリは、どちらが速いか？よく取り上げられる話題です。
-			結局、状況とDBMSに依存するので一概にどちらかというのはなかなか結論付けづらいものです。
-		</p>
-		<p>
-			DBFluteでは、少なくとも "子テーブル対する、exists句の相関サブクエリ、相関でないin句のサブクエリ"
-			において、速度に違い(業務上問題になるほどの違い)が発生するケースは(経験上)多くないと捉え、かつ、業務的な意味合いのフィット感を優先し、
-			ExistsReferrer をメインとしています。チューニングが必要になったら、InScopeRelation
-			を検討すると。(jfluteは、実務ではほとんど ExistsReferrer を使っています)
-		</p>
-		<p>
-			SQLの結果が同じなのですから、将来的には、どちらを記述したとしても差が出ないようにDBMS側で完全な最適化がされるようになることを期待したいと思います。
-			実際、Exampleにて(PostgreSQL-8.4, Oracle 10g XE)、基点テーブル 30000　件、子テーブル 1000000
-			件で幾つかのパターンを試してみましたが、特にスピードに差は出ませんでした。
-			(もちろん、もっと色々なパターン、もしくは、データ量を増やせば差が出るのかもしれませんが)
-		</p>
-	</div>
+	<ul>
+		<li>many-to-one で、カージナリティが "* : 0...1" <span class="freecomment">(非依存型リレーション)</span></li>
+		<li>one-to-one で、カージナリティが "1 : 0...1" <span class="freecomment">ex) 会員退会情報</span></li>
+		<li>カージナリティ的には大丈夫でも、OnClause や InlineView で絞り込みがある</li>
+	</ul>
+	<p>
+		※もちろん、該当リレーションを使った(OnClause や InlineView ではない)絞り込み条件がある場合は、
+		外部結合でも内部結合でも検索結果は変わりませんので気にする必要はありません。
+	</p>
+	<p>
+		会話上では、<em class="keyword">いんなーじょいん</em> と表現します。
+	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<p>
-		query() の後、<em class="keyword">inScope[relation-table]()</em>
-		を呼び出し、引数にサブクエリの中の条件を指定する、SubQuery のコールバック実装を指定します。
+		query().query[relation]() の後、<em class="keyword">innerJoin()</em>
+		を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) InScopeRelation条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) InnerJoinの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.q <span class="comment">// .q と打って enter</span>
+cb.query().queryMemberStatus().setDisplayOrder_LessThan(<span class="literal">3</span>);
+cb.query().queryMemberStatus().inn <span class="comment">// .inn と打って enter</span>
 --
-cb.query()
---
-<span class="comment">// 1. .ex まで打つと関連テーブル選択</span>
-<span class="comment">// 2. PL (PurchaseList) で enter</span>
-cb.query().inSPL
---
-<span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
-cb.query().<span class="point">inScopePurchaseList(subQuery)</span>
---
-<span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
-cb.query().inScopePurchaseList(<span class="point">new </span>)
---
-<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
-cb.query().inScopePurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        <span class="comment">// TODO Auto-generated method stub</span>
-        
-    }
-})
---
-<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
-<span class="comment">// サブクエリ(子テーブル)の絞り込み条件を指定</span>
-cb.query().inScopePurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
-    }
-}); <span class="comment">// セミコロンを忘れずに</span>
+cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
 </code></pre>
-	<p>
-		SQL上では、コールバックの中で指定された条件がサブクエリの中に展開されます。
-	</p>
-<pre><span class="codetitle">ex) InScopeRelationを使って2000円以上の購入をしたことのある会員を検索 @DisplaySql</span><code>
+<pre><span class="codetitle">ex) 会員ステータスの結合を内部結合に @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> dflocal.MEMBER_ID <span class="keyword">in</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
-                               <span class="keyword">from</span> PURCHASE dfsublocal_0
-                              <span class="keyword">where</span> <span class="point">dfsublocal_0.PURCHASE_PRICE &gt;= 2000</span>
-       )
+    <span class="point">inner join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> dfrelation_0.DISPLAY_ORDER &lt; <span class="literal">3</span>
 </code></pre>
 	<p>
-		その他、サブクエリの中では、ExistsReferrer と同じような要領で様々なパターンが実現できます。
+		指定されたリレーションの結合が内部結合になります。呼び出すタイミングは任意ですが、
+		習慣的に対象となるリレーションでの絞り込み条件などを指定した後が良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="./existsreferrer.html#howto">ExistsReferrer - 実装方法</a></div>
+	<p>
+		SetupSelect(Relation) のリレーションにも適用されます。
+	</p>
+<pre><span class="codetitle">ex) SetupSelectしたリレーションを内部結合に {MemberStatus} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
+</code></pre>
+<pre><span class="codetitle">ex) SetupSelectしたリレーションを内部結合に {MemberStatus} @DisplaySql</span><code>
+<span class="keyword">select</span> dflocal.MEMBER_ID, dflocal.MEMBER_NAME, <span class="abbreviation">...</span>
+     <span class="point">, dfrelation_0.MEMBER_STATUS_CODE, ...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+    <span class="point">inner join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> <span class="abbreviation">...</span>
+</code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="relationonly">リレーションに対してのみ利用</h3>
 	<p>
-		一部を除き、ExistsReferrer と同じです。
+		リレーションに対してのみ利用できます。基点テーブルの Query で呼び出した場合は例外です。
 	</p>
-	<div class="relatedpage"><a href="./existsreferrer.html#methodspec">ExistsReferrer - メソッド仕様</a></div>
-	<h3 id="inlineorclause">OnClause では不可</h3>
+	<h3 id="severalcall">複数回の呼び出し</h3>
 	<p>
-		OnClause の中の条件では利用できません。InlineView の中では利用できます。
-	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="./inlineview.html"> -->InlineView<!-- </a> --></span></div>
-
-	<h2 id="supported">サポートされる関連テーブル</h2>
-	<p>
-		全ての関連テーブルに対してサポートされます。
-	</p>
-
-	<h2 id="notexistsreferrer">否定条件：NotInScopeRelation</h2>
-	<p>
-		否定条件の対象値の列挙として、NotInScopeRelation もあります。条件が否定になっただけで仕様は InScopeRelation と全く同じです。
+		何度呼び出しても設定が上書きされるだけですが、業務的な意味はありません。
 	</p>
 
 </div>

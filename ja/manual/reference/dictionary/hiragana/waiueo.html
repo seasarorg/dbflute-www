@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,用語集,Dictionary,辞書,あいうえお" />
+	<meta name="keywords" content="DBFlute,用語集,Dictionary,辞書,あいうえお,依存型リレーション,依存型リレーション(シップ),非依存型リレーション,非依存型リレーション(シップ)" />
 	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
@@ -43,11 +43,34 @@
 	</p>
 	<ul class="indexlist">
 		<li><a href="#architect">アーキテクト (Architect)</a></li>
+		<li><a href="#izongatarelation">依存型リレーション(シップ)</a></li>
 		<li><a href="#entity">エンティティ (Entity)</a></li>
 	</ul>
 
 	<h2 id="architect" class="dicword">アーキテクト (Architect)</h2>
 	<div class="relatedword"><span class="working"><!-- <a href="./wa.html#architect"> -->Architect (アーキテクト)<!-- </a> --></span></div>
+
+	<h2 id="izongatarelation" class="dicword">依存型リレーション(シップ)</h2>
+	<p>
+		曖昧な定義がされやすい言葉であるため、DBFluteでは独自の解釈で定義しています。
+	</p>
+	<p>
+		親テーブルがなければ基点テーブルが存在できないような関係を依存型リレーションと呼びます。
+		例えば、購入は会員なしでは存在しませんので、購入と会員の関係は依存型リレーションと言えます。
+		<em class="keyword">基点テーブルのFKカラムが NotNull</em>、もしくは、<em class="keyword">カージナリティが "1 : 1" (相手が必ず存在)の one-to-one</em>
+		であることが実装上の特徴です。
+		但し、論理削除の概念などが入るような場合は、必ずしもその通りではなく、その論理削除の業務的な意味を考慮した上で考える必要があります。
+	</p>
+	<p>
+		FKカラムが基点テーブルの主キー項目の一部であること、という定義も世の中には存在しますが、論理モデルでは大きな間違いではありませんが、
+		最終的な物理モデルではそもそも複合主キーを避けるために代替キーを使うことが多く(自然キーにはユニーク制約を)、実際には実装とは一致せず紛らわしいので、DBFluteではそのような考え方はしません。
+		敢えて捉えるなら、<em class="keyword">FKカラムが基点テーブルの自然キー(のユニーク制約)項目になっていること</em>
+		と捉えられます。例えば、購入の会員IDは、購入の自然キー(ユニークキー)の一項目となっています。
+		但し、会員と会員ステータスのような関係の場合、"会員ステータスがなければ会員が存在しない"
+		というのは、業務的な捉え方だとちょっと違和感がありますが、物理的(実装上)にはそのようになるので、そういうリレーションも含んで考えます。
+		(one-to-one のリレーションも同様)
+	</p>
+	<div class="relatedword"><a href="./whahihuheho.html#hiizongatarelation">非依存型リレーション(シップ)</a></div>
 
 	<h2 id="entity" class="dicword">エンティティ (Entity)</h2>
 	<div class="relatedword"><span class="working"><!-- <a href="./we.html#entity"> -->Entity (エンティティ)<!-- </a> --></span></div>
