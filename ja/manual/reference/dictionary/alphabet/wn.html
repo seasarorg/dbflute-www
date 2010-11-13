@@ -42,8 +42,62 @@
 		"N" で始まる用語に関するページです。
 	</p>
 	<ul class="indexlist">
+		<li><a href="#nonerelation">{n : 1} 型リレーション</span></a></li>
+		<li><a href="#nzeroonerelation">{n : 0...1} 型リレーション</span></a></li>
 		<li><a href="#notparamresult">NotParamResult(Set) <span class="freecomment">for プロシージャ</span></a></li>
 	</ul>
+
+	<h2 id="nonerelation" class="dicword">{n : 1} 型リレーション</span></h2>
+	<p>
+		基点テーブルのレコード一つに対し、必ず一つの関連テーブルのレコードが存在するようなリレーションのことを示します。要は、"相手が絶対にいるリレーション"
+		と言えます。業務的な論理構造ではなく、実装上意識すべき物理構造を示した表現です。
+	</p>
+	<p>
+		実装上の特徴としては、<em class="keyword">基点テーブルのFKカラムが NotNull</em>、もしくは、<em class="keyword">カージナリティが
+		"1 : 1" (相手が必ず存在)の one-to-one</em> であることです。
+	</p>
+	<p>
+		例えば、購入の会員へのリレーション、会員の会員ステータスへのリレーションが該当します。
+		また、基点の "n" には 1 も含まれると捉え、会員の会員セキュリティ情報へのリレーションのような(相手が必ずいる) one-to-one も該当します。
+	</p>
+	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>
+	<p>
+		また、静的な構造だけでなく、SQL上の一時的なビューにおいてもこの表現を利用します。
+		例えば、会員の会員ステータスは {n : 1} 型リレーションですが、OnClause や InlineView
+		で結合先だけを絞り込む条件を指定した場合は、そのSQL上ではそのリレーションは(一時的な) {n : 0...1}
+		型リレーションと表現することがあります。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/query/onclause.html">OnClause</a></div>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/query/inlineview.html">InlineView</a></div>
+	<p>
+		会話上では、<em class="keyword">えぬわんがたりれーしょん</em> もしくは <em class="keyword">えぬわんりれーしょん</em> と表現します。
+	</p>
+	<div class="relatedword"><a href="#nzeroonerelation">{n : 0...1} 型リレーション</a></div>
+
+	<h2 id="nzeroonerelation" class="dicword">{n : 0...1} 型リレーション</span></h2>
+	<p>
+		基点テーブルのレコード一つに対し、関連テーブルのレコードが存在しない可能性のあるリレーションのことを示します。要は、"相手がいるとは限らないリレーション"
+		と言えます。業務的な論理構造ではなく、実装上意識すべき物理構造を示した表現です。
+	</p>
+	<p>
+		実装上の特徴としては、<em class="keyword">基点テーブルのFKカラムが Nullable</em>、もしくは、<em class="keyword">カージナリティが
+		"1 : 0...1" の one-to-one</em> であることです。
+	</p>
+	<p>
+		例えば、会員退会情報の退会理由へのリレーションが該当します。
+		また、基点の "n" には 1 も含まれると捉え、会員の会員退会情報へのリレーションのような(相手がいないかもしれない) one-to-one も該当します。
+	</p>
+	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>
+	<p>
+		また、静的な構造だけでなく、SQL上の一時的なビューにおいてもこの表現を利用します。
+		例えば、会員退会情報の退会理由は {n : 0...1} 型リレーションですが、退会理由コードに IsNotNull
+		の条件を指定した場合や、退会理由のカラムで絞り込み条件(IsNullは除く)を指定した場合は、そのSQL上ではそのリレーションは(一時的な) {n : 1}
+		型リレーションと表現することがあります。
+	</p>
+	<p>
+		会話上では、<em class="keyword">えぬぜろわんがたりれーしょん</em> もしくは <em class="keyword">えぬぜろわんりれーしょん</em> と表現します。
+	</p>
+	<div class="relatedword"><a href="#nonerelation">{n : 1} 型リレーション</a></div>
 
 	<h2 id="notparamresult" class="dicword">NotParamResult(Set) <span class="freecomment">for プロシージャ</span></h2>
 	<p>

@@ -67,15 +67,16 @@
 		と捉えることができます。(実行計画の内部的な挙動と一致するかどうかは別にして)
 	</p>
 	<p>
-		これにより、DB構造上は依存型リレーションでも、SQL上では(一時的な)非依存型リレーションになります。
+		これにより、DB構造上は {n : 1} 型リレーションでも、SQL上では(一時的な) {n : 0...1} 型リレーションになります。
 		例えば、SetupSelect をした場合、基点テーブルの Entity は on 句で絞り込まれた関連テーブルのデータを持っていません(null になる)。
 	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/hiragana/waiueo.html#izongatarelation">依存型リレーション</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nonerelation">{n : 1} 型リレーション</a></div>
 	<p>
-		主に、非依存型リレーションで関連テーブルに論理削除の概念がある場合に役に立ちます。
-		OnClause を使えば、結合前に論理削除されているレコードは除外することができます。
+		主に、{n : 0...1} 型リレーションで関連テーブルに論理削除の概念がある場合に役に立ちます。OnClause
+		を使えば、結合前に論理削除されているレコードを除外することができます。但し、InlineView でも同じことが実現できます。
 	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/hiragana/whahihuheho.html#hiizongatarelation">非依存型リレーション</a></div>
+	<div class="relatedpage"><a href="#oninline">OnClause と InlineView どちら？</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nzeroonerelation">{n : 0...1} 型リレーション</a></div>
 	<p>
 		会話上では、<em class="keyword">おんくろーず</em> と表現します。
 	</p>
@@ -119,7 +120,7 @@ cb.query().queryMemberStatus().<span class="point">on()</span>.setDisplayOrder_E
 		<p>
 			OnClause だけでなく、InlineView でも同じことを実現できます。さて、どちらを使えば良いのでしょうか？
 		</p>
-		<div class="relatedpage"><span class="working"><!-- <a href="./inlineview.html"> -->InlineView<!-- </a> --></span></div>
+		<div class="relatedpage"><a href="./inlineview.html">InlineView</a></div>
 		<p>
 			他の機能との組み合わせで若干 InlineView の方が自由度が高いため、その制約に該当する場合は、InlineView
 			で良いでしょう。但し、そういうパターンよりも、"もうどっちでもいい"
@@ -132,7 +133,6 @@ cb.query().queryMemberStatus().<span class="point">on()</span>.setDisplayOrder_E
 			に置くことをお奨めしています。万が一のインラインビューでフルスキャンが発生するリスクを考えてのことです。
 			また、実装がバラバラになるのも良くないというのもあるので、とにかく OnClause
 			を基本として、パフォーマンス的な改善が見込めるようであれば InlineView というスタンスが落としどころでしょうか。
-			
 		</p>
 	</div>
 
