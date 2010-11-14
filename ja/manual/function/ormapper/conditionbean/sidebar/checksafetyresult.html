@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,checkSafetyResult,件数チェック,全件検索チェック" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>CheckSafetyResult | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,11 +37,13 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>CheckSafetyResult</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
+				<li><a href="#selectentity">一件検索では内部的に利用</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -49,62 +51,63 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 			</ul>
 		</li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
-			</ul>
-		</li>
+		<li><a href="#methodspec">メソッド仕様</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<p>
+		<em class="keyword">玄人向け</em> のスポット対応の機能です。普段は意識する必要はありません。
+	</p>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		ConditionBeanの検索結果が指定された件数を超えた場合に例外にします。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
+		例えば、"このテーブルは件数が膨大なので間違っても全件検索したくない" かつ "絶対に n 件以下のデータであることが業務上確定している"
+		というような場合に、(フェッチ処理の途中で)指定した件数を超えたことがすぐに例外で検知できます。
+		膨大な件数のテーブルを間違って全件検索してしまうと、DBアクセスの処理が戻ってきません(一件検索であれば二件目のデータ取得時に例外になるので、主にリスト検索が対象)。
+		テストすれば分かることとはいえ、SQLの処理が戻ってくるまでは何が起きているのかわからなかったりして(特に画面を経由した実行の場合)、意外にコストが掛かります。
 	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
 	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
+		無効な条件による予期せぬ全件検索などは、CheckInvalidQuery
+		を使えば防げますが、それ以外の要因で余計な件数のデータが取れてしまうのを防ぐことができます。
+		例えば、絶対に 3 件しか取れないはずの検索が、データの不備で 4 件以上取れてしまう、というような場合のチェックにも利用できます。
 	</p>
+	<div class="relatedpage"><a href="./checkinvalidquery.html">CheckInvalidQuery</a></div>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。しっかり、精度高く利用しないと、逆にカオスを生み出します。
+		"場合によっては指定件数以上の検索もするかもしれない"
+		というような場合にチェックを掛けてしまうと、いざというときに逆に面倒なことになります。
+		(特に、本番運用の中で初めてそういう場面が発生した、とかになるとかなりややこしい問題となるでしょう)
+	</p>
+	<div class="inucolumn">
+		<h3 id="selectentity">一件検索では内部的に利用</h3>
+		<p>
+			実は、一件検索(selectEntity)では内部的にこの機能を使っています。
+			一件検索が二件目のデータ取得時にすぐに例外になって早い段階で検知できるようになっているのはそういうことなのです。
+		</p>
+		<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/selectentity.html"> -->Behavior - selectEntity(cb)<!-- </a> --></span></div>
+	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		絞り込み条件などを設定する前に、ConditionBean の checkInvalidQuery() を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
+<pre><span class="codetitle">ex) ConditionBeanに絞り込み条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
+cb.chSR <span class="comment">// .chSR と打って enter</span>
 --
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+cb.<span class="point">checkSafetyResult(safetyMaxResultSize)</span>
+--
+cb.checkSafetyResult(<span class="literal">3</span>); <span class="comment">// 3 件以上で例外</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		QueryUpdate や QueryDelete では無効です。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
-	<p>
-		他の機能との組み合わせは以下の通りです。
-	</p>
-	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
-	</ul>
 
 </div>
 </div>

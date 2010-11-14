@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,インターフェースディスパッチ,インターフェース経由,抽象実装" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>CB - InterfaceDispatch | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,73 +37,146 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>CB - InterfaceDispatch</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a>
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#interface">インターフェースメソッド</a>
 			<ul>
-				<li><a href="#basicconcept">基本概念</a></li>
-			</ul>
-		</li>
-		<li><a href="#howto">実装方法</a>
-			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
-			</ul>
-		</li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
+				<li><a href="#select">データ取得</a></li>
+				<li><a href="#query">絞り込み・ソート条件</a></li>
+				<li><a href="#pkdispatch">PKの抽象的に扱うメソッド</a></li>
+				<li><a href="#tableinfo">テーブルのメタデータ</a></li>
+				<li><a href="#nodependent">テーブルに依存しないメソッド</a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
-	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		アーキテクト向けの機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
+	<p>
+		ConditionBeanには、インターフェースディスパッチ(抽象実装)ができるように、インターフェース経由で機能が利用できるメソッドが用意されています。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
+		通常の利用では必要ありませんので、
+		"知ってしまったら使ってしまいそう" と思われる方は、このページは読まずに、すぐにDBFlute内の適当なページに飛んで下さい。
 	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
-	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
-	</p>
+	<div class="detailpage"><a href="../../../../topic/programming/completion/camelcase.html">DBFlute内の適当なページ</a></div>
 
-	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h2 id="interface">インターフェースメソッド</h2>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		それぞれの ConditionBean は、"ConditionBean"
+		というインターフェースを実装しています。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
---
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
-</code></pre>
+	<h3 id="select">データ取得</h3>
+	<dl class="textlist">
+		<dt>invokeSetupSelect()</dt>
+		<dd>
+			指定されたプロパティ(foreignPropertyNamePath)に対応するリレーションを SetupSelect
+			します。プロパティ名は、"." (ドット)つなぎでネストした階層を辿っていくことが可能です。
+		</dd>
+	</dl>
+	<h3 id="query">絞り込み・ソート条件</h3>
+	<p>
+		ConditionQuery も同様に "ConditionQuery" というインターフェースを実装しています。
+	</p>
+	<dl class="textlist">
+		<dt>localCQ()</dt>
+		<dd>query() で取得される ConditionQuery をインターフェース形式で取得します。</dd>
+		<dt>localCQ().invokeValue()</dt>
+		<dd>指定されたカラム名(columnFlexibleName)の ConditionValue を取得します。</dd>
+		<dd>※アプリでは基本的に必要としません。</dd>
+		<dt>localCQ().invokeQuery()</dt>
+		<dd>
+			絞り込み条件を設定します。
+			<dl class="keymainlist">
+				<dt>columnFlexibleName</dt><dd>カラム名 (Flexible)。"." (ドット)つなぎでリレーションを表現できる</dd>
+				<dt>conditionKeyName</dt><dd>比較条件のキー名 (Equal, LessThan など)</dd>
+				<dt>value</dt><dd>条件値 (Object型)</dd>
+				<dt>option</dt><dd>ConditionOption (LikeSearchOptionなど)。オーバーロード引数。</dd>
+			</dl>
+		</dd>
+		<dt>localCQ().invokeQueryEqual()</dt>
+		<dd>
+			頻度が高いと想定されている Equal に特化した invokeQuery() です。比較条件の指定がありません。
+		</dd>
+		<dt>localCQ().invokeOrderBy()</dt>
+		<dd>
+			ソート条件を設定します。
+			<dl class="keymainlist">
+				<dt>columnFlexibleName</dt><dd>カラム名 (Flexible)。"." (ドット)つなぎでリレーションを表現できる</dd>
+				<dt>isAsc</dt><dd>昇順かどうか (false なら降順)</dd>
+			</dl>
+		</dd>
+		<dt>localCQ().invokeForeignCQ()</dt>
+		<dd>
+			指定されたプロパティ(foreignPropertyName)に対応する関連テーブルの ConditionQuery
+			を取得します。プロパティ名は、"." (ドット)つなぎでネストした階層を辿っていくことが可能です。
+		</dd>
+		<dt>localCQ().invokeHasForeignCQ()</dt>
+		<dd>
+			指定されたプロパティ(foreignPropertyName)に対応する関連テーブルの ConditionQuery
+			があるかどうかを判定します。プロパティ名は、"." (ドット)つなぎでネストした階層を辿っていくことが可能です。
+		</dd>
+		<dd>※アプリでは基本的に必要としません。</dd>
+	</dl>
+	<h3 id="pkdispatch">PKの抽象的に扱うメソッド</h3>
+	<p>
+		PKのデータ型、および、単一PKなのか複合PKなのか、これらを吸収して抽象的に実装するためのメソッドが用意されています。
+	</p>
+	<dl class="textlist">
+		<dt>acceptPrimaryKeyMap()</dt>
+		<dd>
+			PrimaryKey の値が格納された Map を受け取って、等値条件を設定するメソッドです。
+			DBMeta の extractPrimaryKeyMap() を使って取得した Map を利用すれば、Entity
+			に格納されている PK の値をそのまま ConditionBean に登録できます。
+		</dd>
+		<dd>
+			<em class="keyword">[PKのカラム名] = [PKの値]</em>
+			という形式で登録されている必要があります。
+		</dd>
+		<dt>addOrderBy_PK_Asc()</dt>
+		<dd>PK の昇順(Asc)で OrderBy を設定します。</dd>
+		<dt>addOrderBy_PK_Desc()</dt>
+		<dd>PK の降順(Desc)で OrderBy を設定します。</dd>
+	</dl>
+<pre><span class="codetitle">ex) PKを抽象的に扱って一件検索 @Java</span><code>
+BehaviorReadable bhv = <span class="abbreviation">...</span>
+Entity entity = <span class="abbreviation">...</span> <span class="comment">// 例えば、PKのみ格納されてるとして</span>
 
-	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
+<span class="comment">// PKの等値条件</span>
+ConditionBean cb = bhv.newConditionBean();
+cb.acceptPrimaryKeyMap(entity.getDBMeta().extractPrimaryKeyMap(entity));
+
+Entity entity = bhv.readEntity(); <span class="comment">// 指定されたPKで一件検索</span>
+</code></pre>
+	<h3 id="tableinfo">テーブルのメタデータ</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		getDBMeta() から DBMeta インターフェースを取得できます。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
+	<div class="detailpage"><a href="./tableinfo.html">CB - TableInfo</a></div>
+	<h3 id="nodependent">テーブルに依存しないメソッド</h3>
 	<p>
-		他の機能との組み合わせは以下の通りです。
+		幾つかのそもそもメソッド仕様がテーブルに依存しないメソッドが、インターフェースメソッドになっています。
+		以下、主なものを列挙しています。
 	</p>
 	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
+		<li>paging()</li>
+		<li>enablePagingCountLater()</li>
+		<li>disablePagingReSelect()</li>
+		<li>fetchFirst()</li>
+		<li>fetchScope()</li>
+		<li>fetchPage()</li>
+		<li>lockForUpdate()</li>
+		<li>checkSafetyResult()</li>
+		<li>checkInvalidQuery()</li>
+		<li>configure()</li>
+		<li>toDisplaySql()</li>
+		<li>hasWhereClause()</li>
+		<li>hasOrderByClause()</li>
+		<li>clearOrderBy()</li>
 	</ul>
 
 </div>

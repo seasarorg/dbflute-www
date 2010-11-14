@@ -39,16 +39,20 @@
 <div id="content">
 	<h1>ManualOrder</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#nullargument">nullの指定</a></li>
-				<li><a href="#emptyargument">空リストの指定</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
 				<li><a href="#readonlylist">読み取り専用リストでも可</a></li>
 				<li><a href="#nullcompare">isNull, isNotNullは不可</a></li>
 				<li><a href="#elementtype">リスト要素の型</a></li>
@@ -62,6 +66,7 @@
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		指定された値(リスト)の順番通りに並べる設定をします。
 	</p>
@@ -80,6 +85,7 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		まずは、OrderBy のメソッド呼び出しの直後に続けて、withManualOrder()
 		を呼び出し、並べる順番の値のリスト(manualValueList)を引数に指定します。
@@ -138,18 +144,16 @@ cb.query().addOrderBy_UpdateDatetime_Desc();
 	<div class="relatedpage"><a href="./specifiedderivedorderby.html">SpecifiedDerivedOrderBy</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<p>
-		ManualOrder は、直前の OrderBy に対してのみ適用されます。
-	</p>
-	<h3 id="nullargument">nullの指定</h3>
-	<p>
-		nullが指定されたら例外です。また、リストの中の null 要素は無視されます。
-	</p>
-	<h3 id="emptyargument">空リストの指定</h3>
-	<p>
-		空リストが指定されたらその ManualOrder は無効です。もし、同じカラムに対して既に一度 ManualOrder
-		を設定している場合は、その設定を上書きして、ManualOrder を無効化します。
-	</p>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>適用対象</dt><dd>ManualOrder は、直前の OrderBy に対してのみ適用されます。</dd>
+		<dt>nullの指定</dt><dd>nullが指定されたら例外です。また、リストの中の null 要素は無視されます。</dd>
+		<dt>空リストの指定</dt>
+		<dd>
+			空リストが指定されたらその ManualOrder は無効です。もし、同じカラムに対して既に一度 ManualOrder
+			を設定している場合は、その設定を上書きして、ManualOrder を無効化します。
+		</dd>
+	</dl>
 	<h3 id="readonlylist">読み取り専用リストでも可</h3>
 	<p>
 		内部では指定されたリストに更新操作はしないので、読み取り専用リストも指定できます。よって、Arrays.asList()

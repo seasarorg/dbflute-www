@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,embedCondition,埋め込み変数" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>EmbedCondition | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,11 +37,12 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>EmbedCondition</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -51,60 +52,89 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#emptyset">空セットは全条件埋め込み</a></li>
+				<li><a href="#nameonly">カラム名だけで判定</a></li>
+				<li><a href="#timing">呼び出しタイミング</a></li>
+				<li><a href="#deprecated">非推奨メソッド</a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<p>
+		アーキテクト向けの機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		指定されたカラムの絞り込み条件をバインド変数を使わない条件にします。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
+		万が一でも、使いたくない機能です。ですが、ごくごく稀に、バインド変数を使わないで条件値をSQLに埋め込むとパフォーマンスが向上する、というような状況があります。
+		オプティマイザの理論としては、そういうことがあって当然ではあるのですが、業務上それに関わった問題に直面することは多くはないでしょう。
+		その万が一のために、そういうときのために、ConditionBeanの絞り込み条件において、カラム指定でバインド変数を使わずに条件値をSQLに埋め込むことができます。
+		その条件値が、アプリのユーザ入力値で文字列型の場合は、SQLインジェクションに要注意です。
 	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
 	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
+		ディベロッパー向けに思えますが、アーキテクトへの相談無しに利用してはいけません。そういう意味で、"アーキテクト向けの機能" と謳っています。
+	</p>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。自分を斬りつけて最も痛い思いをする可能性のある機能です。
+		埋め込む条件値が、アプリのユーザ入力値で文字列型の場合は、必ず別の方法でのSQLインジェクション対策を行って下さい。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		embedCondition() を呼び出し、第一引数に埋め込み対象のカラム、第二引数に条件値をクォートするかどうかを指定します。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
+<pre><span class="codetitle">ex) EmbedConditionの実装 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
---
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+<span class="abbreviation">...</span> <span class="comment">// もろもろの条件などを設定</span>
+
+Set&lt;ColumnInfo&gt; plainSet = <span class="keyword">new</span> HashSet&lt;ColumnInfo&gt;();
+plainSet.add(MemberDbm.getInstance().columnMemberId()); <span class="comment">// 数値型</span>
+cb.<span class="point">embedCondition</span>(plainSet, <span class="literal">false</span>) <span class="comment">// クォートしない場合</span>
+
+Set&lt;ColumnInfo&gt; quotedSet = <span class="keyword">new</span> HashSet&lt;ColumnInfo&gt;();
+quotedSet.add(MemberDbm.getInstance().columnMemberName()); <span class="comment">// 文字列型</span>
+quotedSet.add(MemberDbm.getInstance().columnBirthdate()); <span class="comment">// 日付型</span>
+cb.<span class="point">embedCondition</span>(quotedSet, <span class="literal">true</span>) <span class="comment">// クォートする場合</span>
+
+<span class="abbreviation">...</span> = <span class="literal">memberBhv</span>.selectList(cb); <span class="comment">// 指定されたカラムの条件値は埋め込まれる</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>引数の指定</dt>
+		<dd>
+			引数の embeddedColumnInfoSet は必須(nullであってはいけない)です。
+			また、null 要素も許されません。
+		</dd>
+		<dt>null 要素</dt>
+		<dd>null 要素は許されません</dd>
+		<dt>ColumnInfo は DBMeta のもの</dt>
+		<dd>ColumnInfoのインスタンスは DBMeta から取得したものである必要があります。</dd>
+	</dl>
+	<h3 id="emptyset">空セットは全条件埋め込み</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		空セットを指定した場合は、全条件が埋め込みとなります。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
+	<h3 id="nameonly">カラム名だけで判定</h3>
 	<p>
-		他の機能との組み合わせは以下の通りです。
+		カラム名だけで判定します。よって、別テーブル同名カラムの条件がそれぞれある場合、両方に適用されます。
 	</p>
-	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
-	</ul>
+	<h3 id="timing">呼び出しタイミング</h3>
+	<p>
+		実行時に評価されるので、いつ設定しても構いません。(習慣的に、条件設定後で、実行する直前)
+	</p>
+	<h3 id="deprecated">非推奨メソッド</h3>
+	<p>
+		deprecated になっています。将来的に削除されるわけではありませんが、"安易に使ってくれるな" ということを示します。
+	</p>
 
 </div>
 </div>

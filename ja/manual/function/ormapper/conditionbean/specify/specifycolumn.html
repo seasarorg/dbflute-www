@@ -39,9 +39,15 @@
 <div id="content">
 	<h1>SpecifyColumn</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#selectpolicy">バランス指向のデータ取得ポリシー</a></li>
+			</ul>
+		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#basepoint">基点テーブル</a></li>
 				<li><a href="#relation">関連テーブル</a></li>
 				<li><a href="#both">基点テーブルと関連テーブルの両方</a></li>
@@ -57,10 +63,11 @@
 			</ul>
 		</li>
 		<li><a href="#onlyonecolumn">他の機能から間借りされる</a></li>
-		<li><a href="#balance">データ取得のポリシーもバランス指向</a></li>
+		<li><a href="#balancepolicy">データ取得のポリシーもバランス指向</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		取得カラム(select句に並べるカラム)の明示的な指定をします。
 	</p>
@@ -71,14 +78,16 @@
 		特に、一つのテーブルにおける定義カラム数があまりに多い場合に有効です。
 	</p>
 	<p>
-		SpecifyColumn に絡んで、DBFlute にはデータ取得の明確なポリシーがあります。 
-	</p>
-	<div class="detailpage"><a href="#balance">データ取得のポリシーもバランス指向</a></div>
-	<p>
 		会話上では、<em class="keyword">すぺしふぁいからむ</em> と表現します。
 	</p>
+	<h3 id="selectpolicy">バランス指向のデータ取得ポリシー</h3>
+	<p>
+		SpecifyColumn に絡んで、DBFlute にはデータ取得の明確なポリシーがあります。 
+	</p>
+	<div class="detailpage"><a href="#balancepolicy">this - データ取得のポリシーもバランス指向</a></div>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		まずは通常通り、取得対象のテーブルを確定します。基点テーブルだけであれば、単に new
 		するだけ。関連テーブルがある場合は、SetupSelect を指定。その後、SpecifyColumn
@@ -214,14 +223,22 @@ cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
 		においては、サブクエリの中の(唯一の)子テーブルの導出カラムを指定するのに使われます。そのような場合においては、通常の SpecifyColumn
 		にある SetupSelect の有無に依存する仕様などは無関係となります。
 	</p>
+<pre><span class="codetitle">ex) (Specify)DerivedReferrerでのSpecifyColumnの利用(間借り) @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.specify().<span class="point">columnPurchasePrice()</span>;
+    }
+});
+</code></pre>
 	<div class="relatedpage"><a href="./derivedreferrer.html">(Specify)DerivedReferrer</a></div>
 	<div class="relatedpage"><a href="../query/derivedreferrer.html">(Query)DerivedReferrer</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../query/columnquery.html"> -->ColumnQuery<!-- </a> --></span></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="../query/scalarcondition.html"> -->ScalarCondition<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../query/scalarcondition.html">ScalarCondition</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/scalarselect.html"> -->ScalarSelect<!-- </a> --></span></div>
 
 	<div class="inucolumn">
-		<h2 id="balance">データ取得のポリシーもバランス指向</h2>
+		<h2 id="balancepolicy">データ取得のポリシーもバランス指向</h2>
 		<p>
 			ConditionBean のデータ取得のポリシーは以下の通りです。
 		</p>

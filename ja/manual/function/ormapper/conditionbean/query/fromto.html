@@ -39,8 +39,16 @@
 <div id="content">
 	<h1>日時の汎用的なFromTo条件</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
 		<li><a href="#pattern">パターンの比較条件</a>
 			<ul>
 				<li><a href="#date">日付による範囲条件 (yyyy/MM/dd)</a></li>
@@ -51,9 +59,7 @@
 		<li><a href="#manual">手動で比較条件を調整</a></li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#nullargument">nullの指定</a></li>
-				<li><a href="#severalcall">同カラムに対する複数条件の指定</a></li>
-				<li><a href="#severalcall">同カラムに対する同じ条件値での複数指定</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
 				<li><a href="#argumenttype">条件値の型は java.util.Date</a></li>
 				<li><a href="#argumentplain">条件値の日付の値はそのまま</a></li>
 				<li><a href="#optionreuse">指定されたオプションの再利用</a></li>
@@ -63,6 +69,7 @@
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		日時の汎用的なFromTo条件を設定します。FromTo は、絞り込み条件を表す ConditionKey です。
 	</p>
@@ -76,6 +83,7 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		query() の後、<em class="keyword">set[date-column-name]_FromTo()</em>
 		を呼び出し、第一引数に from に相当する条件値、第二引数に to に相当する条件値、第三引数に FromToOption (必須)を指定します。
@@ -224,22 +232,19 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="nullargument">nullの指定</h3>
-	<p>
-		引数の fromDate と toDate が両方とも null
-		の場合は、その条件は無効となります。片方だけが null
-		の場合はもう一つの条件だけが有効になります。
-	</p>
-	<h3 id="severalcall">同カラムに対する複数条件の指定</h3>
-	<p>
-		内部的に、GreaterEqual や LessThan など、別のメソッドを呼び出しているだけなので、
-		その利用した条件の仕様通りです。
-	</p>
-	<h3 id="severalcall">同カラムに対する同じ条件値での複数指定</h3>
-	<p>
-		内部的に、GreaterEqual や LessThan など、別のメソッドを呼び出しているだけなので、
-		その利用した条件の仕様通りです。
-	</p>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>nullの指定</dt>
+		<dd>
+			引数の fromDate と toDate が両方とも null
+			の場合は、その条件は無効となります。片方だけが null
+			の場合はもう一つの条件だけが有効になります。
+		</dd>
+		<dt>同カラムに対する複数条件の指定</dt>
+		<dd>内部的に、GreaterEqual や LessThan など、別のメソッドを呼び出しているだけなので、その利用した条件の仕様通りです。</dd>
+		<dt>同カラムに対する同じ条件値での複数指定</dt>
+		<dd>内部的に、GreaterEqual や LessThan など、別のメソッドを呼び出しているだけなので、その利用した条件の仕様通りです。</dd>
+	</dl>
 	<h3 id="argumenttype">条件値の型は java.util.Date</h3>
 	<p>
 		プロパティの型が java.sql.Timestamp であっても、引数の条件値の型は java.util.Date
@@ -248,7 +253,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 	<h3 id="argumentplain">条件値の日付の値はそのまま</h3>
 	<p>
 		内部での日付調整があっても、条件値として指定した日付オブジェクトの値はそのままです。
-		内部では新たに日付オブジェクトを作成して利用します。
+		内部では新たに日付オブジェクトを作成して利用しています。
 	</p>
 	<h3 id="optionreuse">指定されたオプションの再利用</h3>
 	<p>

@@ -41,26 +41,29 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
 				<li><a href="#role">取得と絞り込みで違う機能</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#function">利用できる関数</a></li>
-				<li><a href="#function">利用できる比較条件</a></li>
-				<li><a href="#relation">関連テーブル</a></li>
+				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#relation">関連テーブルへのアプローチ</a></li>
 				<li><a href="#funcfilter">導出値の関数によるフィルタ</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#subcbean">サブクエリのConditionBean</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#usablefunc">利用できる関数</a></li>
+				<li><a href="#usablecondition">利用できる比較条件</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		子テーブルの導出カラム(最大値や合計値)で絞り込みます。(Specify)DerivedReferrer
 		が "取得" であるのに対して、これは "絞り込み" です。
@@ -85,14 +88,17 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		specify() の後、<em class="keyword">derived[referrer-table]List()</em>
 		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
 		のコールバック実装を引数に指定します。第二引数は、導出カラムを受け取るためのプロパティに対応するエリアス名、
-		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption を指定します。
+		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption
+		を指定します。コールバックの中では、SpecifyColumn を使って導出カラムを(一つ)指定します。
 	</p>
 	<div class="relatedpage"><a href="#funcfilter">this - 導出値の関数によるフィルタ</a></div>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrer条件の実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
+	<div class="relatedpage"><a href="../specify/specifycolumn.html#onlyonecolumn">SpecifyColumn - 他の機能から間借りされる</a></div>
+<pre><span class="codetitle">ex) (Query)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
 --
@@ -154,28 +160,12 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
        ) &gt;= <span class="literal">10000</span>
 <span class="abbreviation">...</span>
 </code></pre>
-	<h3 id="function">利用できる関数</h3>
 	<p>
-		利用できる関数は、(Specify)DerivedReferrer と同じです。
+		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
 	</p>
-	<div class="relatedpage"><a href="../specify/derivedreferrer.html#function">(Specify)DerivedReferrer - 利用できる関数</a></div>
-	<h3 id="function">利用できる比較条件</h3>
-	<p>
-		利用できる比較条件は、以下の通りです。
-	</p>
-	<dl class="keymainlist">
-		<dt>equal()</dt><dd>等値。</dd>
-		<dt>greaterThan()</dt><dd>大なり。</dd>
-		<dt>lessThan()</dt><dd>小なり。</dd>
-		<dt>greaterEqual()</dt><dd>大なりイコール。</dd>
-		<dt>greaterEqual()</dt><dd>小なりイコール。</dd>
-		<dt>isNull()</dt><dd>null かどうか。</dd>
-		<dt>isNotNull()</dt><dd>null でないかどうか。</dd>
-	</dl>
-	<p>
-		引数の条件値の型は Object 型です。カラムの型に合わせたプログラム型の値を指定して下さい。
-	</p>
-	<h3 id="relation">関連テーブル</h3>
+	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
+	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
+	<h3 id="relation">関連テーブルへのアプローチ</h3>
 	<p>
 		関連テーブルへのアプローチは、(Specify)DerivedReferrer と同じです。 
 	</p>
@@ -192,14 +182,41 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
 	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>引数の指定</dt>
+		<dd>
+			引数の SubQuery、条件値(isNull, isNotNull は除く)は必須です。DerivedReferrerOption
+			もオーバーロードのメソッドを指定している場合は必須です。
+		</dd>
+		<dt>導出カラムの指定は一つ</dt>
+		<dd>導出カラムの指定は必ず一つだけです。指定が無い場合、指定があり過ぎる場合は例外です。</dd>
+		<dt>サブクエリのConditionBean</dt>
+		<dd>
+			サブクエリの ConditionBean は、導出カラムと絞り込み条件だけの指定に利用するものです。
+			SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+		</dd>
+	</dl>
+	<h3 id="usablefunc">利用できる関数</h3>
 	<p>
-		引数の SubQuery、条件値(isNull, isNotNull は除く)は必須です。DerivedReferrerOption
-		もオーバーロードのメソッドを指定している場合は必須です。
+		利用できる関数は、(Specify)DerivedReferrer と同じです。
 	</p>
-	<h3 id="subcbean">サブクエリのConditionBean</h3>
+	<div class="relatedpage"><span class="working"><!-- <a href="../specify/derivedreferrer.html#function"> -->(Specify)DerivedReferrer - 利用できる関数<!-- </a> --></span></div>
+	<h3 id="usablecondition">利用できる比較条件</h3>
 	<p>
-		サブクエリの ConditionBean は、導出カラムと絞り込み条件だけの指定に利用するものです。
-		SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+		利用できる比較条件は、以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>equal()</dt><dd>等値</dd>
+		<dt>greaterThan()</dt><dd>大なり</dd>
+		<dt>lessThan()</dt><dd>小なり</dd>
+		<dt>greaterEqual()</dt><dd>大なりイコール</dd>
+		<dt>lessEqual()</dt><dd>小なりイコール</dd>
+		<dt>isNull()</dt><dd>null かどうか</dd>
+		<dt>isNotNull()</dt><dd>null でないかどうか</dd>
+	</dl>
+	<p>
+		引数の条件値の型は Object 型です。カラムの型に合わせたプログラム型の値を指定して下さい。
 	</p>
 
 	<h2 id="supported">サポートされる関連テーブル</h2>

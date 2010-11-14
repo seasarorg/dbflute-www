@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,hasWhereClause,hasOrderBy,絞り込み条件の有無,where句の有無,order by句の有無,全件検索チェック" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>HasWhereOrderBy | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,11 +37,12 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>HasWhereOrderBy</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -51,60 +52,85 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
+				<li><a href="#invalidquery">無効になった条件</a></li>
+				<li><a href="#oninline">InlineView や OnClause の絞り込み条件</a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<p>
+		アーキテクト向けの機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		ConditionBeanに絞り込み条件やソート条件が設定されているかどうかを判定します。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
+		例えば、"このテーブルは件数が膨大なので全件検索は絶対にしない" ということが確定する場合に、ExBehavior
+		の検索処理のオーバーライドなどで、指定された ConditionBean
+		をチェックして例外にするような場合に利用でできます。
+		膨大な件数のテーブルを間違って全件検索してしまうと、DBアクセスの処理が戻ってきません(一件検索であれば二件目のデータ取得時に例外になるので、主にリスト検索が対象)。
+		テストすれば分かることとはいえ、SQLの処理が戻ってくるまでは何が起きているのかわからなかったりして(特に画面を経由した実行の場合)、意外にコストが掛かります。
 	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exbehavior">ExBehavior</a></div>
 	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
+		また、QueryUpdate や QueryDelete のような ConditionBean
+		を使った更新系のメソッドにおいて、全件更新や全件削除を防ぐのにも有効です。
+		(全てのテーブルに実装すると大変なので、QueryUpdate などを使うことが確定しているポイントとなるテーブルに限定すると良いでしょう)
+	</p>
+	<p>
+		ディベロッパーが目に届く範囲にいるのであればあまり必要ありませんが、アプリの一部を違う組織に依頼する場合や、
+		海を越えた先に依頼する場合などにおいて、あらかじめこのような配慮をしておくと、予期せぬ問い合わせやデバッグ作業のコストを抑え、かつ、ある程度の安心感を得ることができます。
+	</p>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。しっかり、精度高く利用しないと、逆にカオスを生み出します。
+		"場合によっては全件検索もするかもしれない"
+		というようなテーブルに対してチェックを掛けてしまうと、いざというときに逆に面倒なことになります。
+		(特に、本番運用の中で初めてそういう場面が発生した、とかになるとかなりややこしい問題となるでしょう)
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		絞り込み条件に関しては、ConditionBean の hasWhereClause() を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
---
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
+<pre><span class="codetitle">ex) ConditionBeanに絞り込み条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
 <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+cb.hasWC <span class="comment">// .hasWC と打って enter</span>
+--
+cb.<span class="point">hasWhereClause()</span>
+--
+if (!cb.hasWhereClause()) {
+    <span class="abbreviation">...</span> <span class="comment">// 絞り込み条件がなかったら</span>
+}
+</code></pre>
+	<p>
+		ソート条件に関しては、ConditionBean の hasOrderByClause() を呼び出します。
+	</p>
+<pre><span class="codetitle">ex) ConditionBeanにソート条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
+<span class="abbreviation">...</span>
+cb.hasOBC <span class="comment">// .hasOBC と打って enter</span>
+--
+cb.<span class="point">hasOrderByClause()</span>
+--
+if (!cb.hasOrderByClause()) {
+    <span class="abbreviation">...</span> <span class="comment">// ソート条件がなかったら</span>
+}
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
+	<h3 id="invalidquery">無効になった条件</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		絞り込み条件は設定したが、条件値が null などで無効になったものは、"存在しないもの"
+		として扱われます。設定した条件は全て無効だった場合は、hasWhereClause() は false になります。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
+	<h3 id="oninline">InlineView や OnClause の絞り込み条件</h3>
 	<p>
-		他の機能との組み合わせは以下の通りです。
+		hasWhereClause() において、InlineView や OnClause の絞り込み条件は判定要素には含まれません。
 	</p>
-	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
-	</ul>
 
 </div>
 </div>

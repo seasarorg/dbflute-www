@@ -41,12 +41,13 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
 				<li><a href="#role">子テーブル対応の役割を明確に</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#function">利用できる関数</a></li>
+				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
@@ -56,13 +57,16 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#subcbean">サブクエリのConditionBean</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#usablefunc">利用できる関数</a></li>
+				<li><a href="#usablefilter">利用できるフィルタ関数</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		子テーブルの導出カラム(最大値や合計値)を、基点テーブルの(疑似)カラムとして取得します。
 	</p>
@@ -88,6 +92,7 @@
 	<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html">Behavior - LoadReferrer</a></div>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		まずは、導出カラムを受け取るためのプロパティを ExEntity に定義します。
 	</p>
@@ -119,10 +124,12 @@
 		specify() の後、<em class="keyword">derived[referrer-table]List()</em>
 		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
 		のコールバック実装を引数に指定します。第二引数は、導出カラムを受け取るためのプロパティに対応するエリアス名、
-		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption を指定します。
+		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption
+		を指定します。コールバックの中では、SpecifyColumn を使って導出カラムを(一つ)指定します。
 	</p>
 	<div class="relatedpage"><a href="#funcfilter">this - 導出値の関数によるフィルタ</a></div>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrer条件の実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
+	<div class="relatedpage"><a href="./specifycolumn.html#onlyonecolumn">SpecifyColumn - 他の機能から間借りされる</a></div>
+<pre><span class="codetitle">ex) (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.sp <span class="comment">// .sp と打って enter</span>
 --
@@ -184,42 +191,10 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
   <span class="keyword">from</span> MEMBER dflocal
 <span class="abbreviation">...</span>
 </code></pre>
-	<h3 id="function">利用できる関数</h3>
 	<p>
-		利用できる関数は以下の通りです。
+		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
 	</p>
-	<dl class="textlist">
-		<dt>max()</dt>
-		<dd>最大値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
-		<dt>min()</dt>
-		<dd>最小値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
-		<dt>avg()</dt>
-		<dd>
-			平均値。数値のみ。関連データが無い場合は null となる(coalesce()
-			の検討)。値が小数点になる可能性があるので、受け取るプロパティの型を小数点を扱える型(BigDecimal
-			など)にしたり、round() や trunc() を利用したり検討する良い。
-		</dd>
-		<dt>sum()</dt>
-		<dd>
-			合計値。数値のみ。関連データが無い場合は null となる(coalesce() 利用の検討)。
-			受け取るプロパティの型がカラムに対応する型だと、(合計値なので)オーバーフローする可能性もあるので、業務的な可能性を踏まえてサイズの大きい型(Long
-			や BigDecimal など)を利用すると良い。
-		</dd>
-		<dt>count()</dt>
-		<dd>
-			レコード数。純粋に関連するレコードの数を求めるには、主キーカラムを指定すること(null でないカラムであることが求められる)。もし、Nullable
-			なカラムを指定した場合は、null のデータ(を持つレコード)を除外した件数となる。関連データが無い場合は 0 となる。
-		</dd>
-		<dt>countDistinct()</dt>
-		<dd>
-			種類数。例えば、"(会員の)購入した商品の種類数" など。count(disctinct [column-name]) 構文が利用される。
-			その他、count() と同じ仕様。
-		</dd>
-	</dl>
-	<p>
-		関数の特徴によって、適切な関数フィルタを合わせると良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="#funcfilter">導出値の関数によるフィルタ</a></div>
+	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
 	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
@@ -254,34 +229,9 @@ cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().su
 	<h3 id="funcfilter">導出値の関数によるフィルタ</h3>
 	<p>
 		導出値をSQLの関数で基本的なフィルタを掛けることができます。関数メソッドのオーバーロードの第三引数である DerivedReferrerOption
-		にて、そのフィルタ処理を指定することができます。利用できるフィルタメソッドは以下の通りです。<span class="freecomment">@since 0.9.7.4</span>
+		にて、そのフィルタ処理を指定することができます。<span class="freecomment">@since 0.9.7.4</span>
 	</p>
-	<dl class="textlist">
-		<dt>coalesce(Object coalesce)</dt>
-		<dd>
-			max() や sum() など、関数によっては状況次第で null
-			を戻します(紐づく子テーブルのデータが一件も存在しなかった場合など)。このメソッドで、導出値が null
-			になった場合の代わりの値を指定することができます。SQL上では coalesce
-			関数が利用されます。日付型に対して文字列を指定した場合は、内部的にパースして(DfTypeUtil.toDate()を利用)、日付型に変換します。
-			絞り込み条件も考慮して、<em class="keyword">関連する子テーブルのレコードが一件も存在しない可能性がある場合</em> に有効です。
-		</dd>
-		<dt>round(Object round)</dt>
-		<dd>
-			導出値を指定された精度で四捨五入することができます。SQL上では round
-			関数が利用されます。基本的には数値型を想定していますが、日付型に対して round
-			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのround関数の仕様に依存します。
-		</dd>
-		<dt>trunc(Object trunc)</dt>
-		<dd>
-			導出値を指定された精度で切り捨てすることができます。SQL上では trunc
-			関数が利用されます(DBMSごとの違いは内部的に吸収)。基本的には数値型を想定していますが、日付型に対して trunc
-			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのtrunc関数の仕様に依存します。
-		</dd>
-	</dl>
-	<p>
-		これらは、細かい動作はDBMSの該当のSQL関数の仕様に依存します。
-		また、同じ動作をする関数が存在しないDBMSではサポートされません。
-	</p>
+	<div class="relatedpage"><a href="#usablefilter">this - 利用できるフィルタ関数</a></div>
 <pre><span class="codetitle">ex) 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
 cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     <span class="keyword">public void</span> query(MemberLoginCB subCB) {
@@ -312,20 +262,89 @@ cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuer
 	<div class="relatedpage"><a href="../query/orderby/specifiedderivedorderby.html">SpecifiedDerivedOrderBy</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>引数の指定</dt>
+		<dd>
+			引数の SubQuery、エリアス名は必須です。DerivedReferrerOption
+			もオーバーロードのメソッドを指定している場合は必須です。但し、エリアス名に関しては、ColumnQuery
+			内で利用される (Specify)DerivedReferrer の場合に限り null が許容されます。
+		</dd>
+		<dt>導出カラムの指定は一つ</dt>
+		<dd>導出カラムの指定は必ず一つだけです。指定が無い場合、指定があり過ぎる場合は例外です。</dd>
+		<dt>エリアス名はユニークキー</dt>
+		<dd>
+			エリアス名は導出カラムの定義のユニークキーとなります。同テーブルに対する複数呼び出しであってもエリアス名が違えば有効です。
+			同じエリアス名を指定した場合は、上書きとなります。また、存在しないプロパティのエリアス名が指定すると例外となります。
+		</dd>
+		<dt>サブクエリのConditionBean</dt>
+		<dd>
+			サブクエリの ConditionBean は、導出カラムと絞り込み条件だけの指定に利用するものです。
+			SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+		</dd>
+	</dl>
+	<h3 id="usablefunc">利用できる関数</h3>
 	<p>
-		引数の SubQuery、エリアス名は必須です。DerivedReferrerOption
-		もオーバーロードのメソッドを指定している場合は必須です。但し、エリアス名に関しては、ColumnQuery
-		内で利用される (Specify)DerivedReferrer の場合に限り null が許容されます。
+		利用できる関数は以下の通りです。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../query/columnquery.html"> -->ColumnQuery<!-- </a> --></span></div>
+	<dl class="textlist">
+		<dt>max()</dt><dd>最大値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
+		<dt>min()</dt><dd>最小値。関連データが無い場合は null となる(coalesce() の検討)。</dd>
+		<dt>avg()</dt>
+		<dd>
+			平均値。数値のみ。関連データが無い場合は null となる(coalesce()
+			の検討)。値が小数点になる可能性があるので、受け取るプロパティの型を小数点を扱える型(BigDecimal
+			など)にしたり、round() や trunc() を利用したり検討する良い。
+		</dd>
+		<dt>sum()</dt>
+		<dd>
+			合計値。数値のみ。関連データが無い場合は null となる(coalesce() 利用の検討)。
+			受け取るプロパティの型がカラムに対応する型だと、(合計値なので)オーバーフローする可能性もあるので、業務的な可能性を踏まえてサイズの大きい型(Long
+			や BigDecimal など)を利用すると良い。
+		</dd>
+		<dt>count()</dt>
+		<dd>
+			レコード数。純粋に関連するレコードの数を求めるには、主キーカラムを指定すること(null でないカラムであることが求められる)。もし、Nullable
+			なカラムを指定した場合は、null のデータ(を持つレコード)を除外した件数となる。関連データが無い場合は 0 となる。
+		</dd>
+		<dt>countDistinct()</dt>
+		<dd>
+			種類数。例えば、"(会員の)購入した商品の種類数" など。count(disctinct [column-name]) 構文が利用される。
+			その他、count() と同じ仕様。
+		</dd>
+	</dl>
 	<p>
-		エリアス名は導出カラムの定義のユニークキーとなります。同テーブルに対する複数呼び出しであってもエリアス名が違えば有効です。
-		同じエリアス名を指定した場合は、上書きとなります。また、存在しないプロパティのエリアス名が指定すると例外となります。
+		関数の特徴によって、適切な関数フィルタを合わせると良いでしょう。
 	</p>
-	<h3 id="subcbean">サブクエリのConditionBean</h3>
+	<h3 id="usablefilter">利用できるフィルタ関数</h3>
 	<p>
-		サブクエリの ConditionBean は、導出カラムと絞り込み条件だけの指定に利用するものです。
-		SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+		利用できるフィルタメソッドは以下の通りです。<span class="freecomment">@since 0.9.7.4</span>
+	</p>
+	<dl class="textlist">
+		<dt>coalesce(Object coalesce)</dt>
+		<dd>
+			max() や sum() など、関数によっては状況次第で null
+			を戻します(紐づく子テーブルのデータが一件も存在しなかった場合など)。このメソッドで、導出値が null
+			になった場合の代わりの値を指定することができます。SQL上では coalesce
+			関数が利用されます。日付型に対して文字列を指定した場合は、内部的にパースして(DfTypeUtil.toDate()を利用)、日付型に変換します。
+			絞り込み条件も考慮して、<em class="keyword">関連する子テーブルのレコードが一件も存在しない可能性がある場合</em> に有効です。
+		</dd>
+		<dt>round(Object round)</dt>
+		<dd>
+			導出値を指定された精度で四捨五入することができます。SQL上では round
+			関数が利用されます。基本的には数値型を想定していますが、日付型に対して round
+			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのround関数の仕様に依存します。
+		</dd>
+		<dt>trunc(Object trunc)</dt>
+		<dd>
+			導出値を指定された精度で切り捨てすることができます。SQL上では trunc
+			関数が利用されます(DBMSごとの違いは内部的に吸収)。基本的には数値型を想定していますが、日付型に対して trunc
+			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのtrunc関数の仕様に依存します。
+		</dd>
+	</dl>
+	<p>
+		これらは、細かい動作はDBMSの該当のSQL関数の仕様に依存します。
+		また、同じ動作をする関数が存在しないDBMSではサポートされません。
 	</p>
 
 	<h2 id="supported">サポートされる関連テーブル</h2>

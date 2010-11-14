@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,Behavior,selectCount,カウント検索,件数検索,select count(*),ConditionBean" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>selectCount(cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>selectCount(cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -51,8 +51,9 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -60,51 +61,56 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		<em class="keyword">ConditionBeanをもとにカウント検索</em> (select count(*))をします。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
-	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
-	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
+		会話上では、<em class="keyword">せれくとかうんと</em>
+		と表現します。文脈上、抽象的で伝わりにくい場合は <em class="keyword">Behaviorのせれくとかうんと(メソッド)</em>
+		や <em class="keyword">ConditionBeanのせれくとかうんと</em>
+		などと言うとわかりやすいでしょう。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		Behaviorの <em class="keyword">selectCount()</em>
+		を呼び出し、ConditionBeanを指定します。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
+<pre><span class="codetitle">ex) selectCount()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selC <span class="comment">// .selC と打って enter</span>
 --
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+<span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectCount(cb)</span>;
+--
+<span class="keyword">int</span> count = <span class="attribute">memberBhv</span>.selectCount(cb);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
+	<h3 id="argument">引数</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		該当のBehaviorに対応するテーブルのConditionBeanとなります。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
 	<p>
-		他の機能との組み合わせは以下の通りです。
+		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
+		検索条件がない検索をする場合でも、必ずConditionBeanのインスタンスが必要です。
 	</p>
-	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
-	</ul>
+	<p>
+		設定されている SetupSelect や OrderBy など、カウント検索に不要な情報は無視されます。
+	</p>
+	<h3 id="result">戻り値</h3>
+	<p>
+		int型となります。検索結果が一件もない場合は 0 が戻ります。
+	</p>
+	<p>
+		int型(32ビット:2147483648)の精度を超える件数は、サポートされません。
+	</p>
+	<h3 id="override">オーバーライド</h3>
+	<p>
+		オーバーライドして拡張することもできますが、通常は必要ありません。selectCount()
+		をオーバーライドした場合は、純粋にアプリで明示的に呼び出したリスト検索だけの拡張となり、他の Behavior
+		のメソッドから内部的に呼び出されているカウント検索も含めて一緒に拡張したい場合は、doSelectCount()
+		をオーバーライドすることで実現できます(詳しくはソースを読んで下さい)。
+	</p>
 
 </div>
 </div>

@@ -39,21 +39,29 @@
 <div id="content">
 	<h1>Equal</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#nullargument">nullや空文字の指定</a></li>
-				<li><a href="#samecolumncall">同カラムに対する複数条件の指定</a></li>
-				<li><a href="#samevaluecall">同カラムに対する同じ条件値での複数指定</a></li>
-				<li><a href="#variousspec">その他</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#emptystring">空文字で等値条件</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる型</a></li>
 		<li><a href="#classification">区分値メソッドの利用</a></li>
+		<li><a href="#viewpolicy">比較式の順序にこだわり</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		等値条件(=)を設定します。Equal は、絞り込み条件を表す ConditionKey です。
 	</p>
@@ -65,6 +73,7 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		query() の後、<em class="keyword">set[column-name]_Equal()</em>
 		を呼び出し、条件値を指定します。
@@ -84,32 +93,21 @@ cb.query().<span class="point">setMemberId_Equal(memberId)</span>;
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="nullargument">nullや空文字の指定</h3>
-	<p>
-		基本仕様の通り、無効な条件となります(呼び出さなかったのと同じ)。
-	</p>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>nullや空文字の指定</dt><dd>基本仕様の通り、無効な条件となります(呼び出さなかったのと同じ)。</dd>
+		<dt>同カラムに対する複数条件の指定</dt><dd>基本仕様の通り、上書きとなります。</dd>
+		<dt>同カラムに対する同じ条件値での複数指定</dt><dd>基本仕様の通り、重複した条件にはならずにデバッグログが出力されます。</dd>
+		<dt>大文字小文字の区別</dt><dd>DBMS、もしくは、DBMSの設定に依存します。</dd>
+		<dt>char型でサイズ不足の値</dt>
+		<dd>char型のカラムに対する条件で、サイズ不足の値に対する、指定された条件値の(両端の)空白の有無による検索結果への影響は、DBMSに依存します。</dd>
+	</dl>
 	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
+	<h3 id="emptystring">空文字で等値条件</h3>
 	<p>
 		空文字で等値条件を利用する場合は、ちょっとした手順を踏む必要があります。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/dbflutefit/emptystring/index.html"> -->現場フィット - 空文字の取扱い<!-- </a> --></span></div>
-	<h3 id="samecolumncall">同カラムに対する複数条件の指定</h3>
-	<p>
-		基本仕様の通り、上書きとなります。
-	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
-	<h3 id="samevaluecall">同カラムに対する同じ条件値での複数指定</h3>
-	<p>
-		基本仕様の通り、重複した条件にはならずにデバッグログが出力されます。
-	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
-	<h3 id="variousspec">その他</h3>
-	<dl class="textlist">
-		<dt>大文字小文字の区別</dt>
-		<dd>DBMS、もしくは、DBMSの設定に依存します。</dd>
-		<dt>char型でサイズ不足の値</dt>
-		<dd>char型のカラムに対する条件で、サイズ不足の値に対する、指定された条件値の(両端の)空白の有無による検索結果への影響は、DBMSに依存します。</dd>
-	</dl>
 
 	<h2 id="supported">サポートされる型</h2>
 	<ul>
@@ -125,6 +123,23 @@ cb.query().<span class="point">setMemberId_Equal(memberId)</span>;
 		区分値カラムの場合は、区分値メソッドが存在します。
 	</p>
 	<div class="relatedpage"><a href="../howto.html#classification">ConditionBeanの使い方 - 区分値メソッドの利用</a></div>
+
+	<div class="inucolumn">
+		<h2 id="viewpolicy">比較式の順序にこだわり</h2>
+		<p>
+			こまかいこだわりですが、比較式の順序がSQLと一致するようにしています。
+		</p>
+		<dl class="valuemainlist">
+			<dt>SQL</dt><dd>MEMBER_ID = 3</dd>
+			<dt>CB</dt><dd>setMemberId_Equal(3)</dd>
+		</dl>
+		<p>
+			"カラム名 + 比較条件 + 条件値"
+			の順序が崩れないように努めました。ConditionBean
+			には、様々な機能があるので、必ずしも一致しないところもありますが、
+			メソッドインターフェースを決める上での全体の基本ポリシーとしています。
+		</p>
+	</div>
 
 </div>
 </div>

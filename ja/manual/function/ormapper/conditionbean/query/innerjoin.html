@@ -39,8 +39,17 @@
 <div id="content">
 	<h1>InnerJoin</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#attention">InnerJoin の利用上の注意</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#relationonly">リレーションに対してのみ利用</a></li>
@@ -50,11 +59,12 @@
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		指定されたリレーションの結合方式を内部結合(inner join)にします。
 	</p>
 	<p>
-		結合方式は、基本的に外部結合(left outer join)が利用されます。
+		ConditionBeanの結合方式は、基本的に外部結合(left outer join)が利用されます。
 	</p>
 	<div class="relatedpage"><a href="./relation.html#joinway">Query(Relation) - 結合方式の基本は外部結合</a></div>
 	<p>
@@ -62,6 +72,10 @@
 		例えば、数百万件を超えるデータ、古いバージョンのDBMS、様々な要素が絡み合ってそういう状況が発生する可能性があります。
 		そういったパフォーマンス上の調整のために、内部結合が利用できるようになっています。(つまり、普段の実装で意識する機能ではありません)
 	</p>
+	<p>
+		会話上では、<em class="keyword">いんなーじょいん</em> と表現します。
+	</p>
+	<h3 id="attention">InnerJoin の利用上の注意</h3>
 	<p>
 		InnerJoin は、リレーションのカージナリティ次第では、(絞り込み条件を指定していない場合でも)基点テーブルに絞り込みが発生する可能性があります。
 		利用する時は業務的なカージナリティをよく考慮した上で細心の注意を払って利用して下さい。以下、特に注意すべきパターンです。
@@ -74,11 +88,9 @@
 		もちろん、該当リレーションを使った(OnClause や InlineView ではない)絞り込み条件がある場合は、
 		実質的な{n : 1} 型リレーションになるため、外部結合でも内部結合でも検索結果は変わりませんので気にする必要はありません。
 	</p>
-	<p>
-		会話上では、<em class="keyword">いんなーじょいん</em> と表現します。
-	</p>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		query().query[relation]() の後、<em class="keyword">innerJoin()</em>
 		を呼び出します。

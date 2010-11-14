@@ -41,11 +41,13 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
 				<li><a href="#role">子テーブル対応の役割を明確に</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
@@ -54,9 +56,7 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#severalcall">同テーブルに対する複数条件の指定</a></li>
-				<li><a href="#subcbean">サブクエリのConditionBean</a></li>
-				<li><a href="#inlineorclause">OnClause や InlineView では不可</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
@@ -65,6 +65,7 @@
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		子テーブルの条件で絞り込みをする条件(exists (select ... from ...))を設定します。ExistsReferrer は、絞り込み条件を表す ConditionKey です。
 	</p>
@@ -87,11 +88,12 @@
 	<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html">Behavior - LoadReferrer</a></div>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		query() の後、<em class="keyword">exists[referrer-table]List()</em>
 		を呼び出し、SubQuery のコールバック実装を引数に指定します。
 	</p>
-<pre><span class="codetitle">ex) ExistsReferrer条件の実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) ExistsReferrerの実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
 --
@@ -219,23 +221,21 @@ MemberCB cb = <span class="keyword">new</span> MemberCB();
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<p>
-		引数の SubQuery は必須です。
-	</p>
-	<h3 id="severalcall">同テーブルに対する複数条件の指定</h3>
-	<p>
-		同じ関連テーブルに対して、ExistsReferrer
-		を複数回呼び出した場合は、呼び出した分だけ条件になります。
-	</p>
-	<h3 id="subcbean">サブクエリのConditionBean</h3>
-	<p>
-		サブクエリの ConditionBean は、絞り込み条件だけの指定に利用するものです。
-		SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
-	</p>
-	<h3 id="inlineorclause">OnClause や InlineView では不可</h3>
-	<p>
-		OnClause や InlineView の中の条件では利用できません。
-	</p>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>引数の指定</dt><dd>引数の SubQuery は必須です。</dd>
+		<dt>同テーブルに対する複数条件の指定</dt>
+		<dd>
+			同じ関連テーブルに対しての ExistsReferrer 複数回呼び出しは、呼び出した分だけ条件になります。
+		</dd>
+		<dt>サブクエリのConditionBean</dt>
+		<dd>
+			サブクエリの ConditionBean は、絞り込み条件だけの指定に利用するものです。
+			SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
+		</dd>
+		<dt>OnClause や InlineView では不可</dt>
+		<dd>OnClause や InlineView の中の条件では利用できません。</dd>
+	</dl>
 	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
 	<div class="relatedpage"><a href="./inlineview.html">InlineView</a></div>
 

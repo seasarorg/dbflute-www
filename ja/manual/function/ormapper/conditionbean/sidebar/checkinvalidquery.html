@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,inline,インラインビュー,from句のサブクエリ" />
+	<meta name="keywords" content="DBFlute,ConditionBean,checkInvalidQuery,無効な条件のチェック,nullチェック,引数チェック,全件検索チェック" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InlineView | DBFlute</title>
+	<title>CheckInvalidQuery | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,11 +37,12 @@
 </div>
 
 <div id="content">
-	<h1>InlineView</h1>
+	<h1>CheckInvalidQuery</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -49,62 +50,58 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 			</ul>
 		</li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#alsobasepoint">基点テーブルでも利用できる</a></li>
-				<li><a href="#collabolation">他の機能との組み合わせ</a></li>
-			</ul>
-		</li>
+		<li><a href="#methodspec">メソッド仕様</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<p>
+		<em class="keyword">玄人向け</em> のスポット対応の機能です。普段は意識する必要はありません。
+	</p>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		インラインビューに絞り込み条件を設定します。
+		ConditionBeanの絞り込み条件の設定、無効な条件値(nullなど)を設定した場合に例外にします。
 	</p>
 	<p>
-		ConditionBean の InlineView は、絞り込み条件だけが設定できるインラインビューで、select
-		句は変わりません(select * from ...)。よって、役割的には OnClause とほぼ同義と考えられます。
+		通常、Query の絞り込み条件の設定では、無効な条件値は "設定されなかったのと同じ"
+		という扱いになり、例外にはならず無視されます。ConditionBean の基本仕様でもあります。
 	</p>
-	<div class="relatedpage"><a href="./onclause.html">OnClause</a></div>
+	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
 	<p>
-		会話上では、<em class="keyword">いんらいんびゅー</em> と表現します。
+		例えば、"このテーブルは件数が膨大なので間違っても全件検索したくない" かつ "条件値が外部からやってくる"
+		そして "無効な条件値は業務的に存在しない(やってこない)" というような場合に、設定された条件が無効になったことがすぐに例外で検知できます。
+		膨大な件数のテーブルを間違って全件検索してしまうと、DBアクセスの処理が戻ってきません(一件検索であれば二件目のデータ取得時に例外になるので、主にリスト検索が対象)。
+		テストすれば分かることとはいえ、SQLの処理が戻ってくるまでは何が起きているのかわからなかったりして(特に画面を経由した実行の場合)、意外にコストが掛かります。
+	</p>
+	<p>
+		結局は、ConditionBean に設定する前にしっかり null
+		チェックしていれば全く問題ないのですが(本来そうするべきですが)、一つ一つのチェック実装を書くのが大変なくらいパラメータが多く存在する場合に有効です。
+		チェックをしていても、さらに "堅く" するために利用するのも良いでしょう。
+	</p>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。しっかり、精度高く利用しないと、逆にカオスを生み出します。
+		"場合によっては無効な条件が存在してもいいかもしれない"
+		というような場合にチェックを掛けてしまうと、いざというときに逆に面倒なことになります。
+		(特に、本番運用の中で初めてそういう場面が発生した、とかになるとかなりややこしい問題となるでしょう)
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query().query[relation]() の後、<em class="keyword">inline()</em>
-		を呼び出し、その後続けて、関連テーブルの Query (絞り込み条件)を実装します。
+		絞り込み条件などを設定する前に、ConditionBean の checkInvalidQuery() を呼び出します。
 	</p>
-<pre><span class="codetitle">ex) InlineViewの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
+<pre><span class="codetitle">ex) ConditionBeanに絞り込み条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().queryMemberStatus().inl <span class="comment">// .inl と打って enter</span>
+cb.chIQ <span class="comment">// .chIQ と打って enter</span>
 --
-cb.query().queryMemberStatus().<span class="point">inline()</span>.setDisplayOrder_Equal(<span class="literal">2</span>);
-</code></pre>
-<pre><span class="codetitle">ex) 会員ステータスの表示順が 2 のものだけを結合 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> <span class="point">(select * from MEMBER_STATUS where DISPLAY_ORDER = 2)</span> dfrelation_0
-      <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE
+cb.<span class="point">checkInvalidQuery()</span>
+cb.query().setMemberId_Equal(<span class="keyword">null</span>); <span class="comment">// 例外になる</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="alsobasepoint">基点テーブルでも利用できる</h3>
 	<p>
-		基点テーブルに対しても利用できますが、業務的には意味がないと想定されます。
+		メソッドを呼び出した後に、チェックが有効になります。
 	</p>
-	<h3 id="collabolation">他の機能との組み合わせ</h3>
-	<p>
-		他の機能との組み合わせは以下の通りです。
-	</p>
-	<ul>
-		<li>OrScopeQuery は利用可能</li>
-		<li>InScopeRelation 利用可能 <span class="freecomment">(OnClause では不可)</span></li>
-		<li>ColumnQuery は不可</li>
-		<li>ExistsReferrer, (Query)DerivedReferrer などの相関サブクエリは不可</li>
-	</ul>
 
 </div>
 </div>
