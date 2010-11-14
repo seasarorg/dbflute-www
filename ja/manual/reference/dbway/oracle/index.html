@@ -54,6 +54,7 @@
 				<li><a href="#outsidesqlpaging">OutsideSqlのManualPaging</a></li>
 			</ul>
 		</li>
+		<li><a href="#updatelock">更新ロックの取得</a></li>
 		<li><a href="#procedure">プロシージャ</a>
 			<ul>
 				<li><a href="#packagesynonym">パッケージプロシージャ</a></li>
@@ -64,6 +65,7 @@
 		</li>
 		<li><a href="#dependency">DBMS依存機能</a>
 			<ul>
+				<li><a href="#forupdatenowait">"for update nowait (wait N)" を利用</a></li>
 				<li><a href="#fulltextsearch">ConditionBeanで全文検索</a></li>
 			</ul>
 		</li>
@@ -173,10 +175,10 @@
   <span class="point">from</span> (
 <span class="point">select</span> plain.*, <span class="point">rownum</span> <span class="keyword">as</span> rn
   <span class="point">from</span> (
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> ...
- <span class="keyword">where</span> ...
- <span class="keyword">order by</span> ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+ <span class="keyword">order by</span> <span class="abbreviation">...</span>
        ) plain
        ) ext
  <span class="point">where</span> ext.rn &gt; <span class="literal">80</span>
@@ -204,6 +206,23 @@
  <span class="comment">/*END*/</span>
 </code></pre>
 	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/select/selectpagemanual.html">OutsideSql - manualPaging().selectPage()</a></div>
+
+	<h2 id="updatelock">更新ロックの取得</h2>
+	<p>
+		ConditionBean の lockForUpdate() では、<em class="keyword">for update of [pk-column]</em> を利用します。
+	</p>
+	<div class="relatedpage"><a href="#forupdatenowait">this - "for update nowait (wait N)" を利用</a></div>
+<pre><span class="codetitle">ex) ConditionBeanで更新ロックの取得 (cb.lockForUpdate()) @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dflocal
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+   <span class="keyword">and</span> <span class="abbreviation">...</span>
+ <span class="point">for update of</span> dflocal.MEMBER_ID
+</code></pre>
+	<ul class="codeoutro">
+		<li>基点テーブルのカラム名を指定することで、ロックを基点テーブルのみ掛けるようにしています。</li>
+		<li>PKのないテーブルでは、何かしらのカラムが指定されます。</li>
+	</ul>
 
 	<h2 id="procedure">プロシージャ</h2>
 	<p>
@@ -258,19 +277,19 @@
 		更新ロックのオプションやテキスト検索。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/genbafit/implfit/databasedependency"> -->現場フィット - DatabaseDependency<!-- </a> --></span></div>
-	<h3>"for update nowait (wait N)" を利用</h3>
+	<h3 id="forupdatenowait">"for update nowait (wait N)" を利用</h3>
 	<p>
-		Oracle独自の "for update nowait" および "for update wait N" を利用できます。
+		Oracle独自の "for update of [pk] nowait" および "for update of [pk] wait N" を利用できます。
 	</p>
 <pre><span class="codetitle">ex) selectした行を待機時間なし(NOWAIT)でロック @Java</span><code>
 cb.<span class="point">lockForUpdateNoWait</span>();
 Member member = memberBhv.selectEntityWithDeletedCheck(cb);
-<span class="comment">// select ... from MEMBER ... for update nowait</span>
+<span class="comment">// select ... from MEMBER ... for update of MEMBER_ID nowait</span>
 </code></pre>	
 <pre><span class="codetitle">ex) selectした行を待機時間 3 秒(WAIT 3)でロック @Java</span><code>
 cb.<span class="point">lockForUpdateWait</span>(3);
 Member member = memberBhv.selectEntityWithDeletedCheck(cb);
-<span class="comment">// select ... from MEMBER ... for update wait 3</span>
+<span class="comment">// select ... from MEMBER ... for update of MEMBER_ID wait 3</span>
 </code></pre>	
 	<h3 id="fulltextsearch">ConditionBeanで全文検索</h3>
 	<p>
