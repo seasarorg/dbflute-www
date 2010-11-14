@@ -136,11 +136,11 @@
 		ParameterBeanの生成を示すマークは、SQLの行コメントで、"![ParameterBeanのクラス名]!"
 		という形で記述します。これを "<em class="keyword">ParameterBeanマーク</em>" と呼びます。
 	</p>
-	<a>
+	<p>
 		また、それぞれのプロパティ要素の指定は、SQLの行コメント形式 "-- " で、"!![プログラム型 プロパティ名]!!"
 		という形で記述します。CustomizeEntityとは違い "どういったプロパティ構造を保持するか"
 		をメタデータとして取得することができませんので、明示的に一つずつ宣言していきます。
-	</a>
+	</p>
 <pre><span class="codetitle">ex) SimpleMemberPmbという名前のParameterBeanを生成 @OutsideSql</span><code>
 <span class="comment">-- !SimpleMemberPmb!</span>
 <span class="comment">-- !!String memberId!!</span>
@@ -327,13 +327,27 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 <pre><span class="codetitle">ex) memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!String memberStatusCode:<span class="point">cls(MemberStatus)</span>!!</span>
-<span class="keyword">select</span> ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
 </code></pre>
 <pre><span class="codetitle">ex) 会員ステータス(区分値)が正式会員であること(検索条件) @Java</span><code>
 SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
 pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
+</code></pre>
+	<p>
+		また、後述の "参照カラムのオプション" で関連付けたカラムが区分値カラムの場合、その区分値の設定を引き継ぐため、
+		明示的な区分値の関連付け(cls)を利用しなくても区分値を利用できます。
+		JavaDocコメントなどにカラムの情報も付与されるなどのメリットがあるため、対応するカラムがはっきりしている場合はこちらのやり方で良いでしょう。
+		<span class="freecomment">@since 0.9.7.1</span>
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="reference"> -->this - 参照カラムのオプション<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) memberStatusCodeを会員の同名カラムに関連付け (区分値情報が引き継がれる) @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
 </code></pre>
 	<h3 id="reference">参照カラムのオプション</h3>
 	<p>
