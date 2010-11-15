@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,query,ScalarCondition,導出値との比較で絞り込み,最大値" />
+	<meta name="keywords" content="DBFlute,Behavior,scalarSelect,スカラ検索,スカラ値検索,最大値,最小値,合計値,平均値,ConditionBean" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>ScalarCondition | DBFlute</title>
+	<title>scalarSelect(cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,25 +37,26 @@
 </div>
 
 <div id="content">
-	<h1>ScalarCondition</h1>
+	<h1>scalarSelect(cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
-				<li><a href="#scalardiff">ScalarSelect との違い</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
-				<li><a href="#relation">関連テーブルのカラム</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#basicspec">基本仕様</a></li>
-				<li><a href="#usablecondition">利用できる比較条件</a></li>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#specifycolumn">導出カラムの指定</a></li>
 				<li><a href="#usablefunc">利用できる関数</a></li>
+				<li><a href="#queryonly">ConditionBeanは絞り込み条件のみ</a></li>
+				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -63,146 +64,111 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		あるカラムと <em class="keyword">そのカラムの導出値(最大値や合計値)</em> との比較で絞り込みます。
-	</p>
-	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
-	<p>
-		例えば、"一番若い会員" や "購入平均価格を上回る購入をしている会員" というように、
-		あるカラムとそのカラムの導出値(最大値や合計値)を比較する絞り込み条件を設定することができます。
-		where 句のサブクエリを使って条件を設定します。
-		あるカラムと <em class="keyword">別のカラムの導出値</em> を比較することはできません。
+		<em class="keyword">ConditionBeanをもとにスカラ検索</em> をします。
 	</p>
 	<p>
-		会話上では、<em class="keyword">すからこんでぃしょん</em>
-		と表現します。俗に "最大値レコードの取得" と表現しても ScalarCondition であることがわかります。
+		例えば、"一番若い会員の生年月日"、"全体の購入価格の平均" など、あるカラムの導出値を ConditionBean
+		の絞り込み条件をもとに取得することができます。
 	</p>
-	<h3 id="scalardiff">ScalarSelect との違い</h3>
 	<p>
-		Behavior の ScalarSelect との違いは、ScalarSelect
-		が導出カラムの値(スカラ値)を取得するのに対し、ScalarCondition
-		は、SQL内でそのスカラ値を使って絞り込みをすることです。
+		スカラ値の取得ではなくスカラ値を使ってSQL内で絞り込み条件をする、というような場合は、ScalarSelect
+		ではなく、ScalarCondition となります。
 	</p>
-	<div class="relatedpage"><a href="../../behavior/select/scalarselect.html">Behavior - ScalarSelect</a></div>
+	<div class="relatedpage"><a href="../../conditionbean/query/scalarcondition.html">ConditionBean - ScalarCondition</a></div>
+	<p>
+		会話上では、<em class="keyword">すからせれくと</em> と表現します。
+	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		query() の後、<em class="keyword">scalar_[condition-key]()</em>
-		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
-		のコールバック実装を引数に指定します。コールバックの中では、SpecifyColumn を使って比較対象カラムを(一つ)指定します。
+		Behaviorの <em class="keyword">scalarSelect()</em>
+		を呼び出し、受け取るスカラ値のプログラム型を引数に指定します。続けて、関数メソッドを呼び出し、ConditionBean で絞り込みを指定するコールバックを引数に指定します。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./specifycolumn.html#onlyonecolumn"> -->SpecifyColumn - 他の機能から間借りされる<!-- </a> --></span></div>
-<pre><span class="codetitle">ex) ScalarConditionの実装手順 (Eclipseでコード補完) {MEMBER, BIRTHDATE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.q <span class="comment">// .q と打って enter</span>
+<pre><span class="codetitle">ex) scalarSelect()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.sc <span class="comment">// .sc と打って enter</span>
 --
-cb.query()
+<span class="attribute">memberBhv</span>.<span class="point">scalarSelect(resultType)</span>;
 --
-<span class="comment">// 1. .sc まで打つと比較条件選択</span>
-<span class="comment">// 2. E (Equal) で enter</span>
-<span class="comment">//  =&gt; Equal, GreaterThan, LessThan,</span>
-<span class="comment">//     GreaterEqual, LessEqual, NotEqual</span>
-cb.query().scE
---
-cb.query().<span class="point">scalar_Equal()</span>
---
+<span class="comment">// 引数に受け取るスカラ値のプログラム型を指定し、</span>
 <span class="comment">// max() や min()、sum() などの関数メソッドを選んで enter</span>
 <span class="comment">//  =&gt; max(), min(), sum(), avg()</span>
-cb.query().scalar_Equal().max
+<span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).ma
 --
-<span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
-cb.query().scalar_Equal().max(subQuery)
+<span class="comment">// メソッドが補完されて、引数の "scalarQuery" が選択状態に</span>
+<span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).<span class="point">max</span>(scalarQuery)
 --
 <span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
-cb.query().scalar_Equal().max(<span class="point">new </span>)
+<span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).max(<span class="point">new </span>)
 --
 <span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+<span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
     
-    <span class="keyword">public void</span> query(MemberCB subCB) {
+    <span class="keyword">public void</span> query(MemberCB cb) {
         <span class="comment">// TODO Auto-generated method stub</span>
         
     }
 })
 --
 <span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
-<span class="comment">// 比較対象カラムと絞り込み条件を指定</span>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) { <span class="comment">// 一番若い正式会員</span>
-        subCB.specify().<span class="point">columnBirthdate()</span>; <span class="comment">// 比較対象カラムの指定</span>
-        subCB.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 絞り込み条件</span>
+<span class="comment">// ScalarQuery のConditionBeanで導出カラムと絞り込み条件を指定</span>
+<span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB cb) {
+        cb.specify().<span class="point">columnBirthdate()</span>; <span class="comment">// 生年月日の最大値</span>
+        cb.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 正式会員に限る</span>
     }
-});
-</code></pre>
-<pre><span class="codetitle">ex) ScalarConditionを使って一番若い正式会員(のレコード)を取得 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> dflocal.BIRTHDATE = (<span class="keyword">select</span> max(dfsublocal_0.BIRTHDATE)
-                              <span class="keyword">from</span> MEMBER dfsublocal_0
-                             <span class="keyword">where</span> dfsublocal_0.MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
-       )
-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
-	</p>
-	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
-	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
-	<p>
-		"一番若い正式会員" と言った場合でも、生年月日カラムがユニークでなければ、複数の会員が対象となる可能性がありますので、
-		そういった場合は、一件検索ではなくリスト検索になります。結果件数の可能性を考慮して、Behavior のメソッドを選んで下さい。
-	</p>
-	<h3 id="relation">関連テーブルのカラム</h3>
-	<p>
-		関連テーブル(many-to-one, one-to-one)のカラムも利用できます。 
-	</p>
-<pre><span class="codetitle">ex) 会員セキュリティ情報を一番最近に更新した会員 @Java</span><code>
-cb.query().<span class="point">queryMemberSecurity()</span>.scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberSecurityCB&gt;() {
-    <span class="keyword">public void</span> query(MemberSecurityCB subCB) { <span class="comment">// 一番最近に更新した</span>
-        subCB.specify().<span class="point">columnUpdateDatetime()</span>;
+}); <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
+--
+Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB cb) {
+        cb.specify().columnBirthdate(); <span class="comment">// 生年月日の最大値</span>
+        cb.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 正式会員に限る</span>
     }
 });
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="basicspec">基本仕様</h3>
-	<dl class="textlist">
-		<dt>引数の指定</dt><dd>引数の SubQuery は必須です。</dd>
-		<dt>比較対象カラムの指定は一つ</dt>
-		<dd>
-			比較対象カラムの指定は必ず一つだけです。指定が無い場合、指定があり過ぎる場合は例外です。
-		</dd>
-		<dt>サブクエリのConditionBean</dt>
-		<dd>
-			サブクエリの ConditionBean は、比較対象カラムと絞り込み条件だけの指定に利用するものです。
-			SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
-		</dd>
-	</dl>
-	<h3 id="usablecondition">利用できる比較条件</h3>
+	<h3 id="argument">引数</h3>
 	<p>
-		利用できる比較条件は、以下の通りです。
+		スカラ値のプログラム型、および、サブクエリは必須です。
 	</p>
-	<dl class="keymainlist">
-		<dt>scalar_Equal()</dt><dd>等値</dd>
-		<dt>scalar_NotEqual()</dt><dd>非等値</dd>
-		<dt>scalar_GreaterThan()</dt><dd>大なり</dd>
-		<dt>scalar_LessThan()</dt><dd>小なり</dd>
-		<dt>scalar_GreaterEqual()</dt><dd>大なりイコール</dd>
-		<dt>scalar_LessEqual()</dt><dd>小なりイコール</dd>
-	</dl>
+	<h3 id="result">戻り値</h3>
+	<p>
+		検索結果が一件もない場合は、(DBMSの関数の仕様に従って) null になることがあります。
+	</p>
+	<h3 id="specifycolumn">導出カラムの指定</h3>
+	<p>
+		ScalarQuery 内での導出カラムは、必ず一つだけ指定します。また、基点テーブルのカラムに限ります。
+	</p>
 	<h3 id="usablefunc">利用できる関数</h3>
 	<p>
-		利用できる関数は、以下の通りです。
+		利用できる関数は以下の通りです。
 	</p>
 	<dl class="textlist">
-		<dt>max()</dt><dd>最大値</dd>
-		<dt>min()</dt><dd>最小値</dd>
-		<dt>sum()</dt><dd>合計値。数値のみ。</dd>
+		<dt>max()</dt><dd>最大値。関連データが無い場合は null となる。</dd>
+		<dt>min()</dt><dd>最小値。関連データが無い場合は null となる。</dd>
+		<dt>sum()</dt>
+		<dd>
+			合計値。数値のみ。関連データが無い場合は null となる。
+			受け取るプロパティの型がカラムに対応する型だと、(合計値なので)オーバーフローする可能性もあるので、業務的な可能性を踏まえてサイズの大きい型(Long
+			や BigDecimal など)を利用すると良い。
+		</dd>
 		<dt>avg()</dt>
 		<dd>
-			平均値。数値のみ。値が小数点になる可能性があります。
+			平均値。数値のみ。関連データが無い場合は null となる。値が小数点になる可能性があるので、受け取るプロパティの型を小数点を扱える型(BigDecimal
+			など)にすると良い。
 		</dd>
 	</dl>
+	<h3 id="queryonly">ConditionBeanは絞り込み条件のみ</h3>
+	<p>
+		ScalarQuery の ConditionBean は、絞り込み条件だけの指定に利用するものです。
+		SetupSelect や OrderBy など絞り込み条件とは関係のない機能は呼び出してはいけません。
+	</p>
+	<h3 id="override">オーバーライド</h3>
+	<p>
+		selectList() と同じような要領となります。
+	</p>
+	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
 
 </div>
 </div>

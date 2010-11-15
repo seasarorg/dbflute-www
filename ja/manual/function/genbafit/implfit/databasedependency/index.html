@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,lockForUpdate,for update,更新ロック,排他ロック" />
+	<meta name="keywords" content="DBFlute,DatabaseDepencency,DBMS依存,for update nowait,Ludia,Senna,Tritonn,Oracle Text" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LockForUpdate | DBFlute</title>
+	<title>データベース依存機能(メソッド)の利用 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,89 +37,65 @@
 </div>
 
 <div id="content">
-	<h1>LockForUpdate</h1>
+	<h1>データベース依存機能(メソッド)の利用</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a>
+		<li><a href="#about">データベース依存機能とは？</a></li>
+		<li><a href="#option">オプション設定</a></li>
+		<li><a href="#function">各種データベースの機能</a>
 			<ul>
-				<li><a href="#basicconcept">基本概念</a></li>
-				<li><a href="#lockscope">ロック対象のテーブル</a></li>
-				<li><a href="#optimisticlock">必要性の検討 (楽観的並行性制御の利用)</a></li>
-				<li><a href="#databasedependency">DBMS 独自の更新ロック取得</a></li>
-			</ul>
-		</li>
-		<li><a href="#howto">実装方法</a>
-			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
-			</ul>
-		</li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#severalcall">複数回呼び出しは上書き</a></li>
-				<li><a href="#unsupported">更新ロックがサポートされていないDBMS</a></li>
+				<li><a href="#postgresql">PostgreSQL</a></li>
+				<li><a href="#mysql">MySQL</a></li>
+				<li><a href="#oracle">Oracle</a></li>
+				<li><a href="#db2">DB2</a></li>
 			</ul>
 		</li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
-	<h3 id="basicconcept">基本概念</h3>
+	<h2 id="about">データベース依存機能とは？</h2>
 	<p>
-		更新ロックを取得する検索にします。
+		DBFluteは、デフォルトでは DBMS に依存したメソッドは生成されず、DBMS を移行した場合でも少なくとも機能面ではコンパイルエラーにはならないようになっています。
+		例えば、ExistsReferrer, LockForUpdate, Paging など、どの DBMS で自動生成してもインターフェースは同じです。
+		(但し、コンパイルエラーが出ないというだけで潜在的な部分での移行はやはり必要となるでしょう)
 	</p>
 	<p>
-		SQL上では、それぞれ DBMS ごとの構文を利用します。例えば、PostgreSQL や MySQL であれば
-		"for update"、Oracle であれば "for update of [pk-name]" など。
+		しかし、DBMS に依存した幾つかの機能(データベース依存機能)も利用できます。その場合、別の DBMS
+		ではコンパイルエラーとなりますが、特に問題なければオプションで生成することができます。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dbway/postgresql/index.html#updatelock">PostgreSQL - 更新ロックの取得</a></div>
-	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#updatelock">MySQL - 更新ロックの取得</a></div>
-	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/index.html#updatelock">Oracle - 更新ロックの取得</a></div>
-	<p>
-		会話上では、<em class="keyword">ろっくふぉーあっぷでいと</em> もしくは単に <em class="keyword">ふぉーあっぷでいと</em> と表現します。
-	</p>
-	<h3 id="lockscope">ロック対象のテーブル</h3>
-	<p>
-		基本的には、基点テーブルに対してのみロックを取得しますが、DBMS
-		によってはどうしても結合したテーブルも含めてしまう場合があります。例えば、Oracle であれば、"for update of [column]"
-		という構文でロックを取得するテーブルを限定できますが、そういったことができない DBMS
-		も存在します。業務的な要件と照らし合わせて注意して利用する必要があります。
-	</p>
-	<h3 id="optimisticlock">必要性の検討 (楽観的並行性制御の利用)</h3>
-	<p>
-		そもそも楽観的並行性制御が適用できる排他制御要件であれば、その仕組みが DBFlute
-		には備わっているため LockForUpdate を使う必要はないかもしれません。実装する前によく吟味すると良いでしょう。
-		(更新ロックが本当に必要である場面でのみ使うように)
-	</p>
-	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御(楽観的並行性制御)</a></div>
-	<h3 id="databasedependency">DBMS 独自の更新ロック取得</h3>
-	<p>
-		例えば、Oracle の "for update no wait" などの、DBMS
-		独自の拡張された更新ロックの取得に関しては、オプションで提供されています。
-	</p>
-	<div class="detailpage"><a href="../../../genbafit/implfit/databasedependency/index.html">現場フィット - DBMS依存の機能 (ロックや全文検索など)</a></div>
-	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/index.html#forupdatenowait">Oracle - "for update nowait (wait N)" を利用</a></div>
 
-	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h2 id="option">オプション設定</h2>
 	<p>
-		ConditionBean の lockForUpdate() を呼び出します。
+		littleAdjustmentMap.dfprop の isAvailableDatabaseDependency を有効にすることで、データベース依存(DMBS依存)のメソッドが生成されます。
 	</p>
-<pre><span class="codetitle">ex) 更新ロックを取得 (Eclipseでコード補完) @Java</span><code>
-MemberCB() cb = <span class="keyword">new</span> MemberCB();
-cb.setupSelect_MemberStatus();
-cb.query().addOrderBy_Birthdate_Desc();
-cb.loF <span class="comment">// .loF と打って enter</span>
---
-cb.<span class="point">lockForUpdate</span>();
-</code></pre>
+	<div class="detailpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isavailabledatabasedependency">dfprop - isAvailableDatabaseDependency</a></div>
 
-	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="severalcall">複数回呼び出しは上書き</h3>
+	<h2 id="function">各種データベースの機能</h2>
 	<p>
-		複数回 LockForUpdate を呼び出した場合は、内部的には単なる上書きです。(業務的には無意味)
+		どのような機能が利用できるようになるかは、データベースごとに様々です。
 	</p>
-	<h3 id="unsupported">更新ロックがサポートされていないDBMS</h3>
-	<p>
-		更新ロックがサポートされていない DBMS で呼び出すと例外です。
-	</p>
+	<h3 id="postgresql">PostgreSQL</h3>
+	<dl class="keymainlist">
+		<dt>for update nowait</dt><dd>待たずに例外になる更新ロックの取得</dd>
+		<dt>"%%" 構文</dt><dd>"Ludia + Senna" の利用を想定した全文検索の条件</dd>
+	</dl>
+	<div class="detailpage"><a href="../../../../reference/dbway/postgresql/index.html#dependency">PostgreSQL - データベース依存機能</a></div>
+	<h3 id="mysql">MySQL</h3>
+	<dl class="keymainlist">
+		<dt>for update nowait</dt><dd>待たずに例外になる更新ロックの取得</dd>
+		<dt>"match" 構文</dt><dd>"Tritonn + Senna" の利用を想定した全文検索の条件</dd>
+	</dl>
+	<div class="detailpage"><a href="../../../../reference/dbway/mysql/index.html#dependency">MySQL - データベース依存機能</a></div>
+	<h3 id="oracle">Oracle</h3>
+	<dl class="keymainlist">
+		<dt>for update nowait</dt><dd>待たずに例外になる更新ロックの取得</dd>
+		<dt>for update wait N</dt><dd>待つ時間を指定できる更新ロックの取得</dd>
+		<dt>"contains" 構文</dt><dd>"Oracle Text" の利用を想定した全文検索の条件</dd>
+	</dl>
+	<div class="detailpage"><a href="../../../../reference/dbway/oracle/index.html#dependency">Oracle - データベース依存機能</a></div>
+	<h3 id="db2">DB2</h3>
+	<dl class="keymainlist">
+		<dt>with [LEVEL]</dt><dd>分離レベルに応じてロックの方法を変更</dd>
+	</dl>
+	<div class="detailpage"><a href="../../../../reference/dbway/db2/index.html#dependency">DB2 - データベース依存機能</a></div>
 
 </div>
 </div>
