@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,機能,検索,Select" />
+	<meta name="keywords" content="DBFlute,Behavior,selectCursor,カーソル検索,ConditionBean,大量データ,大量件数,大量レコード,膨大なデータ,メモリ不足,OutOfMemory" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Behaviorの検索系 | DBFlute</title>
+	<title>selectCursor(cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,25 +37,97 @@
 </div>
 
 <div id="content">
-	<h1>Behaviorの検索系</h1>
+	<h1>selectCursor(cb)</h1>
 	<ul class="indexlist">
-		<li><a href="#linklist">リンクの一覧</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#updateincursor">コールバックの中で登録・更新</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#override">オーバーライド</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<dl class="hierarchylist">
-		<dt><a href="./selectcount.html">selectCount(cb)</a></dt><dd>カウント検索</dd>
-		<dt><a href="./selectentity.html">selectEntity(cb)</a></dt><dd>一件検索(結果がない場合はnullを戻す)</dd>
-		<dt><a href="./selectentitywithdeletedcheck.html">selectEntityWithDeletedCheck(cb)</a></dt><dd>一件検索(結果がない場合は例外発生)</dd>
-		<dt><span class="working"><!-- <a href="./selectbypkvalue.html"> -->selectByPKValue(pk)<!-- </a> --></span></dt><dd>PKによる一件検索(結果がない場合はnullを戻す)</dd>
-		<dt><span class="working"><!-- <a href="./selectbypkvaluewithdeletedcheck.html"> -->selectByPKValueWithDeletedCheck(pk)<!-- </a> --></span></dt><dd>PKによる一件検索(結果がない場合は例外発生)</dd>
-		<dt><a href="./selectlist.html">selectList(cb)</a></dt><dd>リスト検索</dd>
-		<dt><a href="./selectpage.html">selectPage(cb)</a></dt><dd>ページング検索</dd>
-		<dt><a href="./selectcursor.html">selectCursor(cb, entityRowHandler)</a></dt><dd>カーソル検索((Entityへのマッピングなし))</dd>
-		<dt><span class="working"><!-- <a href="./selectnextval.html"> -->selectNextVal()<!-- </a> --></span></dt><dd>シーケンス検索(登録時は自動取得されるので基本的に利用する必要なし)</dd>
-		<dt><span class="working"><!-- <a href="./scalarselect.html"> -->scalarSelect(cb)<!-- </a> --></span></dt><dd>スカラ検索(max(), min(), avg()など)</dd>
-		<dt><a href="./loadreferrer.html">LoadReferrer</a></dt><dd>子テーブルの取得(Refererrテーブル毎にメソッドがある)</dd>
-	</dl>
+	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		<em class="keyword">ConditionBeanをもとにカーソル検索</em> をします。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/cursorselect/index.html">現場フィット - カーソル検索</a></div>
+	<p>
+		会話上では、<em class="keyword">せれくとかーそる</em> と表現します。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
+	<p>
+		Behaviorの <em class="keyword">selectCursor()</em>
+		を呼び出し、ConditionBean と EntityRowHandler を指定します。
+	</p>
+<pre><span class="codetitle">ex) selectCursor()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selCu <span class="comment">// .selCu と打って enter</span>
+--
+<span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectCursor</span>(cb, entityRowHandler);
+--
+<span class="comment">// 1. tab を一回押して、第二引数の方を選択状態に</span>
+<span class="comment">// 2. "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
+<span class="attribute">memberBhv</span>.selectCursor(cb, <span class="point">new </span>);
+--
+<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
+<span class="attribute">memberBhv</span>.selectCursor(cb, <span class="keyword">new</span> EntityRowHandler&lt;Member&gt;() {
+
+    <span class="keyword">public void</span> handle(Member entity) {
+        <span class="comment">// TODO Auto-generated method stub</span>
+        
+    }
+})
+--
+<span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
+<span class="comment">// 一件ごとにデータを扱うコールバック処理を実装</span>
+<span class="attribute">memberBhv</span>.selectCursor(cb, <span class="keyword">new</span> EntityRowHandler&lt;Member&gt;() {
+    <span class="keyword">public void</span> handle(Member entity) {
+        Integer memberId = entity.getMemberId();
+        String memberName = entity.getMemberName();
+        <span class="abbreviation">...</span>
+    }
+});
+</code></pre>
+	<h3 id="updateincursor">コールバックの中で登録・更新</h3>
+	<p>
+		コールバックの中で登録・更新処理を行う場合は、トランザクションにご注意下さい。
+	</p>
+	<div class="detailpage"><a href="../../../genbafit/implfit/cursorselect/index.html#cursortransaction">現場フィット - カーソル検索 - トランザクションには注意</a></div>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="argument">引数</h3>
+	<p>
+		該当のBehaviorに対応するテーブルの ConditionBean と一件ごとにデータを扱うコールバック処理の実装
+		EntityRowHandler となります。
+	</p>
+	<p>
+		ConditionBean および EntityRowHandler が必ず存在することが前提であるため、nullを指定した場合は例外発生します。
+	</p>
+	<h3 id="result">戻り値</h3>
+	<p>
+		void です。
+	</p>
+	<h3 id="override">オーバーライド</h3>
+	<p>
+		selectList() と同じような要領となります。
+	</p>
+	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
 
 </div>
 </div>

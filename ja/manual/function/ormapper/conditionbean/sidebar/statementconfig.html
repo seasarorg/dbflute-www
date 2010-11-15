@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,機能,検索,Select" />
+	<meta name="keywords" content="DBFlute,ConditionBean,configure,JDBCパラメータ" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Behaviorの検索系 | DBFlute</title>
+	<title>StatementConfig | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,25 +37,60 @@
 </div>
 
 <div id="content">
-	<h1>Behaviorの検索系</h1>
+	<h1>StatementConfig</h1>
 	<ul class="indexlist">
-		<li><a href="#linklist">リンクの一覧</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#nullargument">null 指定は取り消し</a></li>
+				<li><a href="#severalcall">複数回呼び出しは上書き</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<dl class="hierarchylist">
-		<dt><a href="./selectcount.html">selectCount(cb)</a></dt><dd>カウント検索</dd>
-		<dt><a href="./selectentity.html">selectEntity(cb)</a></dt><dd>一件検索(結果がない場合はnullを戻す)</dd>
-		<dt><a href="./selectentitywithdeletedcheck.html">selectEntityWithDeletedCheck(cb)</a></dt><dd>一件検索(結果がない場合は例外発生)</dd>
-		<dt><span class="working"><!-- <a href="./selectbypkvalue.html"> -->selectByPKValue(pk)<!-- </a> --></span></dt><dd>PKによる一件検索(結果がない場合はnullを戻す)</dd>
-		<dt><span class="working"><!-- <a href="./selectbypkvaluewithdeletedcheck.html"> -->selectByPKValueWithDeletedCheck(pk)<!-- </a> --></span></dt><dd>PKによる一件検索(結果がない場合は例外発生)</dd>
-		<dt><a href="./selectlist.html">selectList(cb)</a></dt><dd>リスト検索</dd>
-		<dt><a href="./selectpage.html">selectPage(cb)</a></dt><dd>ページング検索</dd>
-		<dt><a href="./selectcursor.html">selectCursor(cb, entityRowHandler)</a></dt><dd>カーソル検索((Entityへのマッピングなし))</dd>
-		<dt><span class="working"><!-- <a href="./selectnextval.html"> -->selectNextVal()<!-- </a> --></span></dt><dd>シーケンス検索(登録時は自動取得されるので基本的に利用する必要なし)</dd>
-		<dt><span class="working"><!-- <a href="./scalarselect.html"> -->scalarSelect(cb)<!-- </a> --></span></dt><dd>スカラ検索(max(), min(), avg()など)</dd>
-		<dt><a href="./loadreferrer.html">LoadReferrer</a></dt><dd>子テーブルの取得(Refererrテーブル毎にメソッドがある)</dd>
-	</dl>
+	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		該当の ConditionBean にだけ有効な StatementConfig を指定します。
+	</p>
+	<div class="detailpage"><a href="../../runtime/statementconfig.html">DBFluteランタイム - StatementConfig</a></div>
+	<p>
+		会話上では、<em class="keyword">すていとめんとこんふぃぐ</em> と表現します。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
+	<p>
+		まずは通常通り、ConditionBean の設定をし、実行する前に configure()
+		を呼び出して、StatementConfig を設定します。
+	</p>
+<pre><span class="codetitle">ex) ConditionBean で StatementConfig を設定 (Eclipseでコード補完) @Java</span><code>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().addOrderBy_Birthdate_Desc();
+cb.conf <span class="comment">// .conf と打って enter</span>
+--
+cb.<span class="point">configure</span>(<span class="keyword">new</span> StatementConfig().queryTimeout(<span class="literal">3000</span>)); <span class="comment">// SQLは 3 秒まで</span>
+</code></pre>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="nullargument">null 指定は取り消し</h3>
+	<p>
+		null を指定すると内部で保持している StatementConfig を破棄します。
+	</p>
+	<h3 id="severalcall">複数回呼び出しは上書き</h3>
+	<p>
+		複数回、configure() を呼び出した場合は、最後に設定された StatementConfig が有効(上書き)になります。
+	</p>
 
 </div>
 </div>
