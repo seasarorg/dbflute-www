@@ -45,8 +45,6 @@
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
 				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
 				<li><a href="#resulttype">検索結果の受け取り</a></li>
-				<li><a href="#nohit">検索結果が存在しない場合</a></li>
-				<li><a href="#duplicated">検索結果が複数ある場合</a></li>
 			</ul>
 		</li>
 		<li><a href="#scalar">スカラ値で受け取る</a></li>
@@ -59,8 +57,8 @@
 		をします。検索結果が存在する場合としない場合で業務的な処理を分岐させる必要があるような場合に利用します。
 	</p>
 	<p>
-		(検索結果が)存在しなかったら例外になってもいい(それは何かの間違い)、という場合は、このメソッドではなく、selectEntityWithDeletedCheck()
-		を利用して下さい。 
+		検索結果が存在しなかったら例外になってもいい(それは何かの間違い、もしくは、すれ違いによる削除)、という場合は、このメソッドではなく
+		selectEntityWithDeletedCheck() を利用して下さい。 
 	</p>
 	<div class="relatedpage"><a href="./selectentitywithdeletedcheck.html">selectEntityWithDeletedCheck()</a></div>
 	<p>
@@ -98,34 +96,10 @@ pmb.setMemberId(<span class="literal">3</span>);
 Class&lt;?&gt; entityType = SimpleMember.<span class="keyword">class</span>;
 SimpleMember member = 
     <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType);
-</code></pre>
-	<h3 id="nohit">検索結果が存在しない場合</h3>
-	<p>
-		検索結果が存在しない場合の戻り値は null
-		です。戻り値を null かどうかで処理を分岐させます。
-	</p>
-<pre><span class="codetitle">ex) 外だしSQLの一件検索で戻り値の有無で分岐 @Java</span><code>
-<span class="abbreviation">...</span>
-SimpleMember member = 
-    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType);
-<span class="keyword">if</span> (member != <span class="keyword">null</span>) {
-    // if exists
+<span class="keyword">if</span> (member != null) { 
+    <span class="abbreviation">...</span> <span class="comment">// 存在した場合の処理</span>
 } <span class="keyword">else</span> {
-    // if NOT exists
-}
-</code></pre>
-	<h3 id="duplicated">検索結果が複数ある場合</h3>
-	<p>
-		指定された条件で検索結果が複数ある場合は、条件もしくはSQLの不備と判断され、<em class="keyword">EntityDuplicateException</em> が発生します。
-	</p>
-<pre><span class="codetitle">ex) 外だしSQLの一件検索で条件なしで検索して結果が複数件取れちゃった @Java</span><code>
-String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-Class&lt;?&gt; entityType = SimpleMember.<span class="keyword">class</span>;
-try {
-    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType)
-} catch (EntityDuplicateException e) {
-    <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span> <span class="comment">// 存在しなかった場合の処理</span>
 }
 </code></pre>
 

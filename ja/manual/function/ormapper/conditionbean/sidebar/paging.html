@@ -47,6 +47,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#option">細かい調整をするオプション (CountLater, ReSelect)</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -64,7 +65,7 @@
 	<p>
 		ページングの設定をします。この機能を使うことで Behavior の selectPage(cb) が利用できます。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../behavior/select/selectpage.html"> -->Behavior - selectPage(cb)<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../behavior/select/selectpage.html">Behavior - selectPage(cb)</a></div>
 	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html">Topic - ページング検索</a></div>
 	<p>
 		ページングの実現方法は、DBMSごとに異なりますが、基本的にDBMS固有のSQL構文を使って実現されます。
@@ -98,11 +99,27 @@ cb.pa <span class="comment">// .pa と打って enter</span>
 --
 cb.<span class="point">paging</span>(<span class="literal">20</span>, currentPageNumber);
 PagingResultBean&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.<span class="point">selectPage</span>(cb);
+<span class="keyword">int</span> allRecordCount = memberPage.<span class="point">getAllRecordCount()</span>;
+<span class="keyword">int</span> allPageCount = memberPage.<span class="point">getAllPageCount()</span>;
+<span class="keyword">for</span> (Member member : memberPage) {
+    <span class="abbreviation">...</span>
+}
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		PagingResultBean には、指定されたページ番号のデータが格納されています。
 	</p>
 	<div class="relatedpage"><a href="../../behavior/resultbean/paging/index.html">Behavior - PagingResultBean</a></div>
+	<h3 id="option">細かい調整をするオプション (CountLater, ReSelect)</h3>
+	<p>
+		ページングの挙動を細かく調整するオプションがあります。
+	</p>
+	<ul>
+		<li>enablePagingCountLater()</li>
+		<li>disablePagingReSelect()</li>
+	</ul>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/pagingselect/index.html#countlater">現場フィット - ページング検索 - 総レコード数取得を後にするオプション</a></div>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/pagingselect/index.html#reselect">現場フィット - ページング検索 - 存在しないページが指定された時の再検索</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="notzerominus">引数は正の値</h3>

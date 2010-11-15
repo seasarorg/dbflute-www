@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,selectList,リスト検索,ConditionBean" />
+	<meta name="keywords" content="DBFlute,ConditionBean,sidebar" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>selectList(cb) | DBFlute</title>
+	<title>CB - Sidebar | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,89 +37,37 @@
 </div>
 
 <div id="content">
-	<h1>selectList(cb)</h1>
+	<h1>CB - Sidebar</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a>
-			<ul>
-				<li><a href="#basicconcept">基本概念</a></li>
-			</ul>
-		</li>
-		<li><a href="#howto">実装方法</a>
-			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
-			</ul>
-		</li>
-		<li><a href="#methodspec">メソッド仕様</a>
-			<ul>
-				<li><a href="#argument">引数</a></li>
-				<li><a href="#result">戻り値</a></li>
-				<li><a href="#override">オーバーライド</a></li>
-			</ul>
-		</li>
+		<li><a href="#linklist">リンクの一覧</a></li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
-	<h3 id="basicconcept">基本概念</h3>
-	<p>
-		<em class="keyword">ConditionBeanをもとにリスト検索</em> をします。
-	</p>
-	<p>
-		会話上では、<em class="keyword">せれくとりすと</em>
-		と表現します。文脈上、抽象的で伝わりにくい場合は <em class="keyword">Behaviorのせれくとりすと(メソッド)</em>
-		や <em class="keyword">ConditionBeanのせれくとりすと</em>
-		などと言うとわかりやすいでしょう。
-	</p>
-
-	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
-	<p>
-		Behaviorの <em class="keyword">selectList()</em>
-		を呼び出し、ConditionBeanを指定します。
-	</p>
-<pre><span class="codetitle">ex) selectList()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.selL <span class="comment">// .selL と打って enter</span>
---
-<span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectList(cb)</span>;
---
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
---
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    <span class="comment">// ListResultBeanは、java.util.Listの実装クラス</span>
-}
-</code></pre>
-
-	<h2 id="methodspec">メソッド仕様</h2>
-	<h3 id="argument">引数</h3>
-	<p>
-		該当のBehaviorに対応するテーブルの ConditionBean となります。
-	</p>
-	<p>
-		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
-		検索条件がない検索をする場合でも、必ずConditionBeanのインスタンスが必要です。
-	</p>
-	<h3 id="result">戻り値</h3>
-	<p>
-		ListResultBean(java.util.Listの実装クラス) 型となります。
-	</p>
-	<dl class="keymainlist">
-		<dt>tableDbName</dt><dd>検索の基点となったテーブル名</dd>
-		<dt>allRecordCount</dt><dd>検索結果の件数 (List.size()と全く同じ値)</dd>
-		<dt>orderByClause</dt><dd>ConditionBeanで指定した order-by 情報</dd>
+	<h2 id="linklist">リンクの一覧</h2>
+	<dl class="textlist">
+		<dt>検索全体に関する調整</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>更新ロック (各種DBMSの構文を利用) : <span class="working"><!-- <a href="./sidebar/lockforupdate.html"> -->LockForUpdate<!-- </a> --></span> - <span class="freecomment">cb.lockForUpdate()</span></li>
+				<li>JDBCパラメータの指定 (queryTimeoutなど) : <span class="working"><!-- <a href="./sidebar/statementconfig.html#querytimeout"> -->StatementConfig<!-- </a> --></span> - <span class="freecomment">cb.configure(...)</span></li>
+				<li>DBMS依存の機能 (ロックや全文検索など) : <span class="working"><!-- <a href="../../genbafit/implfit/databasedependency/index.html"> -->DatabaseDependency<!-- </a> --></span></li>
+			</ul>
+			<dl class="hierarchylist">
+				<dt class="twoedged-title">{TwoEdgedSword}</dt><dd>※以下は厳重注意して利用すること</dd>
+				<dd>
+					<dl class="twoedged-element">
+						<dt><span class="working"><!-- <a href="./sidebar/checkinvalidquery.html"> -->CheckInvalidQuery<!-- </a> --></span></dt>
+						<dd>無効な条件のチェック (無効な条件があったら例外)</dd>
+						<dt><span class="working"><!-- <a href="./sidebar/checksafetyresult.html"> -->CheckSafetyResult<!-- </a> --></span></dt>
+						<dd>安全件数のチェック (指定件数以上なら例外)</dd>
+						<dt><span class="working"><!-- <a href="./sidebar/embedcondition.html"> -->EmbedCondition<!-- </a> --></span></dt>
+						<dd>バインド変数なし埋め込み条件 (危険要注意)</dd>
+						<dt><span class="working"><!-- <a href="./sidebar/haswhereorderby.html"> -->HasWhereOrderBy<!-- </a> --></span></dt>
+						<dd>where句・order-by句の有無 (DBアクセスなし)</dd>
+					</dl>
+				</dd>
+			</dl>
+		</dd>
 	</dl>
-	<div class="relatedpage"><a href="../resultbean/list/index.html">ListResultBean</a></div>
-	<p>
-		検索結果が一件もない場合でも、nullは戻らず、空のリストが戻ります。
-	</p>
-	<h3 id="override">オーバーライド</h3>
-	<p>
-		オーバーライドして拡張することもできますが、通常は必要ありません。selectList()
-		をオーバーライドした場合は、純粋にアプリで明示的に呼び出したリスト検索だけの拡張となり、他の Behavior
-		のメソッドから内部的に呼び出されているリスト検索も含めて一緒に拡張したい場合は、doSelectList()
-		をオーバーライドすることで実現できます(詳しくはソースを読んで下さい)。
-	</p>
 
 </div>
 </div>

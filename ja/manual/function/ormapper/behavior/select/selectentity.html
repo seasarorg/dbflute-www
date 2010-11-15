@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,selectList,リスト検索,ConditionBean" />
+	<meta name="keywords" content="DBFlute,Behavior,selectEntity,一件検索,nullあり,ConditionBean" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
@@ -53,6 +53,8 @@
 			<ul>
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
+				<li><a href="#nocondition">条件未設定</a></li>
+				<li><a href="#duplicated">複数件取得</a></li>
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
@@ -61,33 +63,34 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		<em class="keyword">ConditionBeanをもとにリスト検索</em> をします。
+		<em class="keyword">ConditionBean で null を戻す可能性のある一件検索</em>
+		をします。検索結果が存在する場合としない場合で業務的な処理を分岐させる必要があるような場合に利用します。
 	</p>
 	<p>
-		会話上では、<em class="keyword">せれくとりすと</em>
-		と表現します。文脈上、抽象的で伝わりにくい場合は <em class="keyword">Behaviorのせれくとりすと(メソッド)</em>
-		や <em class="keyword">ConditionBeanのせれくとりすと</em>
-		などと言うとわかりやすいでしょう。
+		検索結果が存在しなかったら例外になってもいい(条件付与のバグ、データ不整合、すれ違いによる削除など)、という場合は、このメソッドではなく
+		selectEntityWithDeletedCheck() を利用して下さい。 
+	</p>
+	<p>
+		会話上では、<em class="keyword">せれくとえんてぃてぃ</em> と表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">selectList()</em>
+		Behaviorの <em class="keyword">selectEntity()</em>
 		を呼び出し、ConditionBeanを指定します。
 	</p>
-<pre><span class="codetitle">ex) selectList()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.selL <span class="comment">// .selL と打って enter</span>
+<pre><span class="codetitle">ex) selectEntity()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selE <span class="comment">// .selE と打って enter</span>
 --
 <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectList(cb)</span>;
+<span class="attribute">memberBhv</span>.<span class="point">selectEntity(cb)</span>;
 --
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
---
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    <span class="comment">// ListResultBeanは、java.util.Listの実装クラス</span>
+Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
+<span class="keyword">if</span> (member != null) { 
+    <span class="abbreviation">...</span> <span class="comment">// 存在した場合の処理</span>
+} <span class="keyword">else</span> {
+    <span class="abbreviation">...</span> <span class="comment">// 存在しなかった場合の処理</span>
 }
 </code></pre>
 
@@ -102,22 +105,29 @@ ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</spa
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		ListResultBean(java.util.Listの実装クラス) 型となります。
+		該当のBehaviorに対応するテーブルの Entity となります。
 	</p>
-	<dl class="keymainlist">
-		<dt>tableDbName</dt><dd>検索の基点となったテーブル名</dd>
-		<dt>allRecordCount</dt><dd>検索結果の件数 (List.size()と全く同じ値)</dd>
-		<dt>orderByClause</dt><dd>ConditionBeanで指定した order-by 情報</dd>
-	</dl>
-	<div class="relatedpage"><a href="../resultbean/list/index.html">ListResultBean</a></div>
 	<p>
-		検索結果が一件もない場合でも、nullは戻らず、空のリストが戻ります。
+		検索結果が一件もない場合は、null となります。
+	</p>
+	<h3 id="nocondition">条件未設定</h3>
+	<p>
+		絞り込み条件が何も存在しない場合は、例外となります。Query
+		で絞り込み条件が設定されている(cb.hasWhereClause() が
+		true になる)、もしくは FetchFirst で 1 が設定されている必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../conditionbean/sidebar/haswhereorderby.html">ConditionBean - HasWhereOrderBy</a></div>
+	<div class="relatedpage"><a href="../../conditionbean/sidebar/fetchfirst.html">ConditionBean - FirstFirst</a></div>
+	<h3 id="duplicated">複数件取得</h3>
+	<p>
+		二件以上の結果になった場合は、例外となります。
+		その際、全てのデータを取得はせず、二件目がフェッチされた瞬間に例外になるため、比較的早い段階で例外になり検知することができます。
 	</p>
 	<h3 id="override">オーバーライド</h3>
 	<p>
-		オーバーライドして拡張することもできますが、通常は必要ありません。selectList()
-		をオーバーライドした場合は、純粋にアプリで明示的に呼び出したリスト検索だけの拡張となり、他の Behavior
-		のメソッドから内部的に呼び出されているリスト検索も含めて一緒に拡張したい場合は、doSelectList()
+		オーバーライドして拡張することもできますが、通常は必要ありません。selectEntity()
+		をオーバーライドした場合は、純粋にアプリで明示的に呼び出した一件検索だけの拡張となり、他の Behavior
+		のメソッドから内部的に呼び出されている一件検索も含めて一緒に拡張したい場合は、doSelectEntity()
 		をオーバーライドすることで実現できます(詳しくはソースを読んで下さい)。
 	</p>
 

@@ -48,8 +48,8 @@
 		</li>
 		<li><a href="#various">様々な考慮</a>
 			<ul>
-				<li><a href="#countfirst">総レコード数取得を先に実行</a></li>
 				<li><a href="#reselect">存在しないページが指定された時の再検索</a></li>
+				<li><a href="#countlater">総レコード数取得を後にするオプション</a></li>
 			</ul>
 		</li>
 		<li><a href="#pagingnavi">ページングナビゲーション</a></li>
@@ -67,7 +67,7 @@
 	<p>
 		一つの ConditionBean でページング検索の総レコード数取得と実データ取得の二つの処理を実行され、ページング条件は最大限DBMSのSQLの機能を使って実現されます。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../../ormapper/behavior/select/selectpage.html"> -->Behavior - selectPage()<!-- </a> --></span></div>
+	<div class="detailpage"><a href="../../../ormapper/behavior/select/selectpage.html">Behavior - selectPage()</a></div>
 <pre><span class="codetitle">ex) ConditionBeanでページング検索 {81-100} @DisplaySql</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
@@ -138,17 +138,35 @@ PagingResultBean&lt;SimpleMember&gt; page
 	<div class="detailpage"><a href="#pagingnavi">this - ページングナビゲーション</a></div>
 
 	<h2 id="various">様々な考慮</h2>
-	<h3 id="countfirst">総レコード数取得を先に実行</h3>
-	<p>
-		ConditionBean、外だしSQLのどちらにせよ、総レコード数取得が先に実行されます。CB もしくは Pmb の指定で、enablePagingCountLater()
-		を呼び出すと、総レコード数取得を後にすることができます。どちらにせよ、それぞれ最大限やらなくて良い処理はスキップされるようになっています。
-		(例えば、デフォルトの状態では、総レコード数取得が 0 件の場合は、実データ処理は実行されない)
-	</p>
 	<h3 id="reselect">存在しないページが指定された時の再検索</h3>
 	<p>
-		また、すれ違いが発生して、総ページ数よりも大きいページ番号を指定されて検索された場合は、自動で(本当に存在する)最後のページを再検索します。
-		よって、この仕組みが組み込まれているため、不意に矛盾のある空っぽの画面が表示されにくいようになっています。CB もしくは Pmb
+		存在しないページを検索してしまう状況は、二つの要因によって発生します。一つはすれ違い、もう一つは(不意の)ユーザ入力。
+		そういった場合に、再検索をして存在する最後のページを再検索します。
+		この仕組みが組み込まれているため、不意に(矛盾のある)空っぽの画面が表示されにくいようになっています。万が一、この挙動を抑えたい場合は、CB もしくは Pmb
 		の指定で、disablePagingReSelect() を呼び出すと、この再検索の処理を無効にすることができます。
+	</p>
+	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html#optimisticlock">DBアクセス - ページング検索 - ページングの排他制御</a></div>
+	<h3 id="countlater">総レコード数取得を後にするオプション</h3>
+	<p>
+		ConditionBean、外だしSQLのどちらにおいても、総レコード数の取得を、実データの取得の後に実行するオプション(CountLater)があります。
+		そうすることで、実データの取得だけで総レコード数が判明するような場合に総レコード数の取得処理を省略することができるので、
+		その分のコストを削減することができます。enablePagingCountLater() を呼び出すことでそのような挙動になります。
+	</p>
+	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html#processorder">DBアクセス - ページング検索 - ページング処理の順序</a></div>
+<pre><span class="codetitle">ex) CountLater を利用してのページング @Java</span><code>
+<span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().addOrderBy_Birthdate_Desc();
+cb.paging(<span class="literal">20</span>, currentPageNumber);
+cb.<span class="point">enablePagingCountLater()</span>;
+PagingResultBean&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.selectPage(cb);
+</code></pre>
+	<p>
+		デフォルトの挙動にしていないのは、総レコード数の取得を先に実行する方式がDBFluteの歴史の中で長い間利用されてきて実績があるからです。CountLater
+		は後から実装された機能であること、かつ、内部的な処理での比較的判定が複雑であることから、オプションという形での提供としています。
+		パフォーマンス的に優位と言っても限定的であるため、そもそもパフォーマンスが悪い場合はやはりインデックスや条件の見直しが必要です。
+		それに加えてとにかく限界までチューニングする、というような場合にこの CountLater を利用すると良いでしょう。
 	</p>
 
 	<h2 id="pagingnavi">ページングナビゲーション</h2>

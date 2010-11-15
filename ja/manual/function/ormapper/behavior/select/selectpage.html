@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,selectList,リスト検索,ConditionBean" />
+	<meta name="keywords" content="DBFlute,Behavior,selectPage,ページング検索,PagingSelect,PagingSearch,ページングナビゲーション,PagingNavigation,paginate,pagination,ConditionBean" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>selectList(cb) | DBFlute</title>
+	<title>selectPage(cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>selectList(cb)</h1>
+	<h1>selectPage(cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -53,6 +53,7 @@
 			<ul>
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
+				<li><a href="#nopaging">ページング条件未設定</a></li>
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
@@ -61,34 +62,38 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		<em class="keyword">ConditionBeanをもとにリスト検索</em> をします。
+		<em class="keyword">ConditionBean でページング検索</em> をします。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/pagingselect/index.html">現場フィット - ページング検索</a></div>
 	<p>
-		会話上では、<em class="keyword">せれくとりすと</em>
-		と表現します。文脈上、抽象的で伝わりにくい場合は <em class="keyword">Behaviorのせれくとりすと(メソッド)</em>
-		や <em class="keyword">ConditionBeanのせれくとりすと</em>
-		などと言うとわかりやすいでしょう。
+		会話上では、<em class="keyword">せれくとぺーじ</em> と表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">selectList()</em>
-		を呼び出し、ConditionBeanを指定します。
+		まずは、ConditionBean で paging() を呼び出し、ページサイズと検索対象のページ番号を設定します。
+		そして、Behaviorの <em class="keyword">selectPage()</em>
+		を呼び出し、その ConditionBean を指定します。
 	</p>
-<pre><span class="codetitle">ex) selectList()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.selL <span class="comment">// .selL と打って enter</span>
+	<div class="relatedpage"><a href="../../conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
+<pre><span class="codetitle">ex) selectEntity()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().addOrderBy_Birthdate_Desc();
+cb.<span class="point">paging</span>(<span class="literal">20</span>, currentPageNumber);
+<span class="attribute">memberBhv</span>.selP <span class="comment">// .selP と打って enter</span>
 --
 <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectList(cb)</span>;
+<span class="attribute">memberBhv</span>.<span class="point">selectPage</span>(cb);
 --
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
---
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    <span class="comment">// ListResultBeanは、java.util.Listの実装クラス</span>
+<span class="point">PagingResultBean</span>&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.selectPage(cb);
+<span class="keyword">int</span> allRecordCount = memberPage.getAllRecordCount();
+<span class="keyword">int</span> allPageCount = memberPage.getAllPageCount();
+<span class="keyword">for</span> (Member member : memberPage) {
+    <span class="abbreviation">...</span>
 }
+<span class="abbreviation">...</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
@@ -102,22 +107,22 @@ ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</spa
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		ListResultBean(java.util.Listの実装クラス) 型となります。
+		該当のBehaviorに対応するテーブルの PagingResultBean となります。
 	</p>
-	<dl class="keymainlist">
-		<dt>tableDbName</dt><dd>検索の基点となったテーブル名</dd>
-		<dt>allRecordCount</dt><dd>検索結果の件数 (List.size()と全く同じ値)</dd>
-		<dt>orderByClause</dt><dd>ConditionBeanで指定した order-by 情報</dd>
-	</dl>
-	<div class="relatedpage"><a href="../resultbean/list/index.html">ListResultBean</a></div>
+	<div class="relatedpage"><a href="../resultbean/paging/index.html">PagingResultBean</a></div>
 	<p>
-		検索結果が一件もない場合でも、nullは戻らず、空のリストが戻ります。
+		検索結果が一件もない場合でも null にはならず、空のPagingResultBean(空のリスト)となります。
 	</p>
+	<h3 id="nopaging">ページング条件未設定</h3>
+	<p>
+		ConditionBean の paging() でページング条件が設定されていないで呼び出されると例外となります。
+	</p>
+	<div class="relatedpage"><a href="../../conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
 	<h3 id="override">オーバーライド</h3>
 	<p>
-		オーバーライドして拡張することもできますが、通常は必要ありません。selectList()
-		をオーバーライドした場合は、純粋にアプリで明示的に呼び出したリスト検索だけの拡張となり、他の Behavior
-		のメソッドから内部的に呼び出されているリスト検索も含めて一緒に拡張したい場合は、doSelectList()
+		オーバーライドして拡張することもできますが、通常は必要ありません。selectPage()
+		をオーバーライドした場合は、純粋にアプリで明示的に呼び出したページング検索だけの拡張となり、他の Behavior
+		のメソッドから内部的に呼び出されているページング検索も含めて一緒に拡張したい場合は、doSelectPage()
 		をオーバーライドすることで実現できます(詳しくはソースを読んで下さい)。
 	</p>
 
