@@ -125,7 +125,7 @@ ResultSet rs = ps.executeQuery();
 ResultSet rs = ps.executeQuery();
 <span class="keyword">while</span> (rs.next()) { <span class="comment">// 行がなくなるまでループ</span>
     <span class="comment">// 1 レコードだけメモリ上に保持</span>
-    String memberName = rs.getString("MEMBER_NAME");
+    String memberName = rs.getString(<span class="literal">"MEMBER_NAME"</span>);
     <span class="abbreviation">...</span> <span class="comment">// 業務的な処理</span>
     <span class="comment">// 1 ループ終わったらループ内で取得データは破棄されるのが基本だけど、</span>
     <span class="comment">// 設定次第では、JDBC内部で持ち続けてる可能性も。</span>
@@ -147,8 +147,9 @@ ResultSet rs = ps.executeQuery();
 		<p>
 			よって、大量データを扱うためのカーソル検索で、このタイプがスクロール可能なものになっていると、
 			なんのためにカーソル検索をしているのかわかりません(結局、メモリのオーバーフローに)。<em class="keyword">DBFluteでは、
-			通常の検索も含めて、デフォルトを TYPE_FORWARD_ONLY にしているので、(明示的に設定を変えない限りは)この問題が発生することはありません</em>。
-			(昔々、発生してこの辺を調整したことがあります...)
+			必要になるとき(大量データを取り扱わないページング検索でカーソルのポインタシフトを使う場合など)以外の全ての検索にてデフォルトを TYPE_FORWARD_ONLY
+			にしているので、(明示的に設定を変えない限りは)この問題が発生することはありません</em>。
+			(昔々、問題が発生してこの辺を調整したことがあります...)
 		</p>
 	</div>
 
