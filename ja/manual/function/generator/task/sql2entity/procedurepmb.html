@@ -76,15 +76,15 @@
 	<div class="relatedpage"><a href="../../../genbafit/implfit/procedurecall/index.html">現場フィット - プロシージャコール</a></div>
 	<p>
 		通常のParameterBeanとは違い、パラメータを渡すという役割だけでなく、
-		<em class="keyword">どのプロシージャを呼び出すか</em> を指定したり、<em class="keyword">OUTパラメータやプロシージャ戻り値</em>
+		<em class="keyword">どのプロシージャを呼び出すか</em> を指定したり、<em class="keyword">OUTパラメータやプロシージャリターン</em>
 		を受け取ったりとプロシージャコールに対する総合的なオブジェクトとなります。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wo.html#outparameter">OUTパラメータ</a></div>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wp.html#procedurereturn">プロシージャ戻り値値</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wp.html#procedurereturn">プロシージャリターン値</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wp.html#procedurecall">プロシージャコール</a></div>
 	<h3 id="emptyasnull">空文字はnullとして扱われる</h3>
 	<p>
-		通常のParameterBeanと同様です。OUTパラメータやプロシージャ戻り値にプロシージャ側で空文字が設定された場合も、getメソッド経由ではnullになります。
+		通常のParameterBeanと同様です。OUTパラメータやプロシージャリターンにプロシージャ側で空文字が設定された場合も、getメソッド経由ではnullになります。
 	</p>
 	<div class="relatedpage"><a href="./parameterbean.html#emptyasnull">ParameterBean - 空文字はnullとして扱われる</a></div>
 	<h3 id="outsidesql">外だしSQLとの関係は？</h3>
@@ -138,7 +138,7 @@ SpNoParameterPmb pmb = <span class="keyword">new</span> <span class="point">SpNo
 </code></pre>
 	<h3 id="paramprop">パラメータのプロパティ</h3>
 	<p>
-		メタデータで認識されたパラメータ(プロシージャ戻り値も含む)は、ProcedurePmb
+		メタデータで認識されたパラメータ(プロシージャリターンも含む)は、ProcedurePmb
 		のプロパティとして自動生成されます。このプロパティを使って、INパラメータを設定したり、OUTパラメータを受け取ったりします。
 	</p>
 	<p>
@@ -165,7 +165,7 @@ pmb.<span class="point">setVInOutVarchar</span>(<span class="literal">"baz"</spa
 String outParam = pmb.<span class="point">getVOutVarchar()</span>; <span class="comment">// OUTパラメータの受け取り (qux)</span>
 String inOutParam = pmb.<span class="point">getVInOutVarchar()</span>; <span class="comment">// INOUTパラメータの受け取り (quux)</span>
 </code></pre>
-<pre><span class="codetitle">ex) プロシージャ戻り値のあるプロシージャ (SP_RETURN_PARAMETER) {PostgreSQL} @Procedure</span><code>
+<pre><span class="codetitle">ex) プロシージャリターンのあるプロシージャ (SP_RETURN_PARAMETER) {PostgreSQL} @Procedure</span><code>
 <span class="keyword">create or replace function</span> SP_RETURN_PARAMETER()
 <span class="keyword">returns</span> <span class="dbtype">integer</span> <span class="keyword">as</span>
 <span class="attribute">$BODY$</span>
@@ -174,10 +174,10 @@ String inOutParam = pmb.<span class="point">getVInOutVarchar()</span>; <span cla
 <span class="keyword">end</span>;
 <span class="attribute">$BODY$</span> <span class="keyword">LANGUAGE</span> <span class="literal">'plpgsql'</span>;
 </code></pre>
-<pre><span class="codetitle">ex) プロシージャ戻り値の利用 (SP_RETURN_PARAMETER) @Java</span><code>
+<pre><span class="codetitle">ex) プロシージャリターンの利用 (SP_RETURN_PARAMETER) @Java</span><code>
 SpReturnParameterPmb pmb = <span class="keyword">new</span> SpReturnParameterPmb();
 xxxBhv.outsideSql().call(pmb); <span class="comment">// 実行</span>
-Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span class="comment">// プロシージャ戻り値の受け取り (1)</span>
+Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span class="comment">// プロシージャリターンの受け取り (1)</span>
 </code></pre>
 	<p>
 		プロパティ名は、(メタデータとして取得された)パラメータ名を元にして、クラス名と同じ法則("Pmb" の付与は除外)が適用されます。
@@ -279,7 +279,7 @@ List&lt;<span class="point">SpResultSetParameterCurMember</span>&gt; memberList 
 	<h4>プロパティの自動生成</h4>
 	<p>
 		<em class="keyword">自動生成した CustomizeEntity を要素にしたList型の、結果セットに対応するプロパティ</em> が ProcedurePmb
-		に自動生成されます。プロパティ名は、OUTパラメータやプロシージャ戻り値に関しては、通常のパラメータと同じです。
+		に自動生成されます。プロパティ名は、OUTパラメータやプロシージャリターンに関しては、通常のパラメータと同じです。
 		NotParamResultに関しては、"notParamResult1" という形式の固定名で番号付きとなります
 	</p>
 	<h4>NotParamResultの検知</h4>
@@ -313,7 +313,7 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 	<h4>実行する対象のプロシージャを指定</h4>
 	<p>
 		デフォルトでは、<em class="keyword">基本的に(自動生成対象となっている)全てのプロシージャが実行</em> されます(NotParamResult
-		をサポートしていないDBMSでは、OUTパラメータ(プロシージャ戻り値も含む)が無いものは実行されません)。プロシージャは気軽に実行されては困るようなケースがあるため、
+		をサポートしていないDBMSでは、OUTパラメータ(プロシージャリターンも含む)が無いものは実行されません)。プロシージャは気軽に実行されては困るようなケースがあるため、
 		その場合は、<em class="keyword">outsideSqlDefinitionMap.dfprop</em> にて、<em class="keyword">実際に実行して CustomizeEntity
 		の自動生成を行うプロシージャを明示的に指定</em> します。但し、対象外にした中に結果セットを取扱うプロシージャがある場合は、そのプロシージャは "B"
 		方式を利用します。
@@ -382,7 +382,7 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wg.html#generationgap">GenerationGap (ジェネレーションギャップ)</a></div>
 	<p>
 		アプリケーションで意識するメソッドは全て set で始まるメソッド(検索条件の指定)が主になりますが、
-		OUTパラメータやプロシージャ戻り値を受け取るために get で始まるメソッドも利用することがあります。
+		OUTパラメータやプロシージャリターンを受け取るために get で始まるメソッドも利用することがあります。
 	</p>
 	<h3 id="annotation">プロシージャ情報の定義</h3>
 	<p>
