@@ -41,9 +41,13 @@
 	<ul class="indexlist">
 		<li><a href="#about">共通カラムとは？</a></li>
 		<li><a href="#solution">共通カラムの自動設定</a></li>
-		<li><a href="#setting">自動設定の設定(dfprop)</a>
+		<li><a href="#setting">自動設定の定義(dfprop)</a></li>
+		<li><a href="#accesscontext">アプリで共通カラムの値を登録</a>
 			<ul>
-				<li><a href="#accesscontext">AccessContext</a></li>
+				<li><a href="#interceptor">Interceptor にて値の登録</a></li>
+				<li><a href="#servletfilter">ServletFilterにて</a></li>
+				<li><a href="#batchapp">バッチアプリにて</a></li>
+				<li><a href="#accessvaluemap">項目が足りない場合</a></li>
 			</ul>
 		</li>
 		<li><a href="#notice">ディベロッパーへの通知</a></li>
@@ -74,7 +78,7 @@
 		仕組みとして自動で設定するようにすることで、ディベロッパーの実装が手間を省くとともに、共通カラムに関するバグ(設定する値を間違えるなど)を抑制することができます。
 	</p>
 	<p>
-		DBFluteでは、共通カラムに設定する値を(主に)スレッドローカルに格納し、登録・更新処理の直前で Entity
+		DBFluteでは、共通カラムに設定する値を(主に)スレッドローカルに登録し、登録・更新処理の直前で Entity
 		に対して共通カラムの値を自動設定します。スレッドローカルへの値の格納は、主にリクエスト処理が開始された直後に行います。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#threadlocal">ThreadLocal (スレッドローカル)</a></div>
@@ -93,10 +97,10 @@ member.update(member); <span class="comment">// common columns are auto set-up h
 	</p>
 	<ul>
 		<li>DBFluteプロパティ <em class="keyword">commonColumnMap.dfprop</em> の設定</li>
-		<li>スレッドローカル <em class="keyword">AccessCotext</em> の設定(利用)</li>
+		<li>スレッドローカル <em class="keyword">AccessCotext</em> への値の登録</li>
 	</ul>
 
-	<h2 id="setting">自動設定の設定(dfprop)</h2>
+	<h2 id="setting">自動設定の定義(dfprop)</h2>
 	<p>
 		<em class="keyword">commonColumnMap.dfprop</em> にて、以下の設定を行います。
 	</p>
@@ -127,17 +131,19 @@ member.update(member); <span class="comment">// common columns are auto set-up h
     }
 }
 </code></pre>
-	<h3 id="accesscontext">AccessContext</h3>
+
+	<h2 id="accesscontext">アプリで共通カラムの値を登録</h2>
 	<p>
-		スレッドローカルへの値の設定では、DBFluteが提供する共通カラムの自動設定のためのスレッドローカルクラス <em class="keyword">AccessContext</em>
-		を利用します(DBFluteランタイムの中のクラス)。このクラスの利用は必須ではありませんが、特別な利用が無い限りはこのクラスで十分要件を満たせるでしょう。
+		スレッドローカルへの値の格納では、DBFluteが提供する共通カラムの自動設定のためのスレッドローカルクラス <em class="keyword">AccessContext</em>
+		を利用します(DBFluteランタイムのクラス)。このクラスの利用は必須ではありませんが、特別な利用が無い限りはこのクラスで十分要件を満たせるでしょう。
 	</p>
-	<h4>Interceptorにて</h4>
+	<div class="relatedpage"><a href="../../../ormapper/runtime/accesscontext.html">DBFluteランタイム - AccessContext</a></div>
+	<h3 id="interceptor">Interceptor にて値の登録</h3>
 	<p>
 		例えば、WEBアプリであれば、Pageクラス(に相当するクラス)に対する Interceptor
 		の中で一律の処理を行うようにすると良いでしょう。(専用のInterceptorを作成)
 	</p>
-<pre><span class="codetitle">ex) 共通カラムの自動設定のために、InterceptorでAccessContextに値を設定 @Java</span><code>
+<pre><span class="codetitle">ex) 共通カラムの自動設定のために、InterceptorでAccessContextに値を登録 @Java</span><code>
 <span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
     if (AccessContext.isExistAccessContextOnThread()) {
         <span class="comment">// 既に設定されていたら何もしないで次へ</span>
@@ -173,16 +179,22 @@ member.update(member); <span class="comment">// common columns are auto set-up h
     }
 }
 </code></pre>
-	<h4>ServletFilterにて</h4>
+	<h3 id="servletfilter">ServletFilterにて</h3>
 	<p>
 		Interceptorの仕組みを利用しない場合は、ServletFilter
 		でも構いません。また、いずれにせよ、ServletFilter内で登録・更新処理を行う場合は、ServletFilterでの設定が必要です。
 	</p>
-	<h4>バッチアプリにて</h4>
+	<h3 id="batchapp">バッチアプリにて</h3>
 	<p>
 		バッチアプリがある場合は、バッチの起動の仕組みに則って、この設定処理を行って下さい。
 		(バッチのクラスに Interceptor が仕掛けられるならそれで良いでしょう)
 	</p>
+	<h3 id="accessvaluemap">項目が足りない場合</h3>
+	<p>
+		用意されているプロパティで項目が足りない場合、もしくは、意味的にしっくりくるプロパティがない場合は、独自のスレッドローカルクラスを用意しても良いですが、
+		AccessContext の key-value 形式で汎用的に利用できる accessValueMap を利用することもできます。
+	</p>
+	<div class="relatedpage"><a href="../../../..//reference/dfprop/commoncolumn/index.html#accessvaluemap">dfprop - accessValueMap の利用</a></div>
 
 	<h2 id="notice">ディベロッパーへの通知</h2>
 	<p>

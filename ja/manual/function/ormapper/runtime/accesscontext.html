@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,DBFluteプロパティ,DBFluteProperty,commonColumnMap.dfprop,共通カラム,CommonColumn,AccessContext" />
+	<meta name="keywords" content="DBFlute,DBFluteRuntime,DBFluteランタイム,AccessContext,共通カラム" />
 	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>commonColumnMap | DBFlute</title>
+	<title>AccessContext | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,135 +37,70 @@
 </div>
 
 <div id="content">
-	<h1>commonColumnMap</h1>
+	<h1>AccessContext</h1>
 	<ul class="indexlist">
-		<li><a href="#about">commonColumnMapとは？</a></li>
-		<li><a href="#property">プロパティ</a>
-			<ul>
-				<li><a href="#commoncolumnmap">commonColumnMap</a></li>
-				<li><a href="#beforeinsertmap">beforeInsertMap</a></li>
-				<li><a href="#beforeupdatemap">beforeUpdateMap</a></li>
-				<li><a href="#selfentity">Entity自身から値を取得</a></li>
-				<li><a href="#literalvalue">固定の値を設定</a></li>
-				<li><a href="#accessvaluemap">accessValueMap の利用</a></li>
-				<li><a href="#optimisticklock">排他制御用のカラムの自動設定は不要</a></li>
-			</ul>
-		</li>
+		<li><a href="#about">AccessContextとは？</a></li>
+		<li><a href="#property">プロパティ</a></li>
 	</ul>
 
-	<h2 id="about">commonColumnMapとは？</h2>
+	<h2 id="about">AccessContextとは？</h2>
 	<p>
-		共通カラム(CommonColumn)に関する設定を行うDBFluteプロパティ。DBFluteクライアントの dfprop
-		配下の commonColumnMap.dfprop という名前のテキストファイルです。主に Generateタスク
-		から参照されます。このプロパティを設定することで、insert や
-		update 処理で共通カラムに任意の値を自動設定することができます。
+		DBアクセス情報を保持し、共通カラムの自動設定の橋渡しをするクラスです。
 	</p>
-	<div class="detailpage"><a href="../../../function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
-	<div class="relatedpage"><a href="../../../function/generator/task/generate/index.html">Generateタスク</a></div>
+	<p>
+		DBアクセス情報とは、例えば登録ユーザや更新日時などの、そのレコードに対してどのようなアクセスがされたかの情報で、
+		DBFluteでは特に、全ての(多くの)テーブルに共通カラムとして定義されるものを示します。
+	</p>
+	<p>
+		AccessContext は、DBアクセス情報をスレッドローカルによって管理し、DBFlute内部の共通カラムの自動設定処理にDBアクセス情報を届けます。
+		アプリケーションは、AccessContext にDBアクセス情報を格納しておくことで、共通カラムの設定処理を自動化することができます。
+	</p>
+	<div class="detailpage"><a href="../../genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
 
 	<h2 id="property">プロパティ</h2>
 	<p>
-		<em class="keyword">map型プロパティ</em> で、共通カラムの定義、と insert、update 時の自動設定の定義をします。
+		DBアクセス情報は、アプリケーションによって構成が変わります。
+		以下のプロパティはデフォルトで用意されている項目で、アプリに合致するものだけを利用します。
+		また、項目が足りない場合は、key-value 形式で汎用的に利用できる accessValueMap を利用すると良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="../mapprop.html">map型プロパティ</a></div>
-<pre><span class="codetitle">commonColumnMapの仕様 @commonColumnMap.dfprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">commonColumnMap</span> = <span class="keyword">map:</span>{
-        ; [column-name1] = [JDBC-type1] ; [column-name2] = [JDBC-type2] ; ...
-    }
-    ; <span class="attribute">beforeInsertMap</span> = <span class="keyword">map:</span>{
-        ; [column-name1] = [expression to set the value]
-        ; [column-name2] = [expression to set the value]
-        ; ...
-    }
-    ; <span class="attribute">beforeUpdateMap</span> = <span class="keyword">map:</span>{
-        ; [column-name1] = [expression to set the value]
-        ; [column-name2] = [expression to set the value]
-        ; ...
-    }
-</code></pre>
-	<h3 id="commoncolumnmap">commonColumnMap</h3>
-	<p>
-		共通カラムの組み合わせを定義します。
-	</p>
-<pre><span class="codetitle">ex) 共通カラムの組み合わせを定義 @commonColumnMap.dfprop</span><code>
-; <span class="attribute">commonColumnMap</span> = <span class="keyword">map:</span>{
-    ; REGISTER_DATETIME=TIMESTAMP ; REGISTER_USER=VARCHAR
-    ; UPDATE_DATETIME=TIMESTAMP   ; UPDATE_USER=VARCHAR
-}
-</code></pre>
 	<dl class="textlist">
-		<dt>値候補</dt><dd>カラムとJDBC型のmap型プロパティ</dd>
-		<dt>デフォルト</dt><dd>なし (共通カラムの定義なし)</dd>
-		<dt>補足</dt>
+		<dt>accessDate</dt>
 		<dd>
-			<ul class="supplementlist">
-				<li>カラム名は大文字小文字の区別なし (但し実体と合わせることを推奨)</li>
-			</ul>
+			アクセス日付(java.util.Date)。トランザクション開始時点、もしくは、現在日時など。
+			値そのものではなく、その値を導出する処理をコールバック(accessDateProvider)も指定できる。
+		</dd>
+		<dd>
+			AccessContext.getAccessDateOnThread() で直接スレッドから値を取得できる。
+			accessDate が設定されていればその値を戻し、なければ accessDateProvider のコールバックからの値を戻す。
+		</dd>
+		<dt>accessTimestamp</dt>
+		<dd>
+			アクセス日時(java.sql.Timestamp)。トランザクション開始時点、もしくは、現在日時など。
+			値そのものではなく、その値を導出する処理をコールバック(accessTimestampProvider)も指定できる。
+		</dd>
+		<dd>
+			AccessContext.getAccessTimestampOnThread() で直接スレッドから値を取得できる。
+			accessTimestamp が設定されていればその値を戻し、なければ accessTimestampProvider のコールバックからの値を戻す。
+		</dd>
+		<dt>accessUser</dt><dd>アクセスユーザ。アプリケーションのログインユーザなど。</dd>
+		<dd>AccessContext.getAccessUserOnThread() で直接スレッドから値を取得できる。</dd>
+		<dt>accessProcess</dt>
+		<dd>アクセスプロセス。アクセスのきっかけとなった業務名や画面名など。</dd>
+		<dd>AccessContext.getAccessProcessOnThread() で直接スレッドから値を取得できる。</dd>
+		<dt>accessModule</dt>
+		<dd>アクセスモジュール。アクセスを実行したクラス名やメソッド名など。</dd>
+		<dd>AccessContext.getAccessModuleOnThread() で直接スレッドから値を取得できる。</dd>
+		<dt>accessValueMap</dt>
+		<dd>key-value 形式の汎用的な値。</dd>
+		<dd>
+			registerAccessValue(key, value) で設定でき、AccessContext.getAccessValueOnThread(key)
+			で直接スレッドから値を取得できる。但し、戻り値の型は Object 型なので Entity のプロパティに設定する場合はダウンキャストが必要。
 		</dd>
 	</dl>
 	<p>
-		JDBC型は、実際に自動生成してマッピングされているJDBC型を指定して下さい。"JDBC型とプログラム型のデフォルトマッピング" の表を参考にして下さい。
+		直接スレッドから値を取得するメソッドは、スレッドローカルがない、もしくは、値がない場合に呼び出したら例外となります。
+		但し、日付系のプロパティに関しては例外にならず、デフォルト値ということでアプリの現在日時が戻ります。
 	</p>
-	<div class="detailpage"><a href="../typemapping/index.html#defaultmapping">JDBC型とプログラム型のデフォルトマッピング</a></div>
-	<h3 id="beforeinsertmap">beforeInsertMap</h3>
-	<p>
-		<em class="keyword">テーブルを登録する直前に共通カラムに格納する値</em> を定義します。
-	</p>
-	<p>
-		カラム名は、commonColumnMapで指定したカラム(のみ)を指定できます。
-		また、格納する値の表現はプログラムの一行センテンスですが、後ろにセミコロンは不要です。
-	</p>
-	<p>
-		AccessContextは、<em class="keyword">$$AccessContext$$</em> という表現で解決することができます。
-	</p>
-	<div class="relatedpage"><a href="../../../function/genbafit/implfit/commoncolumn/index.html#accesscontext">現場フィット - 共通カラム - AccessContext</a></div>
-<pre><span class="codetitle">ex) AccessContextから値を取得する場合 @commonColumnMap.dfprop</span><code>
-; REGISTER_DATETIME = <span class="attribute">$$AccessContext$$</span>.getAccessTimestampOnThread()
-</code></pre>
-	<h3 id="beforeupdatemap">beforeUpdateMap</h3>
-	<p>
-		<em class="keyword">テーブルを更新する直前に共通カラムに格納する値</em> を定義します。
-	</p>
-	<p>
-		設定方法は基本的に beforeInsertMap と同様です。但し、登録時の状態を保持し続けるカラムはここでは指定する必要はありません(してはいけません)。
-	</p>
-	<h3 id="selfentity">Entity自身から値を取得</h3>
-	<p>
-		Entity自身から値を取得することができます。例えば、既に登録されている登録日時の値をそのまま更新日時に設定するような場合に有効です。
-	</p>
-<pre><span class="codetitle">ex) Entity(自分自身)から値を取得する場合 @commonColumnMap.dfprop</span><code>
-; UPDATE_DATETIME = <span class="point">entity.getRegisterDatetime()</span>
-</code></pre>
-	<h4>自動設定で区分値メソッドを利用</h4>
-	<p>
-		自動設定の処理で区分値メソッドを利用することができます。
-		このようなメソッドの戻り値がなく独立している処理の場合は、先頭に "$" を付与します。
-	</p>
-<pre><span class="codetitle">ex) 固定の値を設定する場合 @commonColumnMap.dfprop</span><code>
-; LOGICAL_DELETE_FLG = <span class="point">$entity.setLogicalDeleteFlg_False()</span>
-</code></pre>
-	<h3 id="literalvalue">固定の値を設定</h3>
-	<p>
-		あまり想定されませんが、固定の値を設定する場合に、(文字列や数値の)リテラルを記述できます。
-	</p>
-<pre><span class="codetitle">ex) 固定の値を設定する場合 @commonColumnMap.dfprop</span><code>
-; UPDATE_USER   = <span class="literal">"foo"</span>
-</code></pre>
-	<h3 id="accessvaluemap">accessValueMap の利用</h3>
-	<p>
-		AccessContext の accessValueMap
-		を利用するような場合は、キー値に文字列リテラルを指定し、かつ、プロパティの型にダウンキャストします。
-	</p>
-<pre><span class="codetitle">ex) accessValueMap を利用して設定 (ダウンキャストが必要) @commonColumnMap.dfprop</span><code>
-; SPECIAL_ITEM = (String)<span class="attribute">$$AccessContext$$</span>.getAccessValueOnThread(<span class="literal">"special"</span>)
-</code></pre>
-	<h3 id="optimisticklock">排他制御用のカラムの自動設定は不要</h3>
-	<p>
-		排他制御用のカラムに関しては、排他制御の仕組みで自動で適切な値に更新されますので、ここで自動設定する必要はありません(共通カラムの定義には含めても構わない)。
-		例えば、バージョン番号のインクリメントは排他制御の仕組みで実行されます。
-	</p>
-	<div class="relatedpage"><a href="../../../function/genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御</a></div>
 
 </div>
 </div>
