@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,updateNonstrict,更新,一件更新,排他制御なし,問答無用で更新,強制更新" />
+	<meta name="keywords" content="DBFlute,Behavior,queryUpdate,CBによる更新,ConditionBeanで更新,ConditionBeanでupdate,条件更新,子テーブル削除" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>updateNonstrict(entity) | DBFlute</title>
+	<title>queryUpdate(entity, cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>updateNonstrict(entity)</h1>
+	<h1>queryUpdate(entity, cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -47,6 +47,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#pkupdate">主キー値の更新</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -54,11 +55,12 @@
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
 				<li><a href="#exception">例外</a></li>
+				<li><a href="#dbmsheadache">DBMSによっては制限も</a></li>
+				<li><a href="#twoormorepk">複合主キーの場合は制限</a></li>
 			</ul>
 		</li>
-		<li><a href="#modified">設定された値だけ更新</a></li>
-		<li><a href="#exclusive">排他制御カラムは自動更新</a></li>
 		<li><a href="#commoncolumn">共通カラムの自動設定</a></li>
+		<li><a href="#exclusive">排他制御処理なし</a></li>
 		<li><a href="#nocascade">カスケードはしません</a></li>
 		<li><a href="#scope">Entity更新のスコープ</a></li>
 	</ul>
@@ -66,103 +68,119 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		Entityをもとに <em class="keyword">排他制御なし一件更新</em> をします。Nonstrict の strict
-		は、排他制御のことです。主に、排他制御の不要なバッチ処理などで利用されます。
+		ConditionBean の絞り込み条件に一致するレコード全てを更新します。
 	</p>
-	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御(楽観的並行性制御)</a></div>
 	<p>
-		会話上では、<em class="keyword">あっぷでーとのんすとりくと</em>
-		と表現します。文脈上、排他制御の有無を強調したい場合は <em class="keyword">排他制御なしのあっぷでーと</em>
-		などと言うとわかりやすいでしょう。
+		例えば、"未払い購入のある正式会員を仮会員に更新"、"退会会員の生年月日を null に更新"
+		というような更新ができます。Entity に加えて、ConditionBean を指定します。
+	</p>
+	<p>
+		排他制御カラムの更新はありますが、排他制御処理はありません。共通カラムの自動設定はされます。
+	</p>
+	<p>
+		会話上では、<em class="keyword">くえりあっぷでーと</em>
+		と表現します。<em class="keyword">ConditionBean のあっぷでーと</em> とも言えます。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">update()</em>
-		を呼び出し、Entityを指定します。
+		Behaviorの <em class="keyword">queryUpdate()</em>
+		を呼び出し、Entity と ConditionBean を指定します。
 	</p>
-<pre><span class="codetitle">ex) updateNonstrict()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.upN <span class="comment">// .upN と打って enter</span>
+<pre><span class="codetitle">ex) queryUpdate()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.quU <span class="comment">// .quU と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.<span class="point">updateNonstrict(member)</span>;
+<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cb);
 </code></pre>
 	<p>
-		排他制御が不要なため、PKの値が設定されていれば更新ができます。
+		Entity には PK の値も不要です。更新値だけを設定します。
 	</p>
-<pre><span class="codetitle">ex) Entityに対して更新値を設定して更新 {MEMBER, memberId=3} @Java</span><code>
+<pre><span class="codetitle">ex) 未払い購入のある正式会員を仮会員に更新 @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
-member.setMemberId(<span class="literal">3</span>);
-member.setMemberName(<span class="literal">"Stojkovic"</span>);
-<span class="attribute">memberBhv</span>.updateNonstrict(member);
+member.<span class="point">setMemberStatusCode_Provisional()</span>;
+member.<span class="point">setFormalizedDatetime</span>(<span class="keyword">null</span>);
+
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>;
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().<span class="point">setPaymentCompeleteFlg_Equal_False()</span>;
+    }
+});
+
+<span class="attribute">memberBhv</span>.queryUpdate(member, cb);
 </code></pre>
+<pre><span class="codetitle">ex) 未払い購入のある正式会員を仮会員に更新 @DisplaySql</span><code>
+<span class="keyword">update</span> MEMBER
+   <span class="keyword">set</span> <span class="point">MEMBER_STATUS_CODE</span> = <span class="literal">'PRV'</span>
+     , <span class="point">FORMALIZED_DATETIME</span> = <span class="keyword">null</span>
+     , UPDATE_DATETIME = <span class="literal">'2010-11-16 15:54:48.624'</span>
+     , UPDATE_USER = <span class="literal">'testUser'</span>
+     , UPDATE_PROCESS = <span class="literal">'WxBhvQueryUpdateTest[main]'</span>
+     , VERSION_NO = VERSION_NO + <span class="literal">1</span>
+ <span class="keyword">where</span> MEMBER_ID <span class="keyword">in</span> (
+<span class="keyword">select</span> dflocal.MEMBER_ID 
+  <span class="keyword">from</span> MEMBER dflocal 
+ <span class="keyword">where</span> dflocal.<span class="point">MEMBER_STATUS_CODE</span> = <span class="literal">'FML'</span>
+   <span class="keyword">and exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE dfsublocal_0 
+                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
+                  <span class="keyword">and</span> dfsublocal_0.<span class="point">PAYMENT_COMPLETE_FLG</span> = <span class="literal">0</span>
+       )
+)
+</code></pre>
+	<p>
+		絞り込み条件は、InScope を使ったサブクエリ方式です。
+	</p>
+	<div class="relatedpage"><a href="#dbmsheadache">DBMSによっては制限も</a></div>
+	<div class="relatedpage"><a href="#twoormorepk">複合主キーの場合は制限</a></div>
+	<h3 id="pkupdate">主キー値の更新</h3>
+	<p>
+		PK も更新対象カラムの一つです。あまりお奨めされませんが、PKのプロパティに値を設定すれば更新できます。
+	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルのEntityとなります。
+		該当のBehaviorに対応するテーブルのEntityとConditionBeanになります。
 	</p>
 	<p>
-		nullを指定した場合は例外発生します。また、PKカラムの値の指定は必須です(指定なしは例外)。
+		nullを指定した場合は例外発生します。
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		void です。
+		更新したレコードの件数が戻ります。更新対象が存在しなかった場合は 0 が戻ります。
 	</p>
 	<h3 id="exception">例外</h3>
 	<dl class="textlist">
-		<dt>更新対象が存在しなかった場合</dt>
-		<dd>org.seasar.dbflute.exception.EntityAlreadyDeletedException</dd>
-		<dd>
-			この例外は、指定された主キーに対応するレコードが存在しなかった場合に発生します。
-			業務的に存在することが前提の更新であれば、開発時はバグ・データ不備、結合テスト・運用時はすれ違いと捉えることができます。
-		</dd>
-		<dt>更新結果が複数件の場合</dt>
-		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
-		<dd>予期せぬレコードを削除してしまっている可能性があるため、ロールバックが求められます。</dd>
 		<dt>一意制約違反があった場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityAlreadyExistsException</dd>
 	</dl>
-
-	<h2 id="modified">設定された値だけ更新</h2>
+	<h3 id="dbmsheadache">DBMSによっては制限も</h3>
 	<p>
-		update(entity) と同じ仕様です。
+		DBMSによっては利用できる機能に制限があります。例えば、MySQLは、update 文の where
+		句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、サブクエリ方式ではなく、where
+		句に直接条件を展開しています。すると、Query(Relation) や ExistsReferrer
+		などの関連テーブルを利用した絞り込み条件が利用できなくなります。
 	</p>
-	<div class="detailpage"><a href="./update.html#modified">update(entity) - 設定された値だけ更新</a></div>
-
-	<h2 id="exclusive">排他制御カラムは自動更新</h2>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
+	<h3 id="twoormorepk">複合主キーの場合は制限</h3>
 	<p>
-		排他制御の処理自体は行われませんが、排他制御カラムは自動更新されます。例えば、バージョン番号は
-		<em class="keyword">DB上の値にSQL上でインクリメント(+1)された値で更新</em>
-		されます。よって、このメソッドを使った更新(の事実)を、(排他制御が必要な)別の更新の排他制御にしっかり伝えることができます。
+		複合主キーの場合は制限は、サブクエリ方式が利用できないため、MySQLと同じ制限になります。
 	</p>
-	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御</a></div>
-	<p>
-		更新後の Entity には、(インクリメントされた)その値は格納されません。
-		更新前に排他制御カラムに(Entityに)設定された値は、利用されないだけでなく更新後にそのまま残っています。
-	</p>
-<pre><span class="codetitle">ex) 排他制御カラムの値は自動更新 {MEMBER,memberId=3} @Java</span><code>
-Member member = <span class="keyword">new</span> Member();
-member.setMemberId(<span class="literal">3</span>);
-member.setMemberName(<span class="literal">"Stojkovic"</span>);
-<span class="attribute">memberBhv</span>.update(member);
-<span class="comment">// update MEMBER</span>
-<span class="comment">//    set MEMBER_NAME = 'Stojkovic'</span>
-<span class="comment">//      , VERSION_NO = VERSION_NO + 1</span>
-<span class="comment">//  where MEMBER_ID = 3</span>
-</code></pre>
-	<p>
-		バージョン番号の更新方法と更新後のEntityでの状態が update(entity) とは変わります。
-		updateNonstrict() は、主に事前検索なしでの更新を想定しているため、更新前のEntityにバージョン番号を設定されないことを前提としているためです。
-		ほとんどの場合において、この違いを意識する必要はないと想定されますが、
-		更新後のEntityをさらに続けて利用して、バージョン番号も意識した処理を行うような場合は注意して下さい。
-	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
 
 	<h2 id="commoncolumn">共通カラムの自動設定</h2>
 	<p>
 		update(entity) と同じ仕様です。
 	</p>
 	<div class="detailpage"><a href="./update.html#commoncolumn">update(entity) - 共通カラムの自動設定</a></div>
+
+	<h2 id="exclusive">排他制御処理なし</h2>
+	<p>
+		排他制御カラムは更新(バージョン番号のインクリメントなど)されますが、排他制御処理はありません。
+	</p>
 
 	<h2 id="nocascade">カスケードはしません</h2>
 	<p>

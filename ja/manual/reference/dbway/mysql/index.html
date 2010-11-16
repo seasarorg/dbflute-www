@@ -73,6 +73,7 @@
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
 			<ul>
+				<li><a href="#queryupdate">QueryUpdate/Deleteの実現</a></li>
 				<li><a href="#nullsfirstlast">NullsFirst/Lastの実現</a></li>
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
 				<li><a href="#lowercase">MySQLの小文字管理のススメ</a></li>
@@ -322,6 +323,29 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 	<div class="relatedword"><a href="../../dictionary/alphabet/wo.html#otherdatabase">別データベース(OtherDatabase)</a></div>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
+	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>
+	<p>
+		update/delete 文の where 句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、QueryUpdate や QueryDelete
+		において、サブクエリ方式ではなく update 文の where 句に条件を埋め込む方式を採用しています。すると、Query(Relation) や ExistsReferrer
+		などの関連テーブルを利用した絞り込み条件が利用できなくなります。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/behavior/update/queryupdate.html">Behavior - queryUpdate(entity, cb)</a></div>
+<pre><span class="codetitle">ex) サブクエリ方式でなく where 句埋め込み方式 (複雑な条件が利用できない) @DisplaySql</span><code>
+<span class="keyword">update</span> member
+   <span class="keyword">set</span> MEMBER_STATUS_CODE = <span class="literal">'PRV'</span>
+     , FORMALIZED_DATETIME = <span class="keyword">null</span>
+     , UPDATE_DATETIME = <span class="abbreviation">...</span>
+     , UPDATE_USER = <span class="abbreviation">...</span>
+     , UPDATE_PROCESS = <span class="abbreviation">...</span>
+     , VERSION_NO = VERSION_NO + 1
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
+</code></pre>
+	<p>
+		複雑な条件が必要になったときは、同じ条件の ConditionBean でリスト検索し、Entity
+		の値を変更してからバッチ更新(batchUpdateNonstrict(), batchDeleteNonstrict())を利用するようにして下さい。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchupdatenonstrict.html"> -->Behavior - batchUpdateNonstrict(entityList)<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchdeletenonstrict.html"> -->Behavior - batchDeleteNonstrict(entityList)<!-- </a> --></span></div>
 	<h3 id="nullsfirstlast">NullsFirst/Lastの実現</h3>
 	<p>
 		nulls first/last 構文をサポートしていないため、case when 構文を使って NullsFirst/Last
