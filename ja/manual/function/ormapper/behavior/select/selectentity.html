@@ -53,8 +53,7 @@
 			<ul>
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
-				<li><a href="#nocondition">条件未設定</a></li>
-				<li><a href="#duplicated">複数件取得</a></li>
+				<li><a href="#exception">例外</a></li>
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
@@ -110,19 +109,24 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 	<p>
 		検索結果が一件もない場合は、null となります。
 	</p>
-	<h3 id="nocondition">条件未設定</h3>
-	<p>
-		絞り込み条件が何も存在しない場合は、例外となります。Query
-		で絞り込み条件が設定されている(cb.hasWhereClause() が
-		true になる)、もしくは FetchFirst で 1 が設定されている必要があります。
-	</p>
-	<div class="relatedpage"><a href="../../conditionbean/sidebar/haswhereorderby.html">ConditionBean - HasWhereOrderBy</a></div>
-	<div class="relatedpage"><a href="../../conditionbean/sidebar/fetchfirst.html">ConditionBean - FirstFirst</a></div>
-	<h3 id="duplicated">複数件取得</h3>
-	<p>
-		二件以上の結果になった場合は、例外となります。
-		その際、全てのデータを取得はせず、二件目がフェッチされた瞬間に例外になるため、比較的早い段階で例外になり検知することができます。
-	</p>
+	<h3 id="exception">例外</h3>
+	<dl class="textlist">
+		<dt>絞り込み条件が存在しなかった場合</dt>
+		<dd>org.seasar.dbflute.exception.SelectEntityConditionNotFoundException</dd>
+		<dd>
+			この例外は、指定された ConditionBean に絞り込み条件が存在しない場合に例外となります。Query
+			で絞り込み条件が設定されている(cb.hasWhereClause() が true になる)、もしくは FetchFirst
+			で 1 が設定されている必要があります。
+			<div class="relatedpage"><a href="../../conditionbean/sidebar/haswhereorderby.html">ConditionBean - HasWhereOrderBy</a></div>
+			<div class="relatedpage"><a href="../../conditionbean/sidebar/fetchfirst.html">ConditionBean - FirstFirst</a></div>
+		</dd>
+		<dt>検索結果が複数件の場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
+		<dd>
+			この例外は、複数件(二件以上)の場合に発生します。一件検索は、必ず結果が一件になる絞り込み条件を前提としています。
+			その際、全てのデータを取得はせず、二件目がフェッチされた瞬間に例外になるため、比較的早い段階で例外になり検知することができます。
+		</dd>
+	</dl>
 	<h3 id="override">オーバーライド</h3>
 	<p>
 		selectList() と同じような要領となります。

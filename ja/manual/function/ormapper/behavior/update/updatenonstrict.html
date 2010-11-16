@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,updateNonstrict,一件更新,排他制御なし,問答無用で更新" />
+	<meta name="keywords" content="DBFlute,Behavior,updateNonstrict,更新,一件更新,排他制御なし,問答無用で更新,強制更新" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
@@ -59,6 +59,7 @@
 		<li><a href="#modified">設定された値だけ更新</a></li>
 		<li><a href="#exclusive">排他制御カラムは自動更新</a></li>
 		<li><a href="#commoncolumn">共通カラムの自動設定</a></li>
+		<li><a href="#nocascade">カスケードはしません</a></li>
 		<li><a href="#scope">Entity更新のスコープ</a></li>
 	</ul>
 
@@ -68,6 +69,7 @@
 		Entityをもとに <em class="keyword">排他制御なし一件更新</em> をします。Nonstrict の strict
 		は、排他制御のことです。主に、排他制御の不要なバッチ処理などで利用されます。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御(楽観的並行性制御)</a></div>
 	<p>
 		会話上では、<em class="keyword">あっぷでーとのんすとりくと</em>
 		と表現します。文脈上、排他制御の有無を強調したい場合は <em class="keyword">排他制御なしのあっぷでーと</em>
@@ -86,13 +88,13 @@
 <span class="attribute">memberBhv</span>.<span class="point">updateNonstrict(entity)</span>;
 </code></pre>
 	<p>
-		排他制御が不要なため、PKの値さえ設定されれば更新ができます。
+		排他制御が不要なため、PKの値が設定されていれば更新ができます。
 	</p>
-<pre><span class="codetitle">ex) Entityに対して更新値を設定して更新 {MEMBER,memberId=3} @Java</span><code>
+<pre><span class="codetitle">ex) Entityに対して更新値を設定して更新 {MEMBER, memberId=3} @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
-member.setMemberId(3);
+member.setMemberId(<span class="literal">3</span>);
 member.setMemberName(<span class="literal">"Stojkovic"</span>);
-<span class="attribute">memberBhv</span>.update(member);
+<span class="attribute">memberBhv</span>.updateNonstrict(member);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
@@ -101,8 +103,7 @@ member.setMemberName(<span class="literal">"Stojkovic"</span>);
 		該当のBehaviorに対応するテーブルのEntityとなります。
 	</p>
 	<p>
-		Entityが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
-		また、PKカラムの値の指定は必須です(指定がない場合は例外が発生)。
+		nullを指定した場合は例外発生します。また、PKカラムの値の指定は必須です(指定なしは例外)。
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
@@ -112,15 +113,20 @@ member.setMemberName(<span class="literal">"Stojkovic"</span>);
 	<dl class="textlist">
 		<dt>更新対象が存在しなかった場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityAlreadyDeletedException</dd>
-		<dt>更新対象が複数あった場合</dt>
+		<dd>
+			この例外は、指定された主キーに対応するレコードが存在しなかった場合に発生します。
+			業務的に存在することが前提の更新であれば、開発時はバグ・データ不備、結合テスト・運用時はすれ違いと捉えることができます。
+		</dd>
+		<dt>更新結果が複数件の場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
+		<dd>予期せぬレコードを削除してしまっている可能性があるため、ロールバックが求められます。</dd>
 		<dt>一意制約違反があった場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityAlreadyExistsException</dd>
 	</dl>
 
 	<h2 id="modified">設定された値だけ更新</h2>
 	<p>
-		update() と同じ仕様です。
+		update(entity) と同じ仕様です。
 	</p>
 	<div class="detailpage"><a href="./update.html#modified">update(entity) - 設定された値だけ更新</a></div>
 
@@ -154,13 +160,19 @@ member.setMemberName(<span class="literal">"Stojkovic"</span>);
 
 	<h2 id="commoncolumn">共通カラムの自動設定</h2>
 	<p>
-		update() と同じ仕様です。
+		update(entity) と同じ仕様です。
 	</p>
 	<div class="detailpage"><a href="./update.html#commoncolumn">update(entity) - 共通カラムの自動設定</a></div>
 
+	<h2 id="nocascade">カスケードはしません</h2>
+	<p>
+		update(entity) と同じ仕様です。
+	</p>
+	<div class="detailpage"><a href="./update.html#nocascade">update(entity) - カスケードはしません</a></div>
+
 	<h2 id="scope">Entity更新のスコープ</h2>
 	<p>
-		update() と同じ仕様です。
+		update(entity) と同じ仕様です。
 	</p>
 	<div class="detailpage"><a href="./update.html#scope">update(entity) - Entity更新のスコープ</a></div>
 

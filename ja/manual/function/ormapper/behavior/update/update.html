@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,update,一件更新,排他制御あり,排他制御付き" />
+	<meta name="keywords" content="DBFlute,Behavior,update,更新,一件更新,排他制御あり,排他制御付き" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
@@ -56,9 +56,14 @@
 				<li><a href="#exception">例外</a></li>
 			</ul>
 		</li>
-		<li><a href="#modified">設定された値だけ更新</a></li>
+		<li><a href="#modified">設定された値だけ更新</a>
+			<ul>
+				<li><a href="#noupdate">設定された値がなければ</a></li>
+			</ul>
+		</li>
 		<li><a href="#exclusive">排他制御の自動化</a></li>
 		<li><a href="#commoncolumn">共通カラムの自動設定</a></li>
+		<li><a href="#nocascade">カスケードはしません</a></li>
 		<li><a href="#scope">Entity更新のスコープ</a></li>
 	</ul>
 
@@ -66,9 +71,10 @@
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
 		Entityをもとに <em class="keyword">排他制御あり一件更新</em>
-		をします(排他制御が無効なら、排他制御なし)。主に、排他制御が必要なオンライン系の更新処理で利用されます。
+		をします(但し、排他制御対象でないテーブルなら、排他制御なしの普通の一件更新)。主に、排他制御が必要なオンライン系の更新処理で利用されます。
 		アプリケーションでは、すれ違いが発生した場合に発生する例外を明示的にハンドリングし、業務的なアクションを取ることが想定されます。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御(楽観的並行性制御)</a></div>
 	<p>
 		会話上では、<em class="keyword">あっぷでーと</em> もしくは <em class="keyword">あっぷでーとえんてぃてぃ</em>
 		と表現します。文脈上、曖昧で伝わりにくい場合は <em class="keyword">Behavior のあっぷでーと(メソッド)</em>
@@ -86,23 +92,28 @@
 <pre><span class="codetitle">ex) update()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="attribute">memberBhv</span>.up <span class="comment">// .up と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.<span class="point">update(entity)</span>;
+<span class="attribute">memberBhv</span>.<span class="point">update</span>(entity);
 </code></pre>
 	<p>
-		排他制御が有効な場合は、事前に検索されたEntityに対して更新値を設定、もしくは、事前に検索されたPKと排他制御カラムの値を設定して更新します。
+		排他制御処理を利用するために、事前に検索されたEntityに対して更新値を設定、もしくは、事前に検索されたPKと排他制御カラムの値を設定して更新します。
+		(排他制御対象テーブルの場合)
 	</p>
-<pre><span class="codetitle">ex) 事前に検索されたEntityに対して更新値を設定して更新 {MEMBER,memberId=3} @Java</span><code>
-Member member = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
+<pre><span class="codetitle">ex) 事前に検索されたEntityに対して更新値を設定して更新 {MEMBER, memberId=3} @Java</span><code>
+Member <span class="point">member</span> = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
 member.setMemberName(<span class="literal">"Stojkovic"</span>);
 <span class="attribute">memberBhv</span>.update(member);
 </code></pre>
 <pre><span class="codetitle">ex) 事前に検索されたPKと排他制御カラムの値を設定して更新 {MEMBER} @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
-member.setMemberId(memberId); <span class="comment">// 事前に検索されたPK</span>
+member.<span class="point">setMemberId</span>(memberId); <span class="comment">// 事前に検索されたPK</span>
 member.setMemberName(<span class="literal">"Stojkovic"</span>);
-member.setVersionNo(versionNo); <span class="comment">// 事前に検索されたバージョン番号</span>
+member.<span class="point">setVersionNo</span>(versionNo); <span class="comment">// 事前に検索されたバージョン番号</span>
 <span class="attribute">memberBhv</span>.update(member);
 </code></pre>
+	<p>
+		更新対象のカラムに対してのみ、更新値を設定します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="modified"> -->this - 設定された値だけ更新<!-- </a> --></span></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
@@ -110,8 +121,8 @@ member.setVersionNo(versionNo); <span class="comment">// 事前に検索され�
 		該当のBehaviorに対応するテーブルのEntityとなります。
 	</p>
 	<p>
-		Entityが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
-		また、PKカラムの値と(排他制御が有効の場合に)排他制御カラムの値の指定が必須です(指定がない場合は例外が発生)。
+		nullを指定した場合は例外発生します。
+		また、PKカラムの値と(排他制御が有効の場合に)排他制御カラムの値の指定が必須です(指定なしは例外)。
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
@@ -120,17 +131,21 @@ member.setVersionNo(versionNo); <span class="comment">// 事前に検索され�
 	<h3 id="exception">例外</h3>
 	<dl class="textlist">
 		<dt>更新対象が存在しなかった場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityAlreadyDeletedException</dd>
 		<dd>
-			org.seasar.dbflute.exception.EntityAlreadyDeletedException。
-			この例外は、排他制御が無効の場合のみ発生します。有効の場合は、"更新対象が存在しないという状況"
-			は、"すれ違いがあったのと同じ状況" として扱われます(排他制御の仕組みとして区別が付かないため)。
+			この例外は、排他制御対象でない場合のみ発生します。業務的に存在することが前提の更新であれば、開発時はバグ・データ不備、結合テスト・運用時はすれ違いと捉えることができます。
 		</dd>
-		<dt>更新対象が複数あった場合</dt>
-		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
-		<dt>すれ違いがあった場合</dt>
 		<dd>
-			org.seasar.dbflute.exception.EntityAlreadyUpdatedException。
-			この例外は、排他制御が有効の場合のみ発生します。無効の場合は、すれ違いを検知することができません。
+			排他制御対象の場合は、"更新対象が存在しないという状況"
+			は、"すれ違いがあったのと同じ状況" として扱われます(仕組み上区別が付かないため)。
+		</dd>
+		<dt>更新結果が複数件の場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
+		<dd>予期せぬレコードを更新してしまっている可能性があるため、ロールバックが求められます。</dd>
+		<dt>すれ違いがあった場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityAlreadyUpdatedException</dd>
+		<dd>
+			この例外は、排他制御対象の場合のみ発生します。
 			<div class="relatedpage"><a href="#exclusive">this - 排他制御の自動化</a></div>
 		</dd>
 		<dt>一意制約違反があった場合</dt>
@@ -145,13 +160,21 @@ member.setVersionNo(versionNo); <span class="comment">// 事前に検索され�
 	</p>
 <pre><span class="codetitle">ex) update()は設定された値だけ更新される {MEMBER,memberId=3} @Java</span><code>
 Member member = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
-member.setMemberName(<span class="literal">"Stojkovic"</span>);
+member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 明示的に設定されたカラムだけが更新される</span>
+member.setBirthdate(<span class="keyword">null</span>); <span class="comment">// 明示的に null を設定すれば null で更新される</span>
 <span class="attribute">memberBhv</span>.update(member);
 <span class="comment">// update MEMBER</span>
 <span class="comment">//    set MEMBER_NAME = 'Stojkovic'</span>
+<span class="comment">//      , BIRTHDATE = null</span>
 <span class="comment">//      , VERSION_NO = ...</span>
 <span class="comment">//  where ...</span>
 </code></pre>
+	<h3 id="noupdate">設定された値がなければ</h3>
+	<p>
+		排他制御対象でないテーブル、かつ、共通カラムの自動設定対象になっていないテーブル(かつ、Entity
+		で自動設定を無効にしていない)で、設定された値(更新値)が何もない(呼び出された Setter
+		がない)場合は更新処理自体が発生しません。その場合、DB上で仕掛けているトリガがあったとして発動しません。
+	</p>
 
 	<h2 id="exclusive">排他制御の自動化</h2>
 	<p>
@@ -187,12 +210,24 @@ member.setMemberName(<span class="literal">"Stojkovic"</span>);
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
 
+	<h2 id="nocascade">カスケードはしません</h2>
+	<p>
+		例えば、会員 Entity が購入 Entity のリストを保持していたとしても、更新するのは会員、つまり、基点テーブルだけです。
+		自動で購入のリストも一緒に更新しにいくことはありません。これは DBFlute
+		のポリシーですが、明示的に更新処理を指定していないものがディベロッパーの気付かないところで更新される、というような状態を避けるためです。
+		できた方が便利と思う場面も確かにありますが、別の機能でも同様ですが <em class="keyword">明示的に</em> が重視されています。
+	</p>
+
 	<h2 id="scope">Entity更新のスコープ</h2>
 	<p>
-		Entityを利用した更新系のメソッドでは、<em class="keyword">更新値はプログラム上で指定されたスカラ値である</em> 必要があります。
-		例えば、SQL上で値を導出(set句で足し算したり別のカラムの値を設定したり)して更新をするというようなことはできないため、
-		その場合は、一度検索してからプログラム上で値を導出して更新するか、外だしSQLで実装します。
+		Entity を利用した更新系のメソッドでは、<em class="keyword">更新値はプログラム上で指定されたスカラ値である</em>
+		が基本です。例えば、SQL上で値を導出(set句で足し算したり別のカラムの値を設定したり)して更新をする、というような場合は、
+		varying 系の更新メソッドを利用します。但し、やれることに限界もありますので、複雑な計算をするような場合は、
+		一度検索してからプログラム上で値を導出して更新するか、外だしSQLで実装します。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./varyingupdate.html"> -->varyingUpdate(entity, option)<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./varyingupdatenonstrict.html"> -->varyingUpdateNonstrict(entity, option)<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./varyingqueryupdate.html"> -->varyingQueryUpdate(entity, cb, option)<!-- </a> --></span></div>
 
 </div>
 </div>

@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,selectEntityWithDeletedCheck,一件検索,nullなし,すれ違い,排他制御,ConditionBean" />
+	<meta name="keywords" content="DBFlute,Behavior,deleteNonstrict,削除,一件削除,排他制御なし,問答無用で削除,強制削除" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>selectList(cb) | DBFlute</title>
+	<title>deleteNonstrict(entity) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>selectListWithDeletedCheck(cb)</h1>
+	<h1>deleteNonstrict(entity)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -54,102 +54,81 @@
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
 				<li><a href="#exception">例外</a></li>
-				<li><a href="#nocondition">条件未設定</a></li>
-				<li><a href="#duplicated">複数件取得</a></li>
-				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
+		<li><a href="#exclusive">排他制御の自動化</a></li>
+		<li><a href="#nocascade">カスケードはしません</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		<em class="keyword">ConditionBean で null を戻さない一件検索</em>
-		をします。検索結果が存在しない場合は明示的な例外が発生するので、検索結果がないという状況が業務的にあり得ない(条件設定のバグ、データ不整合など)、
-		もしくは、その状況は業務的なすれ違いなので排他制御の仕組みで一律の処理を行う、というようなときに利用します。
+		Entityをもとに <em class="keyword">排他制御なし一件削除</em> をします。Nonstrict の strict
+		は、排他制御のことです。主に、排他制御の不要なバッチ処理などで利用されます。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御(楽観的並行性制御)</a></div>
 	<p>
-		DeletedCheck の Deleted は、別の人(プロセス)のすれ違いによる削除のことを示します。
-	</p>
-	<div class="relatedpage"><a href="../../../genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御</a></div>
-	<p>
-		検索結果が存在しなかったら業務的に正常な処理を行う、という場合は、このメソッドではなく selectEntity() を利用して下さい。 
-	</p>
-	<div class="relatedpage"><a href="./selectentity.html">selectEntity()</a></div>
-	<p>
-		会話上では、<em class="keyword">せれくとえんてぃてぃうぃずでりーでぃっどちぇっく</em>
-		と表現します。もしくは <em class="keyword">nullを戻さないせれくとえんてぃてぃ</em> と表現します。
+		会話上では、<em class="keyword">でりーとのんすとりくと</em>
+		と表現します。文脈上、排他制御の有無を強調したい場合は <em class="keyword">排他制御なしのでりーと</em>
+		などと言うとわかりやすいでしょう。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">selectEntityWithDeletedCheck()</em>
-		を呼び出し、ConditionBeanを指定します。
+		Behaviorの <em class="keyword">deleteNonstrict()</em>
+		を呼び出し、Entityを指定します。
 	</p>
-<pre><span class="codetitle">ex) selectEntityWithDeletedCheck()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.selEW <span class="comment">// .selEW と打って enter</span>
+<pre><span class="codetitle">ex) deleteNonstrict()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.delN <span class="comment">// .delN と打って enter</span>
 --
-<span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectEntityWithDeletedCheck(cb)</span>;
---
-Member member = <span class="attribute">memberBhv</span>.selectEntityWithDeletedCheck(cb);
-<span class="abbreviation">...</span> = member.getMemberId(); <span class="comment">// member は null でない</span>
+<span class="attribute">memberBhv</span>.<span class="point">deleteNonstrict</span>(entity);
+</code></pre>
+	<p>
+		排他制御が不要なため、PKの値が設定されていれば削除ができます。
+	</p>
+<pre><span class="codetitle">ex) Entityに対して主キーを設定して削除 {MEMBER, memberId=3} @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.setMemberId(<span class="literal">3</span>);
+<span class="attribute">memberBhv</span>.deleteNonstrict(member);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		selectEntity() と同じです。
+		該当のBehaviorに対応するテーブルのEntityとなります。
 	</p>
-	<div class="relatedpage"><a href="./selectentity.html#argument">selectEntity() - 引数</a></div>
+	<p>
+		nullを指定した場合は例外発生します。また、PKカラムの値の指定は必須です(指定なしは例外)。
+	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの Entity となります。
-	</p>
-	<p>
-		検索結果が一件もない場合は例外になるので、戻り値が null になることはあり得ません。
+		void です。
 	</p>
 	<h3 id="exception">例外</h3>
 	<dl class="textlist">
-		<dt>絞り込み条件が存在しなかった場合</dt>
-		<dd>org.seasar.dbflute.exception.SelectEntityConditionNotFoundException</dd>
+		<dt>削除対象が存在しなかった場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityAlreadyDeletedException</dd>
 		<dd>
-			この例外は、指定された ConditionBean に絞り込み条件が存在しない場合に発生します。Query
-			で絞り込み条件が設定されている(cb.hasWhereClause() が true になる)、もしくは FetchFirst
-			で 1 が設定されている必要があります。
-			<div class="relatedpage"><a href="../../conditionbean/sidebar/haswhereorderby.html">ConditionBean - HasWhereOrderBy</a></div>
-			<div class="relatedpage"><a href="../../conditionbean/sidebar/fetchfirst.html">ConditionBean - FirstFirst</a></div>
+			この例外は、指定された主キーに対応するレコードが存在しなかった場合に発生します。
+			業務的に存在することが前提の更新であれば、開発時はバグ・データ不備、結合テスト・運用時はすれ違いと捉えることができます。
 		</dd>
-		<dt>検索結果が存在しなかった場合</dt>
-		<dd>org.seasar.dbflute.exception.EntityAlreadyDeletedException。</dd>
-		<dd>
-			この例外は、指定された ConditionBean の条件で検索結果が存在しなかった場合に発生します。
-			業務的に存在することが前提の検索なので、開発時はバグ・データ不備、結合テスト・運用時はすれ違いと捉えることができます。
-		</dd>
-		<dt>検索結果が複数件の場合</dt>
+		<dt>削除結果が複数件の場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
-		<dd>
-			この例外は、複数件(二件以上)の場合に発生します。一件検索は、必ず結果が一件になる絞り込み条件を前提としています。
-			その際、全てのデータを取得はせず、二件目がフェッチされた瞬間に例外になるため、比較的早い段階で例外になり検知することができます。
-		</dd>
+		<dd>予期せぬレコードを削除してしまっている可能性があるため、ロールバックが求められます。</dd>
 	</dl>
 
-	<h3 id="nocondition">条件未設定</h3>
+	<h2 id="exclusive">排他制御の自動化</h2>
 	<p>
-		selectEntity() と同じです。
+		update(entity) と同じ仕組みです。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./selectentity.html#nocondition"> -->selectEntity() - 条件未設定<!-- </a> --></span></div>
-	<h3 id="duplicated">複数件取得</h3>
+	<div class="detailpage"><a href="./update.html">Behavior - update(entity)</a></div>
+
+	<h2 id="nocascade">カスケードはしません</h2>
 	<p>
-		selectEntity() と同じです。
+		update(entity) と同じ仕様です。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./selectentity.html#duplicated"> -->selectEntity() - 複数件取得<!-- </a> --></span></div>
-	<h3 id="override">オーバーライド</h3>
-	<p>
-		selectList() と同じような要領となります。
-	</p>
-	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
+	<div class="detailpage"><a href="./update.html#nocascade">update(entity) - カスケードはしません</a></div>
 
 </div>
 </div>
