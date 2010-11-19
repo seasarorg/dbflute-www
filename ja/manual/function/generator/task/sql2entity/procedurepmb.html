@@ -49,6 +49,7 @@
 			<ul>
 				<li><a href="#generatedclass">自動生成されるクラス</a></li>
 				<li><a href="#paramprop">パラメータのプロパティ</a></li>
+				<li><a href="#supportedtype">サポートされる型</a></li>
 				<li><a href="#merit">自動生成によるメリット</a></li>
 				<li><a href="#deleteold">古いクラスは削除される</a></li>
 				<li><a href="#target">自動生成対象を指定</a></li>
@@ -61,7 +62,8 @@
 		<li><a href="#escape">プロシージャのエスケープ</a></li>
 		<li><a href="#structure">ProcedurePmbの構造</a>
 			<ul>
-				<li><a href="#annotation">プロシージャ情報の定義</a></li>
+				<li><a href="#parameterinfo">プロシージャのパラメータ情報</a></li>
+				<li><a href="#valuetype">ValueType の定義</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">ProcedurePmbの使い方</a></li>
@@ -184,6 +186,27 @@ Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span cla
 		但し、NotParamResultは除く(後述)。
 	</p>
 	<div class="relatedpage"><a href="#resultsethandling">this - 結果セットの取扱い</a></div>
+	<h3 id="supportedtype">サポートされる型</h3>
+	<p>
+		基本的に、Entityの自動生成におけるサポートと変わりはありません。それぞれのDBMSごとにサポートされる型が決まっています。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#datatype">MySQL - データ型マッピング</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dbway/postgresql/index.html#datatype">PostgreSQL - データ型マッピング</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/index.html#datatype">Oracle - データ型マッピング</a></div>
+	<p>
+		但し、非常にプロシージャのみで利用される型(されやすい型)もありますので、幾つかの型はサポートされています。
+		例えば、Oracle のTABLE型(PL/SQL表)やVARRAY型、OBJECT型など、複雑な構造の場合はサポートされないなど限定的ではありますが、
+		実現できる範囲での対応がされています。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/index.html#parametertype">Oracle - プロシージャパラメータの型</a></div>
+	<p>
+		サポートされない型は、Entityのプロパティでは String 型にマッピングされるのに対し、プロシージャのパラメータでは
+		Object 型にマッピングされます<span class="freecomment">(@since 0.9.7.6)</span>。プロシージャにおけるサポートされない型の場合、文字列では表現できない特殊な型の場合が多いと想定されるためです。
+		加えて、ValueType を独自に作成し設定することで、サポートされない多くの型も扱えるようになります。
+		その場合、アプリでは Object 型で渡し Object 型でもらい、独自の ValueType でJDBCに対応する型に変換して処理する、という形になります。
+		また、Object 型もどうにかしたい場合は、プロシージャのパラメータ定義の設定も含めて ProcedurePmb を手動作成すれば独自のプロパティ型を利用できます。
+	</p>
+	<div class="detailpage"><a href="#structure">this - ProcedurePmb の構造</a></div>
 	<h3 id="merit">自動生成によるメリット</h3>
 	<p>
 		DBFluteではSql2Entityタスクを利用することで、どのプロシージャを呼び出すのか、どのパラメータに値をセットするのか、これらが全て
@@ -384,7 +407,7 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 		アプリケーションで意識するメソッドは全て set で始まるメソッド(検索条件の指定)が主になりますが、
 		OUTパラメータやプロシージャリターンを受け取るために get で始まるメソッドも利用することがあります。
 	</p>
-	<h3 id="annotation">プロシージャ情報の定義</h3>
+	<h3 id="parameterinfo">プロシージャのパラメータ情報</h3>
 	<p>
 		ProcedurePmbの中では、プロシージャのパラメータ情報が定義されています。
 	</p>
@@ -402,10 +425,46 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 <span class="comment">// vv_in_varchar は vvInVarchar</span>
 </code></pre>
 	<p>
-		アプリケーションで直接意識することはありませんが、JDBC次第でメタデータを正しく取得できない場合に、この定義を参考に
-		Exクラス で補完することで解決することがあります。但し、内部構造が変わる可能性もありますので、必ず変更を検知できるような自動テストと共に拡張して下さい。
+		"[property-name]_PROCEDURE_PARAMETER" という形式の定数アノテーションで、値は String 型で "[in or out or inout], [bind-order]"
+		という形式です。
+	</p>
+	<p>
+		アプリケーションで直接意識することはありませんが、JDBC次第でメタデータを正しく取得できない場合に、
+		この定義を参考にExクラスで補完することで解決することがあります。但し、内部構造が変わる可能性もありますので、
+		必ず変更を検知できるような自動テストと共に拡張して下さい。同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
+	<h3 id="valuetype">ValueType の定義</h3>
+	<p>
+		デフォルトの ValueType ではなく、パラメータごとに独自の ValueType
+		を指定することができます。これを利用することで、パラメータのJDBC周りの処理(バインド処理やOUTパラメータ取得など)の調整ができます。
+	</p>
+<pre><span class="codetitle">ex) ProcedurePmb のExクラスで独自の ValueType を定義 @Java</span><code>
+<span class="keyword">public class</span> SpInOutParameterPmb <span class="keyword">extends</span> BsSpInOutParameterPmb {
+
+    <span class="keyword">public static final</span> String VInVarchar_VALUE_TYPE = <span class="literal">"fooType"</span>;
+    <span class="keyword">public static final</span> ValueType VOutVarchar_VALUE_TYPE = <span class="keyword">new</span> FooType();
+
+    <span class="abbreviation">...</span>
+}
+<span class="comment">// [property-name]_PROCEDURE_PARAMETER</span>
+<span class="comment">// [property-name] は、JavaBeansRule なので</span>
+<span class="comment">// v_in_varchar は VInVarchar</span>
+<span class="comment">// vv_in_varchar は vvInVarchar</span>
+</code></pre>
+	<p>
+		"[property-name]_VALUE_TYPE" という形式の定数アノテーションで、値は String 型の場合は、"プラグインValueType"
+		のキーの名前で、ValueType 型の場合<span class="freecomment">(@since 0.9.7.6)</span>は適用させる ValueType のインスタンスを指定します。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#pluginvaluetype">DBFluteConfig - プラグインValueType</a></div>
+	<p>
+		基本的にBsクラスには定義されていませんが、特殊な方の場合にDBFluteが自動で設定することがあります。
+		プロシージャのパラメータ情報と同じく、同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
+	<p>
+		ValueType の作成コストはありますが、サポートされない型もこれを使うことで扱えるようになります。
+	</p>
 
 	<h2 id="howto">ProcedurePmbの使い方</h2>
 	<p>

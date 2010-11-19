@@ -57,6 +57,7 @@
 		<li><a href="#updatelock">更新ロックの取得</a></li>
 		<li><a href="#procedure">プロシージャ</a>
 			<ul>
+				<li><a href="#parametertype">プロシージャパラメータの型</a></li>
 				<li><a href="#packagesynonym">パッケージプロシージャ</a></li>
 				<li><a href="#proceduresynonym">プロシージャシノニム</a></li>
 				<li><a href="#nextprocedure">別スキーマのプロシージャ</a></li>
@@ -154,6 +155,8 @@
 		<dt>INTERVAL YEAR TO MONTH</dt><dd>年月表現の文字列として利用可能 <span class="freecomment">(ex. "32-10")</span></dd>
 		<dt>INTERVAL DAY TO SECOND</dt><dd>日秒表現の文字列として利用可能 <span class="freecomment">(ex. "1 0:0:1.0")</span></dd>
 		<dt>ROWID</dt><dd>利用不可 (今後のサポートは未定)</dd>
+		<dt>ARRAY</dt><dd>利用不可 (今後のサポートは未定) <span class="freecomment">プロシージャでは限定的に利用可</span></dd>
+		<dt>OBJECT</dt><dd>利用不可 (今後のサポートは未定) <span class="freecomment">プロシージャでは限定的に利用可</span></dd>
 		<dt>LONG</dt><dd>利用不可 (サポート予定なし)</dd>
 	</dl>
 	<div class="detailpage"><a href="../index.html#unsupportedtype">DBMSごとの取扱い - 未サポートのデータ型</a></div>
@@ -245,6 +248,32 @@
 	<div class="relatedword"><a href="../../dictionary/alphabet/wr.html#resultsetparameter">ResultSetパラメータ</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wr.html#resultsetreturn">ResultSetリターン</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wn.html#notparamresult">NotParamResult(Set)</a></div>
+	<h3 id="parametertype">プロシージャパラメータの型</h3>
+	<p>
+		テーブルのデータ型に加えて、TABLE型(PL/SQL表)、VARRAY型などが限定的に利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/procedurepmb.html#supportedtype">ProcedurePmb - サポートされる型</a></div>
+	<dl class="textlist">
+		<dt>TABLE型(PL/SQL表)</dt>
+		<dd>
+			要素型が、データ型マッピングでサポートされている型の場合に限り、DBFlute
+			が提供する自動化の風にのって利用することができます。プロパティは List 型となります(ELEMENTの型はデータ型マッピングの通り)。
+		</dd>
+		<dd>
+			必要な設定としては、OracleのJDBCドライバに依存する設定、および、(DBFlute内部で)論理コネクションから物理コネクションが取得できる設定になっていることです。
+			<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#isavailabledatabasenativejdbc">dfprop - isAvailableDatabaseNativeJDBC</a></div>
+			<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#physicalconnectiondigger"> -->DBFluteConfig - physicalConnectionDigger<!-- </a> --></span></div>
+		</dd>
+		<dt>VARRAY型</dt>
+		<dd>
+			TABLE型と扱いは同じです。
+		</dd>
+		<dt>OBJECT型(STRUCT型)</dt>
+		<dd>
+			プロシージャのパラメータとして定義されているOBJECT型(TABLE型、VARRAY型の要素型での利用も含む)に関しては、対応する CustomizeEntity
+			が自動生成されますが、基本的にはサポートされていません。
+		</dd>
+	</dl>
 	<h3 id="packagesynonym">パッケージプロシージャ</h3>
 	<p>
 		パッケージプロシージャのParameterBeanのクラス名にはパッケージ名が付与されます。
