@@ -55,6 +55,7 @@
 				<li><a href="#target">自動生成対象を指定</a></li>
 				<li><a href="#proceduresynonym">プロシージャ参照のシノニムも自動生成</a></li>
 				<li><a href="#resultsetgen">ResultSet 対応のCustomizeEntityも自動生成</a></li>
+				<li><a href="#overload">オーバーロードは未サポート</a></li>
 				<li><a href="#dbway">DBMSごとの取扱い</a></li>
 			</ul>
 		</li>
@@ -62,7 +63,7 @@
 		<li><a href="#escape">プロシージャのエスケープ</a></li>
 		<li><a href="#structure">ProcedurePmbの構造</a>
 			<ul>
-				<li><a href="#parameterinfo">プロシージャのパラメータ情報</a></li>
+				<li><a href="#parameterdef">プロシージャのパラメータ定義</a></li>
 				<li><a href="#valuetype">ValueType の定義</a></li>
 			</ul>
 		</li>
@@ -235,6 +236,17 @@ Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span cla
 		ResultSet 対応の CustomizeEntity を自動生成することも可能です。
 	</p>
 	<div class="detailpage"><a href="#resultsethandling">this - ResultSetの取扱い</a></div>
+	<h3 id="overload">オーバーロードは未サポート</h3>
+	<p>
+		例えば、Oracle のパッケージプロシージャにおけるオーバーロードされたプロシージャ(パラメータ構成の違う同名のプロシージャ)は、
+		サポートされません。ProcedurePmb は、プロシージャ名でユニーク判定をしているため、最小公倍数のパラメータが定義されます。
+	</p>
+	<p>
+		そのままでは呼び出せませんが、ProcedurePmb
+		を継承して、パラメータ情報のアノテーションの上書きでパラメータ構成を調整することで、
+		呼び出すことができます。
+	</p>
+	<div class="relatedpage"><a href="#parameterdef">this - プロシージャのパラメータ定義</a></div>
 	<h3 id="dbway">DBMSごとの取扱い</h3>
 	<p>
 		DBMSへの依存が強い領域ですので、DBMSごとの取扱いを必ずご確認下さい。
@@ -407,11 +419,11 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 		アプリケーションで意識するメソッドは全て set で始まるメソッド(検索条件の指定)が主になりますが、
 		OUTパラメータやプロシージャリターンを受け取るために get で始まるメソッドも利用することがあります。
 	</p>
-	<h3 id="parameterinfo">プロシージャのパラメータ情報</h3>
+	<h3 id="parameterdef">プロシージャのパラメータ定義</h3>
 	<p>
-		ProcedurePmbの中では、プロシージャのパラメータ情報が定義されています。
+		ProcedurePmbの中では、プロシージャのパラメータ定義が宣言されています。
 	</p>
-<pre><span class="codetitle">ex) ProcedurePmbのパラメータ情報定義 @Java</span><code>
+<pre><span class="codetitle">ex) ProcedurePmbのパラメータ定義 @Java</span><code>
 <span class="comment">// -----------------------------------------------------</span>
 <span class="comment">//                                   Procedure Parameter</span>
 <span class="comment">//                                   -------------------</span>
@@ -432,6 +444,8 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 		アプリケーションで直接意識することはありませんが、JDBC次第でメタデータを正しく取得できない場合に、
 		この定義を参考にExクラスで補完することで解決することがあります。但し、内部構造が変わる可能性もありますので、
 		必ず変更を検知できるような自動テストと共に拡張して下さい。同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。
+		また、値が null の場合は、そのパラメータ定義は無効となります。
+		(Exクラスでの優先定義と併用することでBsクラスに宣言されたパラメータ定義を無効にすることもできます)
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
 	<h3 id="valuetype">ValueType の定義</h3>
@@ -459,8 +473,9 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#pluginvaluetype">DBFluteConfig - プラグインValueType</a></div>
 	<p>
 		基本的にBsクラスには定義されていませんが、特殊な方の場合にDBFluteが自動で設定することがあります。
-		プロシージャのパラメータ情報と同じく、同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。
+		同じ名前の定数をExクラスでも定義した場合は、値が null の場合の挙動は、プロシージャのパラメータ定義と同じです。
 	</p>
+	<div class="relatedword"><a href="#parameterdef">this - プロシージャのパラメータ定義</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
 	<p>
 		ValueType の作成コストはありますが、サポートされない型もこれを使うことで扱えるようになります。
