@@ -1,0 +1,593 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Oracle,プロシージャ,ストアド,ファンクション,PL/SQL,ARRAY,STRUCT,OBJECT,TABLE,VARRAY,PL/SQL表,CallableStatement,JDBC" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Oracleの配列・構造体パラメータ | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Oracleの配列・構造体パラメータ</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">配列や構造体のパラメータ</a></li>
+		<li><a href="#presetting">事前の設定(dfpropなど)</a></li>
+		<li><a href="#table">TABLE型(PL/SQL表) <span class="freecomment">(別名：ARRAY型)</span></a>
+			<ul>
+				<li><a href="#tableunsupported">サポートされない利用</a></li>
+			</ul>
+		</li>
+		<li><a href="#object">OBJECT型 <span class="freecomment">(別名：STRUCT型)</span></a>
+			<ul>
+				<li><a href="#generated">自動生成される対象</a></li>
+				<li><a href="#elementunknown">ARRAY型の要素型の認識</a></li>
+				<li><a href="#objectunsupported">サポートされない利用</a></li>
+				<li><a href="#example">Example のコード</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">配列や構造体のパラメータ</h2>
+	<p>
+		複雑な構造や実現難度の高さから機能制限がありながらも、限定的にサポートされているプロシージャのパラメータの型として、
+		TABLE型(PL/SQL表)やOBJECT型があります。VARRAY型は、DBFluteでの扱いとしてはTABLE型と変わりはないので、TABLE型の説明に集約されます。
+	</p>
+	<p>
+		Oracleのプロシージャの特殊な型に関する補足ををこのページにまとめています。"DBMSごとの取扱い" の
+		Oracle のページからの続き的な内容です。
+	</p>
+	<div class="relatedpage"><a href="./index.html#procedure">DBMSごとの取扱い - Oracle - プロシージャ</a></div>
+
+	<h2 id="presetting">事前の設定(dfpropなど)</h2>
+	<p>
+		これらを利用するためには、Oracle のJDBCドライバのクラスにコンパイルレベルで依存しなければなりません。
+		DBFluteはデフォルトでは、DBMS依存のJDBCドライバのクラスにコンパイルレベル依存しないようになっていますので、
+		オプションで依存するように設定します。(具体的には、oracle.sql.ARRAY や oracle.sql.StructDescriptor などに依存します)
+	</p>
+	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#isavailabledatabasenativejdbc">dfprop - isAvailableDatabaseNativeJDBC</a></div>
+	<p>
+		また、実現に Oracle の物理コネクションが必要(具体的には、oracle.sql.STRUCT
+		の生成時などに必要)となるため、物理コネクションを取得するためのコールバック処理を DBFluteConfig にて設定します。DBFlute
+		自身はデータベースコネクションの管理はしておらず、アプリ(DIコンテナ)から渡されたデータソース(DataSource)から取得できる論理的なコネクションを利用しています。
+		そのため、論理コネクションから物理コネクションを発掘するための処理をアプリから貰わなければなりません。(但し、S2Container の DBCP や Commons DBCP
+		を利用している場合は、デフォルトでその発掘作業が登録されていますので設定は不要です)
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#physicalconnectiondigger"> -->DBFluteConfig - physicalConnectionDigger<!-- </a> --></span></div>
+
+	<h2 id="table">TABLE型(PL/SQL表) <span class="freecomment">(別名：ARRAY型)</span></h2>
+	<p>
+		要素型が、データ型マッピングでサポートされている型(一部除く)、および、(サポートされている範囲の)TABLE型、OBJECT型の場合に限り利用することができます。
+		プロパティは List 型となります(ELEMENTの型はデータ型マッピングの通り)。
+	</p>
+	<div class="relatedpage"><a href="./index.html#datatype">Oracle - データ型マッピング</a></div>
+	<p>
+		VARRAY型も含めて配列の形をとる型を総称の意味合いも含めて、ARRAY型と呼ぶことがあります。
+		(JDBCドライバでは、実際に ARRAY と定義されています)
+	</p>
+<pre><span class="codetitle">TABLE型の引数を持ったプロシージャの作成 (ReplaceSchemaで実行) @SQL</span><code>
+<span class="keyword">create type</span> VARCHAR2_TABLE <span class="keyword">is table of</span> <span class="dbtype">VARCHAR2(100)</span>;
+
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create or replace procedure</span> SP_TABLE_MANUAL_PARAMETER(
+  v_in_varchar_array <span class="attribute">in</span> VARCHAR2_TABLE
+  , v_out_varchar_array <span class="attribute">out</span> VARCHAR2_TABLE
+) <span class="keyword">as</span>
+<span class="keyword">begin</span>
+  v_out_varchar_array := v_in_varchar_array;
+<span class="keyword">end</span> SP_TABLE_MANUAL_PARAMETER;
+/
+<span class="comment">-- #df:end#</span>
+</code></pre>
+<pre><span class="codetitle">TABLE型の引数を持ったプロシージャの呼び出し (IN, OUT) @Java</span><code>
+SpTableManualParameterPmb pmb = <span class="keyword">new</span> SpTableManualParameterPmb();
+pmb.<span class="point">setVInVarcharArray</span>(Arrays.asList(<span class="literal">"foo"</span>, <span class="literal">"bar"</span>));
+vendorCheckBhv.outsideSql().call(pmb);
+List&lt;String&gt; outList = pmb.<span class="point">getVOutVarcharArray()</span>;
+</code></pre>
+	<h3 id="tableunsupported">サポートされない利用</h3>
+	<dl class="textlist">
+		<dt>別スキーマで定義されたTABLE型</dt>
+		<dd>
+			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
+			<span class="freecomment">プロシージャと型が同じスキーマであれば動く可能性もありますが、確認がされていません</span>
+		</dd>
+		<dt>TABLE型やVARRAY型のネスト</dt>
+		<dd>
+			要素型が(ARRAY型である)TABLE型やVARRAY型、つまり、List&lt;List&lt;String&gt;&gt;
+			となるような形です。
+		</dd>
+		<dt>CLOB (BLOBも含む)</dt>
+		<dd>
+			CLOB や BLOB などの型はサポートされません。(テーブルの Entity ではサポートされています)
+		</dd>
+		<dt>DBMS_SQL.NUMBER_TABLEなど</dt>
+		<dd>
+			DBMS_SQLのようなパッケージ内に定義された型を利用することはできません。
+		</dd>
+	</dl>
+	<p>
+		その他、細かい点(把握しき仕切れていないもの)で制限がありますので、必ずアプリ環境での動作確認をしてから利用するようにして下さい。
+	</p>
+
+	<h2 id="object">OBJECT型 <span class="freecomment">(別名：STRUCT型)</span></h2>
+	<p>
+		プロシージャのパラメータとして定義されているOBJECT型(ARRAY型の要素での利用も含む)、
+		および、そのOBJECT型の属性としてネストされているOBJECT型は、対応する CustomizeEntity
+		が自動生成され、ParameterBean のプロパティ型として利用することができます。
+		プロパティの型は自動生成された CustomizeEntity となります(ARRAY型の要素の場合は、Entity要素のList型)。
+	</p>
+	<p>
+		STRUCT型と呼ぶことがあります。JDBCドライバでは、実際に STRUCT と定義されており、また、DBFluteの内部での実装でも
+		Struct という表現で扱っています。
+	</p>
+<pre><span class="codetitle">OBJECT型の引数を持ったプロシージャの作成 (ReplaceSchemaで実行) @SQL</span><code>
+<span class="keyword">create type</span> FOO_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
+  FOO_ID        NUMBER(8),
+  FOO_NAME      VARCHAR2(20),
+  FOO_DECIMAL   NUMBER(5, 3),
+  FOO_DATE      DATE,
+  FOO_TIMESTAMP TIMESTAMP(3),
+  FOO_CLOB      CLOB <span class="comment">-- CLOB is unsupported</span>
+);
+
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create or replace procedure</span> SP_STRUCT_BASIC_PARAMETER(
+  v_in_foo_bean <span class="attribute">in</span> FOO_BEAN
+  , v_out_foo_bean <span class="attribute">out</span> FOO_BEAN
+) <span class="keyword">as</span>
+<span class="keyword">begin</span>
+  v_out_foo_bean := v_in_foo_bean;
+<span class="keyword">end</span> SP_STRUCT_BASIC_PARAMETER;
+/
+<span class="comment">-- #df:end#</span>
+</code></pre>
+<pre><span class="codetitle">OBJECT型の引数を持ったプロシージャの呼び出し @Java</span><code>
+<span class="comment">// ## Arrange ##</span>
+SpStructBasicParameterPmb pmb = <span class="keyword">new</span> SpStructBasicParameterPmb();
+FooBean fooBean = <span class="keyword">new</span> <span class="point">FooBean</span>(); <span class="comment">// this class is auto-generated</span>
+fooBean.setFooId(1);
+fooBean.setFooName("foo");
+fooBean.setFooDecimal(<span class="keyword">new</span> BigDecimal("3.4"));
+fooBean.setFooDate(DfTypeUtil.toDate("2010-11-20 12:34:56"));
+fooBean.setFooTimestamp(DfTypeUtil.toTimestamp("2010-11-21 02:13:45.852"));
+<span class="comment">// CLOB is unsupported</span>
+<span class="comment">//fooBean.setFooClob("fooooo");</span>
+pmb.<span class="point">setVInFooBean</span>(fooBean);
+assertNull(pmb.getVOutFooBean());
+
+<span class="comment">// ## Act ##</span>
+vendorCheckBhv.outsideSql().call(pmb);
+
+<span class="comment">// ## Assert ##</span>
+assertEquals(fooBean.toString(), pmb.getVInFooBean().toString());
+FooBean outBean = pmb.<span class="point">getVOutFooBean()</span>;
+assertEquals(fooBean.getFooId(), outBean.getFooId());
+assertEquals(fooBean.getFooName(), outBean.getFooName());
+assertEquals(fooBean.getFooDecimal(), outBean.getFooDecimal());
+assertEquals(fooBean.getFooDate(), outBean.getFooDate());
+assertEquals(fooBean.getFooTimestamp(), outBean.getFooTimestamp());
+assertEquals(fooBean.getFooClob(), outBean.getFooClob());
+</code></pre>
+	<h3 id="generated">自動生成される対象</h3>
+	<p>
+		OBJECT型に対応した CustomizeEntity が自動生成される条件は
+		<em class="keyword">プロシージャパラメータから辿れる</em>
+		ことです。例えば、以下のような状況が当てはまります。
+	</p>
+	<ul>
+		<li>プロシージャパラメータ自体の型で利用 <span class="freecomment">ex) SP_FOO(v_in_foo_bean in FOO_BEAN) as ...</span></li>
+		<li>ARRAY型パラメータの要素型として利用 <span class="freecomment">ex) List&lt;FooBean&gt;</span></li>
+		<li>OBJECT型パラメータの属性の型として利用(ネスト構造) <span class="freecomment">ex) fooBean.getBarBean()</span></li>
+	</ul>
+	<p>
+		つまり、パラメータとして定義されているARRAY型、もしくは、OBJECT型から(複数階層も含めて)参照して辿れるOBJECT型が自動生成対象となります。
+		上記以外の使い方をしているOBJECT型であったとしても、複数箇所で利用しているうちのどれか一つが上記に当てはまれば自動生成されます。
+	</p>
+	<p>
+		但し、例外として、OBJECT型をARRAY型の要素型(List&lt;FooBean&gt;)として利用している場合で、そのARRAY型の要素型が認識できない状況においては、そのOBJECT型の
+		Entity は、自動生成されません。
+	</p>
+	<h3 id="elementunknown">ARRAY型の要素型の認識</h3>
+	<p>
+		ARRAY型の要素型は、ある一定の条件において認識されることで、プログラム上で対応する型として扱えます。
+		認識されなかった場合は、Object 型にマッピングされ、かつ、OBJECT型対応の Entity の自動生成の条件に影響を与えます。
+		認識できなかった要素型でのOBJECT型、もしくは、そこから辿って参照できる(はずの)OBJECT型に関しては、自動生成対象となりません。
+		条件は以下の通りです。
+	</p>
+	<ul>
+		<li>プロシージャパラメータ自体の型で利用</li>
+		<li>ARRAY型パラメータの要素型として利用(ネスト)</li>
+	</ul>
+	<p>
+		つまり、OBJECT型の属性の型でしか利用されていないARRAY型は、その要素型が認識できず Object 型になってしまいます。
+		その場合、実質的に動作はサポートされません。対応する型の話に限らず、OBJECT型の Entity の自動生成対象の条件にも影響がでますので注意です。
+		そういった型をプロシージャパラメータとして定義するダミーのプロシージャを作成することで回避はできます。
+	</p>
+	<p>
+		この仕様は、DBFlute内部で利用している Oracle のメタデータの取得による都合です。
+		ARRAY型の要素型情報が、プロシージャパラメータに定義されているARRAY型でしか取得できないためです。
+		具体的には、データディクショナリの ALL_TYPES, ALL_ARGUMENTS を参照しています。 
+		将来的には、環境が改善するなどして、ARRAY型の要素型情報がパラメータ定義に関係なく取得できるようになれば変わっていくかもしれません。
+		(また、そもそも取得の方法を見つけられていないだけかもしれません)
+	</p>
+	<h3 id="objectunsupported">サポートされない利用</h3>
+	<dl class="textlist">
+		<dt>別スキーマで定義されたOBJECT型</dt>
+		<dd>
+			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
+			<span class="freecomment">プロシージャと型が同じスキーマであれば動く可能性もありますが、確認がされていません</span>
+		</dd>
+		<dt>CLOB (BLOBも含む)</dt>
+		<dd>
+			CLOB や BLOB などの型はサポートされません。定義自体はできますが、実際に値を入れて実行すると例外になります。
+			(テーブルの Entity ではサポートされています)
+		</dd>
+		<dt>複雑なネスト構造</dt>
+		<dd>
+			自動生成された Pmb や Entity
+			では複雑なネスト構造を表現することもできますが、実行時に正常に動作しない可能性があります。
+		</dd>
+	</dl>
+	<p>
+		その他、(把握仕切れていないものも含め)細かい点で制限がありますので、必ずアプリ環境での動作確認をしてから利用するようにして下さい。
+		また、dbflute-oracle-example にて、様々なパターンのExampleがありますので、参考にして下さい。
+		内部的な仕組みを確認する場合は、DBFluteランタイムの
+		OracleArrayType、および、OracleStructType がポイントとなります。
+	</p>
+	<div class="inucolumn">
+		<h3 id="">さらに広い世界</h3>
+		<p>
+			プロシージャコールのページで "フィードバックの重要性"
+			というコラムを書いていますが、このARRAY型やSTRUCT型はそれ以上に未到達の多い領域です。
+			事前に十分アプリでの適合を検証してから利用するようにお願いします。
+		</p>
+		<div class="detailpage"><a href="../../../function/genbafit/implfit/procedurecall/index.html#feedback">プロシージャコール - フィードバックの重要性</a></div>
+	</div>
+	<h3 id="example">Example のコード</h3>
+	<p>
+		以下のコード例は、実際の Example の抜粋です。
+	</p>
+<pre><span class="codetitle">複雑なネスト構造を持った型を引数に持ったプロシージャの作成 (ReplaceSchemaで実行) @SQL</span><code>
+<span class="keyword">create type</span> FOO_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
+  FOO_ID        NUMBER(8),
+  FOO_NAME      VARCHAR2(20),
+  FOO_DECIMAL   NUMBER(5, 3),
+  FOO_DATE      DATE,
+  FOO_TIMESTAMP TIMESTAMP(3),
+  FOO_CLOB      CLOB
+);
+
+-- #df:end#
+<span class="keyword">create type</span> BAR_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
+  BAR_ID        NUMBER(8),
+  BAR_NAME      VARCHAR2(20),
+  BAR_DECIMAL   NUMBER(5, 3),
+  BAR_DATE      DATE,
+  BAR_TIMESTAMP TIMESTAMP(3),
+  BAR_CLOB      CLOB
+);
+
+-- #df:begin#
+create or replace procedure SP_STRUCT_BASIC_PARAMETER(
+  v_in_foo_bean in FOO_BEAN
+  , v_out_foo_bean out FOO_BEAN
+) as
+begin
+  v_out_foo_bean := v_in_foo_bean;
+end SP_STRUCT_BASIC_PARAMETER;
+/
+-- #df:end#
+
+<span class="keyword">create type</span> FOO_TABLE <span class="keyword">is table of</span> FOO_BEAN;
+
+-- #df:begin#
+<span class="keyword">create or replace procedure</span> SP_STRUCT_LIST_PARAMETER(
+  v_in_foo_list in FOO_TABLE,
+  v_out_foo_list out FOO_TABLE
+) <span class="keyword">as</span>
+<span class="keyword">begin</span>
+  v_out_foo_list := v_in_foo_list;
+<span class="keyword">end</span> SP_STRUCT_LIST_PARAMETER;
+/
+-- #df:end#
+
+<span class="keyword">create type</span> BAR_TABLE <span class="keyword">is table of</span> BAR_BEAN;
+<span class="keyword">create type</span> BAZ_TABLE <span class="keyword">is table of</span> BAR_TABLE;
+<span class="keyword">create type</span> QUX_TABLE <span class="keyword">is table of</span> NUMBER(12);
+<span class="keyword">create type</span> QUUX_TABLE <span class="keyword">is table of</span> NUMBER(12);
+
+-- not generated
+create type NESTED_BAZ_BEAN as object (
+  BAZ_ID   NUMBER(8),
+  BAZ_NAME VARCHAR2(20),
+  BAZ_DATE DATE,
+  BAZ_LIST BAZ_TABLE
+  -- could not define self reference
+  --,BAZ_SELF    NESTED_BAZ_BEAN
+);
+
+-- generated by dummy procedure's parameter
+create type NESTED_BAR_BEAN as object (
+  BAR_ID    NUMBER(8),
+  BAR_NAME  VARCHAR2(20),
+  BAR_DATE  DATE,
+  BAR_LIST  BAR_TABLE,
+  BAZ_BEAN1 NESTED_BAZ_BEAN,
+  BAZ_BEAN2 NESTED_BAZ_BEAN,
+  QUX_LIST  QUX_TABLE,
+  QUUX_LIST QUUX_TABLE
+);
+
+-- generated formally
+create type NESTED_FOO_BEAN as object (
+  FOO_ID   NUMBER(8),
+  FOO_NAME VARCHAR2(20),
+  FOO_DATE DATE,
+  BAR_BEAN NESTED_BAR_BEAN,
+  QUX_LIST QUX_TABLE,
+  QUUX_LIST QUUX_TABLE
+);
+
+-- #df:begin#
+create or replace procedure SP_STRUCT_NESTED_PARAMETER(
+  v_in_foo_bean in NESTED_FOO_BEAN
+  , v_out_foo_bean out NESTED_FOO_BEAN
+) as
+begin
+  v_out_foo_bean := v_in_foo_bean;
+end SP_STRUCT_NESTED_PARAMETER;
+/
+-- #df:end#
+
+-- #df:begin#
+-- dummy procedure to
+--  o generate entities of nested STRUCT types
+--  o treat ARRAY in STRUCT as list property
+create or replace procedure SP_STRUCT_PRACTICE_SWING(
+  v_in_bar_bean in NESTED_BAR_BEAN
+  , v_in_baz_list in BAZ_TABLE
+  , v_in_qux_list in QUX_TABLE
+) as
+begin
+  dbms_output.put_line('generate for nest use');
+end SP_STRUCT_PRACTICE_SWING;
+/
+-- #df:end#
+</code></pre>
+<pre><span class="codetitle">TABLE型の引数を持ったプロシージャの呼び出し (IN, OUT) @Java</span><code>
+// ## Arrange ##
+SpStructNestedParameterPmb pmb = new SpStructNestedParameterPmb();
+{
+    // STRUCT in STRUCT as IN parameter
+    NestedFooBean fooBean = new NestedFooBean();
+    fooBean.setFooId(1);
+    fooBean.setFooName("foo");
+    fooBean.setFooDate(DfTypeUtil.toDate("2010-11-20 12:34:56"));
+    {
+        // if column order and types are same, it works
+        NestedBarBean barBean = new NestedBarBean();
+        barBean.setBarId(2);
+        barBean.setBarName("bar");
+        barBean.setBarDate(DfTypeUtil.toDate("2010-11-21 09:51:23"));
+        List&lt;BarBean&gt; barList = DfCollectionUtil.newArrayList();
+        {
+            BarBean elementBean = new BarBean();
+            elementBean.setBarId(71);
+            elementBean.setBarName("proxy1");
+            barList.add(elementBean);
+        }
+        {
+            BarBean elementBean = new BarBean();
+            elementBean.setBarId(72);
+            elementBean.setBarName("proxy2");
+            barList.add(elementBean);
+        }
+        barBean.setBarList(barList);
+        NestedBazBean bazBean1 = new NestedBazBean();
+        bazBean1.setBazId(4321);
+        bazBean1.setBazName("baz1");
+        bazBean1.setBazDate(DfTypeUtil.toDate("2010-11-22 19:21:33"));
+        barBean.setBazBean1(bazBean1);
+        fooBean.setBarBean(barBean); // *unsupported (it works a little)
+    }
+
+    // ARRAY in STRUCT as IN parameter
+    List&lt;BigDecimal&gt; quxList = DfCollectionUtil.newArrayList();
+    quxList.add(new BigDecimal(1));
+    quxList.add(new BigDecimal(2));
+    fooBean.setQuxList(quxList); // *unsupported (it works a little)
+    fooBean.setQuuxList(Arrays.asList(new Object[] { 3, 4, 5 }));
+    pmb.setVInFooBean(fooBean);
+}
+assertNull(pmb.getVOutFooBean());
+
+// ## Act ##
+vendorCheckBhv.outsideSql().call(pmb);
+
+// ## Assert ##
+NestedFooBean inBean = pmb.getVInFooBean();
+NestedFooBean outBean = pmb.getVOutFooBean();
+assertEquals(inBean.getFooId(), outBean.getFooId());
+assertEquals(inBean.getFooName(), outBean.getFooName());
+assertEquals(inBean.getFooDate(), outBean.getFooDate());
+
+// STRUCT in STRUCT as OUT parameter
+{
+    NestedBarBean barBean = outBean.getBarBean();
+    log("fooBean.barBean = " + barBean);
+    assertEquals(inBean.getBarBean().getBarId(), barBean.getBarId());
+    assertEquals(inBean.getBarBean().getBarName(), barBean.getBarName());
+    assertEquals(inBean.getBarBean().getBarDate(), barBean.getBarDate());
+    {
+        List&lt;BarBean&gt; barList = barBean.getBarList();
+        log("fooBean.barBean.barList = " + barList);
+        assertEquals(2, barList.size());
+        log("fooBean.barBean.barList(0)=" + barList.get(0));
+        log("fooBean.barBean.barList(1)=" + barList.get(1));
+        assertEquals("71", barList.get(0).getBarId().toString());
+        assertEquals("proxy1", barList.get(0).getBarName());
+        assertEquals("72", barList.get(1).getBarId().toString());
+        assertEquals("proxy2", barList.get(1).getBarName());
+    }
+    {
+        NestedBazBean bazBean1 = barBean.getBazBean1();
+        log("fooBean.barBean.bazBean1 = " + bazBean1);
+        assertNotNull(bazBean1);
+        NestedBazBean inBazBean1 = inBean.getBarBean().getBazBean1();
+        assertEquals(inBazBean1.getBazId(), bazBean1.getBazId());
+        assertEquals(inBazBean1.getBazName(), bazBean1.getBazName());
+        assertEquals(inBazBean1.getBazDate(), bazBean1.getBazDate());
+    }
+    {
+        NestedBazBean bazBean2 = barBean.getBazBean2();
+        log("fooBean.barBean.bazBean2 = " + bazBean2);
+        assertNull(bazBean2);
+    }
+    {
+        List&lt;BigDecimal&gt; quxList = barBean.getQuxList();
+        log("fooBean.barBean.quxList = " + quxList);
+        assertTrue(quxList.isEmpty());
+    }
+    {
+        // object element type because of untraceable
+        List&lt;Object&gt; quxList = barBean.getQuuxList();
+        log("fooBean.barBean.quxList = " + quxList);
+        assertTrue(quxList.isEmpty());
+    }
+    // array in struct (traceable in parameter meta data)
+    List&lt;BigDecimal&gt; quxList = outBean.getQuxList();
+    assertFalse(quxList.isEmpty());
+
+    // array in struct (untraceable in parameter meta data)
+    List&lt;Object&gt; quuxList = outBean.getQuuxList(); // because of untraceable
+    assertFalse(quuxList.isEmpty()); // it works a little (but unsupported)
+    assertEquals(inBean.getQuuxList().size(), quuxList.size());
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
