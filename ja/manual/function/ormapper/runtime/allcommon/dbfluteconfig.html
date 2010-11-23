@@ -221,7 +221,7 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 	<p>
 		このフィルタの設定は、必ずコンテナの初期化の前に設定する必要があります。そもそも DBFluteConfig
 		はそういった利用を想定していますが、このコンフィグは初期化後にロックを解除して設定しても反映されない可能性があります。
-		具体的には、このフィルタは各テーブルの DBMeta クラスがクラスロードされたときに利用されるためです。
+		具体的には、各テーブルの DBMeta クラスが、クラスロードされたときの最初の一回だけこのフィルタが実行されます。
 	</p>
 	<p>
 		また、Generateタスク実行時に TableSqlName をフィルタするような機能を併用する場合、コールバックの引数は既にそのフィルタが実行された値となります。
@@ -229,6 +229,12 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 自動組み立てSQLのテーブル名にスキーマ名を付与<!-- </a> --></span></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
+	<p>
+		利用する際は、<em class="keyword">スキーマ名が変更されても動作するというテスト</em> を必ずするようにして下さい。
+		例えば、開発環境でずっと同じスキーマ名で試していて、いきなりにスキーマ名の違う本番環境にアップするというのは、そのテストが抜け落ちていることになります。
+		結合テストで自然とテストすることになるかもしれませんが、結合テストと開発環境はスキーマ名が同じである可能性もあります。
+		そもそも、予期せぬリスクを回避するために、結合テストが始まるもっと前の早い段階で確認されることが推奨されます。
+	</p>
 
 	<h2 id="outsidesqlpackage">outsideSqlPackage</h2>
 	<p>
