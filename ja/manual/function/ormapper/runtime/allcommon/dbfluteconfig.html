@@ -46,20 +46,24 @@
 				<li><a href="#settinglog">設定されたときのログ</a></li>
 			</ul>
 		</li>
-		<li><a href="#config">コンフィグ</a>
+		<li><a href="#defaultstatementconfig">defaultStatementConfig</a></li>
+		<li><a href="#queryloglevelinfo">queryLogLevelInfo</a></li>
+		<li><a href="#executestatusloglevelinfo">executeStatusLogLevelInfo</a></li>
+		<li><a href="#logdateformat">logDateFormat</a></li>
+		<li><a href="#logtimestampformat">logTimestampFormat</a></li>
+		<li><a href="#datasourcehandler">dataSourceHandler</a></li>
+		<li><a href="#physicalconnectiondigger">physicalConnectionDigger</a></li>
+		<li><a href="#sequencecachekeygenerator">sequenceCacheKeyGenerator</a></li>
+		<li><a href="#sqlclausecreator">sqlClauseCreator</a></li>
+		<li><a href="#tablesqlnamefilter">tableSqlNameFilter</a></li>
+		<li><a href="#outsidesqlpackage">outsideSqlPackage</a></li>
+		<li><a href="#outsidesqlexecutorfactory">outsideSqlExecutorFactory</a></li>
+		<li><a href="#usesqllogregistry">useSqlLogRegistry</a></li>
+		<li><a href="#fulltextsearchoperand">fullTextSearchOperand</a></li>
+		<li><a href="#valuetype">valueType</a>
 			<ul>
-				<li><a href="#defaultstatementconfig">defaultStatementConfig</a></li>
-				<li><a href="#queryloglevelinfo">queryLogLevelInfo</a></li>
-				<li><a href="#executestatusloglevelinfo">executeStatusLogLevelInfo</a></li>
-				<li><a href="#logdateformat">logDateFormat</a></li>
-				<li><a href="#logtimestampformat">logTimestampFormat</a></li>
-				<li><a href="#datasourcehandler">dataSourceHandler</a></li>
-				<li><a href="#sequencecachekeygenerator">sequenceCacheKeyGenerator</a></li>
-				<li><a href="#outsidesqlpackage">outsideSqlPackage</a></li>
-				<li><a href="#outsidesqlexecutorfactory">outsideSqlExecutorFactory</a></li>
-				<li><a href="#usesqllogregistry">useSqlLogRegistry</a></li>
-				<li><a href="#fulltextsearchoperand">fullTextSearchOperand</a></li>
-				<li><a href="#valuetype">valueType</a></li>
+				<li><a href="#basicvaluetype">基本ValueType</a></li>
+				<li><a href="#pluginvaluetype">プラグインValueType</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -78,7 +82,7 @@ DBFluteConfig config = DBFluteConfig.<span class="point">getInstance()</span>;
 	<p>
 		様々なコンフィグが用意されていて、それぞれのメソッドで設定を行うことができます。
 		おいそれと変更してはいけないプロパティがオンパレードなため、
-		設定するときは、必ず設定前にロックを解除し、設定後にロックを掛けるという微妙に面倒な作業と共にすることを習慣としています。
+		設定するときは必ず設定前にロックを解除し、設定後にロックを掛けるという微妙に面倒な作業と共にすることを習慣としています。
 	</p>
 <pre><span class="codetitle">ex) DBFluteConfigで queryTimeout の設定 {300秒} @Java</span><code>
 DBFluteConfig config = DBFluteConfig.getInstance();
@@ -101,28 +105,26 @@ config.<span class="point">lock()</span>;
 		とても重要な設定であること、かつ、初期化時に一回だけ設定されるのが前提であることからそのようにしています。
 	</p>
 
-	<h2 id="config">コンフィグ</h2>
-
-	<h3 id="defaultstatementconfig">defaultStatementConfig</h3>
+	<h2 id="defaultstatementconfig">defaultStatementConfig</h2>
 	<p>
 		全ての検索に適用するデフォルトの StatementConfig を設定します。設定した
 		StatementConfig インスタンスがDBFlute内部で利用されます。設定後にそのインスタンスの設定値を変更してはいけません。
 	</p>
 	<div class="relatedpage"><a href="../statementconfig.html">StatementConfig</a></div>
 
-	<h3 id="queryloglevelinfo">queryLogLevelInfo</h3>
+	<h2 id="queryloglevelinfo">queryLogLevelInfo</h2>
 	<p>
-		
+		QueryLog のレベルを INFO に設定します(通常は、DEBUGレベル)。
 	</p>
 
-	<h3 id="executestatusloglevelinfo">executeStatusLogLevelInfo</h3>
+	<h2 id="executestatusloglevelinfo">executeStatusLogLevelInfo</h2>
 	<p>
-		
+		ExecuteStatusLog のレベルを INFO に設定します(通常は、DEBUGレベル)。
 	</p>
 
-	<h3 id="logdateformat">logDateFormat</h3>
+	<h2 id="logdateformat">logDateFormat</h2>
 	<p>
-		SQL実行時に出力される表示用SQLの日付型の条件値の表示フォーマットを設定できます。
+		SQL実行時に出力される表示用SQLの日付型の条件値の表示フォーマットを設定します。
 		デフォルトのフォーマットが都合悪いときに利用します。
 		java.util.Dateにマッピングされたカラムに対して有効です。SimpleDateFormatが解釈できる形式で指定します。
 	</p>
@@ -144,9 +146,10 @@ config.setLogDateFormat(<span class="literal">"date ${yyyy/MM/dd}"</span>);
 		リテラルが付与されるようになっているため、必要になる場面はあまりないと想定されています。
 		(そのOracleのデフォルト設定をフォーマットだけちょっと変えて上書きするような場合には必要になります)
 	</p>
-	<h3 id="logtimestampformat">logTimestampFormat</h3>
+
+	<h2 id="logtimestampformat">logTimestampFormat</h2>
 	<p>
-		SQL実行時に出力される表示用SQLの日時型の条件値の表示フォーマットを設定できます。
+		SQL実行時に出力される表示用SQLの日時型の条件値の表示フォーマットを設定します。
 		デフォルトのフォーマットが都合悪いときに利用します。
 		java.sql.Timestampにマッピングされたカラムに対して有効です。SimpleDateFormatが解釈できる形式で指定します。
 	</p>
@@ -159,45 +162,101 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 		リテラルの付与に関しては、logDateFormat と同様です。
 	</p>
 
-	<h3 id="datasourcehandler">dataSourceHandler</h3>
+	<h2 id="datasourcehandler">dataSourceHandler</h2>
+	<p>
+		DBFlute内部で DataSource からのコネクションの取得処理をフィルタします。
+	</p>
+
+	<h2 id="physicalconnectiondigger">physicalConnectionDigger</h2>
+	<p>
+		論理コネクションから物理コネクションを取得するコールバック処理を設定します<span class="freecomment">(@since 0.9.7.6)</span>。
+	</p>
+	<p>
+		DBFluteは、DIコンテナ経由でアプリから渡された DataSource を利用してコネクションを取得しています。
+		ゆえに、DBFluteはそのコネクションが論理的なものなのか物理的なものなのかは意識していません。
+		通常は、それで全く問題ありませんが、一部機能でどうしても物理コネクションが必要になることがあります。
+		その機能を利用する時のために、アプリの DBCP 構成に合わせた物理コネクション処理を登録します。
+	</p>
+	<p>
+		代表的な例として、Oracleのプロシージャパラメータに、TABLE型やOBJECT型のデータを指定するときに利用します。
+		(基本的には、DBMSのJDBCドライバに依存せざるを得ない機能を使うときに必要になる可能性があります)
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/oraclearraystruct.html">Oracleの配列・構造体パラメータ</a></div>
+
+	<h2 id="sequencecachekeygenerator">sequenceCacheKeyGenerator</h2>
+	<p>
+		シーケンスキャッシュのキーを生成する処理を設定します。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/runtimefit/sequencecache/index.html">現場フィット - シーケンスキャッシュ</a></div>
+
+	<h2 id="sqlclausecreator">sqlClauseCreator</h2>
+	<p>
+		ConditionBean の 内部でSQLを組み立てるクラス、SqlClause のファクトリクラスを差し替えます。
+		ConditionBean で発行されるSQLを拡張したいときに利用します。(ただし、拡張リスクがあります)
+	</p>
+
+	<h2 id="tablesqlnamefilter">tableSqlNameFilter</h2>
+	<p>
+		自動組み立てをする SQL のテーブル名をフィルタします<span class="freecomment">(@since 0.9.7.6)</span>。
+		例えば、スキーマ名の修飾を環境ごとのスイッチさせたいような場合に利用します。
+		(ただし、スキーマ名の静的な修飾は、別途機能として用意されていますのでそちらをご利用下さい)
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 実行されるSQL(CB)のテーブル名にスキーマ名を付与<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) PUBLICというスキーマ名をテーブル名に付与する @Java</span><code>
+<span class="keyword">final</span> String schema = <span class="attribute">"PUBLIC"</span>; <span class="comment">// 実業務ではアプリのプロパティなどから取得</span> 
+DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<span class="keyword">new</span> SqlNameFilter() {
+    <span class="keyword">public</span> String filter(String sqlName) {
+        <span class="keyword">return</span> schema + <span class="attribute">"."</span> + sqlName;
+    }
+});
+</code></pre>
+	<p>
+		外だしSQLには影響しません。このフィルタは、Behavior や ConditionBean
+		などのSQLの自動組み立て処理が対象となります。
+	</p>
+	<p>
+		このフィルタの設定は、必ずコンテナの初期化の前に設定する必要があります。そもそも DBFluteConfig
+		はそういった利用を想定していますが、このコンフィグは初期化後にロックを解除して設定しても反映されない可能性があります。
+		具体的には、このフィルタは各テーブルの DBMeta クラスがクラスロードされたときに利用されるためです。
+	</p>
+	<p>
+		また、Generateタスク実行時に TableSqlName をフィルタするような機能を併用する場合、コールバックの引数は既にそのフィルタが実行された値となります。
+		具体的には、スキーマ名の静的な修飾を行う SchemaTableName や、予約語テーブル名のためのクォーテーション処理などです。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 実行されるSQL(CB)のテーブル名にスキーマ名を付与<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
+
+	<h2 id="outsidesqlpackage">outsideSqlPackage</h2>
+	<p>
+		外だしSQLの配置パッケージを変更します。
+	</p>
+
+	<h2 id="outsidesqlexecutorfactory">outsideSqlExecutorFactory</h2>
 	<p>
 		
 	</p>
 
-	<h3 id="sequencecachekeygenerator">sequenceCacheKeyGenerator</h3>
+	<h2 id="usesqllogregistry">useSqlLogRegistry</h2>
 	<p>
 		
 	</p>
 
-	<h3 id="outsidesqlpackage">outsideSqlPackage</h3>
+	<h2 id="fulltextsearchoperand">fullTextSearchOperand</h2>
 	<p>
 		
 	</p>
 
-	<h3 id="outsidesqlexecutorfactory">outsideSqlExecutorFactory</h3>
-	<p>
-		
-	</p>
-
-	<h3 id="usesqllogregistry">useSqlLogRegistry</h3>
-	<p>
-		
-	</p>
-
-	<h3 id="fulltextsearchoperand">fullTextSearchOperand</h3>
-	<p>
-		
-	</p>
-
-	<h3 id="valuetype">valueType</h3>
+	<h2 id="valuetype">valueType</h2>
 	<p>
 		独自の ValueType を設定することができます。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wv.html#valuetype">ValueType</a></div>
-	<h4 id="basicvaluetype">基本ValueType</h4>
+	<h3 id="basicvaluetype">基本ValueType</h3>
 	<p>
+		プログラム型をキーに ValueType を指定します。
 		独自のプログラム型を利用する場合などに有効です。typeMappingMap.dfprop
-		と連携して利用することがほとんどの利用パターンです。但し、<em class="keyword">厳重注意のもと利用すること</em>。
+		と連携して利用することがほとんどの利用パターンです。ただし、<em class="keyword">厳重注意のもと利用すること</em>。
+		特にデフォルトで登録されている ValueType を差し替えた場合、DBFluteが正常に動作しない可能性もあります。
 	</p>
 <pre><span class="codetitle">ex) 独自の基本ValueTypeを登録 @Java</span><code>
 DBFluteConfig config = DBFluteConfig.getInstance();
@@ -205,10 +264,13 @@ config.<span class="point">registerBasicValueType</span>(KorondeItai.class, <spa
 </code></pre>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/typemapping/index.html">typeMappingMap.dfprop</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wb.html#basicvaluetype">BasicValueType (基本ValueType)</a></div>
-	<h4 id="pluginvaluetype">プラグインValueType</h4>
+	<h3 id="pluginvaluetype">プラグインValueType</h3>
 	<p>
-		ピンポイントでこのカラムだけこのValueTypeを利用するようにしたい場合に有効です。
-		但し、<em class="keyword">厳重注意のもと利用すること</em>。
+		名前をキーに ValueType を指定します。設定したキーを指定して、どのカラムでどの ValueType
+		を指定するか手動で設定します。
+		ピンポイントで <em class="keyword">このカラムだけ、この ValueType を利用するようにしたい</em>
+		という場合に有効です。ただし、<em class="keyword">厳重注意のもと利用すること</em>。
+		特にデフォルトで登録されている ValueType を差し替えた場合、DBFluteが正常に動作しない可能性もあります。
 	</p>
 <pre><span class="codetitle">ex) 独自のプラグインValueTypeを登録 @Java</span><code>
 DBFluteConfig config = DBFluteConfig.getInstance();
@@ -221,6 +283,10 @@ config.<span class="point">registerPluginValueType</span>(<span class="literal">
 	<p>
 		定数アノテーションの [プロパティ名]_VALUE_TYPE のプロパティ名は、JavaBeansルールに従うこと。
 		例えば、"T_NAME" カラムだったら、プロパティ名は、"TName"。(tNameではない)
+	</p>
+	<p>
+		ConditionBean の検索条件のバインド変数においては、このプラグインValueTypeは利用されません。
+		データの取得処理や、登録・更新などのバインド変数に限ります。
 	</p>
 
 <p>TODO jflute now writing</p>
