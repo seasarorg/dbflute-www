@@ -60,7 +60,7 @@
 		<li><a href="#outsidesqlexecutorfactory">outsideSqlExecutorFactory</a></li>
 		<li><a href="#usesqllogregistry">useSqlLogRegistry</a></li>
 		<li><a href="#fulltextsearchoperand">fullTextSearchOperand</a></li>
-		<li><a href="#valuetype">valueType</a>
+		<li><a href="#valuetype">ValueType</a>
 			<ul>
 				<li><a href="#basicvaluetype">基本ValueType</a></li>
 				<li><a href="#pluginvaluetype">プラグインValueType</a></li>
@@ -115,12 +115,18 @@ config.<span class="point">lock()</span>;
 	<h2 id="queryloglevelinfo">queryLogLevelInfo</h2>
 	<p>
 		QueryLog のレベルを INFO に設定します(通常は、DEBUGレベル)。
+		アプリ要件で QueryLog を本番環境などでも出力する必要がある場合に有効です。
+		ただし、当然のことですが、(微々たるものではありますが)表示用SQLの生成処理とログ出力の分、パフォーマンスに影響します。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
 
 	<h2 id="executestatusloglevelinfo">executeStatusLogLevelInfo</h2>
 	<p>
 		ExecuteStatusLog のレベルを INFO に設定します(通常は、DEBUGレベル)。
+		アプリ要件で QueryLog を本番環境などでも出力する必要がある場合に有効です。
+		ただし、当然のことですが、(微々たるものではありますが)表示用SQLの生成処理とログ出力の分、パフォーマンスに影響します。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
 
 	<h2 id="logdateformat">logDateFormat</h2>
 	<p>
@@ -165,7 +171,14 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 	<h2 id="datasourcehandler">dataSourceHandler</h2>
 	<p>
 		DBFlute内部で DataSource からのコネクションの取得処理をフィルタします。
+		利用している DBCP の環境次第で調整が必要になるときに有効です。
 	</p>
+	<p>
+		DBFlute内部でこの機能を利用しているものもあります。Spring Framework と Commons DBCP
+		を組み合わせたときのスレッドトランザクションの実現の際、このコンフィグを使って Spring の DataSourceUtils
+		を利用しています(自動登録されます)。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/diway/spring/index.html#commonsdbcp">Spring Frameworkの取扱い - Commons DBCP との組み合わせ</a></div>
 
 	<h2 id="physicalconnectiondigger">physicalConnectionDigger</h2>
 	<p>
@@ -185,7 +198,8 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 
 	<h2 id="sequencecachekeygenerator">sequenceCacheKeyGenerator</h2>
 	<p>
-		シーケンスキャッシュのキーを生成する処理を設定します。
+		シーケンスキャッシュのキーを生成する処理を差し替えます。シーケンスキャッシュの単位のデフォルトは、
+		"テーブルごとのシーケンス" ですが、そのキーの単位を変更したい場合に有効です。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/runtimefit/sequencecache/index.html">現場フィット - シーケンスキャッシュ</a></div>
 
@@ -243,24 +257,32 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 
 	<h2 id="outsidesqlexecutorfactory">outsideSqlExecutorFactory</h2>
 	<p>
-		
+		Behavior の outsideSql() メソッド経由で利用する OutsideSqlExecutor クラスの
+		ファクトリを差し替えます。外だしSQLの挙動を拡張するのに有効です。(ただし、拡張リスクがあります)
+	</p>
+	<p>
+		通常、outsideSql() の後に続けてメソッドを利用するため、クラス名をディベロッパーが意識していないことが多いため、馴染みのないクラスとなっていますが、
+		outsideSql() の戻り値として定義されているクラス、OutsideSqlBasicExecutor のインスタンス生成を差し替えることができます。
 	</p>
 
 	<h2 id="usesqllogregistry">useSqlLogRegistry</h2>
 	<p>
-		
+		Seasar の SqlLogRegistry 機能を利用できるように設定します。
+		ただし、DBFluteとしては、CallbackContext を使って同じことが代替できるため、非推奨となっています。
 	</p>
 
 	<h2 id="fulltextsearchoperand">fullTextSearchOperand</h2>
 	<p>
-		
+		全文検索用の検索条件の演算子を差し替えます。
+		全文検索をサポートしていて、かつ、調整のオプションがある DBMS (例えば、PostgreSQL)のみ、このコンフィグが存在します。
 	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/postgresql/index.html#fulltextsearch">PostgreSQL - ConditionBeanで全文検索</a></div>
 
-	<h2 id="valuetype">valueType</h2>
+	<h2 id="valuetype">ValueType</h2>
 	<p>
 		独自の ValueType を設定することができます。
 	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wv.html#valuetype">ValueType</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../valuetype.html"> -->ValueType<!-- </a> --></span></div>
 	<h3 id="basicvaluetype">基本ValueType</h3>
 	<p>
 		プログラム型をキーに ValueType を指定します。
