@@ -59,7 +59,12 @@
 				<li><a href="#dbway">DBMSごとの取扱い</a></li>
 			</ul>
 		</li>
-		<li><a href="#resultsethandling">結果セットの取扱い</a></li>
+		<li><a href="#resultsethandling">結果セットの取扱い</a>
+			<ul>
+				<li><a href="#resultsetwaya">A. 結果セット対応のCustomizeEntityを自動生成</a></li>
+				<li><a href="#resultsetwayb">B. List&lt;Map&lt;String, Object&gt;&gt;を利用</a></li>
+			</ul>
+		</li>
 		<li><a href="#escape">プロシージャのエスケープ</a></li>
 		<li><a href="#structure">ProcedurePmbの構造</a>
 			<ul>
@@ -261,7 +266,7 @@ Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span cla
 		<li>A. 結果セット対応の CustomizeEntity を自動生成</li>
 		<li>B. List&lt;Map&lt;String, Object&gt;&gt;を利用</li>
 	</ul>
-	<h3>A. 結果セット対応のCustomizeEntityを自動生成</h3>
+	<h3 id="resultsetwaya">A. 結果セット対応のCustomizeEntityを自動生成</h3>
 	<p>
 		Sql2Entityにてプロシージャを実際に実行し、そこから得られるメタデータから CustomizeEntity
 		を自動生成します(オプション)。<em class="keyword">outsideSqlDefinitionMap.dfprop</em>
@@ -345,6 +350,11 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
     <span class="abbreviation">...</span>
 }
 </code></pre>
+	<p>
+		NotParamResult に対応するプロパティの名前は、"notParamResult[index]"
+		が基本ですが、例えばSQLServerのテーブル値ファンクションのように、call 文 ではなく、select
+		文にて実行される "戻り値のような、必ず一つだけの NotParamResult" の場合は、"returnResult" という名前になります。
+	</p>
 	<h4>実行する対象のプロシージャを指定</h4>
 	<p>
 		デフォルトでは、<em class="keyword">基本的に(自動生成対象となっている)全てのプロシージャが実行</em> されます(NotParamResult
@@ -354,7 +364,12 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 		方式を利用します。
 	</p>
 	<div class="detailpage"><a href="../../../../reference/dfprop/outsidesqldefinition/index.html#executionmetaprocedurenamelist">dfprop - executionMetaProcedureNameList</a></div>
-	<h3>B. List&lt;Map&lt;String, Object&gt;&gt;を利用</h3>
+	<p>
+		デフォルトでは、実行に失敗したプロシージャのエラーは、ワーニングとしてタスクは続行されますが(よって、自動生成されてないときは必ずログを見ること)、
+		DBFluteプロパティで明示的に対象を絞っての実行の場合は、一つでの失敗したときにはタスクが中断します。
+		明示的に指定しているということは、必要なプロシージャだけが実行されるということになるため、エラーで続行させる必要はないと考えこのようにしています。
+	</p>
+	<h3 id="resultsetwayb">B. List&lt;Map&lt;String, Object&gt;&gt;を利用</h3>
 	<p>
 		こちらは、デフォルトの挙動になります。自動生成される結果セットに対応するプロパティの型が List&lt;Map&lt;String, Object&gt;&gt;
 		となります。マップのキー値は、(select句で指定された)カラム名(FlexibleName)となります。
