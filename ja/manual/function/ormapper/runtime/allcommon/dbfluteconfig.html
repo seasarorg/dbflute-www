@@ -212,10 +212,22 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 	<h2 id="tablesqlnamefilter">tableSqlNameFilter</h2>
 	<p>
 		自動組み立てをする SQL のテーブル名をフィルタします<span class="freecomment">(@since 0.9.7.6)</span>。
-		例えば、スキーマ名の修飾を環境ごとのスイッチさせたいような場合に利用します。
-		(ただし、スキーマ名の静的な修飾は、別途機能として用意されていますのでそちらをご利用下さい)
+		主に以下のような状況での利用が想定されます。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 自動組み立てSQLのテーブル名にスキーマ名を付与<!-- </a> --></span></div>
+	<dl class="textlist">
+		<dt>スキーマ名の修飾を環境ごとに切り替える</dt>
+		<dd>
+			例えば、SQL上ではテーブル名にスキーマ名の修飾が必要な上に、かつ、
+			開発環境と本番環境でのスキーマ構成が統一できないような場合に有効です。
+			(環境ごとに切り替える必要のないスキーマ名の修飾(静的な修飾)であれば、別途機能として用意されていますのでそちらをご利用下さい)
+			<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 自動組み立てSQLのテーブル名にスキーマ名を付与<!-- </a> --></span></div>
+		</dd>
+		<dt>アプリのステータス次第で実行時にテーブル名を切り替える</dt>
+		<dd>
+			例えば、テーブル名に suffix を付けるなどしてテーブル構造を冗長化させていて、
+			実行時のアプリのステータス、データなど次第で、登録や検索するテーブルを切り替える必要がある場合に有効です。
+		</dd>
+	</dl>
 <pre><span class="codetitle">ex) PUBLICというスキーマ名をテーブル名に付与する @Java</span><code>
 <span class="keyword">final</span> String schema = <span class="attribute">"PUBLIC"</span>; <span class="comment">// 実業務ではアプリのプロパティなどから取得</span> 
 DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<span class="keyword">new</span> SqlNameFilter() {
@@ -225,9 +237,10 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 });
 </code></pre>
 	<p>
-		外だしSQLには影響しません。このフィルタは、Behavior や ConditionBean
-		などのSQLの自動組み立て処理が対象となります。
+		このフィルタは、Behavior や ConditionBean などのSQLの自動組み立て処理が対象であり、外だしSQLには影響しません。
+		外だしSQLのフィルタは、同じく DBFluteConfig の outsideSqlExecutorFactory を利用することで実現できます。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="#outsideSqlExecutorFactory"> -->this - outsideSqlExecutorFactory<!-- </a> --></span></div>
 	<p>
 		dbflute-multipledb-seasar-example にて、Example があります。
 	</p>
@@ -235,7 +248,9 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 	<p>
 		このフィルタの設定は、必ずコンテナの初期化の前に設定する必要があります。そもそも DBFluteConfig
 		はそういった利用を想定していますが、このコンフィグは初期化後にロックを解除して設定しても反映されない可能性があります。
-		具体的には、各テーブルの DBMeta クラスが、クラスロードされたときの最初の一回だけこのフィルタが実行されます。
+		具体的には、各テーブルの DBMeta クラスが、クラスロードされたときにこのフィルタが設定されます。
+		フィルタが設定された後は、SQLが実行されるごとにフィルタ処理が実行されます。
+		(極端に重いフィルタ処理はするべきではありません)
 	</p>
 	<p>
 		また、Generateタスク実行時に TableSqlName をフィルタするような機能を併用する場合、コールバックの引数は既にそのフィルタが実行された値となります。
@@ -244,7 +259,8 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 自動組み立てSQLのテーブル名にスキーマ名を付与<!-- </a> --></span></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
 	<p>
-		利用する際は、<em class="keyword">スキーマ名が変更されても動作するというテスト</em> を必ずするようにして下さい。
+		利用する際は、<em class="keyword">環境が変わってスキーマ名が変わっても動作するというテスト</em> もしくは
+		<em class="keyword">テーブル名を切り替えても動作するというテスト</em> を必ず行うようにして下さい。
 		例えば、開発環境でずっと同じスキーマ名で試していて、いきなりにスキーマ名の違う本番環境にアップするというのは、そのテストが抜け落ちていることになります。
 		結合テストで自然とテストすることになるかもしれませんが、結合テストと開発環境はスキーマ名が同じである可能性もあります。
 		そもそも、予期せぬリスクを回避するために、結合テストが始まるもっと前の早い段階で確認されることが推奨されます。
@@ -264,7 +280,8 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		通常、outsideSql() の後に続けてメソッドを利用するため、クラス名をディベロッパーが意識していないことが多いため、馴染みのないクラスとなっていますが、
 		外だしSQLの根幹になるクラスを差し替えることができます。頑張れば、外だしSQLの読み込み処理をフックして、フィルタを掛けるようなこともできます。
 		利用する時は、デフォルトで利用されている DefaultOutsideSqlExecutorFactory
-		を使うと良いでしょう。OutsideSqlContextFactory も差し替えることができます。(詳しくはソースにて)
+		を使うと良いでしょう。OutsideSqlContextFactory も差し替えることができます。
+		OutsideSqlFilter (外だしSQLのフィルタ)を指定することもできます。(詳しくはソースにて)
 	</p>
 
 	<h2 id="usesqllogregistry">useSqlLogRegistry</h2>
