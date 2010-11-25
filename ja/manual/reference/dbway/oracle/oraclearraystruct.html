@@ -39,7 +39,13 @@
 <div id="content">
 	<h1>Oracleの配列・構造体パラメータ</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">配列や構造体のパラメータ</a></li>
+		<li><a href="#overview">配列や構造体のパラメータ</a>
+			<ul>
+				<li><a href="#introentitygen">OBJECT型対応Entityの自動生成</a></li>
+				<li><a href="#introoraclegen">Oracle依存処理の自動生成</a></li>
+				<li><a href="#introarraystruct">TABLE型、OBJECT型のコラボ</a></li>
+			</ul>
+		</li>
 		<li><a href="#presetting">事前の設定(dfpropなど)</a></li>
 		<li><a href="#table">TABLE型(PL/SQL表) <span class="freecomment">(別名：ARRAY型)</span></a>
 			<ul>
@@ -60,13 +66,32 @@
 	<p>
 		複雑な構造や実現難度の高さから機能制限がありながらも、限定的にサポートされているプロシージャのパラメータの型として、<em class="keyword">TABLE型(PL/SQL表)</em>
 		や <em class="keyword">OBJECT型</em> があります<span class="freecomment">(@since 0.9.7.6)</span>。
-		VARRAY型は、DBFluteでの扱いとしてはTABLE型と変わりはないので、TABLE型の説明に集約されます。
+		(VARRAY型は、DBFluteでの扱いとしてはTABLE型と変わりはないので、TABLE型の説明に集約されます)
 	</p>
 	<p>
 		Oracleのプロシージャの特殊な型に関する補足ををこのページにまとめています。"DBMSごとの取扱い" の
 		Oracle のページからの続き的な内容です。
 	</p>
 	<div class="relatedpage"><a href="./index.html#procedure">DBMSごとの取扱い - Oracle - プロシージャ</a></div>
+	<h3 id="introentitygen">OBJECT型対応Entityの自動生成</h3>
+	<p>
+		<em class="keyword">OBJECT型に対応する Entity (CustomizeEntity) がSql2Entityタスクにて自動生成されます</em>。
+		ParameterBean では対応する Entity 型プロパティが定義されますので、INパラメータ、OUTパラメータ共に、その Entity
+		経由でデータのやり取りができます。
+	</p>
+	<p>
+		OBJECT型の属性の構成を変更(属性の名前変更や削除など)すれば、Sql2Entityタスクの再実行で影響範囲をコンパイルエラーとして特定できます。
+	</p>
+	<h3 id="introoraclegen">Oracle依存処理の自動生成</h3>
+	<p>
+		通常、TABLE型やOBJECT型のパラメータをJDBC経由で扱うとき、OracleパッケージのJDBCドライバのクラスを利用しなければなりません(oracle.sql.STRUCTなど)。
+		DBFluteでは、<em class="keyword">Oracle依存の処理自体が自動生成されます</em>。(Oracle、かつ、オプションで有効にした場合)
+	</p>
+	<h3 id="introarraystruct">TABLE型、OBJECT型のコラボ</h3>
+	<p>
+		TABLE型の要素としてOBJECT型を、もしくは、OBJECT型の属性としてTABLE型を、どちらも利用できます。
+		プロパティの型なども自動解決されます。また、階層レベルも基本的に無限階層で利用できます(ただし、状況により制限あり)。
+	</p>
 
 	<h2 id="presetting">事前の設定(dfpropなど)</h2>
 	<p>
@@ -373,6 +398,7 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 <span class="keyword">create type</span> BAZ_TABLE <span class="keyword">is table of</span> <span class="dbtype">BAR_TABLE</span>;
 <span class="keyword">create type</span> QUX_TABLE <span class="keyword">is table of</span> <span class="dbtype">NUMBER(12)</span>;
 <span class="keyword">create type</span> QUUX_TABLE <span class="keyword">is table of</span> <span class="dbtype">NUMBER(12)</span>;
+<span class="keyword">create type</span> CORGE_TABLE <span class="keyword">is table of</span> <span class="dbtype">CORGE_BEAN</span>;
 
 <span class="keyword">create type</span> NESTED_BAZ_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
   BAZ_ID   <span class="dbtype">NUMBER(8)</span>,
@@ -431,6 +457,26 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 -- #df:end#</span>
 </code></pre>
 <pre><span class="codetitle">複雑なネスト構造を持った型を引数に持ったプロシージャの呼び出し (IN, OUT) @Java</span><code>
+<span class="comment">// = = = = = = = = = = = = = = = = = = = = = =</span>
+<span class="comment">// NESTED_FOO_BEAN (STRUCT)</span>
+<span class="comment">//  |-FOO_ID</span>
+<span class="comment">//  |-FOO_NAME</span>
+<span class="comment">//  |-FOO_DATE</span>
+<span class="comment">//  |-BAR_BEAN : NESTED_BAR_BEAN</span>
+<span class="comment">//  |  |-BAR_ID</span>
+<span class="comment">//  |  |-BAR_NAME</span>
+<span class="comment">//  |  |-BAR_DATE</span>
+<span class="comment">//  |  |-BAR_LIST : BAR_TABLE&lt;BAR_BEAN&gt;</span>
+<span class="comment">//  |  |-BAZ_BEAN1 : NESTED_BAZ_BEAN</span>
+<span class="comment">//  |  |  |-BAZ_ID</span>
+<span class="comment">//  |  |  |-BAZ_NAME</span>
+<span class="comment">//  |  |  |-BAZ_DATE</span>
+<span class="comment">//  |  |  |-BAZ_LIST : BAZ_TABLE&lt;BAR_TABLE&lt;BAR_BEAN&gt;&gt;</span>
+<span class="comment">//  |  |-BAZ_BEAN2 : NESTED_BAZ_BEAN</span>
+<span class="comment">//  |-QUX_LIST : QUX_TABLE&lt;NUMBER(12)&gt;</span>
+<span class="comment">//  |-QUUX_LIST : QUUX_TABLE&lt;NUMBER(12)&gt;</span>
+<span class="comment">//  |-CORGE_LIST : CORGE_TABLE&lt;CORGE_BEAN&gt;</span>
+<span class="comment">// = = = = = = = = = =/</span>
 <span class="comment">// ## Arrange ##</span>
 SpStructNestedParameterPmb pmb = <span class="keyword">new</span> SpStructNestedParameterPmb();
 {
