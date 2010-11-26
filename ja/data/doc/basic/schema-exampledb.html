@@ -178,6 +178,10 @@
 		font-style: italic;
 		padding-left: 2em;
 	}
+	dl.procedurelist dd.column span.attrs {
+		font-size: 0.7em;
+		color: #125699;
+	}
 	dl.procedurelist dd.column span.type {
 		font-size: 0.9em;
 		color: green;
@@ -189,9 +193,9 @@
 </head>
 
 <body>
-<h1>Project Schema for exampledb (h2)</h1>
+<h1>Schema for exampledb (h2)</h1>
 <p class="mainschema">generated from <strong>EXAMPLEDB.PUBLIC</strong></p>
-<p class="updatedate">2010/05/02 13:45:46</p>
+<p class="updatedate">2010/11/26 22:22:58</p>
 <p class="sublink"><a href="#cdef">Classification Definition</a></p>
 <p class="sublink"><a href="#outsidesql">OutsideSql List</a></p>
 
@@ -214,7 +218,7 @@
 		<td><a href="#MEMBER" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=13">MEMBER</a></td>
 		<td class="subcell">TABLE</td>
 		<td class="subcell"><a href="#MEMBER_STATUS" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#MEMBER_ADDRESS" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*targetDate(Date)*/null and $$foreignAlias$$.VALID_END_DATE &gt;= /*targetDate(Date)*/null&quot;">MEMBER_ADDRESS(AsValid)</a></td>
-		<td class="subcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>, <a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>, <a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a></td>
+		<td class="subcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>, <a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>, <a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>, <a href="#MEMBER_SERVICE" title="FK_MEMBER_SERVICE_MEMBER">MEMBER_SERVICE</a>, <a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>, <a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a></td>
 		<td class="commentcell"> 会員登録時にInsertされる。<br />物理削除されることはない</td>
 		<td class="subcell">Member</td>
 	</tr>
@@ -237,13 +241,22 @@
 		<td class="subcell">MemberLogin</td>
 	</tr>
 	<tr>
-		<td class="aliascell"></td>
-		<td><a href="#MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=11">MEMBER_SECURITY</a></td>
+		<td class="aliascell">会員セキュリティ情報</td>
+		<td><a href="#MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=12">MEMBER_SECURITY</a></td>
 		<td class="subcell">TABLE</td>
 		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_SECURITY_MEMBER">MEMBER</a></td>
 		<td class="subcell">&nbsp;</td>
 		<td class="commentcell"> &nbsp;</td>
 		<td class="subcell">MemberSecurity</td>
+	</tr>
+	<tr>
+		<td class="aliascell">会員サービス</td>
+		<td><a href="#MEMBER_SERVICE" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=14, columnCount=10">MEMBER_SERVICE</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#MEMBER" title="FK_MEMBER_SERVICE_MEMBER">MEMBER</a>, <a href="#SERVICE_RANK" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE">SERVICE_RANK</a></td>
+		<td class="subcell">&nbsp;</td>
+		<td class="commentcell"> 会員のサービス情報(ポイントサービスなど)</td>
+		<td class="subcell">MemberService</td>
 	</tr>
 	<tr>
 		<td class="aliascell">会員ステータス</td>
@@ -265,12 +278,21 @@
 	</tr>
 	<tr>
 		<td class="aliascell">商品</td>
-		<td><a href="#PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=11">PRODUCT</a></td>
+		<td><a href="#PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=13">PRODUCT</a></td>
 		<td class="subcell">TABLE</td>
-		<td class="subcell"><a href="#PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a></td>
+		<td class="subcell"><a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_PRODUCT_CATEGORY">PRODUCT_CATEGORY</a>, <a href="#PRODUCT_STATUS" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a></td>
 		<td class="subcell"><a href="#PURCHASE" title="FK_PURCHASE_PRODUCT">PURCHASE</a></td>
 		<td class="commentcell"> &nbsp;</td>
 		<td class="subcell">Product</td>
+	</tr>
+	<tr>
+		<td class="aliascell">商品カテゴリ</td>
+		<td><a href="#PRODUCT_CATEGORY" title="type=TABLE, primaryKey={PRODUCT_CATEGORY_CODE}, nameLength=16, columnCount=3">PRODUCT_CATEGORY</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell"><a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_CATEGORY_PARENT">PRODUCT_CATEGORY</a></td>
+		<td class="subcell"><a href="#PRODUCT" title="FK_PRODUCT_PRODUCT_CATEGORY">PRODUCT</a>, <a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_CATEGORY_PARENT">PRODUCT_CATEGORY</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">ProductCategory</td>
 	</tr>
 	<tr>
 		<td class="aliascell">商品ステータス</td>
@@ -289,6 +311,15 @@
 		<td class="subcell">&nbsp;</td>
 		<td class="commentcell"> 購入の度ににInsertされる</td>
 		<td class="subcell">Purchase</td>
+	</tr>
+	<tr>
+		<td class="aliascell">サービスランク</td>
+		<td><a href="#SERVICE_RANK" title="type=TABLE, primaryKey={SERVICE_RANK_CODE}, nameLength=12, columnCount=13">SERVICE_RANK</a></td>
+		<td class="subcell">TABLE</td>
+		<td class="subcell">&nbsp;</td>
+		<td class="subcell"><a href="#MEMBER_SERVICE" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE">MEMBER_SERVICE</a></td>
+		<td class="commentcell"> 会員のサービスランク(プラチナ、ゴールドなど)</td>
+		<td class="subcell">ServiceRank</td>
 	</tr>
 	<tr>
 		<td class="aliascell"></td>
@@ -357,7 +388,7 @@
 		<td class="numcell"> 10 </td>
 		<td class="subcell"> &nbsp;</td>
 		<td class="linkcell"><a href="#MEMBER_ADDRESS" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*targetDate(Date)*/null and $$foreignAlias$$.VALID_END_DATE &gt;= /*targetDate(Date)*/null&quot;">MEMBER_ADDRESS(AsValid)</a>&nbsp;</td>
-		<td class="linkcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>,<br /><a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>,<br /><a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>,<br /><a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>,<br /><a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a>&nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_ADDRESS" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>,<br /><a href="#MEMBER_LOGIN" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>,<br /><a href="#MEMBER_SECURITY" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>,<br /><a href="#MEMBER_SERVICE" title="FK_MEMBER_SERVICE_MEMBER">MEMBER_SERVICE</a>,<br /><a href="#MEMBER_WITHDRAWAL" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>,<br /><a href="#PURCHASE" title="FK_PURCHASE_MEMBER">PURCHASE</a>&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
 		<td class="commentcell"> 連番</td>
 		<td class="subcell">memberId</td>
@@ -936,8 +967,8 @@
 		<td class="subcell">String</td>
 	</tr>
 </table>
-<h2 id="MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=11">
-MEMBER_SECURITY
+<h2 id="MEMBER_SECURITY" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=12">
+(会員セキュリティ情報)MEMBER_SECURITY
 </h2>
 <table summary="Columns in MEMBER_SECURITY">
 	<thead>
@@ -984,7 +1015,7 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">*</td>
-		<td class="aliascell"></td>
+		<td class="aliascell">ログインパスワード</td>
 		<td id="MEMBER_SECURITYLOGIN_PASSWORD">LOGIN_PASSWORD</td>
 		<td>VARCHAR</td>
 		<td class="numcell"> 50 </td>
@@ -992,7 +1023,7 @@ MEMBER_SECURITY
 		<td class="linkcell">&nbsp;&nbsp;</td>
 		<td class="linkcell">&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
-		<td class="commentcell"> &nbsp;</td>
+		<td class="commentcell"> いわずとしれたパスワード</td>
 		<td class="subcell">loginPassword</td>
 		<td class="subcell">String</td>
 	</tr>
@@ -1002,7 +1033,7 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">*</td>
-		<td class="aliascell"></td>
+		<td class="aliascell">リマインダ質問</td>
 		<td id="MEMBER_SECURITYREMINDER_QUESTION">REMINDER_QUESTION</td>
 		<td>VARCHAR</td>
 		<td class="numcell"> 50 </td>
@@ -1010,7 +1041,7 @@ MEMBER_SECURITY
 		<td class="linkcell">&nbsp;&nbsp;</td>
 		<td class="linkcell">&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
-		<td class="commentcell"> &nbsp;</td>
+		<td class="commentcell"> パスワードを忘れた時のリマインダの質問</td>
 		<td class="subcell">reminderQuestion</td>
 		<td class="subcell">String</td>
 	</tr>
@@ -1020,7 +1051,7 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">*</td>
-		<td class="aliascell"></td>
+		<td class="aliascell">リマインダ回答</td>
 		<td id="MEMBER_SECURITYREMINDER_ANSWER">REMINDER_ANSWER</td>
 		<td>VARCHAR</td>
 		<td class="numcell"> 50 </td>
@@ -1028,9 +1059,27 @@ MEMBER_SECURITY
 		<td class="linkcell">&nbsp;&nbsp;</td>
 		<td class="linkcell">&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
-		<td class="commentcell"> &nbsp;</td>
+		<td class="commentcell"> パスワードを忘れた時のリマインダの回答</td>
 		<td class="subcell">reminderAnswer</td>
 		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">リマインダ利用回数</td>
+		<td id="MEMBER_SECURITYREMINDER_USE_COUNT">REMINDER_USE_COUNT</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> リマインダを利用した回数(多いと忘れっぽい証拠)</td>
+		<td class="subcell">reminderUseCount</td>
+		<td class="subcell">Integer</td>
 	</tr>
 	<tr>
 		<td class="flgcell">&nbsp;</td>
@@ -1148,6 +1197,211 @@ MEMBER_SECURITY
 		<td class="flgcell">*</td>
 		<td class="aliascell optcell"></td>
 		<td class="optcell" id="MEMBER_SECURITYVERSION_NO">VERSION_NO</td>
+		<td>BIGINT</td>
+		<td class="numcell"> 19 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="MEMBER_SERVICE" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=14, columnCount=10">
+(会員サービス)MEMBER_SERVICE
+</h2>
+<table summary="Columns in MEMBER_SERVICE">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="CONSTRAINT_6F">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SERVICEMEMBER_ID">MEMBER_ID</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER" title="FK_MEMBER_SERVICE_MEMBER">MEMBER</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">memberId</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell" title="IX_MEMBER_SERVICE_POINT_COUNT(POINT_COUNT)">o</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">ポイント数</td>
+		<td id="MEMBER_SERVICEPOINT_COUNT">POINT_COUNT</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 会員が利用できるポイントの数(購入して増えて、利用すると減る)</td>
+		<td class="subcell">pointCount</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE_INDEX_6(SERVICE_RANK_CODE)">o</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="MEMBER_SERVICESERVICE_RANK_CODE">SERVICE_RANK_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#SERVICE_RANK" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE">SERVICE_RANK</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">serviceRankCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>TIMESTAMP</td>
+		<td class="numcell"> 23, 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>TIMESTAMP</td>
+		<td class="numcell"> 23, 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="MEMBER_SERVICEUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="MEMBER_SERVICEVERSION_NO">VERSION_NO</td>
 		<td>BIGINT</td>
 		<td class="numcell"> 19 </td>
 		<td class="subcell"> &nbsp;</td>
@@ -1480,7 +1734,7 @@ MEMBER_SECURITY
 		<td class="subcell">Long</td>
 	</tr>
 </table>
-<h2 id="PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=11">
+<h2 id="PRODUCT" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=13">
 (商品)PRODUCT
 </h2>
 <table summary="Columns in PRODUCT">
@@ -1562,6 +1816,24 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell"> &nbsp;</td>
 		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell" title="FK_PRODUCT_PRODUCT_CATEGORY_INDEX_1(PRODUCT_CATEGORY_CODE)">o</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_CATEGORY_CODE">PRODUCT_CATEGORY_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_PRODUCT_CATEGORY">PRODUCT_CATEGORY</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productCategoryCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell" title="FK_PRODUCT_PRODUCT_STATUS_INDEX_1(PRODUCT_STATUS_CODE)">o</td>
 		<td class="flgcell">*</td>
 		<td class="aliascell"></td>
@@ -1575,6 +1847,24 @@ MEMBER_SECURITY
 		<td class="commentcell"> &nbsp;</td>
 		<td class="subcell">productStatusCode</td>
 		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="PRODUCTPRODUCT_REGULAR_PRICE">PRODUCT_REGULAR_PRICE</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productRegularPrice</td>
+		<td class="subcell">Integer</td>
 	</tr>
 	<tr>
 		<td class="flgcell">&nbsp;</td>
@@ -1701,6 +1991,85 @@ MEMBER_SECURITY
 		<td class="commentcell"> &nbsp;</td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="PRODUCT_CATEGORY" title="type=TABLE, primaryKey={PRODUCT_CATEGORY_CODE}, nameLength=16, columnCount=3">
+(商品カテゴリ)PRODUCT_CATEGORY
+</h2>
+<table summary="Columns in PRODUCT_CATEGORY">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="CONSTRAINT_3">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">商品カテゴリコード</td>
+		<td id="PRODUCT_CATEGORYPRODUCT_CATEGORY_CODE">PRODUCT_CATEGORY_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT" title="FK_PRODUCT_PRODUCT_CATEGORY">PRODUCT</a>,<br /><a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_CATEGORY_PARENT">PRODUCT_CATEGORY</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productCategoryCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_PRODUCT_CATEGORY_PRODUCT_CATEGORY_NAME_INDEX_3(PRODUCT_CATEGORY_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">商品カテゴリ名称</td>
+		<td id="PRODUCT_CATEGORYPRODUCT_CATEGORY_NAME">PRODUCT_CATEGORY_NAME</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">productCategoryName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell" title="FK_PRODUCT_CATEGORY_PARENT_INDEX_3(PARENT_CATEGORY_CODE)">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="aliascell">親カテゴリコード</td>
+		<td id="PRODUCT_CATEGORYPARENT_CATEGORY_CODE">PARENT_CATEGORY_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell"><a href="#PRODUCT_CATEGORY" title="FK_PRODUCT_CATEGORY_PARENT">PRODUCT_CATEGORY</a>&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">parentCategoryCode</td>
+		<td class="subcell">String</td>
 	</tr>
 </table>
 <h2 id="PRODUCT_STATUS" title="type=TABLE, primaryKey={PRODUCT_STATUS_CODE}, nameLength=14, columnCount=2">
@@ -1866,7 +2235,7 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell">*</td>
-		<td class="aliascell"></td>
+		<td class="aliascell">購入数量</td>
 		<td id="PURCHASEPURCHASE_COUNT">PURCHASE_COUNT</td>
 		<td>INTEGER</td>
 		<td class="numcell"> 10 </td>
@@ -1874,7 +2243,7 @@ MEMBER_SECURITY
 		<td class="linkcell">&nbsp;&nbsp;</td>
 		<td class="linkcell">&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
-		<td class="commentcell"> &nbsp;</td>
+		<td class="commentcell"> 購入した商品の個数</td>
 		<td class="subcell">purchaseCount</td>
 		<td class="subcell">Integer</td>
 	</tr>
@@ -1884,7 +2253,7 @@ MEMBER_SECURITY
 		<td class="flgcell">&nbsp;</td>
 		<td class="flgcell" title="IX_PURCHASE_PRICE(PURCHASE_PRICE)">o</td>
 		<td class="flgcell">*</td>
-		<td class="aliascell"></td>
+		<td class="aliascell">購入価格</td>
 		<td id="PURCHASEPURCHASE_PRICE">PURCHASE_PRICE</td>
 		<td>INTEGER</td>
 		<td class="numcell"> 10 </td>
@@ -1892,7 +2261,7 @@ MEMBER_SECURITY
 		<td class="linkcell">&nbsp;&nbsp;</td>
 		<td class="linkcell">&nbsp;</td>
 		<td class="linkcell"> &nbsp;</td>
-		<td class="commentcell"> &nbsp;</td>
+		<td class="commentcell"> 購入商品の数量合計の価格</td>
 		<td class="subcell">purchasePrice</td>
 		<td class="subcell">Integer</td>
 	</tr>
@@ -2030,6 +2399,265 @@ MEMBER_SECURITY
 		<td class="flgcell">*</td>
 		<td class="aliascell optcell"></td>
 		<td class="optcell" id="PURCHASEVERSION_NO">VERSION_NO</td>
+		<td>BIGINT</td>
+		<td class="numcell"> 19 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">versionNo</td>
+		<td class="subcell">Long</td>
+	</tr>
+</table>
+<h2 id="SERVICE_RANK" title="type=TABLE, primaryKey={SERVICE_RANK_CODE}, nameLength=12, columnCount=13">
+(サービスランク)SERVICE_RANK
+</h2>
+<table summary="Columns in SERVICE_RANK">
+	<thead>
+	<tr>
+		<th>PK</th>
+		<th>ID</th>
+		<th>UQ</th>
+		<th>IX</th>
+		<th>Not<br />Null</th>
+		<th>Alias</th>
+		<th>Name</th>
+		<th>Type</th>
+		<th>Size</th>
+		<th>Def</th>
+		<th>ForeignTable</th>
+		<th>ReferrerTable</th>
+		<th>Classification</th>
+		<th>Comment</th>
+		<th>PropertyName</th>
+		<th>JavaType</th>
+	</tr>
+	</thead>
+	<tr>
+		<td class="flgcell" title="CONSTRAINT_A">o</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SERVICE_RANKSERVICE_RANK_CODE">SERVICE_RANK_CODE</td>
+		<td>CHAR</td>
+		<td class="numcell"> 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell"><a href="#MEMBER_SERVICE" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE">MEMBER_SERVICE</a>&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">serviceRankCode</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell" title="UQ_SERVICE_RANK_SERVICE_RANK_NAME_INDEX_A(SERVICE_RANK_NAME)">o</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SERVICE_RANKSERVICE_RANK_NAME">SERVICE_RANK_NAME</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 50 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">serviceRankName</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell">ポイント発生率</td>
+		<td id="SERVICE_RANKPOINT_INCIDENCE">POINT_INCIDENCE</td>
+		<td>DECIMAL</td>
+		<td class="numcell"> 5, 3 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> 購入ごとのポイントの発生率(購入価格にこの値を掛けた数が発生ポイント)</td>
+		<td class="subcell">pointIncidence</td>
+		<td class="subcell">BigDecimal</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SERVICE_RANKNEW_ACCEPTABLE_FLG">NEW_ACCEPTABLE_FLG</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"><a href="#FlgCls">Flg</a></td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">newAcceptableFlg</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SERVICE_RANKDESCRIPTION">DESCRIPTION</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">description</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell"></td>
+		<td id="SERVICE_RANKDISPLAY_ORDER">DISPLAY_ORDER</td>
+		<td>INTEGER</td>
+		<td class="numcell"> 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">displayOrder</td>
+		<td class="subcell">Integer</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKREGISTER_DATETIME">REGISTER_DATETIME</td>
+		<td>TIMESTAMP</td>
+		<td class="numcell"> 23, 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKREGISTER_USER">REGISTER_USER</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKREGISTER_PROCESS">REGISTER_PROCESS</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">registerProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKUPDATE_DATETIME">UPDATE_DATETIME</td>
+		<td>TIMESTAMP</td>
+		<td class="numcell"> 23, 10 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateDatetime</td>
+		<td class="subcell">Timestamp</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKUPDATE_USER">UPDATE_USER</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateUser</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell comcolcell"></td>
+		<td class="comcolcell" id="SERVICE_RANKUPDATE_PROCESS">UPDATE_PROCESS</td>
+		<td>VARCHAR</td>
+		<td class="numcell"> 200 </td>
+		<td class="subcell"> &nbsp;</td>
+		<td class="linkcell">&nbsp;&nbsp;</td>
+		<td class="linkcell">&nbsp;</td>
+		<td class="linkcell"> &nbsp;</td>
+		<td class="commentcell"> &nbsp;</td>
+		<td class="subcell">updateProcess</td>
+		<td class="subcell">String</td>
+	</tr>
+	<tr>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell"> &nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">&nbsp;</td>
+		<td class="flgcell">*</td>
+		<td class="aliascell optcell"></td>
+		<td class="optcell" id="SERVICE_RANKVERSION_NO">VERSION_NO</td>
 		<td>BIGINT</td>
 		<td class="numcell"> 19 </td>
 		<td class="subcell"> &nbsp;</td>
@@ -2584,7 +3212,7 @@ SUMMARY_PRODUCT
 		<td>
 			<table class="child">
 			<tr>
-				<th><a name="FlgCls"/>Code</th>
+				<th id="FlgCls">Code</th>
 				<th>Name</th>
 				<th>Alias</th>
 				<th>Comment</th>
@@ -2610,26 +3238,22 @@ SUMMARY_PRODUCT
 		<td>
 			<table class="child">
 			<tr>
-				<th><a name="MemberStatusCls"/>Code</th>
+				<th id="MemberStatusCls">Code</th>
 				<th>Name</th>
-				<th>Alias</th>
 				<th>Comment</th>
 			</tr>
 			<tr>
 				<td>FML</td>
-				<td>正式会員</td>
 				<td>正式会員</td>
 				<td>正式な会員としてサイトサービスが利用可能</td>
 			</tr>
 			<tr>
 				<td>WDL</td>
 				<td>退会会員</td>
-				<td>退会会員</td>
 				<td>退会が確定した会員でサイトサービスはダメ</td>
 			</tr>
 			<tr>
 				<td>PRV</td>
-				<td>仮会員</td>
 				<td>仮会員</td>
 				<td>入会直後のステータスで一部のサイトサービスが利用可能</td>
 			</tr>
@@ -2677,9 +3301,9 @@ SUMMARY_PRODUCT
 		<pre> 参考ポイント：
    o 曖昧検索のオプション(like, likePrefix, likeContain, likeSuffix)
    o FromTo検索のオプション(fromDate, toDate)
-   o ParameterBeanで区分値を利用するオプション(cls(...))
+   o ParameterBeanで区分値を利用するオプション(ref(...) or cls(...))
    o CustomizeEntityで区分値を利用(自動オプション)
-   o ParameterBeanのプロパティをテーブルのカラムに関連付けるオプション(ref(...))
+   o ParameterBeanのプロパティの参照カラムを指定するオプション(ref(...))
    o ParameterBeanのプロパティのオプションを複数付与(...|...)
  FORMALIZED_DATETIMEに対する日付範囲条件に関しては、
  時分秒を意識しない日付検索に対して、カラムの型は時分秒を保持するので、
@@ -2756,7 +3380,9 @@ SUMMARY_PRODUCT
  手動ページングの方がパフォーマンス的に有利なのでそちらがお奨めです。
  ページング条件が複雑なDBで、パフォーマンスを割り切る時に自動ページングを利用します。
  補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLと同じSQLはConditionBeanで実現可能
+ 
+ ※同時にLoadReferrerのためのPKカラムの設定のExampleでもあります。</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectUnpaidSummaryMember.sql</span>
