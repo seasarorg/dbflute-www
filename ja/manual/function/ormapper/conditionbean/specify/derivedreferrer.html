@@ -84,7 +84,7 @@
 		を含みますが、前後関係で分かる場合は、この (Specify)DerivedReferrer のことを示すことが多くあります。
 		(ドキュメント上でも前後関係で明らかな場合に、単に DerivedReferrer と表記して (Specify)DerivedReferrer を指すこともあります)
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../query/derivedreferrer"> -->(Query)DerivedReferrer<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../query/derivedreferrer.html">(Query)DerivedReferrer</a></div>
 	<h3 id="role">子テーブル対応の役割を明確に</h3>
 	<p>
 		これは、あくまで子テーブルの導出カラム(とあるカラムの max や sum など、実質的にone-to-oneとなるデータ)の取得であって、
@@ -140,20 +140,25 @@ cb.specify()
 <span class="comment">// 2. MLL (MemberLoginList) で enter</span>
 cb.specify().dMLL
 --
+
 cb.specify().<span class="point">derivedMemberLoginList()</span>
 --
+
 <span class="comment">// max() や min()、sum() などの関数メソッドを選んで enter</span>
 <span class="comment">//  =&gt; max(), min(), sum(), avg(), count(), countDistinct()</span>
 <span class="comment">// それぞれに、オーバーロードで DerivedReferrerOption が指定できる</span>
 <span class="comment">//  =&gt; 導出値が null の可能性がある場合のために、coalesce 関数も利用できる</span>
 cb.specify().derivedMemberLoginList().ma
 --
+
 <span class="comment">// メソッドが補完されて、引数の "subQuery" が選択状態に</span>
 cb.specify().derivedMemberLoginList().<span class="point">max</span>(subQuery, aliasName)
 --
+
 <span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
 cb.specify().derivedMemberLoginList().max(<span class="point">new </span>, aliasName)
 --
+
 <span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
 cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     
@@ -163,6 +168,7 @@ cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQu
     }
 };, aliasName, aliasName) <span class="comment">// ちょっと変なことになる (Eclipse-3.5 において)</span>
 --
+
 <span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
 <span class="comment">// サブクエリ(子テーブル)の導出カラムと絞り込み条件を指定</span>
 cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
@@ -172,9 +178,12 @@ cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQu
     }
 }, Member.ALIAS_latestLoginDatetime); <span class="comment">// エリアス名を指定 (変になってたのは直す)</span>
 
+<span class="comment">// 普通に Behavior の検索を呼び出して結果を受け取って</span>
 List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
 fore <span class="comment">// fore とまで打って ctrl + space そして enter</span>
 --
+
+<span class="comment">// Exクラスに手動で定義したプロパティから値を取得する</span>
 <span class="keyword">for</span> (Member member : memberList) {
     Date latestLoginDatetime = member.<span class="point">getLatestLoginDatetime()</span>;
     <span class="abbreviation">...</span>
