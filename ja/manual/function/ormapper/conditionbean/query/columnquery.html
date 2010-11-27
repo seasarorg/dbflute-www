@@ -128,8 +128,8 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
 <pre><span class="codetitle">ex) 生まれてから正式会員になった会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> dflocal.<span class="point">BIRTHDATE</span> &lt; dflocal.<span class="point">FORMALIZED_DATETIME</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> dfloc.<span class="point">BIRTHDATE</span> &lt; dfloc.<span class="point">FORMALIZED_DATETIME</span>
 </code></pre>
 	<h3 id="relation">関連テーブルのカラム</h3>
 	<p>
@@ -172,7 +172,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 		をエリアス名を null 固定で指定します。(左辺、右辺両方で利用できます)
 	</p>
 	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
-<pre><span class="codetitle">ex) 生まれる前、もしくは生まれた瞬間に購入をしたことのある会員 @Java</span><code>
+<pre><span class="codetitle">ex) 生まれる前、もしくは生まれた瞬間に(支払済み)購入をしたことのある会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
@@ -191,11 +191,11 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 </code></pre>
 <pre><span class="codetitle">ex) 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> dflocal.BIRTHDATE &lt;= (<span class="keyword">select</span> min(dfsublocal_0.PURCHASE_DATETIME)
-                               <span class="keyword">from</span> PURCHASE dfsublocal_0 
-                              <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-                                <span class="keyword">and</span> dfsublocal_0.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> dfloc.BIRTHDATE &lt;= (<span class="keyword">select</span> min(sub1loc.PURCHASE_DATETIME)
+                             <span class="keyword">from</span> PURCHASE sub1loc 
+                            <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+                              <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
        )
 
 </code></pre>
@@ -232,12 +232,12 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 </code></pre>
 <pre><span class="codetitle">ex) 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> (<span class="keyword">select</span> coalesce(min(dfsublocal_0.PURCHASE_PRICE), <span class="literal">0</span>)
-          <span class="keyword">from</span> PURCHASE dfsublocal_0 
-         <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-           <span class="keyword">and</span> dfsublocal_0.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
-       ) &lt; (dflocal.MEMBER_ID * <span class="literal">500</span>) + <span class="literal">1</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> (<span class="keyword">select</span> coalesce(min(sub1loc.PURCHASE_PRICE), <span class="literal">0</span>)
+          <span class="keyword">from</span> PURCHASE sub1loc 
+         <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+           <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
+       ) &lt; (dfloc.MEMBER_ID * <span class="literal">500</span>) + <span class="literal">1</span>
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>

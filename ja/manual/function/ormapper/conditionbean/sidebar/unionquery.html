@@ -128,17 +128,17 @@ cb.query().addOrderBy_Birthdate_Asc(); <span class="comment">// order-by は uni
 	<div class="relatedpage"><a href="#beforeorderby">this - 必ず OrderBy の前に指定</a></div>
 	<div class="relatedpage"><a href="#nocasewhen">this - OrderBy で case when 構文がNG</a></div>
 <pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
-<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
-     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
- <span class="keyword">where</span> dflocal.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
+<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrel_0 on dfloc.MEMBER_STATUS_CODE = dfrel_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
  <span class="point">union</span> 
-<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
-     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
- <span class="keyword">where</span> dflocal.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span>
+<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrel_0 <span class="keyword">on</span> dfloc.MEMBER_STATUS_CODE = dfrel_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> dfloc.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span>
  <span class="keyword">order by</span> <span class="point">c6</span> <span class="keyword">asc</span>
 </code></pre>
 	<h3 id="severalunion">UnionQuery の連結</h3>
@@ -182,15 +182,15 @@ cb.query().<span class="point">existsPurchaseList</span>(new SubQuery&lt;Purchas
 });
 </code></pre>
 <pre><span class="codetitle">ex) ExistsReferrer の中で UnionQuery @DisplaySql</span><code>
- <span class="keyword">where exists</span> (<span class="keyword">select</span> dfsublocal_0.MEMBER_ID
-                 <span class="keyword">from</span> PURCHASE dfsublocal_0 
-                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-                  <span class="keyword">and</span> dfsublocal_0.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
+ <span class="keyword">where exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE sub1loc 
+                <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+                  <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
                 <span class="keyword">union</span> 
-               <span class="keyword">select</span> dfsublocal_0.MEMBER_ID 
-                 <span class="keyword">from</span> PURCHASE dfsublocal_0 
-                <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-                  <span class="keyword">and</span> dfsublocal_0.PURCHASE_COUNT >= <span class="literal">2</span>
+               <span class="keyword">select</span> sub1loc.MEMBER_ID 
+                 <span class="keyword">from</span> PURCHASE sub1loc 
+                <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+                  <span class="keyword">and</span> sub1loc.PURCHASE_COUNT >= <span class="literal">2</span>
        )
 </code></pre>
 
@@ -253,17 +253,17 @@ cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
 });
 </code></pre>
 <pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
-<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
-     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 on dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
- <span class="keyword">where</span> <span class="point">dflocal.MEMBER_NAME like <span class="literal">'S%'</span> escape '|'</span>
+<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrel_0 on dfloc.MEMBER_STATUS_CODE = dfrel_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> <span class="point">dfloc.MEMBER_NAME like <span class="literal">'S%'</span> escape '|'</span>
  <span class="keyword">union</span> 
-<span class="keyword">select</span> dflocal.MEMBER_ID as c1, dflocal.MEMBER_NAME as c2, <span class="abbreviation">...</span>
-     , dfrelation_0.MEMBER_STATUS_CODE as c14, dfrelation_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
-  <span class="keyword">from</span> MEMBER dflocal
-    <span class="keyword">left outer join</span> MEMBER_STATUS dfrelation_0 <span class="keyword">on</span> dflocal.MEMBER_STATUS_CODE = dfrelation_0.MEMBER_STATUS_CODE 
- <span class="keyword">where</span> <span class="point">dflocal.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span></span>
+<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> MEMBER_STATUS dfrel_0 <span class="keyword">on</span> dfloc.MEMBER_STATUS_CODE = dfrel_0.MEMBER_STATUS_CODE 
+ <span class="keyword">where</span> <span class="point">dfloc.BIRTHDATE &gt;= <span class="literal">'2000-01-01'</span></span>
 </code></pre>
 	</div>
 

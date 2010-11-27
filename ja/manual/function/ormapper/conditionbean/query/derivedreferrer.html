@@ -151,13 +151,13 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
 	<p>
 		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
 	</p>
-<pre><span class="codetitle">ex) (Query)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
+<pre><span class="codetitle">ex) (Query)DerivedReferrerを使って(支払済み)最大購入価格が10000円以上の会員を取得 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dflocal
- <span class="keyword">where</span> (<span class="keyword">select</span> sum(dfsublocal_0.PURCHASE_PRICE)
-          <span class="keyword">from</span> PURCHASE dfsublocal_0
-         <span class="keyword">where</span> dfsublocal_0.MEMBER_ID = dflocal.MEMBER_ID
-           <span class="keyword">and</span> dfsublocal_0.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> (<span class="keyword">select</span> sum(sub1loc.PURCHASE_PRICE)
+          <span class="keyword">from</span> PURCHASE sub1loc
+         <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+           <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
        ) &gt;= <span class="literal">10000</span>
 <span class="abbreviation">...</span>
 </code></pre>
