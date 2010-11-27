@@ -42,6 +42,7 @@
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#flexiblity">柔軟な利用方法</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -75,12 +76,18 @@
 	<p>
 		会話上では、<em class="keyword">からむくえり</em> と表現します。
 	</p>
+	<h3 id="flexiblity">柔軟な利用方法</h3>
+	<p>
+		カラム、というのに、その場のサブクエリで作り出した疑似のカラム、導出カラムも含みます。これにより、ColumnQuery
+		は非常に柔軟な利用方法が可能な機能となっています。
+	</p>
+	<div class="relatedpage"><a href="#derivedreferrer">子テーブルの導出カラム</a></div>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		ConditionBean の <em class="keyword">columnQuery()</em>
-		を呼び出し、左辺のカラムを指定するコールバックを引数に設定し、続けて、greaterEqual()
+		を呼び出し、左辺のカラムを指定するコールバックを引数に設定し、続けて greaterEqual()
 		などの比較条件メソッドを呼び出して、今度は右辺のカラムを指定するコールバックを引数に設定します。
 		必要であれば、さらに続けて右辺カラムの演算調整が必要であれば演算メソッドを呼び出します。
 	</p>
@@ -172,6 +179,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 });
 </code></pre>
 	<h3 id="derivedreferrer">子テーブルの導出カラム</h3>
+	<h4 id="specifyderivedreferrer">(Specify)DerivedReferrer の利用</h4>
 	<p>
 		子テーブルの導出カラムも利用できます。SpecifyQuery の中で (Specify)DerivedReferrer
 		をエリアス名を null 固定で指定します。(左辺、右辺両方で利用できます)
@@ -203,6 +211,39 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
                               <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
        )
 
+</code></pre>
+	<h4 id="percategory">カテゴリごとの最大値や平均値との比較</h4>
+	<p>
+		導出カラムの利用を応用すると、カテゴリごとの最大値や平均値との比較条件が実現できます。Specify(Relation)
+		で辿ったカテゴリテーブルから、自分方向のリレーションに戻って DerivedReferrer をします。
+	</p>
+<pre><span class="codetitle">ex) サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @Java</span><code>
+<span class="abbreviation">...</span>
+cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().specifyMemberServiceAsOne().columnPointCount();
+    }
+}).greaterThan(new SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().specifyMemberServiceAsOne()
+                .specifyServiceRank().<span class="point">derivedMemberServiceList()</span>
+                        .avg(<span class="keyword">new</span> SubQuery&lt;MemberServiceCB&gt;() {
+            <span class="keyword">public void</span> query(MemberServiceCB subCB) {
+                subCB.specify().columnPointCount();
+            }
+        }, <span class="keyword">null</span>, <span class="keyword">new</span> DerivedReferrerOption().coalesce(<span class="literal">0</span>));
+    }
+});
+</code></pre>
+<pre><span class="codetitle">ex) サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> MEMBER_SERVICE dfrel_3 <span class="keyword">on</span> dfloc.MEMBER_ID = dfrel_3.MEMBER_ID
+    <span class="keyword">left outer join</span> SERVICE_RANK dfrel_3_1 <span class="keyword">on</span> dfrel_3.SERVICE_RANK_CODE = dfrel_3_1.SERVICE_RANK_CODE 
+ <span class="keyword">where</span> dfrel_3.POINT_COUNT &gt; (select coalesce(avg(sub1loc.POINT_COUNT), <span class="literal">0</span>)
+                                <span class="keyword">from</span> MEMBER_SERVICE sub1loc 
+                               <span class="keyword">where</span> sub1loc.SERVICE_RANK_CODE = dfrel_3_1.SERVICE_RANK_CODE
+       )
 </code></pre>
 	<h3 id="derivedbase">基点テーブルの導出カラム</h3>
 	<p>

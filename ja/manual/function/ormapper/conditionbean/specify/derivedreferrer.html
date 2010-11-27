@@ -211,31 +211,31 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
 		one-to-one のテーブルのカラムを導出カラムに、というのが実用的と考えられます。
 	</p>
-<pre><span class="codetitle">ex) 会員ステータスから会員を経由した会員セキュリティの更新日時を導出 @Java</span><code>
+<pre><span class="codetitle">ex) 会員ステータスごとに会員セキュリティの更新日時の最大値を導出 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
         subCB.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime();
     }
-});
+}, MemberStatus.ALIAS_lastestSecurityUpdateDatetime);
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</h3>
 	<p>
 		残念ながら、子テーブルの子テーブル(one-to-many-to-many)のカラムを導出カラムにすることはできません。
-		(つまり、DerivedReferrer の中で、DerivedReferrer を利用することはできません)
+		(つまり、DerivedReferrer の中で、DerivedReferrer を利用することはできません) <span class="freecomment">@review</span>
 	</p>
 	<h3 id="manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</h3>
 	<p>
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも導出カラムとして利用できます。Specify(Relation) の後に
 		DerivedReferrer を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 会員ログインから会員を経由した購入金額の合計を導出 {PURCHASE} @Java</span><code>
+<pre><span class="codetitle">ex) 会員ログインから会員を経由して(会員ごとの)購入価格の合計を導出 @Java</span><code>
 MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
 cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         subCB.specify().columnPurchasePrice();
     }
-});
+}, MemberLogin.ALIAS_memberPurchasePriceSummary);
 </code></pre>
 	<h3 id="derivedderived">子テーブルの導出カラムの導出カラム</h3>
 	<p>
