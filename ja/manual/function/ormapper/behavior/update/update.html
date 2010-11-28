@@ -150,6 +150,10 @@ member.<span class="point">setVersionNo</span>(versionNo); <span class="comment"
 		</dd>
 		<dt>一意制約違反があった場合</dt>
 		<dd>org.seasar.dbflute.exception.EntityAlreadyExistsException</dd>
+		<dd>
+			DBFluteで正式サポートしていない DBMS では、別の例外(SQLFailureException)の可能性があります。
+			<div class="relatedpage"><a href="../../../../../environment/supported.html#database">DBFluteのサポート情報 - データベース</a></div>
+		</dd>
 	</dl>
 
 	<h2 id="modified">設定された値だけ更新</h2>
@@ -157,6 +161,9 @@ member.<span class="point">setVersionNo</span>(versionNo); <span class="comment"
 		<em class="keyword">設定された(setterが呼ばれた)カラム</em>
 		と内部で自動的に設定されるカラム(バージョン番号など)だけが更新対象になります。ゆえに、何も設定しなかった(Entity上は) null
 		のカラムがあっても、そのカラムが null で更新されることはありません(明示的に null で設定されれば、null で更新されます)。 
+	</p>
+	<p>
+		これを <em class="keyword">ModifedOnlyUpdate</em> と呼びます。
 	</p>
 <pre><span class="codetitle">ex) update()は設定された値だけ更新される {MEMBER,memberId=3} @Java</span><code>
 Member member = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
@@ -206,9 +213,16 @@ member.setMemberName(<span class="literal">"Stojkovic"</span>);
 	<h2 id="commoncolumn">共通カラムの自動設定</h2>
 	<p>
 		対応テーブルが共通カラムの自動設定対象になっている場合は、実行時に設定された通りに共通カラムの自動設定が行われます。
-		ゆえに、その場合は、プログラム上で共通カラムの値の設定をする必要はありません。
+		ゆえに、その場合は、プログラム上で共通カラムの値の設定をする必要はありません(設定しても自動設定処理にて上書きされます)。
+		自動設定された値は、更新処理後に Entity に格納されています。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
+	<p>
+		もし、共通カラムの自動設定を無視した更新を行いたい場合は、Entity の disableCommonColumnAutoSetup()
+		を更新前に呼び出すと、共通カラムの自動設定がされなくなります。
+		主に、システム移行のプログラム(移行プログラム)などで、共通カラムの値を保持したままデータを更新したいような場合に有効です。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/implfit/commoncolumn/index.html#disable">現場フィット - 共通カラム - 一時的な自動設定の無効化</a></div>
 
 	<h2 id="nocascade">カスケードはしません</h2>
 	<p>
