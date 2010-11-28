@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,機能,更新,Update" />
+	<meta name="keywords" content="DBFlute,Behavior,insertOrUpdateNonstrict" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Behaviorの更新系 | DBFlute</title>
+	<title>insertOrUpdateNonstrict(entity) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,35 +37,97 @@
 </div>
 
 <div id="content">
-	<h1>Behaviorの更新系</h1>
-	<p>
-		外だしSQL以外のBehaviorの更新系の機能について
-	</p>
+	<h1>insertOrUpdateNonstrict(entity)</h1>
 	<ul class="indexlist">
-		<li><a href="#linklist">リンクの一覧</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#exception">例外</a></li>
+			</ul>
+		</li>
+		<li><a href="#nopkinsert">主キー値がなければ登録</a></li>
+		<li><a href="#updatefirst">まずは更新、失敗なら登録</a></li>
 	</ul>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<dl class="hierarchylist">
-		<dt><a href="./insert.html">insert(entity)</a></dt><dd>一件登録</dd>
-		<dt><a href="./update.html">update(entity)</a></dt><dd>排他制御あり一件更新</dd>
-		<dt><a href="./updatenonstrict.html">updateNonstrict(entity)</a></dt><dd>排他制御なし一件更新</dd>
-		<dt><a href="./delete.html">delete(entity)</a></dt><dd>排他制御あり一件削除</dd>
-		<dt><a href="./deletenonstrict.html">deleteNonstrict(entity)</a></dt><dd>排他制御なし一件削除</dd>
-		<dt><a href="./deletenonstrictignoredeleted.html">deleteNonstrictIgnoreDeleted(entity)</a></dt><dd>排他制御なし一件削除(なければ無視)</dd>
-		<dt><a href="./insertorupdate.html">insertOrUpdate(entity)</a></dt><dd>排他制御あり一件登録もしくは更新</dd>
-		<dt><a href="./insertorupdatenonstrict.html">insertOrUpdateNonstrict(entity)</a></dt><dd>排他制御なし一件登録もしくは更新</dd>
-		<dt><span class="working"><!-- <a href="./batchinsert.html"> -->batchInsert(entityList)<!-- </a> --></span></dt><dd>バッチ登録</dd>
-		<dt><span class="working"><!-- <a href="./batchupdate.html"> -->batchUpdate(entityList)<!-- </a> --></span></dt><dd>排他制御ありバッチ更新</dd>
-		<dt><span class="working"><!-- <a href="./batchupdatenonstrict.html"> -->batchUpdateNonstrict(entityList)<!-- </a> --></span></dt><dd>排他制御なしバッチ更新</dd>
-		<dt><span class="working"><!-- <a href="./batchdelete.html"> -->batchDelete(entityList)<!-- </a> --></span></dt><dd>排他制御ありバッチ削除</dd>
-		<dt><span class="working"><!-- <a href="./batchdeletenonstrict.html"> -->batchDeleteNonstrict(entityList)<!-- </a> --></span></dt><dd>排他制御なしバッチ削除</dd>
-		<dt><a href="./queryupdate.html">queryUpdate(entity, cb)</a></dt><dd>ConditionBeanによる更新</dd>
-		<dt><span class="working"><!-- <a href="./querydelete.html"> -->queryDelete(cb)<!-- </a> --></span></dt><dd>ConditionBeanによる削除</dd>
-		<dt><span class="working"><!-- <a href="./varyingupdate.html"> -->varyingUpdate(entity, option)<!-- </a> --></span></dt><dd>排他制御あり相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
-		<dt><span class="working"><!-- <a href="./varyingupdatenonstrict.html"> -->varyingUpdateNonstrict(entity, option)<!-- </a> --></span></dt><dd>排他制御なし相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
-		<dt><span class="working"><!-- <a href="./varyingqueryupdate.html"> -->varyingQueryUpdate(entity, cb, option)<!-- </a> --></span></dt><dd>ConditionBeanによる相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
+	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		Entityをもとに <em class="keyword">あれば排他制御なしの更新、なければ登録</em> をします。
+	</p>
+	<p>
+		排他制御なしの更新には updateNonstrict()、登録には insert() を利用しています。
+	</p>
+	<div class="relatedpage"><a href="./updatenonstrict.html">updateNonstrict(entity)</a></div>
+	<div class="relatedpage"><a href="./insert.html">insert(entity)</a></div>
+	<p>
+		このメソッドは、登録と更新でよくある利用を定型化して簡易に利用できるようにしたものであり、このメソッドでなければ実現できないこと、というものはありません。
+	</p>
+	<p>
+		会話上では、<em class="keyword">いんさーとおああっぷでーとのんすとりくと</em> と表現します。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
+	<p>
+		Behaviorの <em class="keyword">insertOrUpdateNonstrict()</em>
+		を呼び出し、Entityを指定します。
+	</p>
+<pre><span class="codetitle">ex) update()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.inOrUN <span class="comment">// .inOrUN と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.<span class="point">insertOrUpdateNonstrict</span>(member);
+</code></pre>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="argument">引数</h3>
+	<p>
+		該当のBehaviorに対応するテーブルのEntityとなります。
+	</p>
+	<p>
+		nullを指定した場合は例外発生します。
+		また、更新においてはPKカラムの値の指定が必須です(指定なしは例外)。
+	</p>
+	<h3 id="result">戻り値</h3>
+	<p>
+		void です。
+	</p>
+	<h3 id="exception">例外</h3>
+	<dl class="textlist">
+		<dt>更新結果が複数件の場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
+		<dd>予期せぬレコードを更新してしまっている可能性があるため、ロールバックが求められます。</dd>
+		<dt>一意制約違反があった場合</dt>
+		<dd>org.seasar.dbflute.exception.EntityAlreadyExistsException</dd>
+		<dd>
+			DBFluteで正式サポートしていない DBMS では、別の例外(SQLFailureException)の可能性があります。
+			<div class="relatedpage"><a href="../../../../../environment/supported.html#database">DBFluteのサポート情報 - データベース</a></div>
+		</dd>
 	</dl>
+
+	<h2 id="nopkinsert">主キー値がなければ登録</h2>
+	<p>
+		指定された Entity に主キー値がなければ問答無用で登録と判断して insert() を実行します。
+	</p>
+
+	<h2 id="updatefirst">まずは更新、失敗なら登録</h2>
+	<p>
+		指定された Entity に主キー値が存在する場合、まずは updateNonstrict()
+		を実行します。その結果、指定された主キーに対応するレコードが存在しない場合に insert() を実行します。
+	</p>
+	<p>
+		ゆえに、大量のデータを扱う場合、更新が多い方がパフォーマンス的には優位です。
+	</p>
 
 </div>
 </div>
