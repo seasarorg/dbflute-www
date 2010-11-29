@@ -50,12 +50,12 @@
 		<li><a href="#table">TABLE型(PL/SQL表) <span class="freecomment">(別名：ARRAY型)</span></a>
 			<ul>
 				<li><a href="#tableunsupported">TABLE型のサポートされない利用</a></li>
+				<li><a href="#elementtype">ARRAYの要素型の認識</a></li>
 			</ul>
 		</li>
 		<li><a href="#object">OBJECT型 <span class="freecomment">(別名：STRUCT型)</span></a>
 			<ul>
 				<li><a href="#generated">自動生成される対象</a></li>
-				<li><a href="#elementtype">ARRAYの要素型の認識</a></li>
 				<li><a href="#objectunsupported">OBJECT型のサポートされない利用</a></li>
 				<li><a href="#examplecode">Exampleコード</a></li>
 			</ul>
@@ -142,13 +142,6 @@ List&lt;String&gt; outList = pmb.<span class="point">getVOutVarcharArray()</span
 </code></pre>
 	<h3 id="tableunsupported">TABLE型のサポートされない利用</h3>
 	<dl class="textlist">
-		<dt>要素型が Object 型にマッピングされた場合</dt>
-		<dd>
-			ARRAYの要素型の認識がされない場合などで、要素型が Object 型にマッピングされてしまったケースでは動作はサポートされません。
-			ただし、そのプロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
-			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
-			<div class="relatedpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
-		</dd>
 		<dt>別スキーマで定義されたTABLE型</dt>
 		<dd>
 			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
@@ -174,9 +167,41 @@ List&lt;String&gt; outList = pmb.<span class="point">getVOutVarcharArray()</span
 			サポートされないOBJECT型は、同じくARRAY型の要素としても利用することはできません。
 			<div class="relatedpage"><a href="#objectunsupported">this - OBJECT型のサポートされない利用</a></div>
 		</dd>
+		<dt>要素型が Object 型にマッピングされた場合</dt>
+		<dd>
+			ARRAYの要素型の認識がされない場合などで、要素型が Object 型にマッピングされてしまったケースでは動作はサポートされません。
+			ただし、プロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
+			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+			<span class="freecomment">(ただ、ARRAYの要素型の認識されないケースはそもそも少ないと想定されています)</span>
+			<div class="detailpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
+		</dd>
 	</dl>
 	<p>
 		その他、細かい点(把握しき仕切れていないもの)で制限がありますので、必ずアプリ環境での動作確認をしてから利用するようにして下さい。
+	</p>
+	<h3 id="elementtype">ARRAYの要素型の認識</h3>
+	<p>
+		ARRAYの要素型がメタデータから判明しない場合は、List&lt;Object&gt;
+		にマッピングされてしまい、サポートされません。ARRAYの要素型が認識される条件を満たしている必要があります。
+	</p>
+	<h4>ALL_COLL_TYPES が利用できる場合</h4>
+	<p>
+		ALL_COLL_TYPES が利用できる(Oracleの)バージョン、ALL_COLL_TYPES が利用できるユーザ環境においては、
+		全てのARRAYの要素型が認識されます。
+	</p>
+	<h4>ALL_ARGUMENTS, ALL_TYPES の場合</h4>
+	<p>
+		ALL_COLL_TYPES が利用できない場合は、代わりに ALL_ARGUMENTS と ALL_TYPES
+		を利用します。この場合、以下のような "ある一定の条件" を満たした場合のみ要素型が認識されます。
+	</p>
+	<ul>
+		<li>プロシージャパラメータ自体の型で利用</li>
+		<li>ARRAY型パラメータの要素型として利用(ネスト)</li>
+	</ul>
+	<p>
+		つまり、<em class="keyword">OBJECT型の属性の型でしか利用されていないARRAY型</em>
+		は、その要素型が認識できず Object 型になってしまいます。
+		その場合、実質的に動作はサポートされません。対応する型の話に限らず、OBJECT型の Entity の自動生成対象の条件にも影響がでますので注意です。
 	</p>
 
 	<h2 id="object">OBJECT型 <span class="freecomment">(別名：STRUCT型)</span></h2>
@@ -257,49 +282,8 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 		ただし例外として、OBJECT型をARRAY型の要素型(List&lt;FooBean&gt;)として利用している場合で、そのARRAYの要素型が認識できない状況においては、そのOBJECT型の
 		Entity は自動生成されません。
 	</p>
-	<h3 id="elementtype">ARRAYの要素型の認識</h3>
-	<p>
-		ARRAYの要素が何の型なのかどうか、ある一定の条件においてのみ認識されます。
-		メタデータ取得の都合上によるもので、要素型の情報がメタデータから追跡可能の場合において、プログラム上で対応する型として扱えます。
-		追跡不可の場合は Object 型にマッピングされ、また、OBJECT型対応の Entity の自動生成の条件に影響を与えます。
-		<em class="keyword">追跡できなかった要素型に定義されているOBJECT型、もしくは、そこから辿って参照できる(はずの)OBJECT型に関しては、自動生成対象となりません</em>。
-	</p>
-	<p>
-		ARRAY型要素の認識のための "ある一定の条件" とは以下の通りです。
-	</p>
-	<ul>
-		<li>プロシージャパラメータ自体の型で利用</li>
-		<li>ARRAY型パラメータの要素型として利用(ネスト)</li>
-	</ul>
-	<p>
-		つまり、<em class="keyword">OBJECT型の属性の型でしか利用されていないARRAY型</em>
-		は、その要素型が認識できず Object 型になってしまいます。
-		その場合、実質的に動作はサポートされません。対応する型の話に限らず、OBJECT型の Entity の自動生成対象の条件にも影響がでますので注意です。
-	</p>
-	<h4>ダミーのプロシージャで回避</h4>
-	<p>
-		そういった型をプロシージャパラメータとして定義するダミーのプロシージャを作成することで回避はできます。"Exampleコード"
-		における "SP_STRUCT_PRACTICE_SWING" がまさしく該当します。自動生成されないはずの BAR_BEAN
-		が自動生成され、また、認識されないはずの QUX_LIST が認識されて List&lt;BigDecimal&gt; にマッピングされています。
-	</p>
-	<div class="relatedpage"><a href="#examplecode">this - Exampleコード</a></div>
-	<h4>データディクショナリとのやりとり</h4>
-	<p>
-		この仕様は、DBFlute内部で利用している Oracle のメタデータの取得による都合です。
-		ARRAYの要素型情報が、プロシージャパラメータに定義されているARRAY型でしか取得できないためです。
-		具体的には、データディクショナリの ALL_TYPES, ALL_ARGUMENTS を参照しています。 
-		将来的には、環境が改善するなどして、ARRAY型の要素型情報がパラメータ定義に関係なく取得できるようになれば変わっていくかもしれません。
-		<span class="freecomment">※また、そもそも取得の方法を見つけられていないだけかもしれません</span>
-	</p>
 	<h3 id="objectunsupported">OBJECT型のサポートされない利用</h3>
 	<dl class="textlist">
-		<dt>Object 型にマッピングされた場合</dt>
-		<dd>
-			ARRAYの要素型の認識がされない場合などで Object 型にマッピングされてしまったケースでは動作はサポートされません。
-			ただし、そのプロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
-			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
-			<div class="relatedpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
-		</dd>
 		<dt>別スキーマで定義されたOBJECT型</dt>
 		<dd>
 			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
@@ -316,10 +300,13 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 			サポートされないARRAY型は、同じくOBJECT型の属性としても利用することはできません。
 			<div class="relatedpage"><a href="#tableunsupported">this - TABLE型のサポートされない利用</a></div>
 		</dd>
-		<dt>複雑なネスト構造</dt>
+		<dt>Object 型にマッピングされた場合</dt>
 		<dd>
-			自動生成された Pmb や Entity
-			では複雑なネスト構造を表現することもできますが、実行時に正常に動作しない可能性があります。
+			ARRAYの要素型の認識がされない場合などで Object 型にマッピングされてしまったケースでは動作はサポートされません。
+			ただし、プロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
+			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+			<span class="freecomment">(ただ、ARRAYの要素型の認識されないケースはそもそも少ないと想定されています)</span>
+			<div class="relatedpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
 		</dd>
 	</dl>
 	<p>
@@ -351,7 +338,6 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
   FOO_CLOB      <span class="dbtype">CLOB</span>
 );
 
-<span class="comment">-- generated because of referred from the traceable array</span>
 <span class="keyword">create type</span> BAR_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
   BAR_ID        <span class="dbtype">NUMBER(8)</span>,
   BAR_NAME      <span class="dbtype">VARCHAR2(20)</span>,
@@ -361,7 +347,6 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
   BAR_CLOB      <span class="dbtype">CLOB</span>
 );
 
-<span class="comment">-- not generated because of only referred from untraceable array</span>
 <span class="keyword">create type</span> CORGE_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
   CORGE_ID        <span class="dbtype">NUMBER(8)</span>,
   CORGE_NAME      <span class="dbtype">VARCHAR2(20)</span>,
@@ -410,7 +395,6 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
   <span class="comment">--,BAZ_SELF    NESTED_BAZ_BEAN</span>
 );
 
-<span class="comment">-- generated by dummy procedure's parameter</span>
 <span class="keyword">create type</span> NESTED_BAR_BEAN <span class="keyword">as</span> <span class="dbtype">object</span> (
   BAR_ID    <span class="dbtype">NUMBER(8)</span>,
   BAR_NAME  <span class="dbtype">VARCHAR2(20)</span>,
@@ -442,20 +426,6 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 <span class="keyword">end</span> SP_STRUCT_NESTED_PARAMETER;
 /
 <span class="comment">-- #df:end#</span>
-
-<span class="comment">-- #df:begin#</span>
-<span class="comment">-- dummy procedure to</span>
-<span class="comment">--  o generate entities of nested STRUCT types</span>
-<span class="comment">--  o treat ARRAY in STRUCT as list property</span>
-<span class="keyword">create or replace procedure</span> SP_STRUCT_PRACTICE_SWING(
-  v_in_baz_list <span class="attribute">in</span> <span class="dbtype">BAZ_TABLE</span>
-  , v_in_qux_list <span class="attribute">in</span> <span class="dbtype">QUX_TABLE</span>
-) <span class="keyword">as</span>
-<span class="keyword">begin</span>
-  dbms_output.put_line('generate for nest use');
-<span class="keyword">end</span> SP_STRUCT_PRACTICE_SWING;
-/
--- #df:end#</span>
 </code></pre>
 <pre><span class="codetitle">複雑なネスト構造を持った型を引数に持ったプロシージャの呼び出し (IN, OUT) @Java</span><code>
 <span class="comment">// = = = = = = = = = = = = = = = = = = = = = =</span>
@@ -485,58 +455,75 @@ SpStructNestedParameterPmb pmb = <span class="keyword">new</span> SpStructNested
     NestedFooBean fooBean = <span class="keyword">new</span> NestedFooBean();
     fooBean.setFooId(<span class="literal">1</span>);
     fooBean.setFooName(<span class="literal">"foo"</span>);
-    fooBean.setFooDate(DfTypeUtil.toDate("2010-11-20 12:34:56"));
+    fooBean.setFooDate(DfTypeUtil.toDate(<span class="literal">"2010-11-20 12:34:56"</span>));
     {
-        <span class="comment">// if column order and types are same, it works</span>
+        <span class="comment">// in struct in struct</span>
         NestedBarBean barBean = <span class="keyword">new</span> NestedBarBean();
         barBean.setBarId(<span class="literal">2</span>);
         barBean.setBarName(<span class="literal">"bar"</span>);
         barBean.setBarDate(DfTypeUtil.toDate(<span class="literal">"2010-11-21 09:51:23"</span>));
+
+        <span class="comment">// array&lt;struct&gt; in struct in struct</span>
         List&lt;BarBean&gt; barList = DfCollectionUtil.newArrayList();
         {
             BarBean elementBean = <span class="keyword">new</span> BarBean();
             elementBean.setBarId(<span class="literal">71</span>);
-            elementBean.setBarName("bar1");
+            elementBean.setBarName(<span class="literal">"bar1"</span>);
             barList.add(elementBean);
         }
         {
             BarBean elementBean = <span class="keyword">new</span> BarBean();
             elementBean.setBarId(<span class="literal">72</span>);
-            elementBean.setBarName("bar2");
+            elementBean.setBarName(<span class="literal">"bar2"</span>);
             barList.add(elementBean);
         }
         barBean.setBarList(barList);
+
+        <span class="comment">// struct in struct in struct</span>
         NestedBazBean bazBean1 = <span class="keyword">new</span> NestedBazBean();
         bazBean1.setBazId(<span class="literal">4321</span>);
-        bazBean1.setBazName("baz1");
-        bazBean1.setBazDate(DfTypeUtil.toDate("2010-11-22 19:21:33"));
-
-        <span class="comment">// array in array *unsupported
+        bazBean1.setBazName(<span class="literal">"baz1"</span>);
+        bazBean1.setBazDate(DfTypeUtil.toDate(<span class="literal">"2010-11-22 19:21:33"</span>));
+        <span class="comment">// array&lt;array&gt; *unsupported
         //List&lt;List&lt;BarBean&gt;&gt; bazList = DfCollectionUtil.newArrayList();
         //bazList.add(barList);
         //bazBean1.setBazList(bazList);</span>
-
         barBean.setBazBean1(bazBean1);
-        fooBean.setBarBean(barBean); <span class="comment">// *unsupported (it works a little)</span>
+
+        <span class="comment">// struct in struct in struct (no value)</span>
+        barBean.setBazBean1(bazBean1);
+
+        <span class="comment">// array in struct in struct</span>
+        List&lt;BigDecimal&gt; quxList = DfCollectionUtil.newArrayList();
+        quxList.add(<span class="keyword">new</span> BigDecimal(<span class="literal">1</span>));
+        quxList.add(<span class="keyword">new</span> BigDecimal(<span class="literal">2</span>));
+        barBean.setQuxList(quxList);
+
+        <span class="comment">// array in struct in struct (no value)</span>
+        <span class="comment">//barBean(quuxList);</span>
+
+        fooBean.setBarBean(barBean);
     }
 
-    <span class="comment">// array in struct (traceable by parameter meta data)</span>
-    List&lt;BigDecimal&gt; quxList = DfCollectionUtil.newArrayList();
-    quxList.add(<span class="keyword">new</span> BigDecimal(1));
-    quxList.add(<span class="keyword">new</span> BigDecimal(2));
-
-    <span class="comment">// array in struct (untraceable by parameter meta data)</span>
-    <span class="comment">//  -&gt; element type is Object</span>
-    <span class="comment">// *unsupported (but it works a little)</span>
+    <span class="comment">// array in struct as IN parameter</span>
+    List&lt;BigDecimal&gt; quuxList = DfCollectionUtil.newArrayList();
+    quuxList.add(<span class="keyword">new</span> BigDecimal(<span class="literal">3</span>));
+    quuxList.add(<span class="keyword">new</span> BigDecimal(<span class="literal">4</span>));
+    quuxList.add(<span class="keyword">new</span> BigDecimal(<span class="literal">5</span>));
     fooBean.setQuxList(quxList);
-    fooBean.setQuuxList(Arrays.asList(<span class="keyword">new</span> Object[] { 3, 4, 5 }));
-    pmb.setVInFooBean(fooBean);
 
-    <span class="comment">// array in struct (untraceable by parameter meta data)
-    //  -&gt; element type is Object
-    //  -&gt; CorgeBean is not generated
-    // *unsupported
-    //fooBean.setCorgeList(corgeList);</span>
+    <span class="comment">// array in struct as IN parameter (no value)</span>
+    <span class="comment">//fooBean.setQuuxList(quuxList);</span>
+
+    <span class="comment">// array&lt;struct&gt; in struct as IN parameter</span>
+    List&lt;CorgeBean&gt; corgeList = DfCollectionUtil.newArrayList();
+    CorgeBean corgeBean = <span class="keyword">new</span> CorgeBean();
+    corgeBean.setCorgeId(<span class="literal">123</span>);
+    corgeBean.setCorgeName(<span class="literal">"corge"</span>);
+    corgeList.add(corgeBean);
+    fooBean.setCorgeList(corgeList);
+
+    pmb.setVInFooBean(fooBean);
 }
 assertNull(pmb.getVOutFooBean());
 
@@ -550,25 +537,27 @@ assertEquals(inBean.getFooId(), outBean.getFooId());
 assertEquals(inBean.getFooName(), outBean.getFooName());
 assertEquals(inBean.getFooDate(), outBean.getFooDate());
 
-<span class="comment">// struct in struct as OUT parameter</span>
 {
+    <span class="comment">// struct in struct as OUT parameter</span>
     NestedBarBean barBean = outBean.getBarBean();
     log(<span class="literal">"fooBean.barBean = "</span> + barBean);
     assertEquals(inBean.getBarBean().getBarId(), barBean.getBarId());
     assertEquals(inBean.getBarBean().getBarName(), barBean.getBarName());
     assertEquals(inBean.getBarBean().getBarDate(), barBean.getBarDate());
     {
+        <span class="comment">// array&lt;struct&gt; in struct in struct</span>
         List&lt;BarBean&gt; barList = barBean.getBarList();
         log("fooBean.barBean.barList = " + barList);
-        assertEquals(2, barList.size());
-        log("fooBean.barBean.barList(0)=" + barList.get(0));
-        log("fooBean.barBean.barList(1)=" + barList.get(1));
-        assertEquals("71", barList.get(0).getBarId().toString());
-        assertEquals("bar1", barList.get(0).getBarName());
-        assertEquals("72", barList.get(1).getBarId().toString());
-        assertEquals("bar2", barList.get(1).getBarName());
+        assertEquals(<span class="literal">2</span>, barList.size());
+        log(<span class="literal">"fooBean.barBean.barList(0)="</span> + barList.get(<span class="literal">0</span>));
+        log(<span class="literal">"fooBean.barBean.barList(1)="</span> + barList.get(<span class="literal">1</span>));
+        assertEquals(<span class="literal">"71"</span>, barList.get(<span class="literal">0</span>).getBarId().toString());
+        assertEquals(<span class="literal">"bar1"</span>, barList.get(<span class="literal">0</span>).getBarName());
+        assertEquals(<span class="literal">"72"</span>, barList.get(<span class="literal">1</span>).getBarId().toString());
+        assertEquals(<span class="literal">"bar2"</span>, barList.get(<span class="literal">1</span>).getBarName());
     }
     {
+        <span class="comment">// struct in struct in struct</span>
         NestedBazBean bazBean1 = barBean.getBazBean1();
         log("fooBean.barBean.bazBean1 = " + bazBean1);
         assertNotNull(bazBean1);
@@ -578,30 +567,44 @@ assertEquals(inBean.getFooDate(), outBean.getFooDate());
         assertEquals(inBazBean1.getBazDate(), bazBean1.getBazDate());
     }
     {
+        <span class="comment">// struct in struct in struct (no value)</span>
         NestedBazBean bazBean2 = barBean.getBazBean2();
-        log("fooBean.barBean.bazBean2 = " + bazBean2);
+        log(<span class="literal">"fooBean.barBean.bazBean2 = "</span> + bazBean2);
         assertNull(bazBean2);
     }
     {
+        <span class="comment">// array in struct in struct</span>
         List&lt;BigDecimal&gt; quxList = barBean.getQuxList();
-        log("fooBean.barBean.quxList = " + quxList);
-        assertTrue(quxList.isEmpty());
+        log(<span class="literal">"fooBean.barBean.quxList = "</span> + quxList);
+        assertFalse(quxList.isEmpty());
+        assertEquals(inBean.getBarBean().getQuxList().size(), quxList.size());
     }
     {
-        <span class="comment">// object element type because of untraceable</span>
-        List&lt;Object&gt; quxList = barBean.getQuuxList();
-        log("fooBean.barBean.quxList = " + quxList);
-        assertTrue(quxList.isEmpty());
+        <span class="comment">// array in struct in struct (no value)</span>
+        List&lt;BigDecimal&gt; quuxList = barBean.getQuuxList();
+        log(<span class="literal">"fooBean.barBean.quuxList = "</span> + quuxList);
+        assertTrue(quuxList.isEmpty());
     }
-    <span class="comment">// array in struct (traceable by parameter meta data)</span>
-    List&lt;BigDecimal&gt; quxList = outBean.getQuxList();
-    assertFalse(quxList.isEmpty());
 
-    <span class="comment">// array in struct (untraceable by parameter meta data)</span>
-    <span class="comment">// *unsupported (but it works a little)</span>
+    <span class="comment">// array in struct as OUT parameter</span>
+    List&lt;BigDecimal&gt; quxList = outBean.getQuxList();
+    log(<span class="literal">"fooBean.quxList = "</span> + quxList);
+    assertFalse(quxList.isEmpty());
+    assertEquals(inBean.getQuxList().size(), quxList.size());
+
+    <span class="comment">// array in struct as OUT parameter (no value)</span>
     List&lt;Object&gt; quuxList = outBean.getQuuxList();
-    assertFalse(quuxList.isEmpty());
-    assertEquals(inBean.getQuuxList().size(), quuxList.size());
+    log(<span class="literal">"fooBean.quuxList = "</span> + quuxList);
+    assertTrue(quuxList.isEmpty());
+
+    <span class="comment">// array&lt;struct&gt; in struct as OUT parameter</span>
+    List&lt;CorgeBean&gt; corgeList = outBean.getCorgeList();
+    log(<span class="literal">"fooBean.corgeList = "</span> + corgeList);
+    assertFalse(corgeList.isEmpty());
+    assertEquals(1, corgeList.size());
+    assertEquals(<span class="literal">"123"</span>, corgeList.get(<span class="literal">0</span>).getCorgeId().toString());
+    assertEquals(<span class="literal">"corge"</span>, corgeList.get(<span class="literal">0</span>).getCorgeName());
+    assertNull(corgeList.get(<span class="literal">0</span>).getCorgeDate());
 }
 </code></pre>
 
