@@ -49,13 +49,15 @@
 		<li><a href="#presetting">事前の設定(dfpropなど)</a></li>
 		<li><a href="#table">TABLE型(PL/SQL表) <span class="freecomment">(別名：ARRAY型)</span></a>
 			<ul>
+				<li><a href="#tableaschema">TABLE型の定義スキーマ</a></li>
 				<li><a href="#tableunsupported">TABLE型のサポートされない利用</a></li>
 				<li><a href="#elementtype">ARRAYの要素型の認識</a></li>
 			</ul>
 		</li>
 		<li><a href="#object">OBJECT型 <span class="freecomment">(別名：STRUCT型)</span></a>
 			<ul>
-				<li><a href="#generated">自動生成される対象</a></li>
+				<li><a href="#objectgenerated">自動生成対象となるOBJECT型</a></li>
+				<li><a href="#objectschema">OBJECT型の定義スキーマ</a></li>
 				<li><a href="#objectunsupported">OBJECT型のサポートされない利用</a></li>
 				<li><a href="#examplecode">Exampleコード</a></li>
 			</ul>
@@ -140,22 +142,29 @@ pmb.<span class="point">setVInVarcharArray</span>(Arrays.asList(<span class="lit
 vendorCheckBhv.outsideSql().call(pmb);
 List&lt;String&gt; outList = pmb.<span class="point">getVOutVarcharArray()</span>;
 </code></pre>
+	<h3 id="tableaschema">TABLE型の定義スキーマ</h3>
+	<p>
+		メインスキーマ、追加スキーマのいずれかで定義されているTABLE型のみ利用可能です。
+		それ意外のスキーマに定義されているTABLE型を利用する場合は、そのスキーマを追加スキーマとして扱う必要があります。
+		<span class="freecomment">(追加スキーマのプロシージャやTABLE型に対する、ユーザ権限の付与忘れにご注意ください)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
 	<h3 id="tableunsupported">TABLE型のサポートされない利用</h3>
 	<dl class="textlist">
-		<dt>別スキーマで定義されたTABLE型</dt>
+		<dt>TABLE型やVARRAY型のシノニム</dt>
 		<dd>
-			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
-			<span class="freecomment">※プロシージャと型が同じスキーマであれば動く可能性もありますが、確認がされていません</span>
+			TABLE型やVARRAY型を参照するシノニムを型とするパラメータはサポートされません。
+			<span class="freecomment">※実現コストが高いため、実装を見送っています</span>
 		</dd>
 		<dt>TABLE型やVARRAY型のネスト</dt>
 		<dd>
 			要素型が(ARRAY型である)TABLE型やVARRAY型、つまり、List&lt;List&lt;String&gt;&gt;
-			となるような形です。
+			となるような形はサポートされません。
 			<span class="freecomment">※oracle.sql.ARRAY型での取扱い方がわかっていません</span>
 		</dd>
 		<dt>CLOB (BLOBも含む)</dt>
 		<dd>
-			CLOB や BLOB などの型はサポートされません。(テーブルの Entity ではサポートされています)
+			CLOB や BLOB などの型はサポートされません。
 			<span class="freecomment">※oracle.sql.ARRAY型での取扱い方がわかっていません</span>
 		</dd>
 		<dt>DBMS_SQL.NUMBER_TABLEなど</dt>
@@ -168,22 +177,25 @@ List&lt;String&gt; outList = pmb.<span class="point">getVOutVarcharArray()</span
 			サポートされないOBJECT型は、同じくARRAY型の要素としても利用することはできません。
 			<div class="relatedpage"><a href="#objectunsupported">this - OBJECT型のサポートされない利用</a></div>
 		</dd>
-		<dt>要素型が Object 型にマッピングされた場合</dt>
+		<dt>ARRAYの要素型の認識ができない場合</dt>
 		<dd>
-			ARRAYの要素型の認識がされない場合などで、要素型が Object 型にマッピングされてしまったケースでは動作はサポートされません。
-			ただし、プロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
-			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+			ARRAYの要素型の認識ができない場合、要素型が Object 型にマッピングされ動作はサポートされません。
 			<span class="freecomment">(ただ、ARRAYの要素型の認識されないケースはそもそも少ないと想定されています)</span>
 			<div class="detailpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
 		</dd>
+		<dd>
+			ただし、Object 型のプロパティが定義されていても、そのプロパティだけを利用しなければ(null のみの利用であれば)動作する可能性はあります。
+			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+		</dd>
 	</dl>
+	<h4>その他、細かい制限の可能性</h4>
 	<p>
 		その他、細かい点(把握しき仕切れていないもの)で制限がありますので、必ずアプリ環境での動作確認をしてから利用するようにして下さい。
 	</p>
 	<h3 id="elementtype">ARRAYの要素型の認識</h3>
 	<p>
 		ARRAYの要素型がメタデータから判明しない場合は、List&lt;Object&gt;
-		にマッピングされてしまい、サポートされません。ARRAYの要素型が認識される条件を満たしている必要があります。
+		にマッピングされ動作はサポートされません。ARRAYの要素型が認識される条件を満たしている必要があります。
 	</p>
 	<h4>ALL_COLL_TYPES が利用できる場合</h4>
 	<p>
@@ -264,7 +276,7 @@ assertEquals(fooBean.getFooDate(), outBean.getFooDate());
 assertEquals(fooBean.getFooTimestamp(), outBean.getFooTimestamp());
 assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 </code></pre>
-	<h3 id="generated">自動生成される対象</h3>
+	<h3 id="objectgenerated">自動生成対象となるOBJECT型</h3>
 	<p>
 		OBJECT型に対応した CustomizeEntity が自動生成される条件は
 		<em class="keyword">プロシージャパラメータから辿れる</em>
@@ -283,12 +295,19 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 		ただし例外として、OBJECT型をARRAY型の要素型(List&lt;FooBean&gt;)として利用している場合で、そのARRAYの要素型が認識できない状況においては、そのOBJECT型の
 		Entity は自動生成されません。
 	</p>
+	<h3 id="objectschema">OBJECT型の定義スキーマ</h3>
+	<p>
+		メインスキーマ、追加スキーマのいずれかで定義されているOBJECT型のみ利用可能です。
+		それ意外のスキーマに定義されているOBJECT型を利用する場合は、そのスキーマを追加スキーマとして扱う必要があります。
+		<span class="freecomment">(追加スキーマのプロシージャやTABLE型に対する、ユーザ権限の付与忘れにご注意ください)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
 	<h3 id="objectunsupported">OBJECT型のサポートされない利用</h3>
 	<dl class="textlist">
-		<dt>別スキーマで定義されたOBJECT型</dt>
+		<dt>OBJECT型のシノニム</dt>
 		<dd>
-			メインスキーマで定義されていて、メインスキーマのプロシージャが利用しているパターンのみ利用できます。
-			<span class="freecomment">※プロシージャと型が同じスキーマであれば動く可能性もありますが、確認がされていません</span>
+			OBJECT型を参照するシノニムを型とするパラメータはサポートされません。
+			<span class="freecomment">※実現コストが高いため、実装を見送っています</span>
 		</dd>
 		<dt>CLOB (BLOBも含む)</dt>
 		<dd>
@@ -301,15 +320,18 @@ assertEquals(fooBean.getFooClob(), outBean.getFooClob());
 			サポートされないARRAY型は、同じくOBJECT型の属性としても利用することはできません。
 			<div class="relatedpage"><a href="#tableunsupported">this - TABLE型のサポートされない利用</a></div>
 		</dd>
-		<dt>Object 型にマッピングされた場合</dt>
+		<dt>ARRAYの要素型の認識ができない場合</dt>
 		<dd>
-			ARRAYの要素型の認識がされない場合などで Object 型にマッピングされてしまったケースでは動作はサポートされません。
-			ただし、プロパティが定義されていてもそのプロパティだけを利用しなければ(nullとしてのみの利用であれば)動作する可能性はあります。
-			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+			ARRAYの要素型での利用のときに、ARRAYの要素型の認識ができない場合、Object 型にマッピングされ動作はサポートされません。
 			<span class="freecomment">(ただ、ARRAYの要素型の認識されないケースはそもそも少ないと想定されています)</span>
 			<div class="relatedpage"><a href="#elementtype">this - ARRAYの要素型の認識</a></div>
 		</dd>
+		<dd>
+			ただし、Object 型のプロパティが定義されていても、そのプロパティだけを利用しなければ(null のみの利用であれば)動作する可能性はあります。
+			また、スカラ値の要素の配列の場合も、型のつじつまが合えば動く可能性はあります。
+		</dd>
 	</dl>
+	<h4>その他、細かい制限の可能性</h4>
 	<p>
 		その他、(把握仕切れていないものも含め)細かい点で制限がありますので、必ずアプリ環境での動作確認をしてから利用するようにして下さい。
 		また、<em class="keyword">dbflute-oracle-example に様々なパターンのExample</em>
