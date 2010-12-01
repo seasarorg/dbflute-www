@@ -56,6 +56,17 @@
 				<li><a href="#normalname">変更、もしくは、ビュー・シノニム回避</a></li>
 			</ul>
 		</li>
+		<li><a href="#deprecateddata">非推奨データ構造</a>
+			<ul>
+				<li><a href="#nonpktable">PKのないテーブル</a></li>
+				<li><a href="#compoundpk">複合主キー</a></li>
+				<li><a href="#nonconstraint">制約のないPK/FK/UQなど</a></li>
+				<li><a href="#shortchar">桁数の満たないchar型データ</a></li>
+				<li><a href="#caseinsensitiveequalpk">大文字小文字区別なし等値のPKで別レコード</a></li>
+				<li><a href="#nonunitycommoncolumn">統一性のない共通カラム</a></li>
+				<li><a href="#nordb">その他、RDB 的でない構造</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="language">対応プログラミング言語</h2>
@@ -146,6 +157,59 @@
 		<div class="relatedpage"><a href="../manual/reference/dfprop/databaseinfo/index.html#objecttypetargetlist">dfprop - objectTypeTargetList</a></div>
 		<div class="relatedpage"><a href="../manual/reference/dfprop/databaseinfo/index.html#tableexceptlist">dfprop - tableExceptList</a></div>
 	</div>
+
+	<h2 id="deprecateddata">非推奨データ構造</h2>
+	<p>
+		完全なサポート外にはなりませんが、一部機能で制限が出てくる可能性のある構造があります。
+		これら構造は、DBFluteではそもそも推奨されないDB設計となります。
+	</p>
+	<h3 id="nonpktable">PKのないテーブル</h3>
+	<p>
+		PKのないテーブルでは、Behavior や ConditionBean
+		などの更新系メソッドは利用できません。登録処理(insert)のみオプションで利用できます。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/genbafit/deprecatedfit/nonprimarykeyinsert/index.html">非推奨構造フォロー - PKのないInsert</a></div>
+	<h3 id="compoundpk">複合主キー</h3>
+	<p>
+		複合主キーでは、そのもの自体が持つSQLへの制限などから、DBFluteでの機能も限られます。
+		複合主キーのその他デメリットを考えても、DBFluteでは推奨されません。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/genbafit/deprecatedfit/compoundprimarykey/index.html">非推奨構造フォロー - 複合主キーの対策</a></div>
+	<h3 id="nonconstraint">制約のないPK/FK/UQなど</h3>
+	<p>
+		実際には PK/FK/UQ の役割のカラムがあるのにも関わらず、制約が付いていない場合は、DBFluteプロパティにて手動で定義する必要があります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../manual/function/genbafit/deprecatedfit/nonconstraint/index.html"> -->非推奨構造フォロー - 制約のないPK/FK/UQの解決<!-- </a> --></span></div>
+	<h3 id="shortchar">桁数の満たないchar型データ</h3>
+	<p>
+		例えば、char(3) と定義されているカラムに、"AB" という二文字のデータを登録するような構造は強く非推奨です。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../manual/function/genbafit/deprecatedfit/shortcharhandling/index.html"> -->非推奨構造フォロー - char型の桁数不足の取扱い<!-- </a> --></span></div>
+	<h3 id="caseinsensitiveequalpk">大文字小文字区別なし等値のPKで別レコード</h3>
+	<p>
+		大文字小文字区別なしで等しくなるPKの値、例えばPK値が "FOO" と "foo"
+		で別レコードの分かれるような構造は強く非推奨です。そのような場合、一部機能においてサポートされません。
+		LoadReferrer や区分値メソッドでは、PK値(コード値)を大文字小文字を区別せずに処理します。
+		(ここでいうPKには、FKされるUQも含まれます)
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../manual/function/genbafit/deprecatedfit/caseinsensitiveequalprimarykey/index.html"> -->非推奨構造フォロー - 大文字小文字区別なし等値のPK<!-- </a> --></span></div>
+	<p>
+		"データの大文字小文字を区別するかどうかのDB上の設定" 自体は、どちらでもサポートされます。
+		大文字小文字区別なしで等しくなるPKの値さえなければ、大文字小文字を区別する設定でも問題ありません。
+	</p>
+	<h3 id="nonunitycommoncolumn">統一性のない共通カラム</h3>
+	<p>
+		多くのテーブルで定義される共通カラム、例えば、登録日時、更新ユーザなどのカラムの名前が、テーブルごとにバラバラの場合(update_user
+		だったり、upd_usr だったり)、共通カラムの自動設定の機能が利用できない可能性があります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../manual/function/genbafit/deprecatedfit/nonunitycommoncolumn/index.html"> -->非推奨構造フォロー - 統一性のない共通カラム<!-- </a> --></span></div>
+	<h3 id="nordb">その他、RDB 的でない構造</h3>
+	<p>
+		その他、リレーショナルデータベース的でない構造は推奨されません。
+		例えば、カラムデータの中に複数の値を集約して、何桁数目から何桁が FOO データ、その次の何桁が BAR
+		データというようなコードをロジックとして必要とする構造です。
+		単なる、人が見やすいコード、というためだけに利用するならよいですが、プログラム上で分解して利用するようなものは強く非推奨です。
+	</p>
 
 </div>
 </div>
