@@ -56,7 +56,7 @@
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
-		<li><a href="#clobunion">CLOB や TEXT が union 利用できない問題の SpecifyColumn による回避</a></li>
+		<li><a href="#unioncolumn">UnionQuery での select 句のカラム</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -69,7 +69,7 @@
 		また、必ず該当テーブルのユニークなカウントを取得します。例えば、PKの存在するテーブルであれば、count(*) の "*" の中には必ず PK
 		カラムが含まれます。PKなしテーブルであれば、"*" には(SpecifyColumnの有無に関わらず)全てのカラムが含まれます。
 	</p>
-	<div class="relatedpage"><a href="#clobunion">this - CLOB や TEXT が union 利用できない問題の SpecifyColumn による回避</a></div>
+	<div class="relatedpage"><a href="#unioncolumn">this - UnionQuery での select 句のカラム</a></div>
 	<p>
 		会話上では、<em class="keyword">せれくとかうんと</em>
 		と表現します。文脈上、抽象的で伝わりにくい場合は <em class="keyword">Behaviorのせれくとかうんと(メソッド)</em>
@@ -102,9 +102,9 @@
 		検索条件がない検索をする場合でも、必ずConditionBeanのインスタンスが必要です。
 	</p>
 	<p>
-		設定されている SetupSelect や OrderBy, SpecifyColumn(一部例外あり) など、カウント検索に不要な情報は無視されます。
+		設定されている SetupSelect や OrderBy, SpecifyColumn(旧バージョンにて例外あり) など、カウント検索に不要な情報は無視されます。
 	</p>
-	<div class="relatedpage"><a href="#clobunion">this - CLOB や TEXT が union 利用できない問題の SpecifyColumn による回避</a></div>
+	<div class="relatedpage"><a href="#unioncolumn">this - UnionQuery での select 句のカラム</a></div>
 	<h3 id="result">戻り値</h3>
 	<p>
 		int型となります。検索結果が一件もない場合は 0 が戻ります。
@@ -118,21 +118,17 @@
 	</p>
 	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
 
-	<h2 id="clobunion">CLOB や TEXT が union 利用できない問題の SpecifyColumn による回避</h2>
+	<h2 id="unioncolumn">UnionQuery での select 句のカラム</h2>
 	<p>
-		引数の ConditionBean に SpecifyColumn が指定されている場合、その SpecifyColumn
-		の有無に関わらず、該当テーブルのユニークなカウントが取得されます。よって、基本的には SpecifyColumn は無視される考えてもいいでしょう。
+		PKが存在するテーブルの場合で、引数の ConditionBean で UnionQuery
+		を利用すると、UnionQuery に対応する select 句は PK カラムのみ列挙されます(PK は NotNull なのでカウントに変化なし)。
+		つまり、CLOB や TEXT 型のカラムが含まれるテーブルで、union の distinct 処理でそれらカラムがサポートされない DBMS
+		でも問題なく UnionQuery を利用することができます<span class="freecomment">(@since 0.9.7.7)</span>。
+		旧バージョンでは、SpecifyColumn を利用して列挙カラムを絞り込むことで回避することができます。
 	</p>
 	<p>
-		ただ、UnionQuery (union all は除く)の利用でTEXT型やCLOB型のカラムが文法的に許されない DBMS
-		の場合のために、SpecifyColumn でカラムを絞り込むことで回避することが可能です。PKが存在するテーブルにおいてのみ、UnionQuery
-		の select 句では SpecifyColumn で指定されているカラムだけが列挙されます。PK カラムはそもそも SpecifyColumn
-		の暗黙の必須カラムなのでカウント結果は変化しません。 
-	</p>
-	<p>
-		PKなしテーブルでは、この回避技は制限として利用できません。また、ビューも "PKなしテーブル"
-		に含まれますが、additionalPrimaryKeyMap.dfprop などでユニークなカラムに(疑似) PK
-		を設定することでこの回避技を利用できます。
+		PKなしテーブル(ビューも含む)では、バージョンに関わらず回避はできません。ビューにおいては、AdditionalPrimaryKey
+		で疑似の PK を設定すると良いでしょう。 
 	</p>
 
 </div>

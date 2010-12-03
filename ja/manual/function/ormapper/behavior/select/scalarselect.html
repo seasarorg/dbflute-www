@@ -60,7 +60,7 @@
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
-		<li><a href="#clobunion">CLOB や TEXT が union 利用できない問題</a></li>
+		<li><a href="#unioncolumn">UnionQuery での select 句のカラム</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -184,13 +184,17 @@ Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.s
 	</p>
 	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
 
-	<h2 id="clobunion">CLOB や TEXT が union 利用できない問題</h2>
+	<h2 id="unioncolumn">UnionQuery での select 句のカラム</h2>
 	<p>
-		UnionQuery (union all は除く) の利用でTEXT型やCLOB型のカラムが文法的に許されない DBMS
-		にて、そられカラムが含まれているテーブルで UnionQuery を利用している場合、ScalarSelect は利用できません。
-		(selectCount(cb) のように SpecifyColumn で回避することもできません)
+		PKが存在するテーブルの場合で、引数の ConditionBean で UnionQuery
+		を利用すると、UnionQuery に対応する select 句は PK カラムと導出カラムのみ列挙されます。
+		つまり、CLOB や TEXT 型のカラムが含まれるテーブルで、union の distinct 処理でそれらカラムがサポートされない DBMS
+		でも問題なく UnionQuery を利用することができます<span class="freecomment">(@since 0.9.7.7)</span>。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./selectcount.html#specifycolumn"> -->selectCount(cb) - CLOB や TEXT が union 利用できない問題の...<!-- </a> --></span></div>
+	<p>
+		旧バージョン、および、PKなしテーブル(ビューも含む)では、バージョンに関わらず回避はできません。ビューにおいては、AdditionalPrimaryKey
+		で疑似の PK を設定すると良いでしょう。 
+	</p>
 
 </div>
 </div>
