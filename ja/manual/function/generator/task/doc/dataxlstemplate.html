@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,タスク,Task,Doc,SchemaHTML,スキーマ情報,テーブル一覧" />
+	<meta name="keywords" content="DBFlute,タスク,Task,Doc,DataXlsTemplate,データエクセルテンプレート,エクセルデータの土台,エクセルデータの雛形,エクセルデータのひな形,データダンプ,Dump" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Docタスク | DBFlute</title>
+	<title>DataXlsTemplate | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,91 +37,50 @@
 </div>
 
 <div id="content">
-	<h1>Docタスク</h1>
+	<h1>DataXlsTemplate</h1>
 	<ul class="indexlist">
-		<li><a href="#about">Docタスクとは？</a>
+		<li><a href="#about">DataXlsTemplateとは？</a></li>
+		<li><a href="#howto">DataXlsTemplateの作成方法</a>
 			<ul>
-				<li><a href="#timing">主な実行タイミング</a></li>
+				<li><a href="#recordlimit">出力レコード数の設定(出力設定)</a></li>
+				<li><a href="#commoncolumn">共通カラムの出力有無</a></li>
 			</ul>
 		</li>
-		<li><a href="#command">実行コマンド</a></li>
-		<li><a href="#environment">環境構築</a></li>
-		<li><a href="#overview">処理概要</a>
-			<ul>
-				<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-				<li><a href="#schemahtml">2. SchemaHTMLを自動生成</a></li>
-				<li><a href="#historyhtml">3. HistoryHTMLを自動生成</a></li>
-				<li><a href="#dataxls">4. DataXlsTemplateを出力 (オプション)</a></li>
-			</ul>
-		</li>
-		<li><a href="#variousoption">様々なオプション</a></li>
 	</ul>
 
-	<h2 id="about">Docタスクとは？</h2>
+	<h2 id="about">DataXlsTemplateとは？</h2>
 	<p>
-		様々なドキュメント(主に <em class="keyword">SchemaHTML</em>)を自動生成するDBFluteタスクです。
+		DB上の(一部の)データをエクセルデータに出力したもので、オプションによりDocタスクで自動生成されます。
+		<em class="keyword">人がエクセル形式でデータを閲覧する</em>
+		という目的以外に、<em class="keyword">ReplaceSchema のデータ登録で利用するエクセルデータの土台</em>
+		として活用できることから Template という名前が付いています。
 	</p>
-	<h3 id="timing">主な実行タイミング</h3>
-	<ul>
-		<li>実装開始直前 (開発用DBスキーマの作成後)</li>
-		<li>DB変更の発生</li>
-		<li>DBFluteアップグレード直後</li>
-		<li>本番運用後のDB変更</li>
-	</ul>
+	<p>
+		<em class="keyword">この機能は、データダンプ(DataDump)ではありません</em>。
+		人の目で見る、もしくは、手動での調整を入れて ReplaceSchema
+		におけるエクセルデータの作成に活用するための土台という目的のものです。
+		もし、業務の一環としてのデータダンプを目的とするなら、もっとデータの精密度を高める、もっと色々な状況に対応できる、そういったオプションと実装が必要ですし、
+		そもそもそういった場合は、エクセルではなくTSVなどの区切りデータの方が適しています。
+		そういったことは考慮せずに作成された機能です。
+	</p>
 
-	<h2 id="command">実行コマンド</h2>
+	<h2 id="howto">DataXlsTemplateの作成方法</h2>
+	<h3 id="recordlimit">出力レコード数の設定(出力設定)</h3>
 	<p>
-		DBFluteクライアント配下の <em class="keyword">doc.(bat|sh)</em> をコマンドから実行します。
+		この機能は、オプションです。documentDefinitionMap.dfprop の dataXlsTemplateRecordLimit
+		を設定すると DBFluteクライアント/output/doc 配下に data-xls-template.xls という名前で出力されます。
 	</p>
-
-	<h2 id="environment">環境構築</h2>
+	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#dataxlstemplaterecordlimit">dfprop - dataXlsTemplateRecordLimit</a></div>
+	<h3 id="commoncolumn">共通カラムの出力有無</h3>
 	<p>
-		DBFluteのセットアップが終わった時点から利用できます。
-		但し、スキーマのメタデータがないと無意味ですので、実行前にJDBCタスクが必ず(一度は)実行されていることが前提です。
+		デフォルトでは共通カラムは出力されません。ReplaceSchema
+		には共通カラムに対して自動設定を行うための機能が備わっているため、大抵の場合は不要であるためです。
 	</p>
-	<div class="relatedpage"><a href="../../../../../environment/setup/index.html">DBFluteのセットアップ</a></div>
-
-	<h2 id="overview">処理概要</h2>
+	<div class="relatedpage"><a href="../replaceschema/loaddata.html#defaultvaluemap">ReplaceSchema - データ登録 - defaultValueMap.dataprop</a></div>
 	<p>
-		Docタスクを実行すると処理が始まります。
+		共通カラムを出力したい場合は、documentDefinitionMap.dfprop の isDataXlsTemplateContainsCommonColumn を有効にします。
 	</p>
-	<ul class="flowlist">
-		<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-		<li><a href="#schemahtml">2. SchemaHTMLを自動生成</a></li>
-		<li><a href="#historyhtml">3. HistoryHTMLを自動生成</a></li>
-		<li><a href="#dataxls">4. DataXlsTemplateを出力 (オプション)</a></li>
-	</ul>
-	<h3 id="schemaxml">1. SchemaXMLを参照</h3>
-	<p>
-		JDBCタスクで出力された SchemaXML (スキーマのメタ情報)を読み込みます。
-	</p>
-	<div class="relatedpage"><a href="../jdbc/index.html">JDBCタスク</a></div>
-	<h3 id="schemahtml">2. SchemaHTMLを自動生成</h3>
-	<p>
-		取得したメタデータを人が見やすい形にして、<em class="keyword">[DBFluteクライアント]/output/doc/schema-[client-project].html</em>
-		に出力します。このHTMLファイルを <em class="keyword">SchemaHTML</em>
-		と言います。このファイルはDocタスク実行のたびに上書きされます。
-	</p>
-	<div class="relatedpage"><a href="./schemahtml.html">SchemaHTML</a></div>
-	<h3 id="historyhtml">3. HistoryHTMLを自動生成</h3>
-	<p>
-		スキーマの変更履歴を人が見やすい形にして、<em class="keyword">[DBFluteクライアント]/output/doc/history-[client-project].html</em>
-		に出力します。このHTMLファイルを <em class="keyword">HistoryHTML</em>
-		と言います。このファイルはDocタスク実行のたびに上書きされます。<span class="freecomment">@since 0.9.7.1</span>
-	</p>
-	<div class="relatedpage"><a href="./historyhtml.html">HistoryHTML</a></div>
-	<h3 id="dataxls">4. DataXlsTemplateを出力 (オプション)</h3>
-	<p>
-		オプションで、DB上の(一部の)データをエクセル形式で閲覧できる、かつ、ReplaceSchemaのデータ登録で利用するエクセルデータの作成の土台にもできる
-		<em class="keyword">DataXlsTemplate(データエクセルテンプレート)</em> を出力します。
-	</p>
-	<div class="relatedpage"><a href="./dataxlstemplate.html">DataXlsTemplate</a></div>
-
-	<h2 id="variousoption">様々なオプション</h2>
-	<p>
-		DBFluteプロパティを利用することで、様々なオプションが利用可能です。
-	</p>
-	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html">documentDefinitionMap.dfprop</a></div>
+	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#isdataxlstemplatecontainscommoncolumn">dfprop - isDataXlsTemplateContainsCommonColumn</a></div>
 
 </div>
 </div>
