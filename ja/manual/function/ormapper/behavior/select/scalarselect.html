@@ -137,9 +137,29 @@ Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.s
 </code></pre>
 	<h3 id="derived">子テーブルの導出カラム</h3>
 	<p>
-		導出カラムとして、子テーブルの導出カラムを指定するのはサポートされていません。例えば、"それぞれの会員の購入平均価格の会員全体での最大価格"
-		というような値の取得です。<span class="freecomment">@review</span>
+		導出カラムとして、子テーブルの導出カラムを指定することもできます。
+		ScalarSelect の中で (Specify)DerivedReferrer を利用します。<span class="freecomment">(@since 0.9.7.7)</span>
 	</p>
+<pre><span class="codetitle">ex) それぞれの会員の平均購入価格の会員全体での最大 @Java</span><code>
+Integer <span class="point">maxAvg</span> = <span class="attribute">memberBhv</span>.scalarSelect(Integer.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB subCB) {
+        subCB.specify().<span class="point">derivedPurchaseList()</span>.avg(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+            <span class="keyword">public void</span> query(MemberCB subCB) {
+                subCB.specify().<span class="point">columnPurchasePrice()</span>;
+            }
+        }, <span class="keyword">null</span>);
+        subCB.query().set<span class="abbreviation">...</span>
+    }
+});
+</code></pre>
+<pre><span class="codetitle">ex) それぞれの会員の平均購入価格の会員全体での最大 @DisplaySql</span><code>
+<span class="keyword">select</span> max((<span class="keyword">select</span> avg(sub1loc.PURCHASE_PRICE)
+              <span class="keyword">from</span> PURCHASE sub1loc 
+             <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+       )) <span class="keyword">as</span> dfscalar
+  <span class="keyword">from</span> MEMBER dfloc 
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+</code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
@@ -152,7 +172,9 @@ Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.s
 	</p>
 	<h3 id="specifycolumn">導出カラムの指定</h3>
 	<p>
-		ScalarQuery 内での導出カラムは、必ず一つだけ指定します。また、基点テーブルのカラムに限ります。
+		ScalarQuery 内での導出カラムは、必ず一つだけ指定します。
+		また、基点テーブルのカラム、もしくは、子テーブルの導出カラムのどちらかに限ります。
+		(カラム指定がない、もしくは、二つ以上のカラムが指定された場合は例外)
 	</p>
 	<h3 id="usablefunc">利用できる関数</h3>
 	<p>

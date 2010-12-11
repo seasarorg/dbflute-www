@@ -224,18 +224,39 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 		ネストした導出カラムの導出カラムという形式になり、DerivedReferrer の中で DerivedReferrer
 		を利用します。<span class="freecomment">(@since 0.9.7.7)</span>
 	</p>
-<pre><span class="codetitle">ex) 会員ステータスごとに最大購入価格を導出 @Java</span><code>
+<pre><span class="codetitle">ex) 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
-cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+cb.specify().<span class="point">derivedMemberList()</span>.avg(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
         subCB.specify().<span class="point">derivedPurchaseList()</span>.max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
             <span class="keyword">public void</span> query(MemberCB subCB) {
                 subCB.specify().<span class="point">columnPurchasePrice()</span>;
+                subCB.query().set<span class="abbreviation">...</span>
             }
-        }
+        }, <span class="keyword">null</span>);
+        subCB.query().set<span class="abbreviation">...</span>
     }
-}, MemberStatus.ALIAS_maxPurchasePrice);
+}, MemberStatus.ALIAS_avgMaxPurchasePrice);
+cb.query().set<span class="abbreviation">...</span>
 </code></pre>
+<pre><span class="codetitle">ex) 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @DisplaySql</span><code>
+<span class="keyword">select</span> dfloc.MEMBER_STATUS_CODE as c1, dfloc.MEMBER_STATUS_<span class="abbreviation">...</span>
+     , (<span class="keyword">select</span> avg((<span class="keyword">select</span> max(sub2loc.PURCHASE_PRICE)
+                      <span class="keyword">from</span> PURCHASE sub2loc 
+                     <span class="keyword">where</span> sub2loc.MEMBER_ID = sub1loc.MEMBER_ID
+                       <span class="keyword">and</span> <span class="abbreviation">...</span>
+               ))
+          <span class="keyword">from</span> MEMBER sub1loc 
+         <span class="keyword">where</span> sub1loc.MEMBER_STATUS_CODE = dfloc.MEMBER_STATUS_CODE
+           <span class="keyword">and</span> <span class="abbreviation">...</span>
+       ) <span class="keyword">as</span> AVG_MAX_PURCHASE_PRICE
+  <span class="keyword">from</span> MEMBER_STATUS dfloc 
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		"平均購入価格の会員ステータスごとの最大" や "合計購入価格の会員ステータスごとの平均"
+		など、関数の組み合わせで色々なパターンの値を導出することができます。
+	</p>
 	<h3 id="manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</h3>
 	<p>
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも導出カラムとして利用できます。Specify(Relation) の後に
