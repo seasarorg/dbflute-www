@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,queryUpdate,CBによる更新,ConditionBeanで更新,ConditionBeanでupdate,条件更新,子テーブル削除" />
+	<meta name="keywords" content="DBFlute,Behavior,batchInsert,バッチ登録,一括登録,複数件登録,バッチ挿入" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>queryUpdate(entity, cb) | DBFlute</title>
+	<title>batchInsert(entityList) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>queryUpdate(entity, cb)</h1>
+	<h1>batchInsert(entity)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -47,7 +47,6 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
-				<li><a href="#pkupdate">主キー値の更新</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -55,105 +54,89 @@
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
 				<li><a href="#exception">例外</a></li>
-				<li><a href="#dbmsheadache">DBMSによっては制限も</a></li>
-				<li><a href="#compoundpk">複合主キーの場合は制限</a></li>
 			</ul>
 		</li>
-		<li><a href="#commoncolumn">共通カラムの自動設定</a></li>
-		<li><a href="#exclusive">排他制御処理なし</a></li>
+		<li><a href="#autoincrement">自動採番処理の自動化</a></li>
+		<li><a href="#commoncolumn">共通カラムは自動設定</a></li>
+		<li><a href="#exclusive">排他制御カラムの自動設定</a></li>
 		<li><a href="#nocascade">カスケードはしません</a></li>
-		<li><a href="#scope">Entity更新のスコープ</a></li>
+		<li><a href="#defaultvalue">デフォルト制約は利用できない</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		ConditionBean の絞り込み条件に一致するレコード全てを更新します。
+		Entityのリストをもとに <em class="keyword">バッチ登録</em> をします。
 	</p>
 	<p>
-		例えば、"未払い購入のある正式会員を仮会員に更新"、"退会会員の生年月日を null に更新"
-		というような更新ができます。Entity に加えて、ConditionBean を指定します。
+		これは単なる複数件の insert() ではありません。
+		DBと一回の通信で複数件のレコードを取扱うバッチ更新により、ループで一件登録を行う場合に比べてパフォーマンス的に優位です。
+		具体的には、PreparedStatement の addBatch(), executeBatch() を利用します。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../../topic/programming/dbaccess/batchupdate"> -->DBアクセス - バッチ更新<!-- </a> --></span></div>
 	<p>
-		排他制御カラムの更新はありますが、排他制御処理はありません。共通カラムの自動設定はされます。
+		通常の一件登録の insert() とは違う仕様を持つことがあります。例えば、登録時に自動採番された Identity の値は登録後の Entity
+		の中には格納されません。また、insert 文には全カラム列挙されるため、デフォルト制約を利用することはできません。
 	</p>
+	<div class="relatedpage"><a href="#autoincrement">this - 自動採番処理の自動化</a></div>
+	<div class="relatedpage"><a href="#defaultvalue">this - デフォルト制約は利用できない</a></div>
 	<p>
-		会話上では、<em class="keyword">くえりあっぷでーと</em>
-		と表現します。<em class="keyword">ConditionBean のあっぷでーと</em> とも言えます。
+		会話上では、<em class="keyword">ばっちいんさーと</em> と表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">queryUpdate()</em>
-		を呼び出し、Entity と ConditionBean を指定します。
+		Behaviorの <em class="keyword">batchInsert()</em>
+		を呼び出し、Entityを指定します。
 	</p>
-<pre><span class="codetitle">ex) queryUpdate()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.quU <span class="comment">// .quU と打って enter</span>
+<pre><span class="codetitle">ex) insert()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+List&lt;Member&gt; memberList = <span class="keyword">new</span> ArrayList&lt;Member&gt;();
+{
+    Member member = <span class="keyword">new</span> Member();
+    <span class="comment">//member.setMemberId(1);</span> <span class="comment">// 自動採番の場合は不要</span>
+    member.setMemberName(<span class="literal">"Stojkovic"</span>);
+    <span class="abbreviation">...</span>
+    <span class="comment">//member.setRegisterUser(user);</span> <span class="comment">// 共通カラムは自動設定(設定が有効なら)</span>
+    <span class="comment">//member.setRegister...</span>
+    <span class="comment">//member.setVersionNo(versionNo);</span> <span class="comment">// バージョン番号は自動で初期値に</span>
+    memberList.add(member);
+}
+{
+    Member member = <span class="keyword">new</span> Member();
+    member.setMemberName(<span class="literal">"Savicevic"</span>);
+    <span class="abbreviation">...</span>
+    memberList.add(member);
+}
+{
+    Member member = <span class="keyword">new</span> Member();
+    member.setMemberName(<span class="literal">"Mijatovic"</span>);
+    <span class="abbreviation">...</span>
+    memberList.add(member);
+}
+
+<span class="attribute">memberBhv</span>.baI <span class="comment">// .baI と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cb);
+<span class="attribute">memberBhv</span>.<span class="point">batchInsert</span>(memberList);
 
-<span class="comment">// .qu と打つと queryUpdate() や queryDelete() など</span>
-<span class="comment">// クエリ更新系のメソッドだけが補完候補に列挙される</span>
+<span class="comment">// .ba と打つと batchInsert() や batchUpdate() など</span>
+<span class="comment">// バッチ更新系のメソッドだけが補完候補に列挙される</span>
 </code></pre>
-	<p>
-		Entity には PK の値も不要です。更新値だけを設定します。
-	</p>
-<pre><span class="codetitle">ex) 未払い購入のある正式会員を仮会員に更新 @Java</span><code>
-Member member = <span class="keyword">new</span> Member();
-member.<span class="point">setMemberStatusCode_Provisional()</span>;
-member.<span class="point">setFormalizedDatetime</span>(<span class="keyword">null</span>);
-
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>;
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().<span class="point">setPaymentCompeleteFlg_Equal_False()</span>;
-    }
-});
-
-<span class="attribute">memberBhv</span>.queryUpdate(member, cb);
-</code></pre>
-<pre><span class="codetitle">ex) 未払い購入のある正式会員を仮会員に更新 @DisplaySql</span><code>
-<span class="keyword">update</span> MEMBER
-   <span class="keyword">set</span> <span class="point">MEMBER_STATUS_CODE</span> = <span class="literal">'PRV'</span>
-     , <span class="point">FORMALIZED_DATETIME</span> = <span class="keyword">null</span>
-     , UPDATE_DATETIME = <span class="literal">'2010-11-16 15:54:48.624'</span>
-     , UPDATE_USER = <span class="literal">'testUser'</span>
-     , UPDATE_PROCESS = <span class="literal">'WxBhvQueryUpdateTest[main]'</span>
-     , VERSION_NO = VERSION_NO + <span class="literal">1</span>
- <span class="keyword">where</span> MEMBER_ID <span class="keyword">in</span> (
-<span class="keyword">select</span> dfloc.MEMBER_ID 
-  <span class="keyword">from</span> MEMBER dfloc 
- <span class="keyword">where</span> dfloc.<span class="point">MEMBER_STATUS_CODE</span> = <span class="literal">'FML'</span>
-   <span class="keyword">and exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
-                 <span class="keyword">from</span> PURCHASE sub1loc 
-                <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
-                  <span class="keyword">and</span> sub1loc.<span class="point">PAYMENT_COMPLETE_FLG</span> = <span class="literal">0</span>
-       )
-)
-</code></pre>
-	<p>
-		絞り込み条件は、InScope を使ったサブクエリ方式です。
-	</p>
-	<div class="relatedpage"><a href="#dbmsheadache">DBMSによっては制限も</a></div>
-	<div class="relatedpage"><a href="#compoundpk">複合主キーの場合は制限</a></div>
-	<h3 id="pkupdate">主キー値の更新</h3>
-	<p>
-		PK も更新対象カラムの一つです。あまりお奨めされませんが、PKのプロパティに値を設定すれば更新できます。
-	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルのEntityとConditionBeanになります。
+		該当のBehaviorに対応するテーブルのEntityのリストとなります。
 	</p>
 	<p>
-		nullを指定した場合は例外発生します。
+		空リストの場合は、何も処理が発生しません。nullを指定した場合は例外発生します。
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		更新したレコードの件数が戻ります。更新対象が存在しなかった場合は 0 が戻ります。
+		それぞれのレコードごとの登録件数を示す int[] です。これは JDBC の executeBatch() の戻り値そのままの値となっています。一つの Entity
+		で一つのレコードを登録する仕様なので、実際には {1, 1, 1, 1, ...}
+		という値になることが想定されます。"0" を持つ要素は登録に失敗したことを示しますが、そのような状況は想定されていません。
+		(ほとんどの場合において、この戻り値を意識する必要はないでしょう)
 	</p>
 	<h3 id="exception">例外</h3>
 	<dl class="textlist">
@@ -164,43 +147,40 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 			<div class="relatedpage"><a href="../../../../../environment/supported.html#database">DBFluteのサポート情報 - データベース</a></div>
 		</dd>
 	</dl>
-	<h3 id="dbmsheadache">DBMSによっては制限も</h3>
-	<p>
-		DBMSによっては利用できる機能に制限があります。例えば、MySQLは、update 文の where
-		句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、サブクエリ方式ではなく、where
-		句に直接条件を展開しています。すると、Query(Relation) や ExistsReferrer
-		などの関連テーブルを利用した絞り込み条件が利用できなくなります。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
-	<h3 id="compoundpk">複合主キーの場合は制限</h3>
-	<p>
-		複合主キーの場合は制限は、サブクエリ方式が利用できないため、MySQLと同じ制限になります。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
-	<div class="relatedpage"><a href="../../../../function/genbafit/deprecatedfit/compoundprimarykey/index.html">現場フィット - 複合主キーの対策</a></div>
 
-	<h2 id="commoncolumn">共通カラムの自動設定</h2>
+	<h2 id="autoincrement">自動採番処理の自動化</h2>
 	<p>
-		update(entity) と同じ仕様です。
+		一件登録の insert() と同じく自動設定されます(全ての Entity にそれぞれ設定されます)。
 	</p>
-	<div class="detailpage"><a href="./update.html#commoncolumn">update(entity) - 共通カラムの自動設定</a></div>
+	<div class="relatedpage"><a href="./insert.html#autoincrement">insert(entity) - 自動採番処理の自動化</a></div>
+	<p>
+		ただし、バッチ登録特有の制限として、Identityの場合は採番された値を登録処理後の Entity から取得することができません。
+		(シーケンスの場合は取得できる)
+	</p>
 
-	<h2 id="exclusive">排他制御処理なし</h2>
+	<h2 id="commoncolumn">共通カラムは自動設定</h2>
 	<p>
-		排他制御カラムは更新(バージョン番号のインクリメントなど)されますが、排他制御処理はありません。
+		一件登録の insert() と同じく自動設定されます(全ての Entity にそれぞれ設定されます)。
 	</p>
+	<div class="relatedpage"><a href="./insert.html#commoncolumn">insert(entity) - 共通カラムは自動設定</a></div>
+
+	<h2 id="exclusive">排他制御カラムの自動設定</h2>
+	<p>
+		一件登録の insert() と同じく自動設定されます(全ての Entity にそれぞれ設定されます)。
+	</p>
+	<div class="relatedpage"><a href="./insert.html#exclusive">insert(entity) - 排他制御カラムの自動設定</a></div>
 
 	<h2 id="nocascade">カスケードはしません</h2>
 	<p>
-		update(entity) と同じ仕様です。
+		一件登録の insert() と同じくカスケードはしません。
 	</p>
-	<div class="detailpage"><a href="./update.html#nocascade">update(entity) - カスケードはしません</a></div>
+	<div class="relatedpage"><a href="./insert.html#nocascade">insert(entity) - カスケードはしません</a></div>
 
-	<h2 id="scope">Entity更新のスコープ</h2>
+	<h2 id="defaultvalue">デフォルト制約は利用できない</h2>
 	<p>
-		update(entity) と同じ仕様です。
+		insert 文の項目には全てのカラムが列挙されます。
+		ゆえに、DB上ので設定でデフォルト制約が存在する場合でも、そのデフォルト値を利用して登録することはできません。
 	</p>
-	<div class="detailpage"><a href="./update.html#scope">update(entity) - Entity更新のスコープ</a></div>
 
 </div>
 </div>
