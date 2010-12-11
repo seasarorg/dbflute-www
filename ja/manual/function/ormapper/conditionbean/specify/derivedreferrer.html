@@ -208,7 +208,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
-		one-to-one のテーブルのカラムを導出カラムに、というのが実用的と考えられます。
+		one-to-one のテーブルのカラムを導出カラムに、という使い方が実用的と考えられます。
 	</p>
 <pre><span class="codetitle">ex) 会員ステータスごとに会員セキュリティの更新日時の最大値を導出 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
@@ -220,9 +220,22 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</h3>
 	<p>
-		残念ながら、子テーブルの子テーブル(one-to-many-to-many)のカラムを導出カラムにすることはできません。
-		(つまり、DerivedReferrer の中で、DerivedReferrer を利用することはできません) <span class="freecomment">@review</span>
+		子テーブルの子テーブル(one-to-many-to-many)のカラムも導出カラムとして利用できます。
+		ネストした導出カラムの導出カラムという形式になり、DerivedReferrer の中で DerivedReferrer
+		を利用します。<span class="freecomment">(@since 0.9.7.7)</span>
 	</p>
+<pre><span class="codetitle">ex) 会員ステータスごとに最大購入価格を導出 @Java</span><code>
+MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
+cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB subCB) {
+        subCB.specify().<span class="point">derivedPurchaseList()</span>.max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+            <span class="keyword">public void</span> query(MemberCB subCB) {
+                subCB.specify().<span class="point">columnPurchasePrice()</span>;
+            }
+        }
+    }
+}, MemberStatus.ALIAS_maxPurchasePrice);
+</code></pre>
 	<h3 id="manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</h3>
 	<p>
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも導出カラムとして利用できます。Specify(Relation) の後に
