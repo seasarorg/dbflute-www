@@ -47,7 +47,7 @@
 				<li><a href="#deprecated">少なくともお奨めでないこと</a></li>
 			</ul>
 		</li>
-		<li><a href="#equal">空文字による等値条件</a>
+		<li><a href="#equal">空文字による条件</a>
 			<ul>
 				<li><a href="#conditionbean">ConditionBean</a></li>
 				<li><a href="#parameterbean">ParameterBean</a></li>
@@ -139,12 +139,25 @@
 		<li>"値がないこと" を(DBスキーマ全体で)何で表現するのか(null or empty)？</li>
 	</ul>
 
-	<h2 id="equal">空文字による等値条件</h2>
+	<h2 id="equal">空文字による条件</h2>
 	<h3 id="conditionbean">ConditionBean</h3>
 	<p>
+		ConditionBean の allowEmptyStringQuery()
+		を呼び出すことで、その ConditionBean においてのみ空文字条件が許可されます<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/conditionbean/sidebar/allowemptystringquery.html">ConditionBean - AllowEmptyStringQuery</a></div>
+	<p>
+		また、プロジェクト全体で一律の設定として空文字条件を許可したい、というような場合は DBFluteConfig
+		を利用します<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#emptystringqueryallowed">DBFluteConfig - emptyStringQueryAllowed</a></div>
+	<p>
+		ただし、カラム限定で空文字条件を実現したい場合は、
 		ConditionQueryのExクラスに、空文字による等値条件を設定するメソッドを(手動で)作成します。
-		メソッドの中では、doSet[column-name]_Equal(value) を呼び出し、引数には固定で空文字を指定します。
-		メソッド名は任意ですが、習慣的に set[column-name]_Equal_EmptyString()
+	</p>
+	<p>
+		例えば、空文字等値条件を行うメソッドを作成するとしたら、そのメソッド内では doSet[column-name]_Equal(value)
+		を呼び出し、引数には固定で空文字を指定します。メソッド名は任意ですが、習慣的に set[column-name]_Equal_EmptyString()
 		をお奨めします。また、非等値条件も同じ要領で作成します。
 	</p>
 <pre><span class="codetitle">ex) ConditionQueryで空文字による等値条件メソッドを定義 {MEMBER} @Java</span><code>
@@ -179,23 +192,36 @@ cb.query().setMemberName_Equal_EmptyString();
 		無駄な(大量の)メソッドは、ディベロッパーにとって紛らわしいのと、コンパイル速度の劣化に繋がります。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../dbflutefit/includequery/index.html"> -->現場フィット - IncludeQuery<!-- </a> --></span></div>
-
 	<h3 id="parameterbean">ParameterBean</h3>
 	<p>
-		get メソッドでフィルタが掛かっているため、ParameterBeanのExクラスにて、get
-		メソッドをオーバーライドして、インスタンス変数の値をフィルタせずにそのまま戻すようにします。
-		但し、(DBFluteアップグレード時の)万が一の仕様変更のために、必ず単体テストを書くようにして下さい。
+		get メソッドでフィルタが掛かっているため、ParameterBeanのExクラスにて、isEmptyStringParameterAllowed()
+		メソッドをオーバーライドして、true を戻すことでフィルタが無効になります<span class="freecomment">(@since 0.9.7.8)</span>。
+		ただし、(DBFluteアップグレード時の)万が一の仕様変更のために、必ず単体テストを書くようにして下さい。
 	</p>
-<pre><span class="codetitle">ex) ConditionQueryで空文字による等値条件メソッドを定義 {MEMBER} @Java</span><code>
+<pre><span class="codetitle">ex) ParameterBeanで空文字をそのまま扱うようにする @Java</span><code>
 <span class="keyword">public class</span> SimpleMemberPmb <span class="keyword">extends</span> BsSimpleMemberPmb {
     <span class="abbreviation">...</span>
 
     @Override
-    <span class="keyword">public</span> String getMemberName() {
-        <span class="keyword">return</span> <span class="attribute">_memberName</span>;
+    <span class="keyword">protected boolean</span> isEmptyStringParameterAllowed() {
+        <span class="keyword">return</span> <span class="keyword">true</span>;
     }
 }
 </code></pre>
+	<p>
+		ただしこの場合、IF コメントでよく利用される "FOO != null" という条件は、空文字が指定された場合に true
+		になりません(通常は、null に変換されるので true になる)。空文字の場合にも true
+		になるようにしたい場合は、空文字を意識した条件に変更する必要があります。
+	</p>
+	<p>
+		その他様々なパターンでの利用がある場合は、Exクラスで自由にメソッドを拡張して実現できます。
+		ただし、ここでも同じですが、(DBFluteアップグレード時の)万が一の仕様変更のために、必ず単体テストを書くようにして下さい。
+	</p>
+	<p>
+		また、プロジェクト全体で一律の設定として空文字条件を許可したい、というような場合は DBFluteConfig
+		を利用します<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#emptystringparameterallowed">DBFluteConfig - emptyStringParameterAllowed</a></div>
 
 	<h2 id="entity">Entityで空文字を null に変換</h2>
 	<p>

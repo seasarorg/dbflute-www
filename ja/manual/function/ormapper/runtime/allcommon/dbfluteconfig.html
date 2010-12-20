@@ -46,13 +46,17 @@
 				<li><a href="#settinglog">設定されたときのログ</a></li>
 			</ul>
 		</li>
-		<li><a href="#defaultstatementconfig">defaultStatementConfig</a></li>
+		<li><a href="#emptystringqueryallowed">emptyStringQueryAllowed</a></li>
+		<li><a href="#emptystringparameterallowed">emptyStringParameterAllowed</a></li>
+		<li><a href="#invalidquerychecked">invalidQueryChecked</a></li>
 		<li><a href="#queryloglevelinfo">queryLogLevelInfo</a></li>
 		<li><a href="#executestatusloglevelinfo">executeStatusLogLevelInfo</a></li>
 		<li><a href="#logdateformat">logDateFormat</a></li>
 		<li><a href="#logtimestampformat">logTimestampFormat</a></li>
+		<li><a href="#defaultstatementconfig">defaultStatementConfig</a></li>
 		<li><a href="#datasourcehandler">dataSourceHandler</a></li>
 		<li><a href="#physicalconnectiondigger">physicalConnectionDigger</a></li>
+		<li><a href="#sqlexceptiondigger">sqlExceptionDigger</a></li>
 		<li><a href="#sequencecachekeygenerator">sequenceCacheKeyGenerator</a></li>
 		<li><a href="#sqlclausecreator">sqlClauseCreator</a></li>
 		<li><a href="#tablesqlnamefilter">tableSqlNameFilter</a></li>
@@ -105,12 +109,61 @@ config.<span class="point">lock()</span>;
 		とても重要な設定であること、かつ、初期化時に一回だけ設定されるのが前提であることからそのようにしています。
 	</p>
 
-	<h2 id="defaultstatementconfig">defaultStatementConfig</h2>
+	<h2 id="emptystringqueryallowed">emptyStringQueryAllowed</h2>
 	<p>
-		全ての検索に適用するデフォルトの StatementConfig を設定します。設定した
-		StatementConfig インスタンスがDBFlute内部で利用されます。設定後にそのインスタンスの設定値を変更してはいけません。
+		ConditionBean の一律のデフォルトの挙動として、空文字の条件設定を許可します<span class="freecomment">(@since 0.9.7.8)</span>。
+		全ての ConditionBean が cb.allowEmptyStringQuery() が呼び出されたのと同じ状態になります。 
 	</p>
-	<div class="relatedpage"><a href="../statementconfig.html">StatementConfig</a></div>
+	<p>
+		プロジェクト全体で空文字に業務的な意味があるような場合、そのようなカラムが多く存在する場合に有効です。
+		ただし、空文字が「値がないこと」という意味を含む場面が混在する場合は、一律の設定ではなく ConditionBean
+		の設定で都度調整することが推奨されます。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+
+	<h2 id="emptystringparameterallowed">emptyStringParameterAllowed</h2>
+	<p>
+		ParameterBean の一律のデフォルトの挙動として、空文字の条件設定を許可します<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<p>
+		プロジェクト全体で空文字に業務的な意味があるような場合、そのようなカラムが多く存在する場合に有効です。
+		ただし、空文字が「値がないこと」という意味を含む場面が混在する場合は、一律の設定ではなく ParameterBean
+		の設定で都度調整することが推奨されます。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
+	<p>
+		この設定を有効にした場合、パラメータコメントの IF コメントでよく利用される FOO != null
+		という条件は、空文字の場合に true となりませんのでご注意下さい。
+		(空文字でも true にしたい場合は、空文字を意識した条件に変更する必要があります)
+	</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+
+	<h2 id="invalidquerychecked">invalidQueryChecked</h2>
+	<p>
+		ConditionBean の一律のデフォルトの挙動として、nullや空文字などの無効な条件が設定された場合に例外にします(<span class="freecomment">(@since 0.9.7.8)</span>)。
+		全ての ConditionBean が cb.checkInvalidQuery() が呼び出されたのと同じ状態になります。 
+	</p>
+	<p>
+		プロジェクト全体でnullや空文字などの無効な値が設定されたときに例外になってもよいという場合に有効です。
+		ただし、「無効な値の場合は条件を無効にしたい」という場面が混在する場合は、
+		プロジェクト全体でどちらのパターンの方が多いかを深く検討して利用する必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../conditionbean/sidebar/checkinvalidquery.html">ConditionBean - CheckInvalidQuery</a></div>
+	<p>
+		これに対応する ParameterBean の機能はありません。ParameterBean
+		は自由度の高い外だしSQLで利用されるため、一律のチェックによる例外は逆に混沌を生み出す可能性があると想定しているためです。
+	</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="queryloglevelinfo">queryLogLevelInfo</h2>
 	<p>
@@ -119,6 +172,10 @@ config.<span class="point">lock()</span>;
 		ただし、当然のことですが、(微々たるものではありますが)表示用SQLの生成処理とログ出力の分、パフォーマンスに影響します。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="executestatusloglevelinfo">executeStatusLogLevelInfo</h2>
 	<p>
@@ -127,6 +184,10 @@ config.<span class="point">lock()</span>;
 		ただし、当然のことですが、(微々たるものではありますが)表示用SQLの生成処理とログ出力の分、パフォーマンスに影響します。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="logdateformat">logDateFormat</h2>
 	<p>
@@ -168,6 +229,13 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 		リテラルの付与に関しては、logDateFormat と同様です。
 	</p>
 
+	<h2 id="defaultstatementconfig">defaultStatementConfig</h2>
+	<p>
+		全ての検索に適用するデフォルトの StatementConfig を設定します。設定した
+		StatementConfig インスタンスがDBFlute内部で利用されます。設定後にそのインスタンスの設定値を変更してはいけません。
+	</p>
+	<div class="relatedpage"><a href="../statementconfig.html">StatementConfig</a></div>
+
 	<h2 id="datasourcehandler">dataSourceHandler</h2>
 	<p>
 		DBFlute内部で DataSource からのコネクションの取得処理をフィルタします。
@@ -195,6 +263,24 @@ config.setLogTimestampFormat(<span class="literal">"yyyy/MM/dd HH:mm:ss.SSS"</sp
 		(基本的には、DBMSのJDBCドライバに依存せざるを得ない機能を使うときに必要になる可能性があります)
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dbway/oracle/oraclearraystruct.html">Oracleの配列・構造体パラメータ</a></div>
+
+	<h2 id="sqlexceptiondigger">sqlExceptionDigger</h2>
+	<p>
+		抽象例外から SQLException を取得するコールバック処理を設定します<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<p>
+		DBFluteは、DIコンテナ経由でアプリから渡された DataSource
+		を利用してコネクションを取得していますが、利用している DBCP の仕組み次第では SQLException
+		以外の例外を戻す可能性があり、DBFluteの一律の例外である SQLFailureException
+		に翻訳できない可能性があります。ほとんどの場合、それで困る場面はあまり想定されませんが、万が一困るような場合に、(JDBCをラップした)DBCP
+		から発生した抽象例外から SQLException を抽出するロジックを設定して SQLFailureException に統一することができます。
+	</p>
+	<p>
+		デフォルトでは、発生した例外の getCause() から SQLException を抽出するロジックが登録されています。
+		また、Seasar(S2Container) を利用している場合は、それに加えて S2Container の
+		SQLRuntimeException から SQLException を抽出するロジックが登録されています。
+		(詳しくは、自動生成されたソースコードをご覧下さい)
+	</p>
 
 	<h2 id="sequencecachekeygenerator">sequenceCacheKeyGenerator</h2>
 	<p>
@@ -270,6 +356,10 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 	<p>
 		外だしSQLの配置パッケージを変更します。
 	</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="outsidesqlexecutorfactory">outsideSqlExecutorFactory</h2>
 	<p>
@@ -283,12 +373,20 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		を使うと良いでしょう。OutsideSqlContextFactory も差し替えることができます<span class="freecomment">(@since 0.9.7.6)</span>。
 		OutsideSqlFilter (外だしSQLのフィルタ)を指定することもできます<span class="freecomment">(@since 0.9.7.6)</span>。(詳しくはソースにて)
 	</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="usesqllogregistry">useSqlLogRegistry</h2>
 	<p>
 		Seasar の SqlLogRegistry 機能を利用できるように設定します。
 		ただし、DBFluteとしては、CallbackContext を使って同じことが代替できるため、非推奨となっています。
 	</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="fulltextsearchoperand">fullTextSearchOperand</h2>
 	<p>
@@ -339,8 +437,10 @@ config.<span class="point">registerPluginValueType</span>(<span class="literal">
 		ConditionBean の検索条件のバインド変数においては、このプラグインValueTypeは利用されません。
 		データの取得処理や、登録・更新などのバインド変数に限ります。
 	</p>
-
-<p>TODO jflute now writing</p>
+	<p>
+		この設定は、TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 </div>
 </div>
