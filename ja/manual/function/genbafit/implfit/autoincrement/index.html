@@ -41,17 +41,21 @@
 	<ul class="indexlist">
 		<li><a href="#about">自動採番とは？</a></li>
 		<li><a href="#solution">自動採番の自動化</a></li>
-		<li><a href="#sequence">シーケンスの利用</a>
+		<li><a href="#sequence">シーケンス</a>
 			<ul>
+				<li><a href="#sequencesetting">シーケンスの設定</a></li>
 				<li><a href="#serialsequence">serial型のシーケンスは設定不要</a></li>
 				<li><a href="#sequenceautopk">登録時にPKの指定は不要</a></li>
 				<li><a href="#sequenceselect">明示的にシーケンスを取得</a></li>
 				<li><a href="#sequencecache">シーケンスキャッシュ</a></li>
+				<li><a href="#subcolumnsequence">PK以外のカラムのシーケンス</a></li>
 			</ul>
 		</li>
-		<li><a href="#identity">Identityの利用</a>
+		<li><a href="#identity">Identity</a>
 			<ul>
-				<li><a href="#sequenceautopk">登録時にPKの指定は不要</a></li>
+				<li><a href="#identitysetting">Identityの設定</a></li>
+				<li><a href="#identityautopk">登録時にPKの指定は不要</a></li>
+				<li><a href="#identitydisabled">明示的な値の登録はオプション</a></li>
 			</ul>
 		</li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
@@ -92,7 +96,8 @@ member.setMemberName(<span class="literal">"FOO"</span>);
 Integer memberId = member.getMemberId();
 </code></pre>
 
-	<h2 id="sequence">シーケンスの利用</h2>
+	<h2 id="sequence">シーケンス</h2>
+	<h3 id="sequencesetting">シーケンスの設定</h3>
 	<p>
 		シーケンスは、テーブルと関連付かない独立したデータベースオブジェクトです。
 		そのため、汎用的に利用ができますが、PKの値に利用するなどの定型的に利用される場合においては、
@@ -161,8 +166,42 @@ member.setMemberName(<span class="literal">"FOO"</span>);
 		DBFluteにて、シーケンスの発行コストを抑えるためのキャッシュ機構があります。
 	</p>
 	<div class="detailpage"><a href="../../runtimefit/sequencecache/index.html">現場フィット - SequenceCache</a></div>
+	<h3 id="subcolumnsequence">PK以外のカラムのシーケンス</h3>
+	<p>
+		PK以外のカラムに対するシーケンスを利用する場合は、sequenceDefinitionMap.dfprop
+		にてテーブル名に続きカラムまで指定します<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+<pre><span class="codetitle">設定例 @sequenceDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; PURCHASE.PURCHASE_COUNT = SEQ_PURCHASE_COUNT
+}
+</code></pre>
+	<p>
+		すると、Behaviorに selectNextValFor[column-name]()
+		というメソッドが生成され、関連付いたシーケンスのシーケンス値を取得することができます。
+	</p>
+	<p>
+		ただし、PK以外のカラムに対するシーケンスでは、以下のものがサポートされません。
+	</p>
+	<ul>
+		<li>PostgreSQLの serial 型シーケンスの自動認識 (dfpropでの明示的指定が必ず必要)</li>
+		<li>シーケンスキャッシュのdfprop設定による利用 (オーバーライドで利用できる)</li>
+		<li>ReplaceSchemaでのシーケンス値の調整</li>
+		<li>登録処理時のEntityへの自動設定</li>
+	</ul>
+	<p>
+		PK以外のカラムのシーケンスは、業務的な独自のタイミングで採番されることが想定されるため、
+		登録処理時のEntityへの自動設定はありません。明示的に selectNextVal...()
+		を呼び出してEntityに明示的に設定する必要があります。
+		(登録のたびに自動設定するようなカラムは既にPKと言えるカラムです)
+	</p>
+	<p>
+		そう言う意味では、selectNextValFor[column-name]()
+		というメソッドは、単に論理的にカラム名がメソッド名に付与されているだけで、物理的な制約は何もありません。
+	</p>
 
-	<h2 id="identity">Identityの利用</h2>
+	<h2 id="identity">Identity</h2>
+	<h3 id="identitysetting">Identityの設定</h3>
 	<p>
 		Identityは、テーブルのカラム(主にPK)と関連付く機能で、仕組みで解決しやすいものです。
 	</p>
@@ -170,7 +209,7 @@ member.setMemberName(<span class="literal">"FOO"</span>);
 		DBFluteでは、メタデータとしてテーブル(のPK)とIdentityの関連性を取得するため、
 		特に設定なしで登録(insert)時にIdentityを使った自動採番が有効になります。
 	</p>
-	<h3 id="sequenceautopk">登録時にPKの指定は不要</h3>
+	<h3 id="identityautopk">登録時にPKの指定は不要</h3>
 	<p>
 		Identityを利用するテーブルでは、登録時にPKの明示的な指定は不要です。insert文の列挙項目としてPKカラムが除外され、DB上で採番されます。
 		(Entity にPK値が指定されていてもそれは無視され、必ず Identity で採番されます)
@@ -188,6 +227,13 @@ member.setMemberName(<span class="literal">"FOO"</span>);
 <span class="comment">// you can get the identity value after insert</span>
 Integer memberId = member.getMemberId();
 </code></pre>
+	<h3 id="identitydisabled">明示的な値の登録はオプション</h3>
+	<p>
+		Identityカラムに対するアプリで明示的に指定した値での登録は、varyingInsert(entity, option)
+		にてオプション指定で実現できます<span class="freecomment">(@since 0.9.7.8)</span>。
+		ただし、実際に登録できるかどうかは DBMS の仕様と設定に依存します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/behavior/update/varyinginsert.html"> -->varyingInsert(entity, option)<!-- </a> --></span></div>
 
 	<h2 id="schemahtml">SchemaHTMLでの表示</h2>
 	<p>
