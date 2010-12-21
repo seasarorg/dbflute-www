@@ -97,11 +97,22 @@ config.<span class="point">lock()</span>;
 	<h3 id="beforeinit">初期化される前に設定すること</h3>
 	<p>
 		<em class="keyword">DBFluteが初期化される前(DIコンテナが初期化される前)に設定されることが大前提</em>
-		です。それ以降の設定は推奨されません。(DBFluteの初期化が終わると、ロックし忘れを防止するために自動的にロックが掛けられます)
+		であり、それ以降の設定は推奨されません。(DBFluteの初期化が終わると、ロックし忘れを防止するために自動的にロックが掛けられます)
+	</p>
+	<p>
+		どうしてもアプリ稼働途中で変更をしたいというような場面がある場合は、
+		ソースをしっかり読んで挙動を確認し、十分テストした上で利用することが求められます。
+	</p>
+	<p>
+		どの環境でも必ず設定するコンフィグに関しては、DBFluteの初期化前に同期して必ず設定されるような仕組みにしておくと良いでしょう。
+		例えば、DBFluteInitializer に代わって、それを継承したクラスが初期化されるようにし、そのクラスでコンフィグの設定を行うなど。
+		(DIコテンナ次第でどのような仕組みで実現できるかは異なります)
 	</p>
 	<h3 id="unitconfig">単体テストの環境でも設定すること</h3>
 	<p>
-		単体テストの環境でも共通の設定がある場合は、テストケースの初期化時などにDBFluteConfigの設定をすることを忘れないようにして下さい。
+		単体テストの環境でも共通の設定がある場合は、テストケースの初期化時などに DBFluteConfig
+		の設定をすることを忘れないようにして下さい。
+		(DBFluteの初期化と同期して設定されるような仕組みになっている場合は意識する必要はありません)
 	</p>
 	<h3 id="settinglog">設定されたときのログ</h3>
 	<p>
@@ -116,12 +127,16 @@ config.<span class="point">lock()</span>;
 	</p>
 	<p>
 		プロジェクト全体で空文字に業務的な意味があるような場合、そのようなカラムが多く存在する場合に有効です。
-		ただし、空文字が「値がないこと」という意味を含む場面が混在する場合は、一律の設定ではなく ConditionBean
-		の設定で都度調整することが推奨されます。
+		ただし、"空文字という業務的な値" と "値がないこと" という両方のパターンが混在する場合は、このコンフィグは利用せずに
+		ConditionBean の設定で都度調整することが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		ConditionBean の基本仕様と異なる挙動をするため、ドキュメントの内容や Example
+		と実際の挙動が厳密に一致しません。このコンフィグを利用する場合は、必ずディベロッパーに通知が行き届くようにする必要があります。
+	</p>
+	<p>
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -136,12 +151,16 @@ config.<span class="point">lock()</span>;
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
 	<p>
-		この設定を有効にした場合、パラメータコメントの IF コメントでよく利用される FOO != null
-		という条件は、空文字の場合に true となりませんのでご注意下さい。
-		(空文字でも true にしたい場合は、空文字を意識した条件に変更する必要があります)
+		このコンフィグを有効にした場合、当然のことですが、パラメータコメントの IF コメントでよく利用される FOO != null
+		という条件は、空文字の場合に true となりません。空文字でも true
+		と判定したい場合は、空文字を意識した条件に変更する必要があります。
 	</p>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		ParameterBean の基本仕様と異なる挙動をするため、ドキュメントの内容や Example
+		と実際の挙動が厳密に一致しません。このコンフィグを利用する場合は、必ずディベロッパーに通知が行き届くようにする必要があります。
+	</p>
+	<p>
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -157,13 +176,17 @@ config.<span class="point">lock()</span>;
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/sidebar/checkinvalidquery.html">ConditionBean - CheckInvalidQuery</a></div>
 	<p>
+		ConditionBean の基本仕様と異なる挙動をするため、ドキュメントの内容や Example
+		と実際の挙動が厳密に一致しません。このコンフィグを利用する場合は、必ずディベロッパーに通知が行き届くようにする必要があります。
+	</p>
+	<p>
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+	<p>
 		これに対応する ParameterBean の機能はありません。ParameterBean
 		は自由度の高い外だしSQLで利用されるため、一律のチェックによる例外は逆に混沌を生み出す可能性があると想定しているためです。
 	</p>
-	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
-	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="queryloglevelinfo">queryLogLevelInfo</h2>
 	<p>
@@ -173,7 +196,7 @@ config.<span class="point">lock()</span>;
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -185,7 +208,7 @@ config.<span class="point">lock()</span>;
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/debuglog/index.html#sqlexeclog">現場フィット - デバッグログ - DBFluteのSQL実行ログ</a></div>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -357,7 +380,7 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		外だしSQLの配置パッケージを変更します。
 	</p>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -374,7 +397,7 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		OutsideSqlFilter (外だしSQLのフィルタ)を指定することもできます<span class="freecomment">(@since 0.9.7.6)</span>。(詳しくはソースにて)
 	</p>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -384,7 +407,7 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		ただし、DBFluteとしては、CallbackContext を使って同じことが代替できるため、非推奨となっています。
 	</p>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
@@ -438,7 +461,7 @@ config.<span class="point">registerPluginValueType</span>(<span class="literal">
 		データの取得処理や、登録・更新などのバインド変数に限ります。
 	</p>
 	<p>
-		この設定は、TwoEdgedSword 認定のされた機能です。
+		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
