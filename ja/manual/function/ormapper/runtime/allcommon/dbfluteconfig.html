@@ -127,7 +127,7 @@ config.<span class="point">lock()</span>;
 	</p>
 	<p>
 		プロジェクト全体で空文字に業務的な意味があるような場合、そのようなカラムが多く存在する場合に有効です。
-		ただし、"空文字という業務的な値" と "値がないこと" という両方のパターンが混在する場合は、このコンフィグは利用せずに
+		ただし、条件値に "空文字という業務的な値" と "値がないこと" という両方のパターンが混在する場合は、このコンフィグは利用せずに
 		ConditionBean の設定で都度調整することが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
@@ -146,8 +146,8 @@ config.<span class="point">lock()</span>;
 	</p>
 	<p>
 		プロジェクト全体で空文字に業務的な意味があるような場合、そのようなカラムが多く存在する場合に有効です。
-		ただし、空文字が「値がないこと」という意味を含む場面が混在する場合は、一律の設定ではなく ParameterBean
-		の設定で都度調整することが推奨されます。
+		ただし、条件値に "空文字という業務的な値" と "値がないこと" という両方のパターンが混在する場合は、このコンフィグは利用せずに
+		ParameterBean の設定(オーバーライド拡張)で都度調整することが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
 	<p>
@@ -170,9 +170,12 @@ config.<span class="point">lock()</span>;
 		全ての ConditionBean が cb.checkInvalidQuery() が呼び出されたのと同じ状態になります。 
 	</p>
 	<p>
-		プロジェクト全体でnullや空文字などの無効な値が設定されたときに例外になってもよいという場合に有効です。
-		ただし、「無効な値の場合は条件を無効にしたい」という場面が混在する場合は、
+		プロジェクト全体でnullや空文字などの無効な値が設定されたときに例外になってもよいと確定する場合に有効です。
+		ただし、"無効な値の場合は例外にしたい" という場面と "無効な値の場合は条件を無効にしたい" という場面の両方が混在する場合は、
 		プロジェクト全体でどちらのパターンの方が多いかを深く検討して利用する必要があります。
+		そういった場合 DBFlute では、よほどの極端な割合でない限り基本的にこのコンフィグを利用せず、
+		そもそも外部から渡って来たデータはしっかり入り口で必ずアプリで明示的にチェックする、保険を掛けるにしても ConditionBean の
+		CheckInvalidQuery を利用して都度対応する、といったやり方を推奨しています。
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/sidebar/checkinvalidquery.html">ConditionBean - CheckInvalidQuery</a></div>
 	<p>
