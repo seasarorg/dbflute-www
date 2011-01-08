@@ -369,7 +369,31 @@ memberBhv.insert(member);
 
 	<h2 id="valuetype">ValueTypeの調整</h2>
 	<p>
-		TODO jflute now writing
+		デフォルトの ValueType ではなく、カラムごとに独自の ValueType
+		を指定することができます。これを利用することで、パラメータのJDBC周りの処理、"更新時のバインド処理" や "検索時の値の取得"
+		などの調整ができます。(ただし、ConditionBean のバインド処理には影響しません。CB ではプロパティの型で ValueType が固定で決定します)
+	</p>
+<pre><span class="codetitle">ex) Entity のExクラスで独自の ValueType を定義 @Java</span><code>
+<span class="keyword">public class</span> Member <span class="keyword">extends</span> BsMember {
+
+    <span class="keyword">public static final</span> String memberName_VALUE_TYPE = <span class="literal">"fooType"</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		"[property-name]_VALUE_TYPE" という形式の定数アノテーションで、値は String 型で、"プラグインValueType"
+		のキーの名前を指定します。"property-name" は JavaBeansRule ですので、先頭文字の大文字小文字にはご注意下さい。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#pluginvaluetype"> -->DBFluteConfig - プラグインValueType<!-- </a> --></span></div>
+	<div class="relatedword"><span class="working"><!-- <a href="../../../../reference/dictionary/alphabet/wj.html#javabeansrule"> -->JavaBeansRule<!-- </a> --></span></div>
+	<p>
+		基本的にBsクラスには定義されていませんが、特殊な方の場合にDBFluteが自動で設定することがあります。
+		同じ名前の定数をExクラスでも定義(上書き)した場合はExクラスでの定義が優先されます。
+	</p>
+	<div class="relatedword"><span class="working"><!-- <a href="../../../../reference/dictionary/alphabet/we.html#exclass"> -->ExClass (Exクラス)<!-- </a> --></span></div>
+	<p>
+		ValueType を独自に作成する必要はありますが、このように拡張することでサポートされない型も扱えるようになるかもしれません。
 	</p>
 
 </div>

@@ -55,7 +55,7 @@
 				<li><a href="#target">自動生成対象を指定</a></li>
 				<li><a href="#proceduresynonym">プロシージャ参照のシノニムも自動生成</a></li>
 				<li><a href="#resultsetgen">ResultSet 対応のCustomizeEntityも自動生成</a></li>
-				<li><a href="#overload">オーバーロードは未サポート</a></li>
+				<li><a href="#overload">オーバーロードはもうひと手間</a></li>
 				<li><a href="#dbway">DBMSごとの取扱い</a></li>
 			</ul>
 		</li>
@@ -69,7 +69,7 @@
 		<li><a href="#structure">ProcedurePmbの構造</a>
 			<ul>
 				<li><a href="#parameterdef">プロシージャのパラメータ定義</a></li>
-				<li><a href="#valuetype">ValueType の定義</a></li>
+				<li><a href="#valuetype">ValueType の調整</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">ProcedurePmbの使い方</a></li>
@@ -241,17 +241,23 @@ Integer returnValue = pmb.<span class="point">getReturnValue()</span>; <span cla
 		ResultSet 対応の CustomizeEntity を自動生成することも可能です。
 	</p>
 	<div class="detailpage"><a href="#resultsethandling">this - ResultSetの取扱い</a></div>
-	<h3 id="overload">オーバーロードは未サポート</h3>
+	<h3 id="overload">オーバーロードはもうひと手間</h3>
 	<p>
-		例えば、Oracle のパッケージプロシージャにおけるオーバーロードされたプロシージャ(パラメータ構成の違う同名のプロシージャ)は、
-		サポートされません。ProcedurePmb は、プロシージャ名でユニーク判定をしているため、最小公倍数のパラメータが定義されます。
+		例えば、Oracle のパッケージプロシージャにおけるオーバーロードされたプロシージャ(パラメータ構成の違う同名のプロシージャ)を呼び出すには、
+		もうひと手間必要です。
 	</p>
 	<p>
-		そのままでは呼び出せませんが、ProcedurePmb
-		を継承して、パラメータ情報のアノテーションの上書きでパラメータ構成を調整することで、
-		呼び出すことができます。
+		自動生成される ProcedurePmb は、プロシージャ名でユニーク判定をしているため、最小公倍数のパラメータが定義されます。
+		よってそのままでは呼び出せず、自動生成された ProcedurePmb
+		を継承してパラメータ情報のアノテーションの上書きでパラメータ構成を調整(不要なパラメータを上書きで無効化)することで呼び出すことができます。
+		(プロシージャ変更による影響をすぐに検知するために、自動テストを必ず書くことが推奨されます)
 	</p>
 	<div class="relatedpage"><a href="#parameterdef">this - プロシージャのパラメータ定義</a></div>
+	<p>
+		ただし、"同名型違いのパラメータ" がオーバーロードプロシージャ間で存在する場合はサポートされません。例えば、同じ foo_value
+		という名前でありながらプロシージャが変わると文字列になったり数値になったりするような場合です。ProcedurePmb
+		に生成されるプロパティの型はそのいずれかの型に限定されるため、パラメータ構成を調整したとしても実行時に型違いエラーになる可能性があります。
+	</p>
 	<h3 id="dbway">DBMSごとの取扱い</h3>
 	<p>
 		DBMSへの依存が強い領域ですので、DBMSごとの取扱いを必ずご確認下さい。
@@ -453,17 +459,22 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 </code></pre>
 	<p>
 		"[property-name]_PROCEDURE_PARAMETER" という形式の定数アノテーションで、値は String 型で "[in or out or inout], [bind-order]"
-		という形式です。
+		という形式です。"property-name" は JavaBeansRule ですので、先頭文字の大文字小文字にはご注意下さい。
 	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wj.html#javabeansrule">JavaBeansRule</a></div>
 	<p>
 		アプリケーションで直接意識することはありませんが、JDBC次第でメタデータを正しく取得できない場合に、
-		この定義を参考にExクラスで補完することで解決することがあります。但し、内部構造が変わる可能性もありますので、
-		必ず変更を検知できるような自動テストと共に拡張して下さい。同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。
-		また、値が null の場合は、そのパラメータ定義は無効となります。
-		(Exクラスでの優先定義と併用することでBsクラスに宣言されたパラメータ定義を無効にすることもできます)
+		この定義を参考にExクラスで補完することで解決することがあります。
+		但し、これらは既にDBFluteの内部構造ですので、仕様が変わったときのために必ず影響が検知できるような自動テストと共に拡張して下さい。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
-	<h3 id="valuetype">ValueType の定義</h3>
+	<p>
+		同じ名前の定数をExクラスでも定義した場合は、Exクラスのものが優先されます。また、値が null
+		の場合は、そのパラメータ定義は無効とみなされる、Bsクラスに宣言されたパラメータ定義を無効にすることもできます。
+		(オーバーロードプロシージャに対応する場合などに利用します)
+	</p>
+	<div class="relatedword"><a href="#overload">this - オーバーロードはもうひと手間</a></div>
+	<h3 id="valuetype">ValueType の調整</h3>
 	<p>
 		デフォルトの ValueType ではなく、パラメータごとに独自の ValueType
 		を指定することができます。これを利用することで、パラメータのJDBC周りの処理(バインド処理やOUTパラメータ取得など)の調整ができます。
@@ -476,24 +487,26 @@ List&lt;<span class="point">SpReturnResultSetNotParamResult2</span>&gt; loginLis
 
     <span class="abbreviation">...</span>
 }
-<span class="comment">// [property-name]_PROCEDURE_PARAMETER</span>
+<span class="comment">// [property-name]_VALUE_TYPE</span>
 <span class="comment">// [property-name] は、JavaBeansRule なので</span>
 <span class="comment">// v_in_varchar は VInVarchar</span>
 <span class="comment">// vv_in_varchar は vvInVarchar</span>
 </code></pre>
 	<p>
-		"[property-name]_VALUE_TYPE" という形式の定数アノテーションで、値は String 型の場合は、"プラグインValueType"
-		のキーの名前で、ValueType 型の場合<span class="freecomment">(@since 0.9.7.6)</span>は適用させる ValueType のインスタンスを指定します。
+		"[property-name]_VALUE_TYPE" という形式の定数アノテーションで、値が String 型の場合は、"プラグインValueType"
+		のキーの名前で、ValueType 型の場合<span class="freecomment">(@since 0.9.7.6)</span>は適用させる ValueType
+		のインスタンスを指定します。"property-name" は JavaBeansRule ですので、先頭文字の大文字小文字にはご注意下さい。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#pluginvaluetype">DBFluteConfig - プラグインValueType</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wj.html#javabeansrule">JavaBeansRule</a></div>
 	<p>
 		基本的にBsクラスには定義されていませんが、特殊な方の場合にDBFluteが自動で設定することがあります。
-		同じ名前の定数をExクラスでも定義した場合は、値が null の場合の挙動は、プロシージャのパラメータ定義と同じです。
+		同じ名前の定数をExクラスでも定義した場合や、値が null の場合の挙動は、プロシージャのパラメータ定義と同じです。
 	</p>
 	<div class="relatedword"><a href="#parameterdef">this - プロシージャのパラメータ定義</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
 	<p>
-		ValueType の作成コストはありますが、サポートされない型もこれを使うことで扱えるようになります。
+		ValueType を独自に作成する必要はありますが、このように拡張することでサポートされない型も扱えるようになるかもしれません。
 	</p>
 
 	<h2 id="howto">ProcedurePmbの使い方</h2>
