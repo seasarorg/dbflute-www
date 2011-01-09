@@ -481,19 +481,25 @@ member.FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*
 		<dd>
 			OracleのCLOBは、VARCHARの時とは違うValueTypeを使う必要がありますが、その指定をEntityの定数アノテーションにて行っています。
 			自動生成時にCLOBか否かを判断し、該当カラムに付与します。
-			一方で、プラグインValueTypeとしてCLOB専用のValueTypeを、初期化時(TnValueTypeFactoryImplの初期化)に登録しています。
+			一方で、プラグインValueTypeとしてCLOB専用のValueTypeを、初期化時に登録しています。
 		</dd>
-		<dt>DATEのマッピング</dt>
+		<dt>in句の1000制限対応</dt>
 		<dd>
-			OracleのDATEは、JDBC上では ojdbc5.jar と ojdbc6.jar で違う型として扱われています。前者は java.sql.Types.DATE、後者は
-			java.sql.Types.TIMESTAMP。DBFluteではこの違いを意識しないために、OracleのDATEを java.util.Date
-			で扱うことを固定の仕様とし、メタデータ取得時に固定で前者の型にマッピングしています。
+			Oracleの in句 (InScope) は、指定できる要素が 1000 個までと制限されています。頻度は少ないにしろ、業務で 1000
+			個以上指定したいこともあり、通常その場合は条件を分割して or 句などでつなげる必要があります。DBFlute の ConditionBean
+			では、1000 以上の要素が InScope に指定されたときに、内部で自動的に分割して同じ条件を実現しています。
 		</dd>
 		<dt>バッチ更新の排他制御</dt>
 		<dd>
 			OracleのJDBCドライバは、PreparedStatement.executeBatch()
 			の戻り値からとして更新件数を取得することができません。代わりに Statement.getUpdateCount()
 			の値を使って排他制御を実現しています。
+		</dd>
+		<dt>DATEのマッピング</dt>
+		<dd>
+			OracleのDATEは、JDBC上では ojdbc5.jar と ojdbc6.jar で違う型として扱われています。前者は java.sql.Types.DATE、後者は
+			java.sql.Types.TIMESTAMP。DBFluteではこの違いを意識しないために、OracleのDATEを java.util.Date
+			で扱うことを固定の仕様とし、メタデータ取得時に固定で前者の型にマッピングしています。
 		</dd>
 		<dt>表示用SQLの日付フォーマット</dt>
 		<dd>
@@ -518,6 +524,9 @@ member.FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*
 			(全角をワイルドカードにしない他のDBMSでは単にエスケープ文字が無視されるだけで、動作に問題ないことはテストで確認されている)
 		</dd>
 	</dl>
+	<p>
+		その他、挙げるとキリがないくらいあります。
+	</p>
 
 	<h2 id="supplement">Oracle補足資料</h2>
 	<h3>マテリアライズドビューを作成</h3>
