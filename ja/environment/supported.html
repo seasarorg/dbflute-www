@@ -51,7 +51,8 @@
 		<li><a href="#os">対応OS</a></li>
 		<li><a href="#unsupportedname">サポートされない名前</a>
 			<ul>
-				<li><a href="#quote">SQL上でもクォートの必要な名前</a></li>
+				<li><a href="#quote">SQL上でクォートの必要な名前</a></li>
+				<li><a href="#pgreverv">プログラム上の予約語になる名前</a></li>
 				<li><a href="#compile">プログラム上でコンパイルエラーになる名前</a></li>
 				<li><a href="#normalname">名称変更、もしくは、ビュー・シノニム回避</a></li>
 			</ul>
@@ -130,30 +131,58 @@
 	</p>
 
 	<h2 id="unsupportedname">サポートされない名前</h2>
-	<h3 id="quote">SQL上でもクォートの必要な名前</h3>
+	<h3 id="quote">SQL上でクォートの必要な名前</h3>
 	<p>
 		SQL上でもクォートしないと利用できないテーブル名はやカラム名は正式にはサポートされません。
-		ニュアンスとしては、"クォートする機能はあるが積極的なサポートはしていない" (例えば、詳細なテストはしていない)というところです。
-		外だしSQLや別のツールでのSQLで不利益であることに変わりはないため、基本的にはDB上の名前を変更するか、ビューやシノニムを作ることが推奨されます。
+		例えば、SQL上の予約語や日本語テーブル(和名テーブル)、日本語カラム(和名カラム)などが該当します。
 	</p>
-	<div class="relatedpage"><a href="#normalname">this - 名称変更、もしくは、ビュー・シノニム回避</a></div>
 	<p>
-		ただ、そういったことがどうしてもできない状況のために、ある程度動作させるためのオプションが用意されています。
+		ニュアンスとしては、"クォートするオプションはあるが積極的なサポートはしていない" (例えば、詳細なテストはしていない)というところです。
+		また、これら機能は TwoEdgedSword 認定されています。dbflute-mysql-example にて Example があります。
 	</p>
 	<div class="relatedpage"><a href="../manual/reference/dfprop/littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
 	<div class="relatedpage"><a href="../manual/reference/dfprop/littleadjustment/index.html#quotecolumnnamelist">dfprop - quoteColumnNameList</a></div>
-	<h3 id="compile">プログラム上でコンパイルエラーになる名前</h3>
+	<div class="relatedpage"><a href="../manual/reference/example/index.html#database">DBFlute Example - データベース(DBMS)</a></div>
+	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 	<p>
-		また、"-" (ハイフン)や空白(半角スペース)などのプログラム上のクラス名などでコンパイルエラーとなるような名前、および、"$"
-		が入った名前はサポートされません。"SQL上でもクォートの必要な名前"
-		と同様に、外だしSQLや別のツールでのSQLで不利益であることに変わりはないため、基本的にはDB上の名前を変更するか、ビューやシノニムを作ることが推奨されます。
+		外だしSQLや別のツールでのSQLで不利益であることに変わりはないため、基本的にはDB上の名前を変更するか、ビューやシノニムを作ることが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="#normalname">this - 名称変更、もしくは、ビュー・シノニム回避</a></div>
+	<h3 id="pgreverv">プログラム上の予約語になる名前</h3>
 	<p>
-		ただ、そういったことがどうしてもできない状況のために、ある程度動作させるためのオプションや特殊な利用方法があります<span class="freecomment">(@since 0.9.7.2)</span>。
-		ドキュメントはありませんが、dbflute-postgresql-example にて Example があります。
+		プログラム上の予約語になるテーブル名はやカラム名は正式にはサポートされません。
+		(例えば、"class" や "public" など)
+	</p>
+	<p>
+		ニュアンスとしては、"自動解決する機能はあるが積極的なサポートはしていない"
+		(例えば、詳細なテストはしていない)というところです。全ての予約語には対応しておらず、代表的な "class" や "public"
+		など一部の予約語のみ対象となっており、かつ、カラム名に限定されています(テーブル名は、ProjectPrefix
+		で回避できるかもしれませんが確認されていません)。また、この自動解決する機能自体が TwoEdgedSword
+		認定されています。dbflute-mysql-example にて Example があります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../manual/function/genbafit/projectfit/projectprefix/index.html"> -->現場フィット - クラス名のプレフィックス (ProjectPrefix)<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../manual/reference/example/index.html#database">DBFlute Example - データベース(DBMS)</a></div>
+	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+	<p>
+		外だしSQLや別のツールでのSQLで不利益であることに変わりはないため、基本的にはDB上の名前を変更するか、ビューやシノニムを作ることが推奨されます。
+	</p>
+	<div class="relatedpage"><a href="#normalname">this - 名称変更、もしくは、ビュー・シノニム回避</a></div>
+	<h3 id="compile">プログラム上でコンパイルエラーになる名前</h3>
+	<p>
+		"-" (ハイフン)や空白(半角スペース)などのプログラム上のクラス名などでコンパイルエラーとなるような名前、および、"$"
+		が入ったテーブル名やカラム名はサポートされません。
+	</p>
+	<p>
+		ニュアンスとしては、"解決するオプション、特殊な利用方法はあるが積極的なサポートはしていない"
+		(例えば、詳細なテストはしていない)というところです<span class="freecomment">(@since 0.9.7.2)</span>。
+		また、この機能は TwoEdgedSword 認定されています。dbflute-postgresql-example にて Example があります。
 	</p>
 	<div class="relatedpage"><a href="../manual/reference/example/index.html#database">DBFlute Example - データベース(DBMS)</a></div>
+	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+	<p>
+		外だしSQLや別のツールでのSQLで不利益であることに変わりはないため、基本的にはDB上の名前を変更するか、ビューやシノニムを作ることが推奨されます。
+	</p>
+	<div class="relatedpage"><a href="#normalname">this - 名称変更、もしくは、ビュー・シノニム回避</a></div>
 	<div class="inucolumn">
 		<h3 id="normalname">名称変更、もしくは、ビュー・シノニム回避</h3>
 		<p>
