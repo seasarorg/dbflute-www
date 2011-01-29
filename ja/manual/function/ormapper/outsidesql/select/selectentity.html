@@ -43,11 +43,12 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
-				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
+				<li><a href="#typedcall">定型呼び出し形式</a></li>
+				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#resulttype">検索結果の受け取り</a></li>
 			</ul>
 		</li>
-		<li><a href="#scalar">スカラ値で受け取る</a></li>
+		<li><a href="#scalar">スカラ型で受け取る</a></li>
 		<li><a href="#whyhandling">なぜ、一歩手順が多いの？</a></li>
 	</ul>
 
@@ -78,24 +79,36 @@
 --
 <span class="attribute">memberBhv</span>.outsideSql().<span class="point">entityHandling()</span>.selE <span class="comment">// .selE と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType);
+<span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(pmb);
 </code></pre>
-	<h3 id="pathpmb">SQLのパス・パラメータ</h3>
 	<p>
-		第一引数のSQLのパス、第二引数の ParameterBean に関しては、基本仕様と全く同じです。
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
 	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">外だしSQLの使い方 - 基本仕様</a></div>
+	<h3 id="typedcall">定型呼び出し形式</h3>
+	<p>
+		TypedParameterBean を引数に受け取ります。(null は許可されません)
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
+	<p>
+		CustomizeEntityマーク、および、ParameterBeanマークが定義されていることで TypedParameterBean
+		の定型呼び出しが利用できます。この場合、ページング検索やカーソル検索に型付けされたSQLも含まれます。
+	</p>
+	<h3 id="freestyle">フリースタイル形式</h3>
+	<p>
+		パス、パラメータ(ParameterBean)、戻り値Entityの型の三つの要素を引数に受け取ります。 
+		それぞれフリースタイル形式の基本仕様と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#freestylebasic">外だしSQLの使い方 - フリースタイル基本仕様</a></div>
 	<h3 id="resulttype">検索結果の受け取り</h3>
 	<p>
-		検索結果は戻り値で、第三引数で指定した Entity のインスタンスとして受け取ります。
+		検索結果は、TypedParameterBean に関連付けられている Entity 型、もしくは、第三引数で指定した Entity
+		型のインスタンスを戻り値として受け取ります。
 	</p>
 <pre><span class="codetitle">ex) 外だしSQLの一件検索の実装 @Java</span><code>
-String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
 SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
 pmb.setMemberId(<span class="literal">3</span>);
-Class&lt;?&gt; entityType = SimpleMember.<span class="keyword">class</span>;
 SimpleMember member = 
-    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType);
+    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(pmb);
 <span class="keyword">if</span> (member != null) { 
     <span class="abbreviation">...</span> <span class="comment">// 存在した場合の処理</span>
 } <span class="keyword">else</span> {
@@ -103,27 +116,26 @@ SimpleMember member =
 }
 </code></pre>
 
-	<h2 id="scalar">スカラ値で受け取る</h2>
+	<h2 id="scalar">スカラ型で受け取る</h2>
 	<p>
 		SQL上の select 句のカラムを一つにして、検索結果を String や Integer
-		などのスカラ値で受け取ることも可能です。(これらも含めての広い意味で (select)Entity として扱っています)
+		などのスカラ値(スカラ型)のリストで受け取ることも可能です。TypedParameterBean
+		ではCustomizeEntityマークに加えて scalar オプションを付与します。
 	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/customizeentity.html#scalar">CustomizeEntity - ScalarHandling</a></div>
 	<p>
 		検索件数の取得 "select count(*)" や最大値の取得 "select max(xxx)" などにおいて有効です。
 	</p>
-<pre><span class="codetitle">ex) 文字列のスカラ値を検索 (nullの可能性あり) @Java</span><code>
-<span class="abbreviation">...</span>
-Class&lt;?&gt; entityType = String.<span class="keyword">class</span>;
-String value = 
-    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType)
-<span class="comment">// select MEMBER_NAME from ... where MEMBER_ID = ...</span>
+<pre><span class="codetitle">ex) スカラ型のオプションを指定 {MemberBhv_selectMemberCount.sql} @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +scalar+</span>
+<span class="keyword">select</span> count(*)
+  <span class="keyword">from</span> MEMBER
 </code></pre>
-<pre><span class="codetitle">ex) 数値のスカラ値を検索 (nullの可能性あり) @Java</span><code>
-<span class="abbreviation">...</span>
-Class&lt;?&gt; entityType = Integer.<span class="keyword">class</span>;
-Integer value = 
-    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(path, pmb, entityType)
-<span class="comment">// select max(MEMBER_ID) from ...</span>
+<pre><span class="codetitle">ex) 文字列のスカラ値のリストを検索 @Java</span><code>
+MemberCountPmb pmb = <span class="keyword">new</span> MemberCountPmb();
+Integer count = 
+    <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(pmb)
 </code></pre>
 	<p>
 		スカラ値での検索においても、検索結果がない場合の扱いについては全く同じです。

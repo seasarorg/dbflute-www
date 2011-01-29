@@ -43,12 +43,13 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
-				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
+				<li><a href="#typedcall">定型呼び出し形式</a></li>
+				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#resulttype">検索結果の受け取り</a></li>
 				<li><a href="#nohit">検索結果が存在しない場合</a></li>
 			</ul>
 		</li>
-		<li><a href="#scalar">スカラ値で受け取る</a></li>
+		<li><a href="#scalar">スカラ型で受け取る</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -72,14 +73,28 @@
 <span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectList</span>(path, pmb, entityType);
 <span class="comment">// あらかじめ補完される引数の名前に合わせておくとスムーズに</span>
 </code></pre>
-	<h3 id="pathpmb">SQLのパス・パラメータ</h3>
 	<p>
-		第一引数のSQLのパス、第二引数の ParameterBean に関しては、基本仕様と全く同じです。
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
 	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">外だしSQLの使い方 - 基本仕様</a></div>
+	<h3 id="typedcall">定型呼び出し形式</h3>
+	<p>
+		TypedParameterBean を引数に受け取ります。(null は許可されません)
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
+	<p>
+		CustomizeEntityマーク、および、ParameterBeanマークが定義されていることで TypedParameterBean
+		の定型呼び出しが利用できます。
+	</p>
+	<h3 id="freestyle">フリースタイル形式</h3>
+	<p>
+		パス、パラメータ(ParameterBean)、戻り値Entityの型の三つの要素を引数に受け取ります。 
+		それぞれフリースタイル形式の基本仕様と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#freestylebasic">外だしSQLの使い方 - フリースタイル基本仕様</a></div>
 	<h3 id="resulttype">検索結果の受け取り</h3>
 	<p>
-		検索結果は戻り値で、第三引数で指定した Entity のリスト型として受け取ります。
+		検索結果は、TypedParameterBean に関連付けられている Entity 型、もしくは、第三引数で指定した Entity
+		型の <em class="keyword">ListResultBean</em> を戻り値として受け取ります。
 	</p>
 <pre><span class="codetitle">ex) 外だしSQLの一件検索の実装 @Java</span><code>
 String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
@@ -99,24 +114,24 @@ ListResultBean&lt;SimpleMember&gt; memberList =
 		検索結果が存在しない場合の戻り値は空のリストです。null は絶対に戻りません。
 	</p>
 
-	<h2 id="scalar">スカラ値で受け取る</h2>
+	<h2 id="scalar">スカラ型で受け取る</h2>
 	<p>
 		SQL上の select 句のカラムを一つにして、検索結果を String や Integer
-		などのスカラ値のリストで受け取ることも可能です。
+		などのスカラ値(スカラ型)のリストで受け取ることも可能です。TypedParameterBean
+		ではCustomizeEntityマークに加えて scalar オプションを付与します。
 	</p>
-<pre><span class="codetitle">ex) 文字列のスカラ値のリストを検索 @Java</span><code>
-<span class="abbreviation">...</span>
-Class&lt;?&gt; entityType = String.<span class="keyword">class</span>;
-ListResultBean&lt;String&gt; valueList = 
-    <span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectList</span>(path, pmb, entityType)
-<span class="comment">// select MEMBER_NAME from ... where MEMBER_STATUS_CODE = ...</span>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/customizeentity.html#scalar">CustomizeEntity - ScalarHandling</a></div>
+<pre><span class="codetitle">ex) スカラ型のオプションを指定 {MemberBhv_selectMemberName.sql} @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +scalar+</span>
+<span class="keyword">select</span> MEMBER_NAME
+  <span class="keyword">from</span> MEMBER
 </code></pre>
-<pre><span class="codetitle">ex) 数値のスカラ値のリストを検索 @Java</span><code>
-<span class="abbreviation">...</span>
-Class&lt;?&gt; entityType = Integer.<span class="keyword">class</span>;
-ListResultBean&lt;Integer&gt; valueList = 
-    <span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectList</span>(path, pmb, entityType)
-<span class="comment">// select MEMBER_ID from ...</span>
+<pre><span class="codetitle">ex) 文字列のスカラ値のリストを検索 @Java</span><code>
+MemberNamePmb pmb = <span class="keyword">new</span> MemberNamePmb();
+ListResultBean&lt;String&gt; valueList = 
+    <span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectList</span>(pmb)
+<span class="comment">// select MEMBER_NAME from ... where MEMBER_STATUS_CODE = ...</span>
 </code></pre>
 	<p>
 		スカラ値での検索においても、検索結果がない場合の扱いについては全く同じです。

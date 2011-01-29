@@ -44,7 +44,8 @@
 			<ul>
 				<li><a href="#typesafecursor">TypeSafeCursorを用意</a></li>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
-				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
+				<li><a href="#typedcall">定型呼び出し形式</a></li>
+				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#cursorhandler">CursorHandlerの実装</a></li>
 			</ul>
 		</li>
@@ -82,16 +83,32 @@
 --
 <span class="attribute">memberBhv</span>.outsideSql().<span class="point">cursorHandling()</span>.s <span class="comment">// .s と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.outsideSql().cursorHandling().<span class="point">selectCursor</span>(path, pmb, handler);
+<span class="attribute">memberBhv</span>.outsideSql().cursorHandling().<span class="point">selectCursor</span>(pmb, handler);
 </code></pre>
-	<h3 id="pathpmb">SQLのパス・パラメータ</h3>
 	<p>
-		第一引数のSQLのパス、第二引数の ParameterBean に関しては、基本仕様と全く同じです。
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
 	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">外だしSQLの使い方 - 基本仕様</a></div>
+	<h3 id="typedcall">定型呼び出し形式</h3>
+	<p>
+		TypedParameterBean を引数に受け取ります。(null は許可されません)
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
+	<p>
+		ただし、カーソル検索は戻り値Entityを利用しない検索であり、CursorHandler は別途引数で指定します。
+	</p>
+	<p>
+		TypeSafeCursorマーク付きのCustomizeEntityマーク、および、ParameterBeanマークが定義されていることで
+		TypedParameterBean の定型呼び出しが利用できます。
+	</p>
+	<h3 id="freestyle">フリースタイル形式</h3>
+	<p>
+		パス、パラメータ(ParameterBean)、CursorHandlerの型の三つの要素を引数に受け取ります。 
+		パスとパラメータに関しては、それぞれフリースタイル形式の基本仕様と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#freestylebasic">外だしSQLの使い方 - フリースタイル基本仕様</a></div>
 	<h3 id="cursorhandler">CursorHandlerの実装</h3>
 	<p>
-		第三引数の handler に、Sql2Entityで自動生成された
+		第二引数、もしくは、第三引数の handler に、Sql2Entityで自動生成された
 		<em class="keyword">CursorHandlerの実装クラス(TypeSafeCursor)の fetchCursor() メソッド</em>
 		をオーバーライドしたクラスのインスタンスを指定します。fetchCursor() では、Cursor クラスを参照して業務処理を実装します。
 		selectCursor() の処理の中で、この fetchCursor() がコールバックされます。

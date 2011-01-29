@@ -46,16 +46,12 @@
 				<li><a href="#deleteold">古いクラスは削除される</a></li>
 			</ul>
 		</li>
-		<li><a href="#customizeentitymark">CustomizeEntityマーク</a>
-			<ul>
-				<li><a href="#fromsqlfile">SQLファイル名からEntityの名前を導出</a></li>
-				<li><a href="#markmisc">補足</a></li>
-			</ul>
-		</li>
+		<li><a href="#customizeentitymark">CustomizeEntityマーク</a></li>
 		<li><a href="#option">CustomizeEntityのオプション</a>
 			<ul>
 				<li><a href="#pkmark">PKの設定</a></li>
-				<li><a href="#cursor">TypeSafeCursor</a></li>
+				<li><a href="#scalar">ScalarHandling</a></li>
+				<li><a href="#cursor">CursorHandling</a></li>
 				<li><a href="#forcedtype">型の強制指定</a></li>
 			</ul>
 		</li>
@@ -109,26 +105,26 @@
 
 	<h2 id="customizeentitymark">CustomizeEntityマーク</h2>
 	<p>
-		CustomizeEntityの生成を示すマークは、SQLの行コメント形式 "-- " で、<em class="keyword">#[Entityのクラス名]#</em>
+		CustomizeEntityの生成を示すマークは、SQLの行コメント形式 "-- " で、<em class="keyword">#df:entity#</em>
 		という形で記述します。これを CustomizeEntityマーク と呼びます。
+		例えば、SQLファイルの名前が MemberBhv_selectSimpleMember.sql なら、CustomizeEntityのクラス名は SimpleMember となります。
+		(SQL名がそのまま名前となります)
 	</p>
+<pre><span class="codetitle">ex) "MemberBhv_selectSimpleMember.sql" に対応する CustomizeEntity を生成 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+select ...
+  from ...
+</code></pre>
+	<p>
+		CustomizeEntity のクラス名を明示的に指定することもできます。SQLの行コメントで、"#[Entityのクラス名]#"
+		という形で記述します。主に、他のSQLで CustomizeEntity を再利用するなど、SQL名に依存しない名前を付けたいようなときに利用します。
+	</p>
+
 <pre><span class="codetitle">ex) SimpleMemberという名前のCustomizeEntityを生成 @SQL-File</span><code>
 <span class="comment">-- #SimpleMember#</span>
 select ...
   from ...
 </code></pre>
-	<h3 id="fromsqlfile">SQLファイル名からEntityの名前を導出</h3>
-	<p>
-		SQLファイル名からEntityの名前を導出できる場合は、クラス名の指定部分を固定の文字にすることができます。例えば、SQLファイルの名前が
-		MemberBhv_selectSimpleMember.sql で、CustomizeEntityのクラス名は SimpleMember
-		としたい場合に適用できます。完全にそのSQL専用のEntityと位置付けられるような場合はこの方法がお奨めです。
-	</p>
-<pre><span class="codetitle">ex) "MemberBhv_selectSimpleMember.sql" で "SimpleMember" というEntityを生成 @SQL-File</span><code>
-<span class="comment">-- #df:entity#</span>
-select ...
-  from ...
-</code></pre>
-	<h3 id="markmisc">補足</h3>
 	<p>
 		CustomizeEntityマークは、基本的に select文 に対して記述することを想定しています。
 		update文 に対しての記述は意味のないことです。
@@ -190,7 +186,25 @@ select ...
 			(SQLが)複雑でわかりにくいかもとふと思ったときに、このPKの設定をしておくと良いでしょう。
 		</p>
 	</div>
-	<h3 id="cursor">TypeSafeCursor</h3>
+	<h3 id="scalar">ScalarHandling</h3>
+	<p>
+		<em class="keyword">CustomizeEntityマークのオプション</em> として、単一のカラム を String や Integer
+		などのスカラ型で扱うようにすることができます<span class="freecomment">(@since 0.9.8.0)</span>。
+		CustomizeEntityマークに加えて、SQLの行コメントで "+scalar+" と指定すると Entity
+		は自動生成されず、select句に定義されている単一のカラムに対応するデータ型(スカラ型)が戻り値Entityの型として
+		TypeParameterBean に関連付けられます。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/select/selectlist.html#scalar">OutsideSql - selectList() - スカラ値で受け取る</a></div>
+<pre><span class="codetitle">ex) スカラ型のオプションを指定 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +scalar+</span>
+<span class="keyword">select</span> MEMBER_NAME
+  <span class="keyword">from</span> MEMBER
+</code></pre>
+	<p>
+		フリースタイル形式では単に第三引数にスカラ型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
+	</p>
+	<h3 id="cursor">CursorHandling</h3>
 	<p>
 		<em class="keyword">CustomizeEntityマークのオプション</em> として、TypeSafeCursor
 		を生成することができます。TypeSafeCursorのオプションが指定されている場合はCustomizeEntityは生成されません。

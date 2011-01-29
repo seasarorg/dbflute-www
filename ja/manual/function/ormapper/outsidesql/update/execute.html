@@ -43,7 +43,8 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
-				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
+				<li><a href="#typedcall">定型呼び出し形式</a></li>
+				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#resulttype">実行結果の受け取り</a></li>
 			</ul>
 		</li>
@@ -71,14 +72,27 @@
 --
 <span class="attribute">memberBhv</span>.outsideSql().ex <span class="comment">// .ex と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.outsideSql().<span class="point">execute</span>(path, pmb);
+<span class="attribute">memberBhv</span>.outsideSql().<span class="point">execute</span>(pmb);
 <span class="comment">// あらかじめ補完される引数の名前に合わせておくとスムーズに</span>
 </code></pre>
-	<h3 id="pathpmb">SQLのパス・パラメータ</h3>
 	<p>
-		第一引数のSQLのパス、第二引数の ParameterBean に関しては、基本仕様と全く同じです。
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
 	</p>
-	<div class="relatedpage"><a href="../howto.html#basicspec">外だしSQLの使い方 - 基本仕様</a></div>
+	<h3 id="typedcall">定型呼び出し形式</h3>
+	<p>
+		TypedParameterBean を引数に受け取ります。(null は許可されません)
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
+	<p>
+		CustomizeEntityマーク、および、ParameterBeanマークが定義されていることで TypedParameterBean
+		の定型呼び出しが利用できます。
+	</p>
+	<h3 id="freestyle">フリースタイル形式</h3>
+	<p>
+		パス、パラメータ(ParameterBean)、二つの要素を引数に受け取ります。 
+		それぞれフリースタイル形式の基本仕様と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#freestylebasic">外だしSQLの使い方 - フリースタイル基本仕様</a></div>
 	<h3 id="resulttype">実行結果の受け取り</h3>
 	<p>
 		実行結果はint型の戻り値として受け取ります。基本的には、そのSQLで影響したレコードの件数(更新件数など)ですが、単純に PreparedStatement
@@ -100,7 +114,6 @@
 		例えば、以下のような処理を想定されています。
 	</p>
 	<ul>
-		<li>insert into ... select ... 構文</li>
 		<li>ConditionBean で表現できない複雑な条件でのクエリ更新・削除</li>
 		<li>truncate table</li>
 		<li>DDL文全般</li>

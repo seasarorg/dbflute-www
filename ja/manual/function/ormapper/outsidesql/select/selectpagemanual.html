@@ -46,7 +46,8 @@
 				<li><a href="#pagingcondition">ページング条件の指定</a></li>
 				<li><a href="#pagingifcomment">実データ処理IFコメント</a></li>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
-				<li><a href="#pathpmb">SQLのパス・パラメータ</a></li>
+				<li><a href="#typedcall">定型呼び出し形式</a></li>
+				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#resulttype">検索結果の受け取り</a></li>
 				<li><a href="#option">細かい調整オプション (CountLater, ReSelect)</a></li>
 			</ul>
@@ -68,7 +69,8 @@
 	<h2 id="howto">実装方法</h2>
 	<h3 id="pagingbean">Paging用のParameterBeanを用意</h3>
 	<p>
-		自動生成する ParameterBean が、汎用的なページングの機能を備えた SimplePagingBean を継承するように指定します。 
+		自動生成する ParameterBean が、汎用的なページングの機能を備えた SimplePagingBean
+		を継承するように指定します。(同時に TypedParameterBean のために ManualPaging の自動判別がされます) 
 	</p>
 	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#pagingselect">ParameterBean - ページング検索のオプション</a></div>
 	<h3 id="pagingcondition">ページング条件の指定</h3>
@@ -124,15 +126,33 @@
 --
 <span class="attribute">memberBhv</span>.outsideSql().<span class="point">manualPaging()</span>.sP <span class="comment">// .sP と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.outsideSql().manualPaging().<span class="point">selectPage</span>(path, pmb, entityType);
+<span class="attribute">memberBhv</span>.outsideSql().manualPaging().<span class="point">selectPage</span>(pmb);
 </code></pre>
-	<h3 id="pathpmb">SQLのパス・パラメータ</h3>
 	<p>
-		第一引数のSQLのパス、第二引数の ParameterBean に関しては、基本仕様と全く同じです。
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
 	</p>
+	<h3 id="typedcall">定型呼び出し形式</h3>
+	<p>
+		TypedParameterBean を引数に受け取ります。(null は許可されません)
+	</p>
+	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
+	<p>
+		CustomizeEntityマーク、および、ページング検索のオプションが指定されたParameterBeanマーク
+		が定義されていることで TypedParameterBean の定型呼び出しが利用できます。
+		加えて、ManualPaging であることを自動判別、もしくは、明示的指定されたものであることが条件です。
+		逆に、ManualPaging と判別されない場合は、AutoPaging 用の TypedParameterBean となります。
+	</p>
+	<div class="relatedpage"><a href="../../../generator/task/sql2entity/parameterbean.html#pagingselect">ParameterBean - ページング検索のオプション</a></div>
+	<h3 id="freestyle">フリースタイル形式</h3>
+	<p>
+		パス、パラメータ(ParameterBean)、戻り値Entityの型の三つの要素を引数に受け取ります。 
+		それぞれフリースタイル形式の基本仕様と全く同じです。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#freestylebasic">外だしSQLの使い方 - フリースタイル基本仕様</a></div>
 	<h3 id="resulttype">検索結果の受け取り</h3>
 	<p>
-		検索結果は戻り値で、第三引数で指定した Entity 型の <em class="keyword">PagingResultBean</em> として受け取ります。
+		検索結果は、TypedParameterBean に関連付けられている Entity 型、もしくは、第三引数で指定した Entity
+		型の <em class="keyword">PagingResultBean</em> を戻り値として受け取ります。
 	</p>
 	<div class="detailpage"><a href="../../behavior/resultbean/paging/index.html">PagingResultBean</a></div>
 	<h3 id="option">細かい調整オプション (CountLater, ReSelect)</h3>
