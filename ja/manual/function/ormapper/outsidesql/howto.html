@@ -115,16 +115,29 @@
 	<h3 id="tabledriven">テーブル駆動でSQLを管理</h3>
 	<p>
 		ConditionBean がそうであるように、外だしSQLも "基点テーブル"
-		という概念を重視します。SQLファイルの名前は <em class="keyword">[Behaviorクラス名]_[SQLを表現する任意の名前].sql</em>
+		という概念を重視します。SQLファイルの名前は <em class="keyword">[Behaviorクラス名]_[SQL名(SQLを表現する任意の名前)].sql</em>
 		という形式にすることを推奨しています(デフォルトでは exbhv
 		パッケージ配下)。たとえ基点テーブルが曖昧なSQLにおいても、管理上どれかのテーブルと関連付けるようにします。
+		これを <em class="keyword">BehaviorQuery</em> (形式) と呼びます。
+	</p>
+<pre><span class="codetitle">ex) BehaviorQuery を使ったSQLファイルの管理 {src/main/resources} @Directory</span><code>
+foo-project
+ |-src/main/resources
+       |-com<span class="abbreviation">...</span>/dbflute
+             |-exbhv
+               |-<span class="point">MemberBhv_selectSimpleMember.sql</span>
+</code></pre>
+	<p>
+		SQL名は、select文なら "select..."、update文なら "update..." と、小文字始まりでSQLを prefix
+		でわかりやすく表現することが推奨されます。この prefix を除去した残りの部分の名前を <em class="keyword">SQL業務名</em>
+		と呼び、アプリ全体でユニークなアプリ固有の業務上の名前を付けます。	(ただし、先頭文字が大文字の場合は、何も除去せずSQL名そのままがSQL業務名となります)
 	</p>
 	<p>
-		これを BehaviorQuery(形式) と呼びます。このSQLファイルへのパスは Sql2Entity
-		タスクで分析、解決され、プログラム上では、"SQLを表現する任意の名前(SQL名)" だけで意識して呼び出すことができるようになります。
+		このSQLファイルへのパスは Sql2Entity タスクで分析され、プログラム上では Behavior
+		とSQL業務名(自動生成されたクラス、ParameterBean)だけで呼び出すことができるようになります。
 	</p>
 <pre><span class="codetitle">ex) テーブル駆動でSQLを呼び出す @Java</span><code>
-<span class="point">SimpleMemberPmb</span> pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// SQL名 + Pmb</span>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// SQL業務名 + Pmb</span>
 pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
 
 <span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
@@ -133,10 +146,24 @@ List&lt;SimpleMember&gt; memberList
         = <span class="point">memberBhv</span>.outsideSql().selectList(pmb);
 </code></pre>
 	<p>
-		"SQLを表現する任意の名前" は、select文なら "select..."、update文なら "update..."
-		と、小文字始まりでSQLを prefix でわかりやすく表現することが推奨されます。この prefix を除去した残りの部分の名前を "SQL名"
-		と呼び、アプリ全体でユニークなアプリ固有の業務上の名前を付けます。
+		SQL業務名にどうのような名前を付けるか？
+		これは業務の特徴次第なのでフレームワークとして明確な定義はできませんが、例えば DBFlute の Example
+		では以下のような命名をしています。(参考までに)
 	</p>
+	<dl class="textlist">
+		<dt>検索系</dt>
+		<dd>検索対象の業務的概要 + 基点テーブルの抽象名</dd>
+		<dd>
+			e.g. UnpaidSummaryMember (未払い金額合計付き会員)
+			<span class="freecomment">MemberBhv_selectUnpaidSummaryMember.sql</span>
+		</dd>
+		<dt>更新系</dt>
+		<dd>更新対象テーブルの抽象名 + 更新内容の業務的概要(受動態)</dd>
+		<dd>
+			e.g. MemberChangedToWithdrawalForcedly (会員の強制退会)
+			<span class="freecomment">MemberBhv_updateMemberChangedToWithdrawalForcedly.sql</span>
+		</dd>
+	</dl>
 	<h3 id="separatedlogic">呼び出しロジックとSQLの固定仕様の分離</h3>
 	<p>
 		DBFluteでは、呼び出しロジックとSQLの固定仕様を分離したインターフェースを提供しています。
@@ -191,13 +218,13 @@ pmb.setMemberId(<span class="literal">3</span>); <span class="comment">// バイ
 		と呼び、SQLの特定や戻り値 Entity の型の解決を一括した "定型呼び出し" を提供します<span class="freecomment">(@since 0.9.8.0)</span>。
 	</p>
 <pre><span class="codetitle">ex) TypedParameterBean による呼び出し @Java</span><code>
-<span class="point">SimpleMemberPmb</span> pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// TypedParameterBean</span>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// TypedParameterBean</span>
 pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
 
 <span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
 <span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
 List&lt;SimpleMember&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().selectList(pmb);
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(<span class="point">pmb</span>);
 </code></pre>
 	<p>
 		ParameterBean の引数は、Sql2Entity タスクで自動付与されるそれぞれの呼び出しロジックに対応したインターフェースです。例えば、selectList()
@@ -257,12 +284,12 @@ List&lt;SimpleMember&gt; memberList
 	<h2 id="sqlfile">1. SQLファイルを作成する</h2>
 	<p>
 		外だしSQLが初めての方は、先に DBFlute の "外だしSQLの実装概念"
-		を理解するようにして下さい。(TypedParameterBean を前提とした手順となります)
+		を理解するようにして下さい。(ここでは TypedParameterBean を前提とした手順となります)
 	</p>
 	<div class="detailpage"><a href="#concept">this - 実装概念</a></div>
 	<p>
 		Sql2Entityタスクで参照されるディレクトリの exbhv パッケージ配下に
-		<em class="keyword">[Behaviorクラス名]_[SQLを表現する任意の名前].sql</em>
+		<em class="keyword">[Behaviorクラス名]_[SQL名(SQLを表現する任意の名前)].sql</em>
 		という形式の名前でSQLファイルを作成します。
 	</p>
 	<div class="detailpage"><a href="../../generator/task/sql2entity/index.html#refsql">Sql2Entity - 外だしSQLを参照</a></div>

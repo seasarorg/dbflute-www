@@ -59,8 +59,23 @@
 				<li><a href="#datefromto">DateFromTo条件のオプション</a></li>
 				<li><a href="#classification">区分値条件のオプション</a></li>
 				<li><a href="#reference">参照カラムのオプション</a></li>
-				<li><a href="#packageresolve">プログラム型のパッケージ解決</a></li>
-				<li><a href="#autodetect">プロパティ項目の自動判別</a></li>
+			</ul>
+		</li>
+		<li><a href="#packageresolve">プログラム型のパッケージ解決</a>
+			<ul>
+				<li><a href="#domainpkg">DomainEntityのパッケージ解決</a></li>
+				<li><a href="#cmbeanpkg">CustomizeEntityのパッケージ解決</a></li>
+				<li><a href="#cdefpkg">CDefのパッケージ解決</a></li>
+				<li><a href="#otherpkg">それ以外はフルパッケージ指定</a></li>
+			</ul>
+		</li>
+		<li><a href="#autodetect">プロパティ項目の自動判別</a>
+			<ul>
+				<li><a href="#autodetectmark">自動判別マーク</a></li>
+				<li><a href="#typederiving">プログラム型の導出</a></li>
+				<li><a href="#optionderiving">オプションの導出</a></li>
+				<li><a href="#optionset">明示的オプション指定</a></li>
+				<li><a href="#typeadjustment">参照カラムのオプションによる型調整</a></li>
 			</ul>
 		</li>
 		<li><a href="#structure">ParameterBeanの構造</a>
@@ -135,8 +150,9 @@
 		ParameterBeanの生成を示すマークは、SQLの行コメントで、"!df:pmb!"
 		という形で記述します。これを "<em class="keyword">ParameterBeanマーク</em>"
 		と呼びます。例えば、SQLファイルの名前が MemberBhv_selectSimpleMember.sql なら、ParameterBean のクラス名は SimpleMemberPmb
-		となります。(SQL名に Pmb を付けた名前となります)
+		となります。(SQL業務名に Pmb を付けた名前となります)
 	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#tabledriven">外だしSQLの使い方 - テーブル駆動でSQLを管理</a></div>
 	<p>
 		また、それぞれのプロパティ要素の指定は、SQLの行コメント形式 "-- " で、"!![プログラム型 プロパティ名]!!"
 		という形で記述します。CustomizeEntityとは違い "どういったプロパティ構造を保持するか"
@@ -234,6 +250,7 @@ select <span class="abbreviation">...</span>
 		プロパティ定義のプロパティ名の後ろに ":[like-search-option]"
 		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。
 		文字列型のプロパティを利用するバインド変数コメントと埋め込み変数コメントに対して有効です。
+		(like-search オプションと呼びます)
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#bindvariable">バインド変数コメント</a></div>
 	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#embeddedvariable">埋め込み変数コメント</a></div>
@@ -317,8 +334,8 @@ pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">
 	</p>
 	<div class="detailpage"><a href="../../../genbafit/implfit/datefromto/index.html">現場フィット - 日付範囲の条件指定を定型化(安全に)</a></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":[fromto-option]"
-		と追加することで、ParameterBeanにてDateFromTo条件を指定することができます。利用できるオプションは以下の通りです。
+		プロパティ定義のプロパティ名の後ろに ":[from-to-option]"
+		と追加することで、ParameterBeanにてDateFromTo条件を指定することができます。(from-to オプションと呼びます)
 	</p>
 	<dl class="keymainlist">
 		<dt>fromDate</dt><dd>from に対応する日付に対して指定</dd>
@@ -348,7 +365,8 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 	</p>
 	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":cls([classification-name])" と追加することで、ParameterBeanにて区分値メソッドが利用できます。
+		プロパティ定義のプロパティ名の後ろに ":cls([classification-name])"
+		と追加することで、ParameterBeanにて区分値メソッドが利用できます。(cls オプションと呼びます)
 	</p>
 <pre><span class="codetitle">ex) memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
@@ -367,13 +385,26 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		JavaDocコメントなどにカラムの情報も付与されるなどのメリットがあるため、対応するカラムがはっきりしている場合はこちらのやり方で良いでしょう。
 		<span class="freecomment">@since 0.9.7.1</span>
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="reference"> -->this - 参照カラムのオプション<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
 <pre><span class="codetitle">ex) memberStatusCodeを会員の同名カラムに関連付け (区分値情報が引き継がれる) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+</code></pre>
+	<p>
+		リスト型に関しては、区分値を関連付けても区分値メソッドは生成されませんので、少なくとも cls オプションを付ける意味はありません。
+		代わりにリストの要素型を対応する CDef の区分値クラスにして、CDef を使って複数の区分値要素を指定するようにすると良いでしょう。
+		(ただし、ref オプション自体はドキュメント上のメリットがあるので、付けて損はありません)
+	</p>
+	<div class="relatedpage"><a href="#cdefpkg">this - プログラム型のパッケージ解決 - CDefのパッケージ解決</a></div>
+<pre><span class="codetitle">ex) memberStatusCodeを複数指定するためにリスト型のプロパティを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!List&lt;<span class="point">$$CDef$$.MemberStatus</span>&gt; statusList:ref(MEMBER.MEMBER_STATUS_CODE)!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.statusList*/</span>(<span class="literal">'FML'</span>)
 </code></pre>
 	<h3 id="reference">参照カラムのオプション</h3>
 	<p>
@@ -383,15 +414,16 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 	</p>
 	<p>
 		プロパティ定義のプロパティ名の後ろに ":ref([table-name].[column-name])"
-		と追加することで、そのプロパティの参照カラムを定義できます。
+		と追加することで、そのプロパティの参照カラムを定義できます。(ref オプションと呼びます)
 	</p>
 <pre><span class="codetitle">ex) 会員名称を参照するプロパティ @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!String memberName:<span class="point">ref(MEMBER.MEMBER_NAME)</span>!!</span>
 </code></pre>
 	<p>
-		もし、プロパティ名がカラム名と "FlexibleName"
-		として同名であれば、":ref([table-name])" というようにカラム名の指定は省略できます。
+		プロパティ名とカラム名を "FlexibleName" として比較して同名になるのであれば、":ref([table-name])" というようにカラム名の指定は省略できます。
+		(リスト型の場合でプロパティ名が List で終わっている場合は、最後の List
+		を除去した名前で比較されます<span class="freecomment">(@since 0.9.8.0)</span>) 
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wf.html#flexiblename">FlexibleName</a></div>
 <pre><span class="codetitle">ex) プロパティと参照カラムが同名の場合 @OutsideSql</span><code>
@@ -413,7 +445,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/deprecatedfit/shortcharhandling/index.html"> -->現場フィット - char型の桁数不足の取扱い<!-- </a> --></span></div>
 
-	<h3 id="packageresolve">プログラム型のパッケージ解決</h3>
+	<h2 id="packageresolve">プログラム型のパッケージ解決</h2>
 	<p>
 		指定するプログラム型のパッケージ名は、頻繁に利用されることが想定されるクラスに関しては自動で解決されます。
 	</p>
@@ -437,7 +469,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h4>DomainEntityのパッケージ解決</h4>
+	<h3 id="domainpkg">DomainEntityのパッケージ解決</h3>
 	<p>
 		DBFluteが自動生成する DomainEntity に関しては、"$$Domain$$.[entity-name]"
 		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
@@ -448,7 +480,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h4>CustomizeEntityのパッケージ解決</h4>
+	<h3 id="cmbeanpkg">CustomizeEntityのパッケージ解決</h3>
 	<p>
 		同様に、CustomizeEntity に関して、"$$Customize$$.[entity-name]"
 		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
@@ -459,7 +491,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h4>ParameterBeanのパッケージ解決</h4>
+	<h3="pmbpkg">ParameterBeanのパッケージ解決</h3>
 	<p>
 		さらに、ParameterBean に関して、"$$Pmb$$.[pmb-name]"
 		という形式で記述することでパッケージ名が解決されます。<span class="freecomment">@since 0.9.7.1</span>
@@ -470,7 +502,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h4>CDefのパッケージ解決</h4>
+	<h3 id="cdefpkg">CDefのパッケージ解決</h3>
 	<p>
 		また、区分値定義の "CDef" クラスに関して、"$$CDef$$"
 		と記述することでパッケージ名が解決されます。ENUMをプロパティ型にしたい場合に有効ですが、
@@ -483,7 +515,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h4>それ以外はフルパッケージ指定</h4>
+	<h3 id="otherpkg">それ以外はフルパッケージ指定</h3>
 	<p>
 		それ以外で、かつ、プログラミング言語上の文法的にパッケージ補完が必要なクラスに関しては、フルパッケージで指定します。
 	</p>
@@ -494,18 +526,18 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
 
-	<h3 id="autodetect">プロパティ項目の自動判別</h3>
-	<h4>自動判別マーク</h4>
+	<h2 id="autodetect">プロパティ項目の自動判別</h2>
+	<h3 id="autodetectmark">自動判別マーク</h3>
 	<p>
 		プロパティ項目をバインド変数コメントから(ある程度の精度で)自動判別することが可能です。
-		プロパティ項目の指定と同じくSQLの行コメント形式 "--" にて、"!!$$AutoDetect$$!!"
+		プロパティ項目の指定と同じくSQLの行コメント形式 "--" にて、"!!AutoDetect!!"
 		と指定すると、バインド変数コメントとそのテスト値からプロパティ名とプログラム型を導出します<span class="freecomment">(@since 0.9.8.0)</span>。
 		例えば、"/*pmb.memberId*/3" といったバインド変数コメントがSQLの中に存在する場合は、テスト値の "3"
 		という値から型を推測し、"-- !!Integer memberId!!" と指定したのと同じ扱いになります。
 	</p>
 <pre><span class="codetitle">ex) プロパティ項目を自動判別 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!$$AutoDetect$$!!</span>
+<span class="comment">-- !!AutoDetect!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
@@ -529,9 +561,9 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		例えば、"outsideSqlPath", "entityType", "fetchSize", "pageStartIndex", "pageEndIndex"
 		など、ParameterBean のインターフェースやスーパークラスで利用されているプロパティ名です。
 	</p>
-	<h4>プログラム型の導出</h4>
+	<h3 id="typederiving">プログラム型の導出</h3>
 	<p>
-		プログラム型はテスト値から導出されます。導出ロジックは以下のようになります。
+		プログラム型はテスト値から導出されます。導出ロジックは以下の通りです。
 	</p>
 	<dl class="textlist">
 		<dt>Integer</dt><dd>数値リテラルで Integer.MAX_VALUE 以下の値</dd>
@@ -586,7 +618,12 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 			他の型に判別されなかった場合
 		</dd>
 	</dl>
-	<h4>オプションの導出</h4>
+	<p>
+		導出された型が要件に一致しない場合は、明示的なプロパティ指定で定義を上書き(そのプロパティだけは自動判別に頼らない)、
+		もしくは、参照カラムのオプションを利用して型調整を行います。
+	</p>
+	<div class="relatedpage"><a href="#typeadjustment">this - 参照カラムのオプションによる型調整</a></div>
+	<h3 id="optionderiving">オプションの導出</h3>
 	<p>
 		オプションも一部テスト値から判別されます。
 	</p>
@@ -596,7 +633,7 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		<dt>likeContain</dt><dd>クォート値で最初と最後に "%" がある値</dd>
 		<dt>like</dt><dd>クォート値でどこかに "%" があり、一致の方向が特定できない値</dd>
 	</dl>
-	<h4>明示的オプション指定</h4>
+	<h3 id="optionset">明示的オプション指定</h3>
 	<p>
 		テスト値で導出されないオプションは、バインド変数コメントの中で直接オプション指定をすることで利用できます。
 		また、テスト値で導出できるオプションであっても、ここでの明示的オプション指定がある場合はそれが優先されます。
@@ -604,17 +641,46 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 	</p>
 <pre><span class="codetitle">ex) 自動判別にて、バインド変数コメントでオプション指定 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!$$AutoDetect$$!!</span>
+<span class="comment">-- !!AutoDetect!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="keyword">and</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate:fromDate*/</span><span class="literal">'2011-01-30'</span>
+   <span class="keyword">and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate:toDate*/</span><span class="literal">'2011-01-31'</span>
    <span class="keyword">and</span> MEMBER_STATUS_CODE <span class="keyword">like</span> <span class="comment">/*pmb.memberStatusCode:cls(MemberStatus)*/</span><span class="literal">'FML'</span>
 </code></pre>
 	<p>
 		同じプロパティに対して複数のバインド変数コメントがある場合は、どれか一つにオプションが指定されていればそれが有効になります。
 		(また、それぞれ別のオプションを指定している場合は、最後に評価されたオプションが有効になります)
 	</p>
-	<h4>補助機能である</h4>
+	<h3 id="typeadjustment">参照カラムのオプションによる型調整</h3>
+	<p>
+		バインド変数コメントに参照カラムのオプション、ref オプションを指定した場合は、
+		テスト値から導出したプロパティのプログラム型に代わり、参照カラムに対応するプログラム型が強制的に利用されます。
+		導出された型が業務に合致しない場合はこのオプションを利用して調整すると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
+<pre><span class="codetitle">ex) 参照カラムのオプションで自動判別された型を調整 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId:ref(MEMBER)*/</span><span class="literal">3</span>
+</code></pre>
+	<p>
+		リスト型に対して ref オプションを指定した場合は、リストの要素型が参照カラムのプログラム型になります。
+		さらにそのとき、参照カラムが区分値に関連付いている場合は、対応する CDef
+		の区分値クラスの型が要素型になります。
+		(つまり、区分値カラムのリスト型の場合は積極的に ref オプションを利用すると良いでしょう)
+	</p>
+<pre><span class="codetitle">ex) 区分値カラムのリスト型には参照カラムのオプションを指定して CDef のリストに @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCodeList:ref(MEMBER)*/</span>(<span class="literal">'FML'</span>)
+</code></pre>
+	<h3>補助機能である</h3>
 	<p>
 		多くのケースにてこの自動判別機能が利用できると想定されます。ただし、ご覧の通りある程度の曖昧さを許容する仕様となっており、
 		項目指定コストを軽減するための(あくまで)補助的な機能と位置付けられています。
