@@ -205,7 +205,7 @@
 <body>
 <h1>Schema for exampledb (h2)</h1>
 <p class="mainschema">generated from <strong>EXAMPLEDB.PUBLIC</strong></p>
-<p class="updatedate">2010/12/07 23:10:24</p>
+<p class="updatedate">2011/01/30 16:33:08</p>
 <p class="sublink"><a href="#cdef">Classification Definition</a></p>
 <p class="sublink"><a href="#outsidesql">OutsideSql List</a></p>
 
@@ -3575,33 +3575,50 @@ SUMMARY_WITHDRAWAL
 <dl class="bqplist">
 	<dt>(スカラ値検索のExample)selectLatestFormalizedDatetime</dt>
 	<dd>
-		<pre> スカラ値検索ではCustomizeEntityは不要です。
- 呼び出し側でString型やInteger型などで受け取ります。
- ex) プログラム側の実装
+		<pre> スカラ値検索では CustomizeEntity は生成する必要ないため、
+ CustomizeEntityマークに加えて scalar オプションを付与し、
+ 単一カラムであることを明示します。そうすることで呼び出し側で
+ String 型や Integer 型などで受け取れます。
+ また、パラメータがなくても ParameterBean の宣言をすることで、
+ TypedParameterBean を使った定型呼び出しができます。
+ e.g. プログラム側の実装 (定型呼び出し形式)
  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- xxxBhv.outsideSql().entityHanlding().selectEntity(..., Integer.class)
+ LatestFormalizedDatetimePmb pmb = ...
+ Timestamp formalizedDatetime
+     = memberBhv.outsideSql().entityHanlding().selectEntity(pmb)
  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
  補足：
-   o ParameterBeanを利用しない場合は宣言も不要
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; Behavior.scalarSelect()</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectLatestFormalizedDatetime.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
 	<dt>(Select句が一個だけの検索のExample)selectMemberName</dt>
 	<dd>
-		<pre> Select句が一個だけの場合はCustomizeEntityは不要です。
- 呼び出し側でStringやIntegerなどのList型で受け取ります。
- ex) プログラム側の実装
+		<pre> Select句が一個だけの場合は CustomizeEntity の自動生成は不要のため、
+ CustomizeEntityマークに加えて scalar オプションを付与し、
+ 単一カラムであることを明示します。そうすることで、呼び出し側で
+ String 型や Integer 型などのリスト型で受け取れます。
+ (一件検索の場合はスカラ型でそのまま受け取れます)
+ ex) プログラム側の実装 (定型呼び出し形式)
  - - - - - - - - - - - - - - - - - - - - - - - - - -
- xxxBhv.outsideSql().selectList(..., Integer.class)
+ MemberNamePmb pmb = ...
+ String name = memberBhv.outsideSql().selectList(pmb)
  - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
  補足：
-   o ParameterBeanはSimpleMemberPmbを再利用
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; SpecifyColumn
+     -&gt; Behavior.scalarSelect(query)</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectMemberName.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
 	<dt>(オプションを使った検索のExample)selectOptionMember</dt>
 	<dd>
@@ -3628,11 +3645,24 @@ SUMMARY_WITHDRAWAL
  isPaging()メソッドでカウント取得と実データ取得を切り替えます。
  ex) プログラム側の実装
  - - - - - - - - - - - - - - - - - - - - - - - - - -
- xxxBhv.outsideSql().manualPaging().selectPage(...)
+ memberBhv.outsideSql().manualPaging().selectPage(...)
  - - - - - - - - - - - - - - - - - - - - - - - - - -
  ページング条件は「H2 Database」のlimit句を利用しています。
+ 
+ FORコメントによる不定数の曖昧検索の条件(and連結)のExampleでもあります。
+ FORコメントのプロパティとカレント変数のバインド変数コメントは、
+ 自動判別(AutoDetect)の対象外のため明示的にプロパティを宣言します。
+ 
+ また、区分値カラムに対する複数条件 InScope のExampleでもあります。
+ AutoDetect に加えて ref オプションを使うことで、参照カラムに対応する
+ CDef の区分値クラスがリストの要素型として自動的に解決されます。 
+ 
  補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; cb.paging(), Behavior.selectPage(cb)
+     -&gt; LikeSearchOption, SplitBy, AsOrSplit
+     -&gt; OrderBy, NullsFirst/Last
+     -&gt; (Specify)DerivedReferrer</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectPurchaseMaxPriceMember.sql</span>
@@ -3641,15 +3671,25 @@ SUMMARY_WITHDRAWAL
 	</dd>
 	<dt>(カーソル検索のExample)selectPurchaseSummaryMember</dt>
 	<dd>
-		<pre> 大量件数の検索などで一件ずつ読み込んで処理を行いたい場合はカーソル検索を利用します。
- CustomizeEntityの宣言のオプションとして「-- +cursor+」と追加すると、
- Entityではなく、タイプセーフにResultSetを扱えるCursorクラスが生成されます。
+		<pre> 大量件数の検索などで一件ずつ読み込んで処理を行いたい場合はカーソル検索を
+ 利用します。CustomizeEntityマークに加えて、TypeSafeCursorマーク
+ (cursor オプション) を付与し、カーソル検索であることを明示します。
+ そうすることで、タイプセーフに ResultSet を扱える Cursor クラスが
+ 生成されます。(Entity は自動生成されない)
  ex) プログラム側の実装
  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- xxxBhv.outsideSql().cursorHandling().selectCursor(...)
+ memberBhv.outsideSql().cursorHandling().selectCursor(...)
  - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
+ FORコメントによる不定数の曖昧検索の条件(and連結)のExampleでもあります。
+ FORコメントのプロパティとカレント変数のバインド変数コメントは、
+ 自動判別(AutoDetect)の対象外のため明示的にプロパティを宣言します。
+ 
  補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; LikeSearchOption, SplitBy
+     -&gt; (Specify)DerivedReferrer, SpecifiedDerivedOrderBy
+     -&gt; Behavior.selectCursor(cb, handler)</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectPurchaseSummaryMember.sql</span>
@@ -3658,7 +3698,7 @@ SUMMARY_WITHDRAWAL
 	</dd>
 	<dt>(シンプルな会員検索のExample)selectSimpleMember</dt>
 	<dd>
-		<pre> このSQLはOutsideSqlの最も基本的なExampleです。
+		<pre> このSQLは外だしSQLの最も基本的なExampleです。
  参考ポイント：
    o パラメータコメント(IFコメントやバインド変数コメントなど)の利用方法
    o Sql2Entityで生成するCustomizeEntityとParameterBeanの定義方法
@@ -3666,7 +3706,8 @@ SUMMARY_WITHDRAWAL
  外だしSQLのエンコーディングはデフォルトで「UTF-8」です。
  ダブルバイト文字を利用する場合はエディタのエンコーディングにご注意下さい。
  補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能</pre>
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; SetupSelect(Relation), Query, OrderBy</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectSimpleMember.sql</span>
@@ -3679,30 +3720,51 @@ SUMMARY_WITHDRAWAL
  isPaging()メソッドでカウント取得と実データ取得を切り替えます。
  ex) プログラム側の実装
  - - - - - - - - - - - - - - - - - - - - - - - - - -
- xxxBhv.outsideSql().autoPaging().selectPage(...)
+ memberBhv.outsideSql().autoPaging().selectPage(...)
  - - - - - - - - - - - - - - - - - - - - - - - - - -
- ページング条件を記述する必要はなく、ResultSetを読み出すタイミングで、
- カーソルポインタを操作して対象レコードだけを読み込みます。
- カーソルポインタの操作がサポートされていないDBではループでデータを読み飛ばします。
+ 自動ページングではページング条件を記述する必要はなく、ResultSetレベルで
+ 絞り込みを実現するカーソルスキップを利用します。
+ 基本的にはポインタシフトで対象レコードだけを読み込み、ポインタシフトが
+ サポートされていないDBではループスルーでデータを読み飛ばします。
  手動ページングの方がパフォーマンス的に有利なのでそちらがお奨めです。
  ページング条件が複雑なDBで、パフォーマンスを割り切る時に自動ページングを利用します。
- 補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能
  
- ※同時にLoadReferrerのためのPKカラムの設定のExampleでもあります。</pre>
+ LoadReferrerのためのPKカラムの設定のExampleでもあります。
+ PrimaryKeyマーク("*" でPKカラムを囲う)でユニーク性を明示します。
+ 
+ 自動判別(AutoDetect)を利用していますが、IFコメントのみで利用されて
+ いるプロパティは対象外なので、明示的に宣言しています。
+ 
+ 補足：
+   o この外だしSQLの検索は ConditionBean で実現可能
+     -&gt; cb.paging(), Behavior.selectPage(cb)</pre>
 	</dd>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectUnpaidSummaryMember.sql</span>
 		<span class="ctet">(df:entity)</span>
 		<span class="pmb">(df:pmb extends Paging)</span>
 	</dd>
-	<dt>&nbsp;updateForcedWithdrawal</dt>
+	<dt>(外だしSQLで更新のExample)updateMemberChangedToWithdrawalForcedly</dt>
+	<dd>
+		<pre> CustomizeEntityマークは不要で(宣言してはいけない)、
+ ParameterBeanマークだけを宣言します。
+ ex) プログラム側の実装
+ - - - - - - - - - - - - - - - - - - - - - - - - - -
+ memberBhv.outsideSql().execute(...)
+ - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 補足：
+   o この外だしSQLの更新は Behavior で実現可能
+     -&gt; queryUpdate(entity, cb)</pre>
+	</dd>
 	<dd class="subinfo">
-		<span class="file">MemberBhv_updateForcedWithdrawal.sql</span>
+		<span class="file">MemberBhv_updateMemberChangedToWithdrawalForcedly.sql</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
 	<dt>&nbsp;subdirectory_selectSubDirectoryCheck</dt>
 	<dd class="subinfo">
 		<span class="file">MemberBhv_selectSubDirectoryCheck.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
 	<dt>&nbsp;various_cmentitycheck_selectCommonColumnMember</dt>
 	<dd class="subinfo">
@@ -3758,11 +3820,19 @@ SUMMARY_WITHDRAWAL
 	<dt>&nbsp;selectDisplayMemberStatus</dt>
 	<dd class="subinfo">
 		<span class="file">MemberStatusBhv_selectDisplayMemberStatus.sql</span>
+		<span class="ctet">(df:entity)</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
-	<dt>&nbsp;truncate</dt>
+	<dt>(The example for out of target in Sql2Entity)truncateMemberStatusInitialized</dt>
+	<dd>
+		<pre> The customize-entity keyword 'df:x' means this SQL is
+ out of target in Sql2Entity and OutsideSqlTest task.
+ (for example, for non-rolled-back statements)</pre>
+	</dd>
 	<dd class="subinfo">
-		<span class="file">MemberStatusBhv_truncate.sql</span>
+		<span class="file">MemberStatusBhv_truncateMemberStatusInitialized.sql</span>
 		<span class="ctet">(df:x)</span>
+		<span class="pmb">(df:pmb)</span>
 	</dd>
 </dl>
 <h3 id="VendorCheckSql"><a href="#VENDOR_CHECK">VENDOR_CHECK</a></h3>

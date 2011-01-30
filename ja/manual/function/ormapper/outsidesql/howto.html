@@ -105,7 +105,7 @@
 		<li><a href="#outsidesql">4. 外だしSQLを呼び出す</a></li>
 	</ul>
 	<p>
-		ここでは、EMechaを利用しないプリミティブなやり方を紹介します。実際の開発では、EMechaの <em class="keyword">EMSql</em>
+		ここでは、EMecha を利用しないプリミティブなやり方を紹介します。実際の開発では、EMechaの <em class="keyword">EMSql</em>
 		の機能を利用して、<em class="keyword">SQLファイルの作成</em> と <em class="keyword">Sql2Entityマーク</em>
 		の記述をウィザード画面から指定できる安全なやり方をお奨めします。
 	</p>
@@ -197,6 +197,10 @@ pmb.setMemberId(<span class="literal">3</span>); <span class="comment">// バイ
 <span class="point">SimpleMember</span> member
         = <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(pmb);
 </code></pre>
+	<p>
+		ConditionBean のことを思い出すと、条件は ConditionBean で呼び出しロジックは
+		Behavior。つまり、DBFlute 全体でこのようなポリシーになっていることがわかります。
+	</p>
 	<h3 id="typedandfree">タイプセーフ、そして、自由度考慮</h3>
 	<p>
 		"外部のSQLを呼び出す" という場合、一般に指定すべき基本的な要素は以下の三つです。
@@ -238,13 +242,20 @@ List&lt;SimpleMember&gt; memberList
 		また、ページングを前提としたSQLに対して、単なるリスト型の検索や、カーソル検索などの間違った呼び出しをすることはできません。
 	</p>
 	<p>
-		TypedParameterBean として型付けされる条件は、それぞれの呼び出しロジックごとにあります。
+		TypedParameterBean として型付けされる条件は、それぞれの呼び出しロジックごとにあります。その ParameterBean
+		がどのように型付けされたのかは、Bsクラスが実装しているインターフェースでもわかりますが、ParameterBean
+		のクラスコメント(javadoc)にわかりやすく書かれています。Eclipse 上で ParameterBean
+		にカーソルを合わせてふんわり出てくるクラスコメントを参考にすると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="./select/selectlist.html">selectList()</a></div>
 	<div class="relatedpage"><a href="./select/selectentity.html">entityHandling() - selectEntity()</a></div>
 	<div class="relatedpage"><a href="./select/selectpagemanual.html">manualPaging() - selectPage()</a></div>
 	<div class="relatedpage"><a href="./select/selectpageauto.html">autoPaging() - selectPage()</a></div>
 	<div class="relatedpage"><a href="./select/selectcursor.html">cursorHandling() - selectCursor()</a></div>
+	<p>
+		ConditionBean はテーブルごとの CB、外だしSQLはSQLごとの TypedParameterBean、プロシージャはプロシージャごとの
+		ProcedurePmb、つまり、DBFlute全体で "対応する Bean" を基点にDBアクセスが始まっていると言えます。
+	</p>
 	<h4 id="freestyle">フリースタイル形式のメソッド</h4>
 	<p>
 		ほとんどの外だしSQLは、この TypedParameterBean の形式で実行されることが想定されます。
