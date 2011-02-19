@@ -50,8 +50,9 @@
 		<li><a href="#option">CustomizeEntityのオプション</a>
 			<ul>
 				<li><a href="#pkmark">PKの設定</a></li>
-				<li><a href="#scalar">ScalarHandling</a></li>
 				<li><a href="#cursor">CursorHandling</a></li>
+				<li><a href="#scalar">ScalarHandling</a></li>
+				<li><a href="#domain">DomainHandling</a></li>
 				<li><a href="#forcedtype">型の強制指定</a></li>
 			</ul>
 		</li>
@@ -187,9 +188,17 @@ select ...
 			(SQLが)複雑でわかりにくいかもとふと思ったときに、このPKの設定をしておくと良いでしょう。
 		</p>
 	</div>
+	<h3 id="cursor">CursorHandling</h3>
+	<p>
+		<em class="keyword">CustomizeEntityマークのオプション</em> として、TypeSafeCursor
+		を生成することができます。TypeSafeCursorのオプションが指定されている場合はCustomizeEntityは生成されません。
+	</p>
+	<div class="detailpage"><a href="./typesafecursor.html">TypeSafeCursor</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/cursor.html"> -->外だしSQL - カーソル検索<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#cursor">外だしSQLの使い方 - カーソル検索</a></div>
 	<h3 id="scalar">ScalarHandling</h3>
 	<p>
-		<em class="keyword">CustomizeEntityマークのオプション</em> として、単一のカラム を String や Integer
+		<em class="keyword">CustomizeEntityマークのオプション</em> で、単一のカラム を String や Integer
 		などのスカラ型で扱うようにすることができます<span class="freecomment">(@since 0.9.8.0)</span>。
 		CustomizeEntityマークに加えて、SQLの行コメントで "+scalar+" と指定すると Entity
 		は自動生成されず、select句に定義されている単一のカラムに対応するデータ型(スカラ型)が戻り値Entityの型として
@@ -205,13 +214,25 @@ select ...
 	<p>
 		フリースタイル形式では単に第三引数にスカラ型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
 	</p>
-	<h3 id="cursor">CursorHandling</h3>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#scalar">外だしSQLの使い方 - スカラ検索</a></div>
+	<h3 id="domain">DomainHandling</h3>
 	<p>
-		<em class="keyword">CustomizeEntityマークのオプション</em> として、TypeSafeCursor
-		を生成することができます。TypeSafeCursorのオプションが指定されている場合はCustomizeEntityは生成されません。
+		<em class="keyword">CustomizeEntityマークのオプション</em> で、BehaviorQuery に対応する DomainEntity
+		型で扱うようにすることができます<span class="freecomment">(@since 0.9.8.1)</span>。
+		CustomizeEntityマークに加えて、SQLの行コメントで "+domain+" と指定すると Entity
+		は自動生成されず、BehaviorQuery に対応する DomainEntity が戻り値Entityの型として
+		TypeParameterBean に関連付けられます。(対象の外だしSQLが BehaviorQuery である必要あり)
 	</p>
-	<div class="detailpage"><a href="./typesafecursor.html">TypeSafeCursor</a></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/cursor.html"> -->外だしSQL - カーソル検索<!-- </a> --></span></div>
+<pre><span class="codetitle">ex) DomainEntity 型のオプションを指定 @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +domain+</span>
+<span class="keyword">select</span> MEMBER_ID, MEMBER_NAME, BIRTHDATE
+  <span class="keyword">from</span> MEMBER
+</code></pre>
+	<p>
+		フリースタイル形式では単に第三引数に DomainEntity 型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#domain">外だしSQLの使い方 - 対応テーブルそのまま検索</a></div>
 	<h3 id="forcedtype">型の強制指定</h3>
 	<p>
 		CustomizeEntityのプロパティの型は、メタデータより取得したDB上のデータ型情報を元にマッピングされます。

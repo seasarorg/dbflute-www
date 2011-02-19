@@ -260,7 +260,8 @@ List&lt;SimpleMember&gt; memberList
 	<p>
 		ほとんどの外だしSQLは、この TypedParameterBean の形式で実行されることが想定されます。
 		ただし、場合によっては 1:1:1 とならないような利用方法も想定されます。例えば、ParameterBean
-		を別のSQLでも再利用したり、戻り値Entityの型は既に存在する別のクラスを使ったり、など。
+		を別のSQLでも再利用したり、戻り値Entityの型に別のSQLの CustomizeEntity
+		や独自に作ったクラスを使ったり(String, Integer などのスカラ型や DomainEntity は除く)、など。
 		そういった場合のために、この三つの要素をバラバラに指定するフリースタイル形式の自由度考慮のメソッドも用意されています。
 	</p>
 <pre><span class="codetitle">ex) フリースタイル形式の自由度考慮のメソッドによる呼び出し @Java</span><code>
@@ -387,26 +388,42 @@ foo-project
 <pre><span class="codetitle">ex) CustomizeEntityマークの宣言 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 </code></pre>
+	<h4 id="cursor">カーソル検索</h4>
 	<p>
 		カーソル検索の場合は、CustomizeEntity マークに加えて TypeSafeCursor マーク (cursor オプション) を付与することで、TypeSafeCursor
 		が自動生成されます。カラムが一つだけの場合でも、カーソル検索の場合は必ずこの宣言を行います。
 	</p>
 	<div class="detailpage"><a href="../../generator/task/sql2entity/typesafecursor.html#typesafecursormark">TypeSafeCursorマーク</a></div>
-<pre><span class="codetitle">ex) TypeSafeCursorマークの宣言 @OutsideSql</span><code>
+<pre><span class="codetitle">ex) TypeSafeCursorマーク(cursor オプション)の宣言 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- +cursor+</span>
 </code></pre>
+	<h4 id="scalar">スカラ検索</h4>
 	<p>
 		カラムが一つだけの場合(かつ、カーソル検索ではない場合)で、Entity ではなくスカラ値(Integer や String
 		など)として取得する場合は、CustomizeEntity マークに加えて scalar
-		オプションを付けます<span class="freecomment">(@since 0.9.8.0)</span>。この場合、Entity
+		オプションを付けます<span class="freecomment">(@since 0.9.8.0)</span>。この場合 Entity
 		は生成されずカラムの型(だけ)が戻り値の型として TypedParameterBean に関連付けられます。
 	</p>
-<pre><span class="codetitle">ex) CustomizeEntityマークの宣言 @OutsideSql</span><code>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#scalar">CustomizeEntityマーク - ScalarHandling</a></div>
+<pre><span class="codetitle">ex) CustomizeEntityマーク scalar オプションの宣言 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- +scalar+</span>
 <span class="abbreviation">...</span>
-select max(BIRTHDATE) from <span class="abbreviation">...</span>
+<span class="keyword">select</span> max(BIRTHDATE) <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h4 id="domain">対応テーブルそのまま検索</h4>
+	<p>
+		SQLの検索結果が対応するテーブルそのままかそのテーブルに包含され、DomainEntity 型で受け取りたい場合は、
+		CustomizeEntity マークに加えて domain オプションを付けます<span class="freecomment">(@since 0.9.8.1)</span>。この場合 Entity
+		は生成されず、BehaviorQuery に対応する DomainEntity の型が戻り値の型として TypedParameterBean に関連付けられます。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#domain">CustomizeEntityマーク - DomainHandling</a></div>
+<pre><span class="codetitle">ex) CustomizeEntityマークの domain オプションの宣言 @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +domain+</span>
+<span class="abbreviation">...</span>
+<span class="keyword">select</span> MEMBER_ID, MEMBER_NAME, BIRTHDATE <span class="keyword">from</span> MEMBER
 </code></pre>
 	<h3 id="parameterbeanmark">ParameterBean マーク</h3>
 	<p>
