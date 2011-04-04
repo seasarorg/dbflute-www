@@ -56,6 +56,7 @@
 		<li><a href="#defaultvaluemap">デフォルト値の設定(dataprop)</a></li>
 		<li><a href="#islogginginsertsql">登録データのロギング</a></li>
 		<li><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></li>
+		<li><a href="#binary">バイナリデータの登録</a></li>
 		<li><a href="#debug">登録エラーが発生したら？</a></li>
 	</ul>
 
@@ -115,7 +116,7 @@
 	<p>
 		DBFluteクライアントの playsql ディレクトリ配下に配置します。
 	</p>
-<pre><span class="codetitle">ex) データファイルの配置仕様の概要(dataLoadingTypeはデフォルトの "ut") @playsql</span><code>
+<pre><span class="codetitle">e.g. データファイルの配置仕様の概要(dataLoadingTypeはデフォルトの "ut") @playsql</span><code>
 playsql
  |-data
     |-common <span class="comment">// dataLoadingTypeに関わらず常に登録対象となる(最初に登録される)</span>
@@ -186,7 +187,7 @@ playsql
 		にて定義されます。デフォルトは "ut" です。環境ごとに "dataLoadingType"
 		を切り替える場合は、DBFluteプロパティの環境ごとに切り替え機能を利用して切り替えます。
 	</p>
-<pre><span class="codetitle">ex) dataLoadingTypeを "it" に設定 @replaceSchemaDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. dataLoadingTypeを "it" に設定 @replaceSchemaDefinitionMap.dfprop</span><code>
 dataLoadingType = it
 </code></pre>
 	<dl class="textlist">
@@ -214,7 +215,7 @@ dataLoadingType = it
 		カラム名と固定の値を定義します。そして、データファイルのヘッダ行において対象カラムのカラム定義(列自体)を省略(削除)することで、
 		データ登録処理でそのカラムに対して指定された固定の値を登録するようになります。
 	</p>
-<pre><span class="codetitle">ex) 共通的なカラムに固定の値を定義 @defaultValueMap.dataprop</span><code>
+<pre><span class="codetitle">e.g. 共通的なカラムに固定の値を定義 @defaultValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
     ; REGISTER_DATETIME = <span class="keyword">sysdate</span>
     ; REGISTER_USER     = <span class="literal">foo</span>
@@ -324,6 +325,31 @@ dataLoadingType = it
 	</dl>
 	<p>
 		"登録データのIDの増分量" と "シーケンスの増分値" は同じにするのがお奨めです。
+	</p>
+
+	<h2 id="binary">バイナリデータの登録</h2>
+	<p>
+		画像ファイルなどバイナリデータも登録できます。<span class="freecomment">(@since 0.9.8.2)</span>
+	</p>
+	<p>
+		例えば、エクセルデータの登録で画像ファイルを扱うと場合は、エクセル上ではそのエクセルファイルから画像ファイルへの相対パスを記載しておくことで、
+		データ登録時にその画像ファイルが読み込まれてテーブルに登録されます。TSVやCSVでも同様です。
+	</p>
+<pre><span class="codetitle">e.g. テストデータとして画像ファイルを登録 @playsql</span><code>
+playsql
+ |-data
+    |-ut
+       |-xls
+       |  |-images
+       |  |  |-<span class="point">logo.png</span>
+       |  |-10-foo.xls <span class="comment">// images/logo.png と記載</span>
+</code></pre>
+	<p>
+		パスはスラッシュ区切り "/" で記述します。パスの先頭にスラッシュを付けると絶対パスになります。
+	</p>
+	<p>
+		該当カラムがバイト配列にマッピングされるデータ型で、かつ、指定されたデータが文字列の場合において、バイナリデータとしての登録だと判断されます。
+		参照先にファイルがない場合は例外となります。
 	</p>
 
 	<h2 id="debug">登録エラーが発生したら？</h2>

@@ -56,7 +56,7 @@
 				<li><a href="#alias">alias</a></li>
 				<li><a href="#comment">comment</a></li>
 				<li><a href="#where">where</a></li>
-				<li><a href="#orderBy">orderBy</a></li>
+				<li><a href="#orderby">orderBy</a></li>
 				<li><a href="#exceptCodeList">exceptCodeList</a></li>
 				<li><a href="#suppressAutoDeploy">suppressAutoDeploy</a></li>
 			</ul>
@@ -65,6 +65,7 @@
 			<ul>
 				<li><a href="#tableexample">テーブル区分値</a></li>
 				<li><a href="#implicitexample">暗黙の区分値</a></li>
+				<li><a href="#sqlexpexample">テーブル区分値のSQL表現</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -186,6 +187,28 @@
 		指定されたカラムで(DBFluteタスク内で)そのままSQLを実行しますので、実行できる形式で指定して下さい。
 		(例えば、大文字小文字を区別するDBMS環境であれば、必ずそれに合わせた名前で書くようにします)
 	</p>
+	<h4 id="tablequoted">テーブル名のクォート</h4>
+	<p>
+		指定されたテーブル名において、littleAdjustmentMap.dfprop の設定でクォート対象になっているか、
+		空白やハイフンなどのプログラム上のクラス名などで利用できない文字が利用されている場合、
+		該当テーブルからデータを取得する内部的な処理(SQL)において自動的にクォートされます。
+		これは、code や name などのカラム名を指定するプロパティでも同様です。
+		(where や order はSQL表現を指定するプロパティなので除外)
+	</p>
+	<div class="relatedpage"><a href="../littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
+	<div class="relatedpage"><a href="../../../../environment/supported.html#compile">プログラム上でコンパイルエラーになる名前</a></div>
+	<h4 id="tablesqlexp">テーブル名のSQL表現</h4>
+	<p>
+		自動クォートの機能があるため、例えば、関連テーブルを参照するためにテーブル名に加えて結合処理などをそのままこのプロパティに書くと、まるごとクォートされてしまいます。
+		このプロパティの先頭に $sql: と付与することでSQL表現がそのまま記述でき、クォート処理は施さずそのままSQLに反映させることができます<span class="freecomment">(@since 0.9.8.2)</span>。
+		コメントの内容として関連テーブルのカラムの値を参照したい、
+		テーブル区分値が階層構造になっていて、どの親カテゴリに属しているのかをコメントで表現したい、というような場合に有効です。
+	</p>
+	<div class="relatedpage"><a href="#sqlexpexample">this - Example - テーブル区分値のSQL表現</a></div>
+	<p>
+		この機能は、カラム名を指定する code や name なども同様に利用できます。一方で、where や orderBy
+		は、そもそもの仕様がSQL表現のため指定は不要です。
+	</p>
 	<h3 id="code">code (*)</h3>
 	<p>
 		それぞれの区分値要素のコード値を指定します。(暗黙の区分値の場合)
@@ -269,7 +292,7 @@
 			</ul>
 		</dd>
 	</dl>
-	<h3 id="orderBy">orderBy</h3>
+	<h3 id="orderby">orderBy</h3>
 	<p>
 		テーブルから区分値を取得する際のソート条件を指定します。(テーブル区分値専用)
 	</p>
@@ -357,7 +380,18 @@
     }
 }
 </code></pre>
-
+	<h3 id="sqlexpexample">テーブル区分値のSQL表現</h3>
+<pre><span class="codetitle">ex) 暗黙の区分値を利用する例 {フラグ} @classificationDefinitionMap.dfprop</span><code>
+    ; Genre = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=Genre of Music; codeType=Number}
+        ; <span class="keyword">map:</span>{
+            ; table=<span class="attribute">$sql:</span> GENRE loc <span class="keyword">left outer join</span> GENRE rel <span class="keyword">on</span> loc.PARENT_ID = rel.GENRE_ID
+            ; code=<span class="attribute">$sql:</span> loc.GENRE_ID; name=<span class="attribute">$sql:</span> loc.GENRE_NAME
+            ; comment=<span class="attribute">$sql:</span> 'of ' || rel.GENRE_NAME
+            ; orderBy=loc.PARENT_ID <span class="keyword">is not null</span>, loc.GENRE_ID
+        }
+    }
+</code></pre>
 
 </div>
 </div>
