@@ -157,10 +157,17 @@
 </code></pre>
 	<p>
 		このプロパティは、メインスキーマのみに対する設定となります。
-		また、ReplaceSchemaのスキーマ初期化やSql2Entityのプロシージャシノニムの自動生成にも影響するプロパティです。
+		追加スキーマに関しては追加スキーマの設定の中で独自に指定します。
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
+	<p>
+		ReplaceSchemaのスキーマ初期化やSql2Entityのプロシージャシノニムの自動生成にも影響するプロパティです。
+		ただ、ReplaceSchemaでは、replaceSchemaDefinitionMap.dfprop
+		にて設定を上書きすることができます<span class="freecomment">(@since 0.9.8.2)</span>。
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/initializeschema.html">ReplaceSchema - スキーマ初期化</a></div>
 	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/procedurepmb.html#proceduresynonym">Sql2Entity - プロシージャシノニム</a></div>
+	<div class="relatedpage"><a href="../replaceschemadefinition/index.html#objecttypetargetlist">ReplaceSchema の objectTypeTargetList</a></div>
 	<h3 id="tableexceptlist">tableExceptList</h3>
 	<p>
 		自動生成対象から除外するテーブルのリスト。(variousMapの中のプロパティ)
@@ -174,7 +181,8 @@
 				<li>tableTargetList の指定がされている場合は無効 (target優先)</li>
 				<li>前方一致: "prefix:前方一致させる文字列" という形式で指定</li>
 				<li>後方一致: "suffix:後方一致させる文字列" という形式で指定</li>
-				<li>中間一致: "contain:中間一致させる文字列" という形式で指定</li>
+				<li>部分一致: "contain:中間一致させる文字列" という形式で指定</li>
+				<li>Generateのみで除外: "[テーブル名]@gen" という形式で指定(詳細後述) <span class="freecomment">@since 0.9.8.2</span></li>
 				<li>複数指定時は、or 条件として扱われる</li>
 			</ul>
 		</dd>
@@ -187,9 +195,26 @@
 </code></pre>
 	<p>
 		このプロパティは、メインスキーマのみに対する設定となります。
-		また、テーブルだけでなく、objectTypeTargetList で指定した他のオブジェクトも含まれます。
+		また、テーブルだけでなく objectTypeTargetList で指定した他のオブジェクトも含まれます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
+	<p>
+		ここでいう除外とは、"メタデータを取得しない" という意味になります。
+		よって、自動生成対象にもならなければ、SchemaHTML や HistoryHTML などのドキュメント生成処理においても対象外となります。
+		ただし、ReplaceSchema に関しては、このプロパティは無視されるため、スキーマ初期化などでは除外されたテーブルも削除されます。
+	</p>
+	<p>
+		一方で、SchemaHTML や HistoryHTML
+		はとても利便性の高い機能であり、アプリとして利用しないもののドキュメントでは参照したいという状況も十分想定されるため、
+		"クラスの自動生成においてのみ除外する" という指定もできます。除外テーブルの指定において suffix として <em class="keyword">@gen</em>
+		を付与することで、その指定に該当するテーブルはドキュメント上 (Docタスク) では参照できつつも、クラスの自動生成 (Generateタスク) では除外されるようになります。
+		<span class="freecomment">@since 0.9.8.2</span>
+	</p>
+<pre><span class="codetitle">ex) "MST_" で始まるテーブルは Generate のみで除外したい場合 @databaseInfoMap.dfprop</span><code>
+; variousMap = <span class="keyword">map:</span>{
+    ; tableExceptList = <span class="keyword">list:</span>{<span class="attribute">prefix:</span>MST_<span class="point">@gen</span>}
+}
+</code></pre>
 	<h3 id="tabletargetlist">tableTargetList</h3>
 	<p>
 		自動生成対象を指定するテーブルのリスト。(variousMapの中のプロパティ)
@@ -201,6 +226,7 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>指定方法は、tableExceptList と同じ</li>
+				<li>Generateのみ指定はこちらでは利用できない</li>
 				<li>複数指定時は、or 条件として扱われる</li>
 			</ul>
 		</dd>
@@ -213,9 +239,12 @@
 </code></pre>
 	<p>
 		このプロパティは、メインスキーマのみに対する設定となります。
-		また、テーブルだけでなく、objectTypeTargetList で指定した他のオブジェクトも含まれます。
+		また、テーブルだけでなく objectTypeTargetList で指定した他のオブジェクトも含まれます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - 追加スキーマ</a></div>
+	<p>
+		SchemaHTML や ReplaceSchema などの別の処理への影響は、tableExceptList と同じです。
+	</p>
 	<h3 id="columnexceptmap">columnExceptMap</h3>
 	<p>
 		自動生成対象から除外するカラムのリスト。(variousMapの中のプロパティ)
