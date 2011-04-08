@@ -78,6 +78,7 @@
 				<li><a href="#typeadjustment">参照カラムのオプションによる型調整</a></li>
 			</ul>
 		</li>
+		<li><a href="#alternatebool">代理判定メソッドの自動判別</a></li>
 		<li><a href="#structure">ParameterBeanの構造</a>
 			<ul>
 				<li><a href="#emptystring">getメソッドの空文字フィルタ</a></li>
@@ -689,6 +690,50 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		項目指定コストを軽減するための(あくまで)補助的な機能と位置付けられています。
 		(一方で、ParameterBeanのプロパティ項目がベタっとSQLの上部の一覧記述されることは、それはそれでドキュメント的な役割があるため、
 		それを重視するケースにおいてはこの自動判別機能を遠慮なく利用しないでも良いでしょう)
+	</p>
+
+	<h2 id="alternatebool">代理判定メソッドの自動判別</h2>
+	<p>
+		外だしSQLで複雑な条件での分岐がどうしても必要なとき、IFコメントの中で複雑な条件を書くよりも、ParameterBeanのExクラスに
+		<em class="keyword">代理判定メソッド</em>
+		を作成して、IFコメントではそのメソッドを単に呼び出すやり方が推奨されています。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#alternatebool">パラメータコメント - 複雑な条件はメソッド化</a></div>
+	<p>
+		通常、その代理判定メソッドの作成するときは、IFコメントで代理判定メソッドを指定した後、Sql2EntityでParameterBeanを自動生成し、Exクラスに手動で作成します。
+		メソッドの定義で名前を間違えたり、そもそも定義するのを忘れたりすれば、当然実行時に "メソッドがない例外" となります。
+	</p>
+	<p>
+		プロパティ項目の自動判別機能を利用している場合(自動判別マークを指定している場合)は、
+		IFコメントで指定された代理判定メソッドが自動判別され、ParameterBeanのBsクラスに
+		abstract メソッドとして定義されます<span class="freecomment">(@since 0.9.8.2)</span>。
+		つまり、自動生成された瞬間いきなりコンパイルエラーになり、定義漏れがなくなるのはもちろん、メソッド名を間違えるということもなくなります。
+		また、Exクラスの実装で @Override アノテーションをしっかり指定していれば、
+		IFコメント側で代理判定メソッドの名前を変更したときも古いメソッドがコンパイルエラーで検知できます。
+	</p>
+	<p>
+		この機能は、プロパティ項目の自動判別機能の付加要素としての提供となります。
+	</p>
+	<div class="relatedpage"><a href="#autodetect">this - プロパティ項目の自動判別</a></div>
+	<p>
+		自動判別対象となるのは、<em class="keyword">/*IF pmb.foo()*/</em> というシンプルな形式のboolean型メソッドです。
+	</p>
+	<ul>
+		<li>引数のないメソッドであること</li>
+		<li>条件が一つであること(ANDやORは不可)</li>
+		<li>否定演算子はあってもよい <span class="freecomment">e.g. /*IF !pmb.foo()*/</span></li>
+	</ul>
+	<p>
+		逆に明確に自動判別の対象外となる状況は以下の通りです。
+	</p>
+	<ul>
+		<li>ネストした呼び出しは対象外 <span class="freecomment">e.g. /*IF pmb.foo().bar()*/</span></li>
+		<li>比較式があるものは対象外 <span class="freecomment">e.g. /*IF pmb.foo() == true*/</span></li>
+		<li>予約された名前のメソッドは対象外 <span class="freecomment">e.g. /*IF isPaging()*/</span></li>
+		<li>定義されたプロパティ名のメソッドは対象外 <span class="freecomment">e.g. /*IF getMemberName()*/, /*IF isMemberName()*/</span></li>
+	</ul>
+	<p>
+		ただし、普段は細かいルールを意識する必要はあまりないでしょう。自然に書いていればOKです。
 	</p>
 
 	<h2 id="structure">ParameterBeanの構造</h2>

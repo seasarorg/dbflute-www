@@ -65,7 +65,7 @@
 		<li><a href="#ifcomment">IFコメント</a>
 			<ul>
 				<li><a href="#ifcondition">IFコメントの条件表現</a></li>
-				<li><a href="#complexcondition">複雑な条件はメソッド化</a></li>
+				<li><a href="#alternatebool">複雑な条件はメソッド化</a></li>
 				<li><a href="#ifnest">IFコメントのネスト</a></li>
 				<li><a href="#withbegin">BEGINコメントとの併用</a></li>
 			</ul>
@@ -326,10 +326,14 @@
 		<li>OR条件で条件連結できる <span class="freecomment">ex) /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
 		<li>AND条件とOR条件の(一つのIFコメント内での)併用はできない</li>
 	</ul>
-	<h3 id="complexcondition">複雑な条件はメソッド化</h3>
+	<h3 id="alternatebool">複雑な条件はメソッド化</h3>
 	<p>
 		複雑な条件を記述する場合は、ParameterBeanのExクラスにメソッドを定義して、そのメソッドをIFコメントで呼び出すようにするのが推奨されます。
-		そうすることで、条件の妥当性をチェックの単体テストがしやすいものになります。(かつ、IFコメントの条件表現のスコープ外の複雑な条件の実現ができるようになる)
+		これのメソッドを、(複雑な条件の) <em class="keyword">代理判定メソッド</em> と呼びます。
+	</p>
+	<p>
+		このようにすることで、プログラム言語の文法を利用して柔軟に条件を実装でき、また、条件の妥当性を単体テストなどでチェックしやすくなります。
+		そういったポリシーから、IFコメントではそもそも複雑な条件を書けないように制限している、という面もあります(AND条件とOR条件の併用禁止など)。
 	</p>
 <pre><span class="codetitle">ex) ParameterBeanのExクラスにて複雑な条件のメソッド @Java</span><code>
 <span class="keyword">public boolean</span> isPurchaseValid() {
@@ -343,6 +347,10 @@
          <span class="abbreviation">...</span>
  <span class="comment">/*END*/</span>
 </code></pre>
+	<p>
+		IFコメント上に書かれた代理判定メソッドを自動判別して、Exクラスでのメソッドの定義漏れを防ぐ支援機能(AutoDetect)も存在します。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/sql2entity/parameterbean.html#alternatebool">ParameterBean - 代理判定メソッド</a></div>
 	<h3 id="ifnest">IFコメントのネスト</h3>
 	<p>
 		IFコメントは、ネストさせて利用することができます。但し、単なる AND
