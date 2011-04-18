@@ -336,15 +336,15 @@
 		そういったポリシーから、IFコメントではそもそも複雑な条件を書けないように制限している、という面もあります(AND条件とOR条件の併用禁止など)。
 	</p>
 <pre><span class="codetitle">ex) ParameterBeanのExクラスにて複雑な条件のメソッド @Java</span><code>
-<span class="keyword">public boolean</span> isPurchaseValid() {
-    <span class="keyword">return</span> _purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>;
+<span class="keyword">public boolean</span> existsPurchase() {
+    <span class="keyword">return</span> (_purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>) && <span class="abbreviation">...</span>;
 }
 </code></pre>
 <pre><span class="codetitle">ex) ParameterBeanのExクラスのメソッドをIFコメントで利用 @OutsideSql</span><code>
- <span class="comment">/*IF pmb.isPurchaseValid()*/</span>
- <span class="keyword">and in</span> (<span class="keyword">select</span> PURCHASE_ID
-           <span class="keyword">from</span> PURCHASE
-         <span class="abbreviation">...</span>
+ <span class="comment">/*IF pmb.existsPurchase()*/</span>
+ <span class="keyword">and exists</span> (<span class="keyword">select</span> PURCHASE_ID
+             <span class="keyword">from</span> PURCHASE
+             <span class="abbreviation">...</span>
  <span class="comment">/*END*/</span>
 </code></pre>
 	<p>

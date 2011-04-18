@@ -711,6 +711,32 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		また、Exクラスの実装で @Override アノテーションをしっかり指定していれば、
 		IFコメント側で代理判定メソッドの名前を変更したときも古いメソッドがコンパイルエラーで検知できます。
 	</p>
+<pre><span class="codetitle">ex) IFコメントで代理判定メソッドを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!<span class="point">AutoDetect</span>!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+<span class="abbreviation">...</span>
+ <span class="comment">/*IF pmb.<span class="point">existsPurchase()</span>*/</span>
+ <span class="keyword">and exists</span> (<span class="keyword">select</span> PURCHASE_ID
+             <span class="keyword">from</span> PURCHASE
+             <span class="abbreviation">...</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">ex) ParameterBeanのBsクラスにて代理判定メソッドのテンプレート @Java</span><code>
+<span class="comment">// この抽象メソッドは自動生成され、</span>
+<span class="comment">// 自動生成直後はExクラスでコンパイルエラー</span>
+<span class="keyword">public abstract boolean</span> existsPurchase();
+</code></pre>
+<pre><span class="codetitle">ex) ParameterBeanのExクラスにて代理判定メソッドを実装 @Java</span><code>
+<span class="comment">// コンパイルエラーの赤い波線にカーソル合わせて</span>
+<span class="comment">// ctrl + 1 -&gt; enter で実装メソッド補完 (Eclipse)</span>
+<span class="attribute">@Override</span>
+<span class="keyword">public boolean</span> existsPurchase() {
+    <span class="keyword">return</span> (_purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>) && <span class="abbreviation">...</span>;
+}
+</code></pre>
 	<p>
 		この機能は、プロパティ項目の自動判別機能の付加要素としての提供となります。
 	</p>
