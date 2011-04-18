@@ -76,7 +76,7 @@
 		例えば、以下のようなプロジェクト構成の開発があるとします。
 	</p>
 	<dl class="keymainlist">
-		<dt>storage</dt><dd>DBFluteの自動生成クラス、DB周りのロジック <span class="freecomment">(ライブラリ扱い)</span></dd>
+		<dt>dblib</dt><dd>DBFluteの自動生成クラス、DB周りのロジック <span class="freecomment">(ライブラリ扱い)</span></dd>
 		<dt>web1</dt><dd>コンシューマ向けのWEBサイト</dd>
 		<dt>web2</dt><dd>コンシューマ向けの携帯用WEBサイト <span class="freecomment">(別会社に発注)</span></dd>
 		<dt>web3</dt><dd>管理用WEBサイト <span class="freecomment">(海外に発注)</span></dd>
@@ -84,7 +84,7 @@
 		<dt>web4</dt><dd>さらに別のコンシューマ向けのWEBサイト <span class="freecomment">(海外に発注)</span></dd>
 	</dl>
 	<p>
-		一つのDBを色々なアプリケーションが共有してDBアクセスするとして、storageプロジェクトを全てのアプリケーションが参照します。
+		一つのDBを色々なアプリケーションが共有してDBアクセスするとして、dbilb プロジェクトを全てのアプリケーションが参照します。
 		この場合、かなり大人数で同時に開発が進み、かつ、アプリケーションごとに開発する組織が違うため、なにかとフットワークは重く、
 		マネジメントの難易度も単一プロジェクトに比べて遥かに高いものになるでしょう。
 	</p>
@@ -92,11 +92,11 @@
 	<p>
 		DBFluteでは、ジェネレーションギャップという形で自動生成とアプリケーションのギャップを埋められるような構造にはなっていますが、
 		このような構造の場合では、(特にBehaviorの)Exクラスへのメソッド追加はかなり至難なものになることが想像されます。
-		バージョン管理システムでのコンフリクト、そして、とあるアプリでしか利用しないメソッドの乱立、もしくは、そもそもそれぞれのアプリには、storage
-		プロジェクトへの編集権限を持たせない運用もする可能性があります(storageプロジェクトを jar ファイルとして配るなど)。
+		バージョン管理システムでのコンフリクト、そして、とあるアプリでしか利用しないメソッドの乱立、もしくは、そもそもそれぞれのアプリには、dblib
+		プロジェクトへの編集権限を持たせない運用もする可能性があります(dblib プロジェクトを jar ファイルとして配るなど)。
 	</p>
 	<p>
-		また、外だしSQLの　BehaviorQueryPath もBehaviorが前提となっているため、storage
+		また、外だしSQLの　BehaviorQueryPath もBehaviorが前提となっているため、dblib
 		プロジェクトの編集なしでは外だしSQLのタイプセーフな呼び出しは実現できません。
 	</p>
 	<p>
@@ -109,7 +109,7 @@
 		を自動生成できるようにしています。これを <em class="keyword">ApplicationBehavior</em> と呼びます。 
 	</p>
 	<p>
-		対して、ここで言う storage
+		対して、ここで言う dblib
 		プロジェクトのことを、<em class="keyword">ライブラリプロジェクト</em> と呼び、そのライブラリプロジェクト内にある(通常の) Behavior
 		を <em class="keyword">LibraryBehavior</em> と呼びます。(ApplicationBehaviorを利用している場合に)
 	</p>
@@ -129,38 +129,38 @@
 		もアプリケーションプロジェクトの中に自動生成します。 
 	</p>
 <pre><span class="codetitle">ex) ApplicationBehaviorの自動生成クラス(と外だしSQLの配置) {MEMBER} @Directory</span><code>
-storage <span class="comment">// ライブラリプロジェクト</span>
+dblib <span class="comment">// ライブラリプロジェクト</span>
  |-src/main/java
-    |-com.example.storage.dbflute.bsbhv
+    |-com.example.dblib.dbflute.bsbhv
        |-BsMemberBhv.java <span class="comment">// システム全体で共通の外だしSQLのBehaviorQueryPath</span>
-    |-com.example.storage.dbflute.exbhv
-       |-MemberBhv.java <span class="comment">// システム全体で共通を定義</span>
+    |-com.example.dblib.dbflute.exbhv
+       |-MemberBhv.java <span class="comment">// システム全体で共通のメソッドを定義</span>
 web1
  |-src/main/java
- |  |-com.example.storage.dbflute.bsbhv
- |  |  |-<span class="point">BsMemberBhvAp.java</span> <span class="comment">// アプリ独自の外だしSQLのBehaviorQueryPath</span> 
- |  |-com.example.storage.dbflute.bsentity.customize
- |  |  |-BsAppOriginal.java <span class="comment">// アプリ独自のCustomizeEntity(Bsクラス)</span>
- |  |-com.example.storage.dbflute.exbhv
- |  |  |-<span class="point">MemberBhvAp.java</span> <span class="comment">// アプリ独自のメソッドを定義</span>
- |  |-com.example.storage.dbflute.exentity.customize
- |  |  |-AppOriginal.java <span class="comment">// アプリ独自のCustomizeEntity(Exクラス)</span>
+ |  |-com.example.dblib.dbflute.bsbhv
+ |  |  |-<span class="point">BsMemberBhvAp.java</span> <span class="comment">// アプリ固有の外だしSQLのBehaviorQueryPath</span> 
+ |  |-com.example.dblib.dbflute.bsentity.customize
+ |  |  |-BsAppOriginal.java <span class="comment">// アプリ固有のCustomizeEntity(Bsクラス)</span>
+ |  |-com.example.dblib.dbflute.exbhv
+ |  |  |-<span class="point">MemberBhvAp.java</span> <span class="comment">// アプリ固有のメソッドを定義</span>
+ |  |-com.example.dblib.dbflute.exentity.customize
+ |  |  |-AppOriginal.java <span class="comment">// アプリ固有のCustomizeEntity(Exクラス)</span>
  |-src/main/resources
-    |-com.example.storage.dbflute.exbhv
-       |-MemberBhv_selectAppOriginal.sql <span class="comment">// アプリ独自の外だしSQL</span>
+    |-com.example.dblib.dbflute.exbhv
+       |-MemberBhv_selectAppOriginal.sql <span class="comment">// アプリ固有の外だしSQL</span>
 web2
  |-src/main/java
- |  |-com.example.storage.dbflute.bsbhv
- |  |  |-<span class="point">BsMemberBhvAp.java</span> <span class="comment">// アプリ独自の外だしSQLのBehaviorQueryPath</span>
- |  |-com.example.storage.dbflute.bsentity.customize
- |  |  |-BsAppOriginal.java <span class="comment">// アプリ独自のCustomizeEntity(Bsクラス)</span>
- |  |-com.example.storage.dbflute.exbhv
- |  |  |-<span class="point">MemberBhvAp.java</span> <span class="comment">// アプリ独自のメソッドを定義</span>
- |  |-com.example.storage.dbflute.exentity.customize
- |  |  |-AppOriginal.java <span class="comment">// アプリ独自のCustomizeEntity(Exクラス)</span>
+ |  |-com.example.dblib.dbflute.bsbhv
+ |  |  |-<span class="point">BsMemberBhvAp.java</span> <span class="comment">// アプリ固有の外だしSQLのBehaviorQueryPath</span>
+ |  |-com.example.dblib.dbflute.bsentity.customize
+ |  |  |-BsAppOriginal.java <span class="comment">// アプリ固有のCustomizeEntity(Bsクラス)</span>
+ |  |-com.example.dblib.dbflute.exbhv
+ |  |  |-<span class="point">MemberBhvAp.java</span> <span class="comment">// アプリ固有のメソッドを定義</span>
+ |  |-com.example.dblib.dbflute.exentity.customize
+ |  |  |-AppOriginal.java <span class="comment">// アプリ固有のCustomizeEntity(Exクラス)</span>
  |-src/main/resources
-    |-com.example.storage.dbflute.exbhv
-       |-MemberBhv_selectAppOriginal.sql <span class="comment">// アプリ独自の外だしSQL</span>
+    |-com.example.dblib.dbflute.exbhv
+       |-MemberBhv_selectAppOriginal.sql <span class="comment">// アプリ固有の外だしSQL</span>
 </code></pre>
 	<h3 id="suffix">ApplicationBehavior の suffix</h3>
 	<p>
@@ -215,7 +215,7 @@ dfprop
  |  |-outsideSqlDefinitionMap+.dfprop <span class="comment">// ProcedurePmbの自動生成を無効に</span>
  |  |-refreshDefinitionMap+.dfprop    <span class="comment">// リフレッシュ先プロジェクトを web2 に</span>
  |
- |-basicInfoMap.dfprop <span class="comment">// storageプロジェクトの(通常の)自動生成</span>
+ |-basicInfoMap.dfprop <span class="comment">// dblib プロジェクトの(通常の)自動生成</span>
  |-<span class="abbreviation">...</span>
 </code></pre>
 	<p>
@@ -347,7 +347,7 @@ cd `dirname $0`
 		LibraryBehavior とは別の(シングルトン)インスタンスで登録されます。
 	</p>
 <pre><span class="codetitle">ex) ApplicationBehaviorの自動生成されるDI設定ファイル {Seasar} @Directory</span><code>
-storage
+entity
  |-src/main/java
     |-<span class="abbreviation">...</span>
 web1
@@ -373,18 +373,18 @@ web2
 	<p>
 		それぞれのアプリケーションでは、この ApplicationBehavior
 		を利用してDBアクセスを行うことで、LibraryBehavior
-		の機能に加えて、アプリ独自に機能(メソッドや外だしSQL)を利用することができます。
+		の機能に加えて、アプリ固有の機能(メソッドや外だしSQL)を利用することができます。
 	</p>
 <pre><span class="codetitle">ex) ApplicationBehaviorの利用 {MEMBER} @Java</span><code>
 <span class="keyword">protected</span> MemberBhvAp <span class="attribute">memberBhvAp</span>;
 
 <span class="keyword">public void</span> doSearch() {
-    <span class="comment">// アプリ独自のメソッド or アプリ独自の外だしSQLの呼び出し</span>
+    <span class="comment">// アプリ固有のメソッド or アプリ固有の外だしSQLの呼び出し</span>
     <span class="attribute">memberBhvAp</span>.select<span class="abbreviation">...</span>;
 }
 </code></pre>
 	<p>
-		アプリ独自の機能を利用する必要のない場面では、LibraryBehavior
+		アプリ固有の機能を利用する必要のない場面では、LibraryBehavior
 		を利用しても問題ありません。その場合は、どちらの Behavior
 		から実行しても処理に違いはありません。(但し、紛らわしい面もあるので、一律
 		BhvAp を利用するというポリシーでも良いでしょう)
@@ -398,13 +398,13 @@ web2
     <span class="comment">// 全てのアプリ共通のメソッド or 全てのアプリ共通の外だしSQLの呼び出し</span>
     <span class="attribute">memberBhv</span>.select<span class="abbreviation">...</span>;
 
-    <span class="comment">// アプリ独自のメソッド or アプリ独自の外だしSQLの呼び出し</span>
+    <span class="comment">// アプリ固有のメソッド or アプリ固有の外だしSQLの呼び出し</span>
     <span class="attribute">memberBhvAp</span>.select<span class="abbreviation">...</span>;
 }
 </code></pre>
 	<h3 id="derivedreferrer">(Specify)DerivedReferrerも</h3>
 	<p>
-		Exクラスにアプリ独自のメソッドを定義するのは Behavior だけではなく、Entity
+		Exクラスにアプリ固有のメソッドを定義するのは Behavior だけではなく、Entity
 		も同様です。特に ConditionBean の (Specify)DerivedReferrer
 		を利用するときは、ディベロッパー自身が Entity のExクラスにメソッドを定義することが求められます。この
 		ApplicationBehavior を利用して、ライブラリプロジェクトの編集なしで (Specify)DerivedReferrer
@@ -418,11 +418,11 @@ web2
 <pre><span class="codetitle">ex) ApplicationEntityの作成(習慣的にクラス名の後ろにApを付与) {MEMBER} @Directory</span><code>
 web1
  |-src/main/java
- |  |-com.example.storage.dbflute.bsbhv
+ |  |-com.example.dblib.dbflute.bsbhv
  |  |  |-BsMemberBhvAp.java 
- |  |-com.example.storage.dbflute.exbhv
+ |  |-com.example.dblib.dbflute.exbhv
  |  |  |-MemberBhvAp.java
- |  |-com.example.storage.dbflute.<span class="point">nogen.entity</span> <span class="comment">// 手動作成用パッケージ(習慣的に nogen)</span>
+ |  |-com.example.dblib.dbflute.<span class="point">nogen.entity</span> <span class="comment">// 手動作成用パッケージ(習慣的に nogen)</span>
  |     |-<span class="point">MemberAp.java</span> <span class="comment">// 手動で作成(習慣的に XxxAp)</span>
 </code></pre>
 	<h4>ApplicationEntityの実装</h4>
