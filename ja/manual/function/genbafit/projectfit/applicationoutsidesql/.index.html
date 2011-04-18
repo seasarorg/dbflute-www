@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,アプリケーション外だしSQL,ApplicationOutsideSql,大規模" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>アプリごとの外だしSQL | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>アプリごとの外だしSQL</h1>
+	<ul class="indexlist">
+		<li><a href="#sqlwhere">外だしSQLのゆくえは？</a></li>
+		<li><a href="#solution">アプリ内に外だしSQLを配置</a></li>
+		<li><a href="#appgap">アプリケーションギャップ</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
+	</ul>
+
+	<h2 id="sqlwhere">外だしSQLのゆくえは？</h2>
+	<p>
+		例えば、以下のようなプロジェクト構成の開発があるとします。
+	</p>
+	<dl class="keymainlist">
+		<dt>storage</dt><dd>DBFluteの自動生成クラス、DB周りのロジック <span class="freecomment">(ライブラリ扱い)</span></dd>
+		<dt>web1</dt><dd>コンシューマ向けのWEBサイト</dd>
+		<dt>web2</dt><dd>コンシューマ向けの携帯用WEBサイト <span class="freecomment">(別会社に発注)</span></dd>
+		<dt>web3</dt><dd>管理用WEBサイト <span class="freecomment">(海外に発注)</span></dd>
+		<dt>batch</dt><dd>バッチプロジェクト</dd>
+		<dt>web4</dt><dd>さらに別のコンシューマ向けのWEBサイト <span class="freecomment">(海外に発注)</span></dd>
+	</dl>
+	<p>
+		外だしSQLは、デフォルト設定ではGenerateタスクで自動生成されるテーブル対応のクラスと同じプロジェクト内で管理されます。
+		この例の場合は、storageプロジェクトに外だしSQLが配置され、そこから自動生成されるクラス(CustomizeEntity
+		や ParameterBean など)もそこに生成されることが前提となっています。
+	</p>
+	<p>
+		しかし、このような複数のアプリケーションがある構成の場合(多くのプロジェクトで想定されます)、
+		ある特定のアプリしか利用しない外だしSQLを共通のプロジェクトに配置するというちょっと違和感のある状態になる可能性があります。
+		また、そもそも組織上の問題やインフラ的な制約でライブラリプロジェクトへの修正が許されない、もしくは、あまりそうすべきではないという状況もあるでしょう。
+		これらは <em class="keyword">アプリケーションギャップ</em> の一つと言えるでしょう。
+	</p>
+	<div class="relatedpage"><a href="#appgap">this - アプリケーションギャップ</a></div>
+	<p>
+		もちろん、DBFluteは ConditionBean を提供しているため、外だしSQLが山のように大量に作成されることはあまりなく、10 から 20
+		程度の外だしSQLであれば、一元管理という意味合いも兼ねてライブラリプロジェクトの中で作成するやり方で十分なことが多いでしょう。
+		外だしSQLは、アプリケーションの肝となる複雑で神経質にならなければならないロジックになりがちで、ConditionBean
+		よりも一元管理の利点の比重が高くなります。
+		とはいえ、それを超えるような量の外だしSQLが想定されるようなプロジェクトであれば、
+		やはりアプリケーションごとに外だしSQLを管理したいと考えるものです。
+	</p>
+
+	<h2 id="solution">アプリ内に外だしSQLを配置</h2>
+	<p>
+		そこで、DBFluteでは外だしSQLをアプリごとに管理できるような仕組みがあります。
+		outsideSqlDefinitionMap.dfprop の applicationOutsideSqlMap にて、web1 や web2
+		への(DBFluteクライアントからの相対)パスを定義することで利用できます。<span class="freecomment">@since 0.9.8.2</span>
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/outsidesqldefinition/index.html#applicationoutsidesqlmap">dfprop - applicationOutsideSqlMap</a></div>
+	<p>
+		これを <em class="keyword">アプリケーション外だしSQL(ApplicationOutsideSql)</em> と呼びます。
+	</p>
+	<p>
+		例えば、web1のプロジェクト内に外だしSQLを作成し、Sql2Entityを実行するとその外だしSQLに対応する CustomizeEntity
+		や ParameterBean が、同じweb1のプロジェクト内に自動生成されます。
+		当然、それらクラスはweb2からは参照できない形となりますし、ライブラリプロジェクトに対する修正など一切が入りません。
+	</p>
+	<p>
+		一方で、本当に web1 や web2 などの複数のアプリから再利用される外だしSQLは、今まで通りのやり方で管理することも同時に可能です。
+		再利用される外だしSQLとアプリ固有の外だしSQLを明確に分けて管理することができます。
+	</p>
+	<p>
+		また、storage の外だしSQLに加えて web1 や web2 の外だしSQLも同時に OutsideSqlTest
+		の対象にもなりますし、SchemaHTML でも双方の外だしSQLが表示されます。一元管理という視点のアプローチも失ってはいません。
+	</p>
+
+	<h2 id="appgap">アプリケーションギャップ</h2>
+	<p>
+		アプリケーションギャップを完全に解決する方法は、このアプリケーション外だしSQLではなく、
+		別途独立した機能であるアプリごとのBehavior(ApplicationBehavior)でしょう。
+		ですが、そちらは若干設定や仕組みが大げさになるため、
+		一部のメリットは割り切ってもっと気軽に利用できるアプリケーションギャップへのアプローチがこのアプリケーション外だしSQLとも言えます。
+		(アプリケーションギャップについてはアプリごとのBehaviorのページでもさらに詳しく書かれています)
+	</p>
+	<div class="relatedpage"><a href="../applicationbehavior/index.html">現場フィット - アプリごとのBehavior</a></div>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-guice-example と dbflute-sqlap-example にて、実際にアプリごとの外だしSQLを利用しています。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#pointenv">DBFlute Example - 特定環境</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
