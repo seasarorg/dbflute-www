@@ -85,6 +85,7 @@
 		<li><a href="#supplement">MySQL補足資料</a>
 			<ul>
 				<li><a href="#identitysetting">Identity設定</a></li>
+				<li><a href="#uniquefeature">ユニーク制約の特徴</a></li>
 				<li><a href="#enginesetting">ストレージエンジンの設定</a></li>
 				<li><a href="#isolationsetting">トランザクション分離レベルの設定</a></li>
 				<li><a href="#charsetsetting">キャラセットの設定</a></li>
@@ -415,14 +416,14 @@ lower_case_table_names=1
 	</p>
 <pre><span class="codetitle">ex) SQLモードの設定 {SQLモードを指定することによりエラーになる} @my.cnf</span><code>
 [mysqld]
-sql_mode=<span class="literal">"PIPES_AS_CONCAT,ONLY_FULL_GROUP_BY,ANSI_QUOTES,IGNORE_SPACE,NO_DIR_IN_CREATE,STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"</span>
+sql_mode=<span class="literal">"ONLY_FULL_GROUP_BY,STRICT_ALL_TABLES,PIPES_AS_CONCAT,ANSI_QUOTES,NO_ZERO_DATE,NO_ZERO_IN_DATE,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"</span>
 </code></pre>
 	<p>
 		代表的なSQLモードを挙げておきます。
 	</p>
 	<dl class="keymainlist">
-		<dt>PIPES_AS_CONCAT</dt><dd>SQL上の文字列連結で'||'が利用可能になる</dd>
 		<dt>ONLY_FULL_GROUP_BY</dt><dd>間違ったGroupByがちゃんとエラーになる</dd>
+		<dt>PIPES_AS_CONCAT</dt><dd>SQL上の文字列連結で'||'が利用可能になる</dd>
 	</dl>
 
 	<h2 id="example">Exampleのススメ</h2>
@@ -456,6 +457,15 @@ sql_mode=<span class="literal">"PIPES_AS_CONCAT,ONLY_FULL_GROUP_BY,ANSI_QUOTES,I
     ...
 )
 </code></pre>
+	<h3 id="uniquefeature">ユニーク制約の特徴</h3>
+	<p>
+		NotNull の FOO カラムと、そうでない BAR カラム
+		で複合ユニーク制約を付けた場合、"A と null" と "A と null"
+		の二つのレコードは登録できる。つまり、この場合の二つの null はそれぞれ別の値として扱われる。
+	</p>
+	<p>
+		<span class="freecomment">※試しに、会員の生年月日とバージョンNOに複合ユニーク制約を付けてもExampleのテストデータは正常に登録された</span>。
+	</p>
 	<h3>発行された連番を insert 実行後に取得</h3>
 <pre><span class="codetitle">ex) 発行された連番を insert 実行後に取得 @SQL</span><code>
 <span class="keyword">select</span> last_insert_id();
