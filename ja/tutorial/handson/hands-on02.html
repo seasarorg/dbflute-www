@@ -39,12 +39,13 @@
 <div id="content">
 	<h1>ハンズオン セクション 2</h1>
 	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
 		<li><a href="#master">マスタデータの登録</a>
 			<ul>
 				<li><a href="#assertnomaster">マスタデータがないことを確認</a></li>
 				<li><a href="#loadmaster">マスタデータを配置して再びReplaceSchema</a></li>
-				<li><a href="#checkokmaster">テストが通ることを確認</a></li>
+				<li><a href="#checkokmaster">マスタデータが入ったことを確認</a></li>
 			</ul>
 		</li>
 		<li><a href="#testdata">テストデータの登録</a>
@@ -58,17 +59,25 @@
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
-	<h2 id="ready">事前準備</h2>
+	<h2 id="overview">概要</h2>
 	<p>
 		さて、ハンズオンの続きです。
 	</p>
 	<div class="relatedpage"><a href="./hands-on01.html">ハンズオン セクション 01</a></div>
+	<p>
+		"データ登録をしてConditionBeanで基本の検索" をしていきましょう。
+	</p>
+
+	<h2 id="ready">事前準備</h2>
 	<p>
 		com.example.dbflute.handson.section.HandsOn02Test クラスを作成してください。
 		このクラスは ContainerTestCase を継承します。
 	</p>
 
 	<h2 id="master">マスタデータの登録</h2>
+	<p>
+		ここでいうマスタデータとは、会員ステータスなどの固定的なテーブルを指します。
+	</p>
 	<h3 id="assertnomaster">マスタデータがないことを確認</h3>
 	<p>
 		localdb/login-mysql-root.bat|sh で MySQL
@@ -83,17 +92,23 @@
 </code></pre>
 	<h3 id="loadmaster">マスタデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql.zip の data/common/xls/10-master.xls
-		をDBFluteクライアントの playsql 配下に同じディレクトリ構造でコピーし、ReplaceSchemaを実行してください。
+		tutorial/material/dbflute/playsql-loaddata-common.zip の playsql/data/common/xls/10-master.xls
+		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
 	</p>
-	<h3 id="checkokmaster">テストが通ることを確認</h3>
+<pre><span class="codetitle">ex) CreateSchema用のDDLの配置場所 @Directory</span><code>
+PROJECT_ROOT
+ |-<span class="abbreviation">...</span>
+ |-dbflute_exampledb
+ |  |-dfprop
+ |  |-<span class="abbreviation">...</span>
+ |  |-playsql
+ |  |  |-<span class="point">replace-schema-00-system.sql</span>
+ |  |  |-<span class="point">replace-schema-10-basic.sql</span>
+ <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="checkokmaster">マスタデータが入ったことを確認</h3>
 	<p>
-		再度テストを実行し、テストが通ってJUnitのバー表示が緑になることを確認してください。
-		F11 を押すと、さっき実行したテストが再実行されます。これも Quick JUnit のショートカットです。
-	</p>
-	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
-	<p>
-		<span class="freecomment">(講師によるデータの切り替え管理についてちょっとした講義あり)</span>
+		先ほどの会員ステータスのカウント検索の結果が 0 でないことを確認してください。
 	</p>
 
 	<h2 id="testdata">テストデータの登録</h2>
@@ -179,8 +194,8 @@
 	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
 	<h3 id="loadtestdata">テストデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql.zip の data/ut/xls/20-member.xls, 30-product.xls
-		をDBFluteクライアントの playsql 配下に同じディレクトリ構造でコピーし、ReplaceSchemaを実行してください。
+		tutorial/material/dbflute/playsql-loaddata-ut.zip の playsql/data/ut/xls/20-member.xls, 30-product.xls
+		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
 	</p>
 	<p>
 		落ちるはずです。20-member.xls を開いてみてみてください。NotNull制約のついている共通カラムのデータがありません。
@@ -200,23 +215,44 @@
 </code></pre>
 	<h3 id="checkoktestdata">テストが通ることを確認</h3>
 	<p>
-		同じ要領で、テストが通ってJUnitのバー表示が緑になることを確認してください。
+		再度テストを実行し、テストが通ってJUnitのバー表示が緑になることを確認してください。
+		F11 を押すと、さっき実行したテストが再実行されます。これも Quick JUnit のショートカットです。
+	</p>
+	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
+	<p>
+		<span class="freecomment">(講師によるデータの切り替え管理についてちょっとした講義あり)</span>
 	</p>
 
 	<h2 id="watchdata">テストデータの閲覧</h2>
 	<p>
-		せっかくなので、テストデータにさらにアクセスしてみましょう。以下のテストを作成してください。
+		せっかくなので、どのようなデータが入っているかさらに見てみましょう。同時に ConditionBean
+		の基本中の基本に触れておきます。以下のテストを作成してください。
 	</p>
 	<dl class="textlist">
+		<!-- PrefixSearch, OrderBy Asc, selectList() -->
 		<dt>test会員名称がSで始まる会員を検索</dt>
-		<dd>会員名称の昇順で並べる</dd>
-		<dd>(検索結果の)会員名称がSで始まっていることをアサート</dd>
-		<dt>test会員IDが 1 の会員を検索</dt>
-		<dd>一件検索として検索すること</dd>
-		<dd>会員IDが 1 であることをアサート</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員名称の昇順で並べる</li>
+				<li>(検索結果の)会員名称がSで始まっていることをアサート</li>
+			</ul>
+		</dd>
+		<!-- Equal, selectEntity() -->
+		<dt>test会員IDが1の会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>一件検索として検索すること</li>
+				<li>会員IDが 1 であることをアサート</li>
+			</ul>
+		</dd>
+		<!-- IsNull, OrderBy Desc -->
 		<dt>test生年月日がない会員を検索</dt>
-		<dd>更新日時の降順で並べる</dd>
-		<dd>生年月日がないことをアサート</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>更新日時の降順で並べる</li>
+				<li>生年月日がないことをアサート</li>
+			</ul>
+		</dd>
 	</dl>
 	<p>
 		ConditionBeanの使い方、機能のページを参考にしながら実装しましょう。
@@ -232,7 +268,7 @@
 	<p>
 		さて、次のセクションへ
 	</p>
-	<div class="detailpage"><a href="./hands-on03.html">ハンズオン セクション 03</a></div>
+	<div class="detailpage"><a href="./hands-on03.html">ハンズオン セクション 3</a></div>
 
 </div>
 </div>

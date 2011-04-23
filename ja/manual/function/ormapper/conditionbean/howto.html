@@ -348,15 +348,20 @@ cb.query().<span class="point">setMemberStatusCode_InScope_AsMemberStatus(status
 	<h4>ネイティブ型の設定メソッドは残ったまま</h4>
 	<p>
 		区分値が関連付いたカラムのネイティブ型での設定メソッドは残っています。
-		これはこれで、既に区分値であることが保証されている変数(リストボックスのリクエストパラメータなど)を直接設定したりなど、場面場面で必要になるためです。
+		これはこれで、既に区分値であることが保証されている変数(リストボックスのリクエストパラメータなど)を直接設定したりなど、場面場面で必要になる可能性があるためです。
 		このような状況以外で、区分値のコードを(特にハードコードして)設定するようなことは基本的に想定されていません(<em class="keyword">利用してはいけません</em>)。
 	</p>
 <pre><span class="codetitle">ex) (ディベロッパーが)絶対にやってはいけない設定の仕方 @Java</span><code>
-cb.query.setMemberStatusCode_Equal(<span class="literal">"FML"</span>);
+cb.query.setMemberStatusCode_Equal(<span class="literal">"FML"</span>); <span class="comment">// NG</span>
 </code></pre>
 	<p>
-		もし、プロジェクト全体で <em class="keyword">区分値メソッド経由での設定を強制させたい場合</em> は、littleAdjustmentMap.dfprop
-		の isForceClassificationSetting を true にすることでネイティブ型の設定メソッドの可視性を protected にすることができます。
+		ネイティブ型のメソッドが補完候補となる場合、<em class="keyword">一緒に区分値メソッドも候補として表示されるため</em>、
+		区分値メソッドの存在に気付かずにネイティブ型の方を使ってしまうケースはあまりないでしょう。
+	</p>
+	<p>
+		ただ、それでもプロジェクト全体で <em class="keyword">区分値メソッド経由での設定の強制力を高めたい場合</em> は、littleAdjustmentMap.dfprop
+		の isForceClassificationSetting を true にすることでネイティブ型の設定メソッドの可視性を protected
+		にすることができます。ただし、その場合は、Entity を別のフレームワークでも利用するような場合に注意してください。
 	</p>
 	<div class="relatedpage"><a href="../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
 	<h4>大なり小なり比較・曖昧検索は生成されない</h4>
