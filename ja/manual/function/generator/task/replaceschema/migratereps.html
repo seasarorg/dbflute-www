@@ -108,7 +108,7 @@ fi
 		のときと同様、本当に実行するのかどうかを y/n 形式で聞かれますので、y と押してください。
 	</p>
 	<p>
-		タスクログ(コンソール or dbflute.log)に、抽出されたのテーブルとレコード件数が表示され、
+		タスクログ(コンソール or dbflute.log)に、抽出されたテーブルとレコード件数が表示され、
 		エクセルデータが作成されます。(Eclipse上のリフレッシュは手動で)
 	</p>
 	<dl class="textlist">
@@ -156,6 +156,19 @@ fi
 		<dd>
 			DBFluteでサポートしているエクセルの行数の限界が 655xx なので、MigrateRepsタスクで出力されるレコード数の最大は
 			65000 と定義されています。それ以上のレコードは切り捨てられます。
+		</dd>
+		<dd>
+			大量件数のレコードが全て欲しい場合は、(この機能とは無関係に)別途手動でTSVやCSVなどのデリミタデータとして出力する必要があります。
+			その際は、出力したツールのデリミタデータの仕様とReplaceSchemaの仕様を convertValueMap.dataprop
+			などで吸収する必要があるかもしれません。例えば、MySQLだとダブルクォーテーションをバックスラッシュでエスケープするなど、
+			ちょっとした ReplaceSchema との仕様の食い違いが発生します。
+			<div class="relatedpage"><a href="./loadtsv.html#convertvaluemap">データ登録(TSV) - 値のコンバート設定(dataprop)</a></div>
+			<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#delimiterdata">MySQLの取扱い - デリミタデータの取得</a></div>
+		</dd>
+		<dd>
+			Docタスクの DataXlsTemplate の機能で、65000件を超えるデータはCSVデータとして出力する機能がありますが、
+			簡易機能なのであまりに膨大な量だとメモリ不足でエラーになります。ただ、一時的にメモリ量を増やしてある程度の量は出力できるようになるかもしれません。
+			<div class="relatedpage"><a href="../doc/dataxlstemplate.html">Docタスク - DataXlsTemplate</a></div>
 		</dd>
 		<dt>バイナリ型のデータは全て null で出力</dt>
 		<dd>バイナリ型のデータはサポートされず、全て null として出力されます。</dd>
