@@ -46,7 +46,12 @@
 				<li><a href="#commoncolumn">共通カラムの出力有無</a></li>
 			</ul>
 		</li>
-		<li><a href="#largedata">大量件数のデータの場合</a></li>
+		<li><a href="#largedata">大量件数のデータの場合</a>
+			<ul>
+				<li><a href="#overexcel">エクセルの最大行数を超えた場合</a></li>
+				<li><a href="#manydata">全体的に行数が多い場合</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">DataXlsTemplateとは？</h2>
@@ -84,14 +89,23 @@
 	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#isdataxlstemplatecontainscommoncolumn">dfprop - isDataXlsTemplateContainsCommonColumn</a></div>
 
 	<h2 id="largedata">大量件数のデータの場合</h2>
+	<h3 id="overexcel">エクセルの最大行数を超えた場合</h3>
 	<p>
 		DBFluteがサポートしているエクセルの最大行数が 655xx なので、出力最大レコード数を 65000
 		と絞っています。もし、それを超える件数のデータが入っていて、かつ、dataXlsTemplateRecordLimit
-		をそれ以上に設定した場合は、別途CSVデータとして出力されます。
+		をそれ以上に設定した場合は、別途 TSV データとして出力されます。<span class="freecomment">@since 0.9.8.3</span>
 	</p>
 	<p>
-		とはいえ、厳密に大量件数のデータを取り扱う考慮をしていませんので、あまりに多い場合はメモリ不足でエラーとなります。
-		ただ、一時的にDBFluteタスクのメモリ量を増やすことである程度は許容できる可能性はあります。
+		TSV データへの出力は、一件ずつのフェッチ式になっているため、大量件数でもメモリ不足になることは基本的にありません。
+	</p>
+	<h3 id="manydata">全体的に行数が多い場合</h3>
+	<p>
+		逆に、エクセルの最大行数を超えていない場合で、全体的なテーブルの累積行数が多いとメモリ不足になる可能性があります。
+		<span class="freecomment">(エクセルへの書き込みはライブラリの都合上、フェッチ式になっていないため)</span>
+	</p>
+	<p>
+		その場合、タスクのメモリ設定を調整することで実行できるようになる可能性がありますが、
+		基本的には DataXlsTemplate そのような大容量のデータを落とすための機能ではありません。
 	</p>
 	<div class="relatedpage"><a href="../index.html#memory">DBFluteタスク - タスクのメモリ設定</a></div>
 

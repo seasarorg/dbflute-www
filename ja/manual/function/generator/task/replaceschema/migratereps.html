@@ -46,6 +46,7 @@
 				<li><a href="#makescript">タスク実行スクリプト作成</a></li>
 				<li><a href="#execute">MigrateReps実行</a></li>
 				<li><a href="#adjustment">手動による調整</a></li>
+				<li><a href="#memory">タスクのメモリ調整</a></li>
 			</ul>
 		</li>
 		<li><a href="#spec">細かい仕様</a></li>
@@ -102,6 +103,9 @@ if [ $taskReturnCode -ne 0 ];then
   exit $taskReturnCode;
 fi
 </code></pre>
+	<p>
+		このタスクは一回限りの実行であることが想定されていますので、終わったら実行スクリプトは削除しても構いません。
+	</p>
 	<h3 id="execute">MigrateReps実行</h3>
 	<p>
 		自作の実行スクリプト経由で、MigrateRepsタスクを実行します。ReplaceSchema
@@ -146,6 +150,16 @@ fi
 	<p>
 		これらの調整ができて、DDLなどの他の要素の準備も整ったら、ReplaceSchemaへの移行完了です。
 	</p>
+	<h3 id="memory">タスクのメモリ調整</h3>
+	<p>
+		基本的にはエクセルの最大行数("細かい仕様" にて説明あり)を超えるデータは切り捨てられるため発生頻度は少ないと想定されますが、
+		同じセクション内の累積行数が膨大になった場合はメモリ不足でエラーになることがあります。
+	</p>
+	<p>
+		その場合は、DBFluteタスクのメモリ設定でメモリ量を調整する必要があります。
+		このタスクは一時的な利用ですので、タスク実行が終わったら元に戻して構いません。
+	</p>
+	<div class="relatedpage"><a href="../index.html#memory">DBFluteタスク - タスクのメモリ設定</a></div>
 
 	<h2 id="spec">細かい仕様</h2>
 	<p>
@@ -166,8 +180,8 @@ fi
 			<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#delimiterdata">MySQLの取扱い - デリミタデータの取得</a></div>
 		</dd>
 		<dd>
-			Docタスクの DataXlsTemplate の機能で、65000件を超えるデータはCSVデータとして出力する機能がありますが、
-			簡易機能なのであまりに膨大な量だとメモリ不足でエラーになります。ただ、一時的にメモリ量を増やしてある程度の量は出力できるようになるかもしれません。
+			Docタスクの DataXlsTemplate の機能で、65000件を超えるデータを CSV データとして出力する機能があります。
+			ただし、MigrateReps と違い、デフォルトでは共通カラムは出力しない仕様となっているので、DBFluteプロパティで調整する必要があります。
 			<div class="relatedpage"><a href="../doc/dataxlstemplate.html">Docタスク - DataXlsTemplate</a></div>
 		</dd>
 		<dt>バイナリ型のデータは全て null で出力</dt>
