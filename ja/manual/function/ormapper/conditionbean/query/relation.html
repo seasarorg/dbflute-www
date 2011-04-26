@@ -42,6 +42,7 @@
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#queryisquery">取得と絞り込みは別の機能</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -51,7 +52,7 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a></li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
-		<li><a href="#query">SetupSelect で同じ関連テーブル</a></li>
+		<li><a href="#samerelation">SetupSelect で同じ関連テーブル</a></li>
 		<li><a href="#joinway">結合方式の基本は外部結合</a>
 			<ul>
 				<li><a href="#outerbiz">業務的に自然な外部結合</a></li>
@@ -72,6 +73,23 @@
 		という名前自体には、関連テーブルへの絞り込み条件も含まれますが、"関連テーブルに対して"
 		ということを強調したい場合に明示的な表現として利用されます。
 	</p>
+	<div class="inucolumn">
+		<h3 id="queryisquery">取得と絞り込みは別の機能</h3>
+		<p>
+			ConditionBean はDBアクセスの基本概念を(できるだけ)そのまま投影したインターフェースとなっています。
+			"データ取得" と "絞り込み" というのは別の概念です。よって、"関連テーブルのデータを取得すること" と "関連テーブルの条件で絞り込みをすること"
+			は、業務的には同時に求められることが多いですが、これら二つの概念は ConditionBean の機能として別の機能となります。
+		</p>
+		<div class="relatedpage"><a href="../about.html#purpose">目的ドリブンの思考手順</a></div>
+		<div class="relatedpage"><a href="../about.html#purposeapi">目的ドリブンの堅いAPI</a></div>
+		<p>
+			SetupSelect は、"関連テーブルのデータ取得"、Query(Relation) は、"関連テーブルの条件で絞り込み" (もしくは並び替え)
+			といった形に分けられます。例えば、関連テーブルのデータは必要ないけど、その関連テーブルのカラムで絞り込みや並び替えをするような場合、Query(Relation)
+			と一緒に SetupSelect する必要はありません。
+			逆に、データを取得する必要がないのに、絞り込みや並び替えで使うからといって無意味に無意識に取得されてしまうことがないようにしています。
+		</p>
+		<div class="relatedpage"><a href="../setupselect/index.html#supported">SetupSelect(Relation)</a></div>
+	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
@@ -112,11 +130,11 @@ cb.query().<span class="point">queryMemberStatus()</span><span class="abbreviati
 	</p>
 	<div class="relatedpage"><a href="../setupselect/index.html#supported">SetupSelect(Relation)</a></div>
 
-	<h2 id="query">SetupSelect で同じ関連テーブル</h2>
+	<h2 id="samerelation">SetupSelect で同じ関連テーブル</h2>
 	<p>
 		Query(Relation) で、SetupSelect で指定した同じ関連テーブルを利用した場合でも、SQL上は一つの結合で表現されます。
 	</p>
-	<div class="relatedpage"><a href="../setupselect/index.html#queryrelation">SetupSelect(Relation)</a></div>
+	<div class="relatedpage"><a href="../setupselect/index.html#queryrelation">SetupSelect(Relation) - Query(Relation) で同じ関連テーブル</a></div>
 
 	<h2 id="joinway">結合方式の基本は外部結合</h2>
 	<p>
