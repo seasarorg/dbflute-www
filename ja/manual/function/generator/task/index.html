@@ -43,7 +43,12 @@
 		<li><a href="#tasklist">DBFluteタスクの一覧</a></li>
 		<li><a href="#command">タスク実行コマンド</a></li>
 		<li><a href="#timingrole">タスクの実行タイミングと役割</a></li>
-		<li><a href="#log">タスク実行ログ</a></li>
+		<li><a href="#log">タスク実行ログ</a>
+			<ul>
+				<li><a href="#logoutput">実行ログの出力先</a></li>
+				<li><a href="#finalmessage">最後のログメッセージ</a></li>
+			</ul>
+		</li>
 		<li><a href="#memory">タスクのメモリ設定</a></li>
 	</ul>
 
@@ -197,6 +202,7 @@
 	</p>
 
 	<h2 id="log">タスク実行ログ</h2>
+	<h3 id="logoutput">実行ログの出力先</h3>
 	<p>
 		DBFluteタスクの実行ログは <em class="keyword">コンソール</em> かつ <em class="keyword">[DBFluteクライアント]/log/dbflute.log</em>
 		に出力されます。エラー発生時などはこれらログを参考にエラー原因を特定します。
@@ -204,6 +210,57 @@
 	<div class="relatedpage"><a href="../client/index.html#log">DBFluteクライアント - タスク実行ログ (log)</a></div>
 	<div class="relatedpage"><a href="./jdbc/logging.html">JDBCタスクのログ</a></div>
 	<div class="relatedpage"><a href="./replaceschema/logging.html">ReplaceSchemaタスクのログ</a></div>
+	<h3 id="finalmessage">最後のログメッセージ</h3>
+	<p>
+		お決まりの最後のログメッセージ(Final Message)を見逃さないようにしましょう。
+		エラーが発生したのかどうか、そのときどんな設定だったのか、そういった情報を得ることができますし、タスクによって独自の結果情報が表示されることもあります。
+		特に ReplaceSchema は詳細な実行結果が表示され、DDLやテストデータの不備があった場合などにこの情報がとても役に立ちます。
+	</p>
+<pre><span class="codetitle">ex) ReplaceSchemaのお決まりの最後のログメッセージ(Final Message) @Log</span><code>
+<span class="abbreviation">...</span>
+ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+ [Final Message]: 00m05s805ms
+ 
+   DBFLUTE_CLIENT: {exampledb}
+     database  = mysql (MySQL 5.0.51a)
+     language  = java
+     container = seasar
+     package   = com.example.dbflute.mysql.dbflute
+ 
+   DBFLUTE_ENVIRONMENT_TYPE: {df:default}
+     driver = com.mysql.jdbc.Driver
+     url    = jdbc:mysql://localhost:43306/exampledb
+     schema = {exampledb.$$NoNameSchema$$ as main}
+     user   = exampledb
+     props  = {}
+     additionalSchema = nextexampledb.$$NoNameSchema$$(catalog)
+     dataLoadingType  = ut
+     refreshProject   = dbflute-mysql-example
+ 
+  {Create Schema}: success=92 failure=0 (in 4 files)
+   o replace-schema-00-system.sql
+   o replace-schema-10-basic.sql
+   o replace-schema-20-view.sql
+   o replace-schema-50-procedure.sql
+ 
+  {Load Data}: loaded-files=21
+   (common)
+   o 10-master.xls
+   (ut)
+   o 90-VENDOR_LARGE_DATA.tsv
+   o 91-VENDOR_LARGE_DATA_REF.tsv
+   o 94-WHITE_QUOTED.tsv
+   o (and other tsv files...)
+   o 96-WHITE_SELF_REFERENCE.csv
+   o 98-WHITE_BINARY.csv
+   o 20-member.xls
+   o 30-product.xls
+ 
+  {Take Finally}: success=14 failure=0 (in 2 files)
+   o take-finally-00-assert.sql
+   o take-finally-90-largedata.sql
+ _/_/_/_/_/_/_/_/_/_/ {ReplaceSchema}
+</code></pre>
 
 	<h2 id="memory">タスクのメモリ設定</h2>
 	<p>

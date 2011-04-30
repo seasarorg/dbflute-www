@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,ReplaceSchema,alter,本番環境,本番サーバ,リリース後のDB変更,alter文の自動生成" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>運用後DB変更 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>運用後DB変更</h1>
+	<ul class="indexlist">
+		<li><a href="#headache">運用後の悩み</a></li>
+		<li><a href="#solution">ReplaceSchema で AlterCheck</a>
+			<ul>
+				<li><a href="#image">運用後のDB変更フロー</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">AlterCheck の利用方法</a>
+			<ul>
+				<li><a href="#previousdb">(前の)最新の状態に</a></li>
+				<li><a href="#sqlfile">SQLファイルの配置</a></li>
+				<li><a href="#altersql">AlterSQL の実行</a></li>
+				<li><a href="#createsql">CreateSQL の実行</a></li>
+				<li><a href="#altercheck">AlterCheck の実行</a></li>
+				<li><a href="#successstory">AlterCheck が成功</a></li>
+			</ul>
+		</li>
+		<li><a href="#rollbackfailure">ロールバックの失敗</a></li>
+		<li><a href="#loaddata">新DB用のデータファイル</a></li>
+	</ul>
+
+	<h2 id="headache">運用後の悩み</h2>
+	<p>
+		システム運用後のDB変更、本番環境には差分SQL(alter文など)を適用する必要があり、当然のことですが、ReplaceSchema
+		は利用できません(利用してはいけません)。差分SQLはERDツールから自動生成するか、手動で作成する必要があります。
+		一方で、新しいメンバーの開発環境や、新しいテスト環境などの構築のために、フルDDLも必要となります。そもそも開発環境では
+		ReplaceSchema を大いに活用して運用後も(運用後こそ)テストデータ管理を徹底していきたいものです。
+	</p>
+	<p>
+		ただ、差分SQLはこれはこれでしっかりと検証をしなくてはなりません。
+		手動作成のものはもちろん、ツールから自動生成した場合でもぶっつけ本番は避けたいものです。
+		結合テスト環境などでの適用も考えられますが、結合テスト環境自体を ReplaceSchema
+		管理にする場合もありますし、そもそももっと前のタイミングで検証したいものです。
+	</p>
+	<p>
+		と考えていくと、やはり煩わしい作業なしではなかなかフルDDLと差分DDLの整合性を保つことはできません。
+		気をつけていればほとんどの場合は大丈夫とはいえ、運用後の開発というのは一つ一つの期間が短くリスクも高い、
+		そのわりには長く繰り返し続いていくもので、できれば安全度を高めて精神的負担も少なくしたいところです。
+	</p>
+	
+	<h2 id="solution">ReplaceSchema で AlterCheck</h2>
+	<p>
+		ReplaceSchema で差分SQLを検証する仕組みがあります<span class="freecomment">(@since 0.9.8.3)</span>。
+		この仕組みを使って、フルDDLと差分SQLをしっかりと整合性をとって運用していくことを DBFlute は推奨します。
+	</p>
+	<p>
+		前のDB(PreviousDB)に差分SQL(AlterSQL)を加えたものと、フルDDL(CreateSQL)の実行結果は同じはずです。ReplaceSchema
+		で差分SQLを実行し、その後でフルDDLを使った通常の ReplaceSchema を実行して差分をチェックします(AlterCheck)。
+		この課程を自動化します。
+	</p>
+	<dl class="textlist">
+		<dt>AlterSQL を実行</dt>
+		<dd>PreviousDB にそのまま AlterSQL を実行し、メタデータを保持しておきます。</dd>
+		<dt>CreateSQL を実行</dt>
+		<dd>CreateSQL を使った通常の ReplaceSchema 処理を実行し、またその結果のメタデータを取得します。</dd>
+		<dt>AlterCheck</dt>
+		<dd>
+			二つのメタデータをチェックし、差があれば PreviousDB を復元してタスクを中断します。
+			差分を確認して AlterSQL を直し再度 ReplaceSchema タスクを実行、これを差がなくなるまで繰り返します。
+			差がなければ "PreviousDB + AlterSQL" と CreateSQL
+			の結果が同じであるということが確認され、DB は新しいDB構造の状態になります。
+		</dd>
+	</dl>
+	<h3 id="image">運用後のDB変更フロー</h3>
+	<p class="imgbox">図 : 運用後のDB変更フロー
+		<a href="../../../../../data/model/reps-altercheck.png" title="運用後のDB変更フロー"><img src="../../../../../data/model/reps-altercheck.png" alt="運用後のDB変更フロー" width="550" height="390" /></a>
+	</p>
+
+	<h2 id="howto">AlterCheck の利用方法</h2>
+	<h3 id="previousdb">(前の)最新の状態に</h3>
+	<p>
+		まずは、Subversion などのバージョン管理からリソースを全て最新の状態にし、もしDB変更に関わる更新がある場合は、
+		(いつも通りの) ReplaceSchema を実行して、DBを(前の)最新の状態にします。この時点で ReplaceSchema
+		は必ず成功していなければなりません。
+	</p>
+	<h3 id="sqlfile">SQLファイルの配置</h3>
+	<p>
+		playsql の配下の migration/alter ディレクトリに AlterSQL を配置します。alter で始まる .sql
+		のファイルが AlterSQL として認識されます。このディレクトリに AlterSQL が一つ以上あると ReplaceSchema が
+		AlterCheck を行います。
+	</p>
+	<p>
+		また、migration/create に CreateSQL を配置します。playsql 配下の SQL
+		と同じ仕様でそのときのDB変更で変わったファイル、もしくは、新しく追加されたファイルだけを配置します。(いつもの) playsql
+		配下に直接置かないことで、PreviousDB に戻す処理(ロールバック)を自動化することができます。
+	</p>
+<pre><span class="codetitle">ex) AlterSQL と CreateSQL の配置 @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-<span class="point">migration</span>
+    |  |-<span class="point">alter</span>
+    |  |  |-alter-10-basic.sql
+    |  |  |-alter-20-view.sql
+    |  |-<span class="point">create</span>
+    |     |-replace-schema-10-basic.sql
+    |     |-replace-schema-20-view.sql
+    |     |-take-finally.sql
+</code></pre>
+	<p>
+		また、新DB用のデータファイルも create 配下に配置することができます。
+	</p>
+	<div class="relatedpage"><a href="#loaddata">this - 新DB用のデータファイル</a></div>
+	<h3 id="altersql">AlterSQL の実行</h3>
+	<p>
+		この状態で ReplaceSchema タスクを実行すると、まずは AlterSQL
+		が実行されます。そもそも AlterSQL が実行に失敗する場合は、ReplaceSchema は PreviousDB
+		にロールバックし、タスクをすぐに中断します。
+	</p>
+	<p>
+		その際、AlterSQL が NG であることを示すマークファイル(AlterNGマーク)が alter 配下に作成されます。このマークがある場合は ReplaceSchema
+		はロックされ実行ができません(実行してもエラーに)。お決まりの最後のログメッセージ(Final Message)の情報をもとに AlterSQL
+		を直したら、このマークファイルを削除してから ReplaceSchema を再実行します。
+	</p>
+	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+<pre><span class="codetitle">ex) AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration</span>
+    |  |-alter
+    |  |  |-alter-10-basic.sql
+    |  |  |-alter-20-view.sql
+    |  |  |-<span class="point">alter-NG.dfmark</span>
+    |  |-create
+    |     |-replace-schema-10-basic.sql
+    |     |-replace-schema-20-view.sql
+    |     |-take-finally.sql
+</code></pre>
+	<p>
+		AlterSQL の実行が終わると、DBFlute はその状態のメタデータを取得し、migration/schema 配下に SchemaXML
+		として出力します。ここでの SchemaXML は内部的なリソースとして扱われるため、通常は意識する必要はありません。
+	</p>
+	<h3 id="createsql">CreateSQL の実行</h3>
+	<p>
+		その後、DBFlute は、PreviousDB へのロールバックを実現するために、playsql 配下の上書き予定の SQL を migration/tmp/previous
+		ディレクトリにバックアップし、代わりに CreateSQL を playsql 配下に配置します。この一時ディレクトリも通常意識する必要はありません。
+	</p>
+	<p>
+		そして、いつもの ReplaceSchema の処理を実行されます。つまり、CreateSQL を使った最新のDBの状態への Replace
+		となります。もし、この処理でエラーが発生した(CreateSQLやデータファイルに不備があった)場合、バックアップされた SQL などが元の場所に戻り、PreviousDB
+		へロールバックされます。最後のログメッセージ(Final Message)の情報をもとに CreateSQL やデータファイルを直して再実行します。
+	</p>
+	<div class="relatedpage"><a href="#loaddata">this - 新DB用のデータファイル</a></div>
+	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+	<h3 id="altercheck">AlterCheck の実行</h3>
+	<p>
+		実行に成功した場合は、DBFlute は再度その状態のメタデータを取得し、AlterSQL 実行直後状態と比べます。差があれば、AlterSQL と CreateSQL
+		が不整合の状態にあると言え、バックアップされた SQL などが元の場所に戻り、PreviousDB へロールバックされ、AlterNGマークが作成されてタスクは終了します。
+	</p>
+	<p>
+		そのときの差分情報は、migration/schema 配下に migration-diff-result.diffmap というテキストファイルに出力されます。
+		これを参考に AlterSQL を直し、AlterNGマークを削除して再度 ReplaceSchema を実行してやり直します。
+	</p>
+<pre><span class="codetitle">ex) AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-alter
+    |  |  |-alter-10-basic.sql
+    |  |  |-alter-20-view.sql
+    |  |  |-alter-NG.dfmark
+    |  |-create
+    |  |  |-replace-schema-10-basic.sql
+    |  |  |-replace-schema-20-view.sql
+    |  |  |-take-finally.sql
+    |  |-schema
+    |     |-<span class="point">migration-diff-result.diffmap</span>
+</code></pre>
+	<p>
+		この差分結果は、HistoryHTML で利用されているものと同様のものです。ここでは、"PreviousDB + AlterSQL" から "CreateSQL"
+		への差、ということで出力されます。例えば、テーブルが追加されている(ADD)とある場合、AlterSQL でそのテーブルを ADD
+		するように修正、と解釈できます。
+	</p>
+	<p>
+		また、差分ルールは HistoryHTML の仕様と同じです。例えば、"カラム定義順序の違い" や "同じ構造で制約名だけの変更"
+		に関しては差と認識されません。
+	</p>
+	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
+	<h3 id="successstory">AlterCheck が成功</h3>
+	<p>
+		AlterCheck が成功した場合は、CreateSQLは playsql 配下に配置された状態のままとなり、そのままコミットできる形になります。
+		AlterSQL は、migration/history 配下の日付付きのディレクトリに保存のために配置されます。
+		バックアップされた PreviousDB 用の SQL や一時的に利用していたリソース(差分結果やSchemaXMLなど)は削除されます。
+	</p>
+	<p>
+		最後のログメッセージには、AlterSQL の実行結果と CreateSQL の実行結果の両方が表示され正常終了となります。
+	</p>
+	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+
+	<h2 id="rollbackfailure">ロールバックの失敗</h2>
+	<p>
+		そもそもロールバックが失敗するような状態で AlterCheck を利用することが基本的に許されませんが、万が一ロールバックの失敗した場合は、
+		そもそも PreviousDB の環境が確立されていないということで、PreviousDB が NG 状態であることを示すマークファイル(PreviousNGマーク)が
+		alter 配下に作成されます。このマークがあると、ReplaceSchema は AlterCheck を行わず、いつも通りの ReplaceSchema
+		を実行します。つまり、PreviousDB のためのリソースを使った ReplaceSchema が実行されます。
+	</p>
+	<p>
+		PreviousDB が確立した状態になるまで AlterCheck は封印されます。
+		成功すると自動的にPreviousNGマークは削除され、AlterCheck を使った ReplaceSchema が実行できるようになります。
+	</p>
+	<div class="inucolumn">
+		<h3>ロールバックがポイント</h3>
+		<p>
+			PreviousDB へ自動でロールバックされることが、この機能のポイントであると言えるでしょう。
+			<em class="keyword">AlterSQL や CreateSQL (or データファイル) の修正の後にすぐに再実行して検証する</em>
+			というワークフローを実践することができるのです。
+		</p>
+		<p>
+			やり方がベタなので、少々ロールバックの処理自体に時間が取られますが、中途半端な状態になってしまうとそもそも AlterSQL
+			を適用できなくなってしまいますし、元に戻すのに若干の面倒な作業が発生してしまいます。
+		</p>
+		<p>
+			ちなみに、ロールバック処理自身の情報は、最後のログメッセージ(Final Message)にはロールバック自体がエラーになるときを除いては登場しません。
+			FinalInfo では AlterSQL や CreateSQL の結果が優先して表示されます。
+		</p>
+		<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+	</div>
+
+	<h2 id="loaddata">新DB用のデータファイル</h2>
+	<p>
+		DB変更の影響はSQLだけでなく、エクセルデータやTSVデータなどのデータファイルにも及びます。
+		新しい構造のために修正されたデータファイルは、migration/create/data
+		配下に配置します。そこからの配置はいつものデータファイルの配置(playsql/data)と同じ仕様です。
+	</p>
+	<p>
+		また、dataprop ファイルも同じように新しい構造用に配置することができます。
+	</p>
+<pre><span class="codetitle">ex) 新しい構造のためのデータファイルの配置 @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-alter
+    |  |  |-alter-10-basic.sql
+    |  |  |-alter-20-view.sql
+    |  |  |-alter-NG.dfmark
+    |  |-create
+    |  |  |-data
+    |  |  |  |-common
+    |  |  |  |  |-xls
+    |  |  |  |     |-<span class="point">10-master.xls</span>
+    |  |  |  |-ut
+    |  |  |     |-tsv
+    |  |  |     |  |-UTF-8
+    |  |  |     |     |-<span class="point">10-PURCHASE.tsv</span>
+    |  |  |     |-xls
+    |  |  |        |-<span class="point">20-member.xls</span>
+    |  |  |        |-<span class="point">defaultValueMap.dataprop</span>
+    |  |  |-replace-schema-10-basic.sql
+    |  |  |-replace-schema-20-view.sql
+    |  |  |-take-finally.sql
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

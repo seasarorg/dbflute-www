@@ -49,8 +49,9 @@
 				<li><a href="#isentitydbmetadbcommentvalid">isEntityDBMetaDbCommentValid</a></li>
 				<li><a href="#schemahtmlfilename">schemaHtmlFileName</a></li>
 				<li><a href="#issuppressschemahtmloutsidesql">isSuppressSchemaHtmlOutsideSql</a></li>
-				<li><a href="#dataxlstemplaterecordlimit">dataXlsTemplateRecordLimit</a></li>
-				<li><a href="#isdataxlstemplatecontainscommoncolumn">isDataXlsTemplateContainsCommonColumn</a></li>
+				<li><a href="#dataxlstemplatemap">dataXlsTemplateMap</a></li>
+				<li><a href="#dataxlstemplaterecordlimit">dataXlsTemplateRecordLimit <span class="freecomment">@until 0.9.8.2</span></a></li>
+				<li><a href="#isdataxlstemplatecontainscommoncolumn">isDataXlsTemplateContainsCommonColumn <span class="freecomment">@until 0.9.8.2</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -204,10 +205,43 @@
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>false *外だしSQLの情報を出力する</dd>
 	</dl>
-	<h3 id="dataxlstemplaterecordlimit">dataXlsTemplateRecordLimit</h3>
+	<h3 id="dataxlstemplatemap">dataXlsTemplateMap</h3>
+	<p>
+		DataXlsTemplate の生成に関するプロパティを指定します。
+		(同時に DataXlsTemplate を生成するか否かの指定にもなります)
+		<span class="freecomment">@since 0.9.8.3</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/dataxlstemplate.html">Docタスク - DataXlsTemplate</a></div>
+	<p>
+		map の中の recordList を指定すると DataXlsTemplate が生成されます。
+		値がマイナスの場合は無制限でデータが出力されます。出力データに共通カラムを含める場合は isContainsCommonColumn を true
+		に、ReplaceSchema の LoadData のリバース(LoadDataReverse)の場合は isLoadDataReverse を true に。
+	</p>
+<pre><span class="codetitle">ex) dataXlsTemplateMapの仕様 @replaceSchemaDefinitionMap.dfprop</span><code>
+; dataXlsTemplateMap = <span class="keyword">map:</span>{
+    ; recordLimit = [limit size] <span class="comment"># デフォルト: 設定なし</span>
+    ; isContainsCommonColumn = [true or false] <span class="comment"># デフォルト: false</span>
+    ; isLoadDataReverse = [true or false] <span class="comment"># デフォルト: false</span>
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>list型プロパティの中に、map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>recordLimit がマイナスの場合は、無制限でデータが出力される</li>
+				<li>エクセルの最大行数(65000を決め打ち) を超えるデータはTSV形式で出力される</li>
+				<li>LoadDataReverse の場合は、ReplaceSchema の playsql 配下に直接出力される</li>
+				<li>LoadDataReverse の場合は、追加スキーマのテーブルやビューは除外される</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="dataxlstemplaterecordlimit">dataXlsTemplateRecordLimit <span class="freecomment">@until 0.9.8.2</span></h3>
 	<p>
 		DataXlsTemplate を生成する際、テーブルごとに何件まで取得するか数値で指定します。
 		(同時に DataXlsTemplate を生成するか否かの指定にもなります)
+		<span class="freecomment">(dataXlsTemplateMap に吸収されました)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/doc/dataxlstemplate.html">Docタスク - DataXlsTemplate</a></div>
 	<dl class="textlist">
@@ -223,9 +257,10 @@
 			</ul>
 		</dd>
 	</dl>
-	<h3 id="isdataxlstemplatecontainscommoncolumn">isDataXlsTemplateContainsCommonColumn</h3>
+	<h3 id="isdataxlstemplatecontainscommoncolumn">isDataXlsTemplateContainsCommonColumn <span class="freecomment">@until 0.9.8.2</span></h3>
 	<p>
 		DataXlsTemplateに共通カラム(CommonColumn)のカラムを含める否かを指定します。
+		<span class="freecomment">(dataXlsTemplateMap に吸収されました)</span>
 	</p>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>true or false</dd>
