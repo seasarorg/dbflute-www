@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,チュートリアル,ハンズオン,hands-on" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ハンズオン セクション 2 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ハンズオン セクション 2</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#ready">事前準備</a></li>
+		<li><a href="#master">マスタデータの登録</a>
+			<ul>
+				<li><a href="#assertnomaster">マスタデータがないことを確認</a></li>
+				<li><a href="#loadmaster">マスタデータを配置して再びReplaceSchema</a></li>
+				<li><a href="#checkokmaster">マスタデータが入ったことを確認</a></li>
+			</ul>
+		</li>
+		<li><a href="#testdata">テストデータの登録</a>
+			<ul>
+				<li><a href="#assertnotestdata">テストデータがあることをアサートするテスト</a></li>
+				<li><a href="#loadtestdata">テストデータを配置して再びReplaceSchema</a></li>
+				<li><a href="#checkoktestdata">テストが通ることを確認</a></li>
+			</ul>
+		</li>
+		<li><a href="#watchdata">テストデータの閲覧</a></li>
+		<li><a href="#nextsection">次のセクション</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		さて、ハンズオンの続きです。
+	</p>
+	<div class="relatedpage"><a href="./hands-on01.html">ハンズオン セクション 01</a></div>
+	<p>
+		"データ登録をしてConditionBeanで基本の検索" をしていきましょう。
+	</p>
+
+	<h2 id="ready">事前準備</h2>
+	<p>
+		com.example.dbflute.handson.section.from01to10.HandsOn02Test クラスを作成してください。
+		このクラスは ContainerTestCase を継承します。
+	</p>
+
+	<h2 id="master">マスタデータの登録</h2>
+	<p>
+		ここでいうマスタデータとは、会員ステータスなどの固定的なテーブルを指します。
+	</p>
+	<h3 id="assertnomaster">マスタデータがないことを確認</h3>
+	<p>
+		localdb/login-mysql-root.bat|sh で MySQL
+		にログインして、会員ステータスが一件も存在しないことを確認してください。
+	</p>
+<pre><span class="codetitle">ex) 会員ステータスの件数を取得 @SQL</span><code>
+<span class="comment">-- ExampleDBに接続</span>
+<span class="keyword">use</span> exampledb;
+
+<span class="comment">-- 会員ステータスのカウント検索</span>
+<span class="keyword">select</span> count(*) <span class="keyword">from</span> MEMBER_STATUS;
+</code></pre>
+	<h3 id="loadmaster">マスタデータを配置して再びReplaceSchema</h3>
+	<p>
+		tutorial/material/dbflute/playsql-loaddata-common.zip の playsql/data/common/xls/10-master.xls
+		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
+	</p>
+<pre><span class="codetitle">ex) CreateSchema用のDDLの配置場所 @Directory</span><code>
+PROJECT_ROOT
+ |-<span class="abbreviation">...</span>
+ |-dbflute_exampledb
+ |  |-dfprop
+ |  |-<span class="abbreviation">...</span>
+ |  |-playsql
+ |  |  |-<span class="point">replace-schema-00-system.sql</span>
+ |  |  |-<span class="point">replace-schema-10-basic.sql</span>
+ <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="checkokmaster">マスタデータが入ったことを確認</h3>
+	<p>
+		先ほどの会員ステータスのカウント検索の結果が 0 でないことを確認してください。
+	</p>
+
+	<h2 id="testdata">テストデータの登録</h2>
+	<h3 id="assertnotestdata">テストデータがあることをアサートするテスト</h3>
+	<p>
+		HandsOn02Test に、会員(MEMBER)のデータをアサートするテストを書いて "落ちること"
+		を確認してください。テストメソッド名は "testテストデータがあること"
+		とします。
+	</p>
+	<p>
+		このプロジェクトでは、メソッド名が test で始まることで、それがテストメソッドであると認識されます。
+		今後、テストを作成する際は、必ず "test何々" という形式でメソッドを作成してください。 
+	</p>
+	<p>
+		アサートに加えて、どんなデータが入っているのか(入るのか)を確認できるように、"会員ID, 会員名称, 生年月日, 会員ステータス名称"
+		をカンマ区切りでログに出力してください。ログの出力は、スーパークラスに log(String msg)
+		というメソッドが定義されているので、それを使ってください。
+	</p>
+	<h4>テストメソッドの雛形</h4>
+	<p>
+		test と打って ctrl + space して enter
+		するとテストメソッドの雛形が作成される。
+	</p>
+<pre><span class="codetitle">ex) テストメソッドのコード補完 @Java</span><code>
+
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> ContainerTestCase {
+
+    test <span class="comment">// test と入力して ctrl + space して enter</span>
+}
+--
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> ContainerTestCase {
+
+    <span class="keyword">public void</span> testname() <span class="keyword">throws</span> Exception { <span class="comment">// name の部分が入力モードに</span>
+        
+    }
+}
+</code></pre>
+	<h4>メソッド名とBehaviorの宣言</h4>
+	<p>
+		テストメソッド名は、"testテストデータがあること" とし、MemberBhv をインスタンス変数として宣言してください。
+		Behavior のインスタンスは ContainerTestCase の仕組みでテスト実行前にインジェクションされるようになっています。
+	</p>
+<pre><span class="codetitle">ex) testテストデータがあること、の実装準備 @Java</span><code>
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> ContainerTestCase {
+
+    <span class="keyword">private</span> MemberBhv <span class="attribute">memberBhv</span>;
+
+    <span class="keyword">public void</span> testテストデータがあること() <span class="keyword">throws</span> Exception {
+        
+    }
+}
+</code></pre>
+	<h4>テストコードのお約束コメント</h4>
+	<p>
+		テストの準備(Arrange)、テスト対象の処理の実行(Act)、アサート処理(Assert)がコード上でわかりやすいようにするために、コメントを用意してください。
+	</p>
+<pre><span class="codetitle">ex) 準備、実行、アサートがわかりやすいようなコメントを準備 @Java</span><code>
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> ContainerTestCase {
+
+    <span class="keyword">private</span> MemberBhv <span class="attribute">memberBhv</span>;
+
+    <span class="keyword">public void</span> testテストデータがあること() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+
+        <span class="comment">// ## Act ##</span>
+
+        <span class="comment">// ## Assert ##</span>
+    }
+}
+</code></pre>
+	<h4>テストコードの実装</h4>
+	<p>
+		さて、ここで ConditionBean の使い方を学びましょう。<span class="freecomment">(講師による講義あり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></div>
+	<p>
+		そして、DBアクセスの思考手順に従って実装してみましょう。<span class="freecomment">(講師と一緒になぞって実装)</span>
+	</p>
+	<h4>テストコードの実行</h4>
+	<p>
+		ConditionBeanを使って会員ステータスが存在することをアサートするテストを実装して実行し、テストが "落ちること"
+		を確認してください。テストが正しければ、データはまだ入っていないので例外が発生し、JUnitのバー表示が赤くなるはずです。
+	</p>
+	<p>
+		テストを実行する際は、そのテストメソッドの中にカーソルがある状態で ctrl + 0
+		を押すと、そのテストが実行されます。これは Quick JUnit のショートカットです。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
+	<h3 id="loadtestdata">テストデータを配置して再びReplaceSchema</h3>
+	<p>
+		tutorial/material/dbflute/playsql-loaddata-ut.zip の playsql/data/ut/xls/20-member.xls, 30-product.xls
+		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
+	</p>
+	<p>
+		落ちるはずです。20-member.xls を開いてみてみてください。NotNull制約のついている共通カラムのデータがありません。
+		同じディレクトリに以下の内容で defaultValueMap.dataprop というファイルを作成して、ReplaceSchemaを再実行してみましょう。
+		<span class="freecomment">(講師による講義あり)</span>
+	</p>
+<pre><span class="codetitle">ex) 共通カラムのデフォルトテストデータの設定 @defaultValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; REGISTER_DATETIME = sysdate
+    ; REGISTER_USER     = foo
+    ; REGISTER_PROCESS  = bar
+    ; UPDATE_DATETIME   = sysdate
+    ; UPDATE_USER       = foo
+    ; UPDATE_PROCESS    = bar
+    ; VERSION_NO        = 0
+}
+</code></pre>
+	<h3 id="checkoktestdata">テストが通ることを確認</h3>
+	<p>
+		再度テストを実行し、テストが通ってJUnitのバー表示が緑になることを確認してください。
+		F11 を押すと、さっき実行したテストが再実行されます。これも Quick JUnit のショートカットです。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
+	<p>
+		<span class="freecomment">(講師によるデータの切り替え管理についてちょっとした講義あり)</span>
+	</p>
+
+	<h2 id="watchdata">テストデータの閲覧</h2>
+	<p>
+		せっかくなので、どのようなデータが入っているかさらに見てみましょう。同時に ConditionBean
+		の基本中の基本に触れておきます。以下のテストを作成してください。<span class="freecomment">(メソッド名の先頭にtestを付けましょう)</span>
+	</p>
+	<dl class="textlist">
+		<!-- PrefixSearch, OrderBy Asc, selectList() -->
+		<dt>会員名称がSで始まる会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員名称の昇順で並べる</li>
+				<li>(検索結果の)会員名称がSで始まっていることをアサート</li>
+			</ul>
+		</dd>
+		<!-- Equal, selectEntity() -->
+		<dt>会員IDが1の会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>一件検索として検索すること</li>
+				<li>会員IDが 1 であることをアサート</li>
+			</ul>
+		</dd>
+		<!-- IsNull, OrderBy Desc -->
+		<dt>生年月日がない会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>更新日時の降順で並べる</li>
+				<li>生年月日がないことをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		ConditionBeanの使い方、機能のページを参考にしながら実装しましょう。
+		<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></div>
+	<p>
+		アサートだけでなく、データを確認する意味でのログの出力も実装すると良いでしょう。
+		ログに何を出力するかは自由です。(今後のテストも全て同様)
+	</p>
+
+	<h2 id="nextsection">次のセクション</h2>
+	<p>
+		さて、次のセクションへ
+	</p>
+	<div class="detailpage"><a href="./hands-on03.html">ハンズオン セクション 3</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#various">雑多な情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/developer.html#exampledb">ExampleDB (前提)</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#style">DBアクセスのスタイル</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#object">意識するクラス</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#task">意識するタスク</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#example">Exampleのススメ</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#offer">アーキテクトへの相談</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
