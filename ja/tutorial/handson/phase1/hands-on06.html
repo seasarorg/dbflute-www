@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,チュートリアル,ハンズオン,hands-on" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ハンズオン セクション 6 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ハンズオン セクション 6</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#ready">事前準備</a></li>
+		<li><a href="#debuglog">デバッグログ設定</a></li>
+		<li><a href="#aliasdef">別名(和名)の利用</a></li>
+		<li><a href="#nextsection">次のセクション</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		さて、ハンズオンの続きです。
+	</p>
+	<div class="relatedpage"><a href="./hands-on05.html">ハンズオン セクション 5</a></div>
+	<p>
+		"デバッグログ設定と別名(和名)の利用" を学んでいきましょう。
+	</p>
+
+	<h2 id="ready">事前準備</h2>
+	<p>
+		com.example.dbflute.handson.exercise.phase1.HandsOn06Test クラスを作成してください。
+		このクラスは ContainerTestCase を継承します。
+	</p>
+
+	<h2 id="debuglog">デバッグログ設定</h2>
+	<p>
+		既に何度もデバッグログにはお世話になっているかと思います。
+		EclipseコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
+		これは、既に src/test/resources 配下に log4j.properties
+		が(最初から)配置されているからです。ここでは簡単ではありますが、この設定ファイルを修正すると出力されるログが変更されることを学びましょう。
+		<span class="freecomment">(講師による説明あり)</span>
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/debuglog/index.html">現場フィット - デバッグログ</a></div>
+	<p>
+		試しに、log4j.properties の log4j.logger.org.seasar を "#"
+		でコメントアウトして、今まで作った任意のテストを実行し、コンソールのログを確認してみてください。変化があるはずです。
+		変化を確認したら、元に戻してもう一度テストを実行して確認しましょう。
+		<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<p>
+		また、log4j.appender.console.layout.ConversionPattern を "%d [%t]-%-5p - %m%n"
+		に変更してみてください。変化を確認したら、元に戻してもう一度テストを実行して確認しましょう。
+		<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<p>
+		<span class="freecomment">(いずれフロントアプリと合わせるときにもっと詳しく踏み込む)</span>
+	</p>
+
+	<h2 id="aliasdef">別名(和名)の利用</h2>
+	<p>
+		replace-schema-10-basic.sql をご覧ください。
+		たくさんのDBコメントが定義されています。そして、DBコメントには、そのテーブルやカラムの別名(和名)と説明が "別名 : 説明"
+		という形式で記載されています。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<p>
+		まず、SchemaHTML を開いて、DBコメントが "別名 : 説明"
+		の形式であることを確認してください。(ただし、全てのコメントが必ずこの形式とは限りません)
+	</p>
+	<p>
+		そして、以下のテストを作成してください。実装しながら、それぞれのカラムに対応するメソッドの
+		JavaDoc コメントを確認してみてください。特に別名は表示されていないはずです。
+	</p>
+	<dl class="textlist">
+		<dt>test会員名称にvを含む会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員名称、生年月日、正式会員日時をログに出して確認する</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		それでは、ドキュメントに関するDBFluteプロパティ、DBFluteクライアントの dfprop/documentDefinitionMap.dfprop
+		を開いて、以下のプロパティを設定してみましょう。
+	</p>
+	<dl class="textlist">
+		<dt>aliasDelimiterInDbComment</dt>
+		<dd>DBコメント内の別名と説明の区切り(デリミタ)を表す文字</dd>
+		<dd>設定する値 => : <span class="freecomment">(コロン)</span></dd>
+		<dt>isDbCommentOnAliasBasis</dt>
+		<dd>DBコメントの基本が別名か否か (デリミタがない場合にそれは別名なのかどうか)</dd>
+		<dd>設定する値 => true</dd>
+		<dt>isEntityJavaDocDbCommentValid</dt>
+		<dd>設定する値 => true</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../../manual/reference/dfprop/documentdefinition/index.html">documentDefinitionMap.dfprop</a></div>
+	<p>
+		DBFluteプロパティの設定が終わったら、Docタスク、そして、Generateタスクを実行してみてください。
+		SchemaHTML、および、それぞれのカラムに対応するメソッドの JavaDoc
+		コメントに変化があるはずです。<span class="freecomment">(講師による説明あり)</span>
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/aliasdefinition/index.html">現場フィット - 別名(和名)の定義</a></div>
+
+	<h2 id="nextsection">次のセクション</h2>
+	<p>
+		さて、次のセクションへ
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on07.html"> -->ハンズオン セクション 7<!-- </a> --></span></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#various">雑多な情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/developer.html#exampledb">ExampleDB (前提)</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#style">DBアクセスのスタイル</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#object">意識するクラス</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#task">意識するタスク</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#example">Exampleのススメ</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#offer">アーキテクトへの相談</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

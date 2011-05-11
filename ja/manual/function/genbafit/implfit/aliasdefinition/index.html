@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,タスク,Task,Doc,SchemaHTML,スキーマ情報,スキーマ情報,テーブル一覧,テーブル定義書,区分値一覧,Classification List" />
+	<meta name="keywords" content="DBFlute,自動採番,Alias,LocalName,LogicalName,別名,和名,論理名,DBコメント" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>SchemaHTML | DBFlute</title>
+	<title>別名(和名)の利用 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,68 +37,89 @@
 </div>
 
 <div id="content">
-	<h1>SchemaHTML</h1>
+	<h1>別名(和名)の利用</h1>
 	<ul class="indexlist">
-		<li><a href="#about">SchemaHTMLとは？</a></li>
-		<li><a href="#tablecolumn">テーブル一覧・カラム情報</a></li>
-		<li><a href="#outsidesql">外だしSQL一覧</a></li>
-		<li><a href="#classification">区分値一覧</a></li>
+		<li><a href="#about">別名(和名)とは？</a></li>
+		<li><a href="#ondbcomment">別名(和名)をDBコメントに</a>
+			<ul>
+				<li><a href="#aliasdef">別名の定義</a></li>
+				<li><a href="#descdef">説明をJavaDocに</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="about">SchemaHTMLとは？</h2>
+	<h2 id="about">別名(和名)とは？</h2>
 	<p>
-		スキーマのメタデータ(テーブル構成など)を人が見やすい形にまとめたドキュメントです。
+		ここでいう別名とは、テーブルやカラムの論理名のことを示します。
+		例えば、MEMBERテーブルであれば別名は "会員" です。
 	</p>
-	<div class="detailpage"><a href="../../../../../data/doc/basic/schema-exampledb.html">(Basic)SchemaHTML</a></div>
 	<p>
-		単なるDB定義だけでなく、DBFluteでテーブルやカラムに設定された付加情報なども表示され、
-		既にプロジェクトでERDやテーブル定義書があったとしても、ディベロッパーの実装支援には欠かせないドキュメントとなります。
-		しっかり別名(和名)などを定義すれば、これをこのままテーブル定義書として利用することも考えられるでしょう。
+		別名は、実際のテーブル名やカラム名(物理名)とは違いプログラミングの処理では利用されませんが、
+		人がそのテーブルやカラムを理解するのに重要で、例えばER図に物理名に加えて別名が定義されることで、業務データモデルがわかりやすいものとなります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/example/exampledb.html">ExampleDB</a></div>
+	<p>
+		できればこの別名をプログラムに近いドキュメントでも利用したいものです。
+		ですが、データベースの機能として別名を定義する領域は用意されていません。そのテーブルやカラムの説明を定義する
+		"DBコメント(テーブルコメントやカラムコメント)" という領域だけが用意されているのが通常です。
 	</p>
 
-	<h2 id="tablecolumn">テーブル一覧・カラム情報</h2>
+	<h2 id="ondbcomment">別名(和名)をDBコメントに</h2>
 	<p>
-		自動生成対象となっているテーブルの一覧と、カラムの詳細情報が表示されます。設定されたリレーションのリンクを辿って、関連テーブルを確認することもできます。
+		DBFluteはDBコメントは取得できますが、さすがにER図の上だけで定義されている別名を取得することはできません。
+		それでも、DBFluteで自動生成されるドキュメント(SchemaHTMLやクラスのJavaDocコメント)に、この別名を載せることができれば実装上の助けとなるでしょう。
 	</p>
-	<div class="detailpage"><a href="../../../../../data/doc/basic/schema-exampledb.html#MEMBER">(Basic)SchemaHTML - 会員テーブル</a></div>
 	<p>
-		別名(和名)が設定されている場合は、それも一緒に表示されるので、積極的に設定することでよりわかりやすいテーブル定義書となるでしょう。
+		そこで、DBコメントの中に <em class="keyword">別名[区切り文字]説明</em>
+		という形式で両方のデータを定義しておいて、その区切り文字が何なのかをDBFluteプロパティで定義すれば、
+		DBFluteが別名と説明を分離して取得し、それぞれのドキュメントにそれらが反映されます。
 	</p>
-	<div class="relatedpage"><a href="../../../genbafit/implfit/aliasdefinition/index.html">現場フィット - 別名(和名)の定義</a></div>
+	<h3 id="aliasdef">別名の定義</h3>
 	<p>
-		以下の主な表現上の補足です。
+		documentDefinitionMap.dfprop の aliasDelimiterInDbComment
+		に、区切り文字(デリミタ)を設定します。習慣的に ":" (コロン)が推奨されますが、ERDツールなどDBコメントを定義する処理に合わせましょう。
 	</p>
-	<ul>
-		<li>PKは主キー制約、IDはIdentity、UQのユニークキー制約、IXはインデックスを示す</li>
-		<li>カラムの PropertyName は、プログラム上でのプロパティ名を示す</li>
-		<li>カラムの JavaType は、プログラム上で利用するマッピングされたデータ型を示す</li>
-		<li>PK や UQ の "o" で、小さめのイタリックになっている場合は、実際に制約がなく、DBFluteプロパティで付与された情報であることを示す</li>
-		<li>リレーションのリンクで、小さめのイタリックになっている場合は、実際に制約がなく、DBFluteプロパティで付与された情報であることを示す</li>
-		<li>カラム名で、薄い色になっている場合は、共通カラムであることを示す</li>
-		<li>カラム名で、イタリックになっている場合は、排他制御カラムであることを示す</li>
-		<li>PK や UQ、IXで "o+" となっているものは、複合キーの一部のカラムになっていることを示す</li>
-		<li>PK や UQ、リレーションのリンクなどでは、ツールチップで制約名などの付加情報を確認できる</li>
-	</ul>
+	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#aliasdelimiterindbcomment">dfprop - aliasDelimiterInDbComment</a></div>
+	<p>
+		また、全てのテーブルやカラムに必ずしも別名や説明があるとは限りませんので、デリミタが存在しない場合のDBコメントは別名なのか説明なのか、
+		これをERDツールなどDBコメントを定義する処理に合わせて決定します。デフォルトではDBFluteは "説明"
+		と認識しますので、もしデリミタが存在しない場合は別名ということであれば、同じく documentDefinitionMap.dfprop
+		の isDbCommentOnAliasBasis を true に設定します。
+	</p>
+	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#isdbcommentonaliasbasis">dfprop - isDbCommentOnAliasBasis</a></div>
+	<p>
+		設定できたら、再自動生成してみましょう。Docタスクを実行すると、SchemaHTML では別名と説明が独立して表現されます。
+		Generateタスクを実行すると、Entity や ConditionBean のテーブルやカラムに対応するメソッドに別名が表示されます。
+	</p>
+	<h3 id="descdef">説明をJavaDocに</h3>
+	<p>
+		一方で、"説明" をJavaDocコメントに反映させるのは別途設定が必要です。これは、DBコメントの "説明"
+		がJavaDocコメントに向いているかどうか、どのような "説明" を入れるか次第で変わってくるため、デフォルトでは OFF になっています。
+	</p>
+	<p>
+		もし、"説明" が実装する上で参照すると役立つ情報になっている、かつ、JavaDocコメントのフォーマットに適しているのであれば、
+		documentDefinitionMap.dfprop の isEntityJavaDocDbCommentValid を true
+		にして再自動生成します。すると、Entity や ConditionBean のテーブルやカラムに対応するメソッドに "説明" が表示されます。
+	</p>
 
-	<h2 id="outsidesql">外だしSQL一覧</h2>
-	<p>
-		テーブルと関連付いている外だしSQLの一覧が、テーブルごとに表示されます。テーブル定義の方からこの該当テーブルの外だしSQLの一覧へリンクで辿れます。
-	</p>
-	<div class="detailpage"><a href="../../../../../data/doc/basic/schema-exampledb.html#outsidesql">(Basic)SchemaHTML - OutsideSql</a></div>
-	<p>
-		自動生成対象となっているプロシージャの一覧も表示されます。
-	</p>
-	<div class="detailpage"><a href="../../../../../data/doc/oracle/schema-exampledb.html#procedure">(Oracle)SchemaHTML - Procedure</a></div>
-	<p>
-		SQLのタイトルや説明を付けていると、よりわかりやすく表示されます。
-	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#sqltitledesc">外だしSQLの使い方 - SQLのタイトル・説明</a></div>
-
-	<h2 id="classification">区分値一覧</h2>
-	<p>
-		設定された区分値の詳細の一覧が表示されます。カラムとの関連がある場合は、テーブルのカラム情報から関連する区分値の詳細へリンクで辿れます。
-	</p>
-	<div class="detailpage"><a href="../../../../../data/doc/basic/schema-exampledb.html#cdef">(Basic)SchemaHTML - Classification</a></div>
+	<div class="inucolumn">
+		<h2>地味ながら活用したい機能</h2>
+		<p>
+			とても地味ですが、しっかり活用できるとディベロッパーが地味に助かるものです。
+			カラムには業務を表すのに適した名前が付けられるべきですが、確かに限度もあります。
+			ローカル言語の名前がしっかり付いているとわかりやすいものです。
+		</p>
+		<p>
+			逆に、このようにJavaDocコメントに "見るに値する便利な情報"
+			が入っていることで、ディベロッパーが IDE (Eclipseなど)でメソッド補完したときに、
+			JavaDocコメントをしっかり見る習慣のきっかけにもなります。
+		</p>
+		<p>
+			ちなみに、DBコメント作成の DDL
+			は、ERDツールから自動生成したいものです。
+			別名と説明の両方をいい感じにDBコメントに定義する機能が求められます。
+		</p>
+	</div>
 
 </div>
 </div>
