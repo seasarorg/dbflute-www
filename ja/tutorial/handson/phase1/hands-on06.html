@@ -42,7 +42,14 @@
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
 		<li><a href="#debuglog">デバッグログ設定</a></li>
-		<li><a href="#aliasdef">別名(和名)の利用</a></li>
+		<li><a href="#aliasdef">別名(和名)の利用</a>
+			<ul>
+				<li><a href="#checkdbcomment">DBコメントの確認</a></li>
+				<li><a href="#makelogic">ロジックの作成</a></li>
+				<li><a href="#dfpropsetting">DBFluteプロパティの設定</a></li>
+				<li><a href="#genereatedoc">再自動生成して確認</a></li>
+			</ul>
+		</li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -57,8 +64,8 @@
 
 	<h2 id="ready">事前準備</h2>
 	<p>
-		com.example.dbflute.handson.exercise.phase1.HandsOn06Test クラスを作成してください。
-		このクラスは ContainerTestCase を継承します。
+		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.HandsOn06Logic
+		クラスを作成してください。この時点では空っぽで構いません。
 	</p>
 
 	<h2 id="debuglog">デバッグログ設定</h2>
@@ -86,6 +93,7 @@
 	</p>
 
 	<h2 id="aliasdef">別名(和名)の利用</h2>
+	<h3 id="checkdbcomment">DBコメントの確認</h3>
 	<p>
 		replace-schema-10-basic.sql をご覧ください。
 		たくさんのDBコメントが定義されています。そして、DBコメントには、そのテーブルやカラムの別名(和名)と説明が "別名 : 説明"
@@ -95,18 +103,62 @@
 		まず、SchemaHTML を開いて、DBコメントが "別名 : 説明"
 		の形式であることを確認してください。(ただし、全てのコメントが必ずこの形式とは限りません)
 	</p>
+	<h3 id="makelogic">ロジックの作成</h3>
 	<p>
-		そして、以下のテストを作成してください。実装しながら、それぞれのカラムに対応するメソッドの
+		そして、以下のロジックを作成してテストしてみてください。実装しながら、それぞれのカラムに対応するメソッドの
 		JavaDoc コメントを確認してみてください。特に別名は表示されていないはずです。
 	</p>
 	<dl class="textlist">
-		<dt>test会員名称にvを含む会員を検索</dt>
+		<dt>ロジックのメソッド</dt>
+		<dd>List&lt;String&gt; selectSuffixMemberList(String suffix)</dd>
 		<dd>
 			<ul class="supplementlist">
+				<li>指定された suffix で会員を後方一致検索</li>
+				<li>会員名称の昇順で並べる</li>
+				<li>suffixが無効な値なら例外: IllegalArgumentException</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_selectSuffixMemberList_指定したsuffixが検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>テストメソッド名通りのアサート <span class="freecomment">(今後ずっとそう)</span></li>
+				<li>テストが成り立っていることも(できる範囲で)アサート <span class="freecomment">(今後ずっとそう)</span></li>
 				<li>会員名称、生年月日、正式会員日時をログに出して確認する</li>
 			</ul>
 		</dd>
+		<dd>test_selectSuffixMemberList_suffixが無効な値なら例外が発生すること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>無効な値とは、nullと空文字とトリムして空文字になる値</li>
+			</ul>
+		</dd>
 	</dl>
+	<p>
+		ちなみに、今回からエクササイズをより実践に近いもので行います。<span class="freecomment">(講師による説明あり)</span>
+	</p>
+	<ol>
+		<li>ロジッククラスにメソッドを定義して実装</li>
+		<li>ctrl + 9 で対応するテストクラスを自動生成 (src/test/java に)</li>
+		<li>テストメソッドを実装してロジックを検証</li>
+	</ol>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
+	<p>
+		ロジッククラスでの Behavior の宣言は、以下のようにします。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+<pre><span class="codetitle">ex) ロジッククラスでの Behavior の宣言 @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> HandsOn06Logic {
+
+    @Resource
+    <span class="keyword">protected</span> MemberBhv <span class="atrribute">memberBhv</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="dfpropsetting">DBFluteプロパティの設定</h3>
 	<p>
 		それでは、ドキュメントに関するDBFluteプロパティ、DBFluteクライアントの dfprop/documentDefinitionMap.dfprop
 		を開いて、以下のプロパティを設定してみましょう。
@@ -122,6 +174,7 @@
 		<dd>設定する値 => true</dd>
 	</dl>
 	<div class="relatedpage"><a href="../../../manual/reference/dfprop/documentdefinition/index.html">documentDefinitionMap.dfprop</a></div>
+	<h3 id="genereatedoc">再自動生成して確認</h3>
 	<p>
 		DBFluteプロパティの設定が終わったら、Docタスク、そして、Generateタスクを実行してみてください。
 		SchemaHTML、および、それぞれのカラムに対応するメソッドの JavaDoc
