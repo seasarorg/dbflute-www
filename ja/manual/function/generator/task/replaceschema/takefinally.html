@@ -101,7 +101,7 @@
 		というSQLコメントを定義すると、その検索が一件でも結果を持った場合にReplaceSchemaが中断され、検出されたデータがログに出力されます。"select句"
 		には、検出した場合に(人間が)データを特定できるためのカラムを列挙しておきます。
 	</p>
-<pre><span class="codetitle">ex) 会員住所情報において、同じ会員で重複した期間がないことをアサート @take-finally.sql</span><code>
+<pre><span class="codetitle">ex) 退会会員が退会情報を持っていることをアサート @take-finally.sql</span><code>
 <span class="comment">-- #df:assertListZero#</span>
 <span class="keyword">select</span> member.MEMBER_ID, member.MEMBER_NAME
   <span class="keyword">from</span> MEMBER member
@@ -222,6 +222,11 @@ playsql
 			ReplaceSchemaでテストデータを管理し、そして、この整合性チェックSQLを整備すればするほど、そのリスクは減ります。
 			データを登録する時点でそういった "予期せぬ工数を生み出しかねない不整合なデータ" を除去しようという発想です。
 			テストデータの品質が向上させ、ディベロッパーが余計な切り分け作業に時間を割くようなことがないようにします。
+		</p>
+		<p>
+			もちろん、書き過ぎるとチェックSQLの管理が膨大になってしまうので、
+			特徴的で間違いやすく重要なものだけをチョイスしてチェックしていくのが現実的でしょう。
+			業務的one-to-oneは構造として非常に特徴的であるため不正なデータが入るとデバッグ等で面倒なことが多く想定されるため、必ずチェックしたいところです。
 		</p>
 	</div>
 
