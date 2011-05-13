@@ -190,6 +190,8 @@ playsql
 	<p>
 		"filterVariablesMap" で定義した値は、SQLファイル上で "/*$[variable-name]*/"
 		という形式で指定します。実行時にフィルタされて、実際の値に置き換えられます。
+		databaseInfoMap.dfprop の情報を参照したい場合は、"dfprop.xxx"
+		という形式で指定することで利用できます<span class="freecomment">(@since 0.9.8.3)</span>。
 	</p>
 <pre><span class="codetitle">ex) filterVariablesMapを利用したSQL @replace-schema-xxx.sql</span><code>
 <span class="keyword">create user</span> /*$mainSchema*/.MEMBER ...
@@ -236,7 +238,7 @@ playsql
 	<h3 id="systemddl">システムユーザで実行するDDL</h3>
 	<h4 id="changeuser">実行ユーザの一時的切り替え</h4>
 	<p>
-		通常、ReplaceSchemaは databaseInfoMap.dfprop
+		通常 ReplaceSchema は databaseInfoMap.dfprop
 		にて定義されたユーザで実行されます(基本的にはアプリケーションのユーザ)。これを
 		<em class="keyword">-- #df:changeUser([additionalUserMapのシステムユーザ情報の名前])#</em>
 		というSQLコメントを定義することで、ReplaceSchemaの中で一時的にシステムユーザに切り替えることが可能です。
@@ -273,15 +275,15 @@ playsql
 <pre><span class="codetitle">ex) ユーザが既に存在する場合は権限付与は実行しない @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="comment">-- #df:checkUser()#</span>
-<span class="keyword">create user</span> /*$mainUser*/ <span class="keyword">identified by</span> /*$mainPassword*/;
+<span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;
 
-<span class="keyword">grant connect to</span> /*$mainUser*/;
-<span class="keyword">grant resource to</span> /*$mainUser*/;
-<span class="keyword">grant create view to</span> /*$mainUser*/;
-<span class="keyword">grant create synonym to</span> /*$mainUser*/;
-<span class="keyword">grant create database link to</span> /*$mainUser*/;
-<span class="keyword">grant create public database link to</span> /*$mainUser*/;
-<span class="keyword">grant create materialized view to</span> /*$mainUser*/;
+<span class="keyword">grant connect to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant resource to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create view to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create synonym to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create database link to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create public database link to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create materialized view to</span> /*$dfprop.mainUser*/;
 </code></pre>
 	<p>
 		この "checkUser" 機能は、単に該当SQLの実行が失敗するか否かだけを判定して、そのユーザでのそれ以降でのSQLの実行するかどうかを決めているので、
@@ -291,7 +293,8 @@ playsql
 	<p>
 		アプリユーザのユーザ名やパスワードが環境によって変わるような場合は、"変数のフィルタ"
 		機能と合わせて利用します。ReplaceSchemaをUT環境以外でも利用するような場合は、通常アプリユーザのパスワードなどは変わる可能性が高いので、
-		その機能を使って切り替えられるようにします。
+		その機能を使って切り替えられるようにします。databaseInfoMap.dfprop の情報を参照したい場合は、"dfprop.xxx"
+		という形式で指定することで利用できます<span class="freecomment">(@since 0.9.8.3)</span>。
 	</p>
 	<div class="relatedpage"><a href="#filtervariables">変数のフィルタ</a></div>
 	<p>
@@ -307,34 +310,34 @@ playsql
 <pre><span class="codetitle">ex) ユーザが既に存在する場合でも実行したいSQLがある場合 @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="comment">-- #df:checkUser()#</span>
-<span class="keyword">create user</span> /*$mainUser*/ <span class="keyword">identified by</span> /*$mainPassword*/;
+<span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;
 
-<span class="keyword">grant connect to</span> /*$mainUser*/;
-<span class="keyword">grant resource to</span> /*$mainUser*/;
-<span class="keyword">grant create view to</span> /*$mainUser*/;
-<span class="keyword">grant create synonym to</span> /*$mainUser*/;
-<span class="keyword">grant create database link to</span> /*$mainUser*/;
-<span class="keyword">grant create public database link to</span> /*$mainUser*/;
-<span class="keyword">grant create materialized view to</span> /*$mainUser*/;
+<span class="keyword">grant connect to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant resource to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create view to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create synonym to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create database link to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create public database link to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant create materialized view to</span> /*$dfprop.mainUser*/;
 
 -- #df:reviveUser()#
 -- #df:checkUser()#
-<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_SECRET_AUTH <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_SECRET_AUTH <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant SELECT on</span> /*$nextSchema*/.SEQ_VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.SP_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_SYNONYM_SAME_NAME <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.NEXT_PKG <span class="keyword">to</span> /*$mainUser*/;
-<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_PROCEDURE <span class="keyword">to</span> /*$mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_SECRET_AUTH <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_SECRET_AUTH <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant SELECT on</span> /*$nextSchema*/.SEQ_VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant INSERT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant UPDATE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant DELETE on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.SP_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_NO_PARAMETER <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.FN_NEXT_SYNONYM_SAME_NAME <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.NEXT_PKG <span class="keyword">to</span> /*$dfprop.mainUser*/;
+<span class="keyword">grant EXECUTE on</span> /*$nextSchema*/.VD_NEXT_SYNONYM_PROCEDURE <span class="keyword">to</span> /*$dfprop.mainUser*/;
 </code></pre>
 	<p>
 		再度システムユーザで実行する場合も、"checkUser" 機能が利用出来ます。

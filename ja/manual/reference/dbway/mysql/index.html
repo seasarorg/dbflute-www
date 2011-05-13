@@ -284,16 +284,16 @@ pmb.<span class="point">enablePagingCountLater()</span>;
 	<p>
 		データベース依存機能を有効にした場合の利用可能な機能について。
 	</p>
-	<div class="relatedpage"><a href="../../../function/genbafit/implfit/databasedependency">現場フィット - データベース依存機能(メソッド)の利用</a></div>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/databasedependency/index.html">現場フィット - データベース依存機能(メソッド)の利用</a></div>
 	<h3 id="fulltextsearch">ConditionBeanで全文検索</h3>
 	<p>
-		"Tritonn + Senna" の利用を想定した全文検索の条件を指定できます。
+		"Tritonn + Senna" の利用を想定した全文検索の条件を指定できます。(純粋な MyISAM の全文検索でも利用できます)
 	</p>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wt.html#tritonn">Tritonn</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/ws.html#senna">Senna</a></div>
 <pre><span class="codetitle">e.g. 会員名称を "foo" で全文検索</span><code>
 MemberDbm dbm = MemberDbm.getInstance();
-cb.query().<span class="point">match</span>(dbm.columnMemberName(), <span class="literal">"foo"</span>, null);
+cb.query().<span class="point">match</span>(dbm.columnMemberName(), <span class="literal">"foo"</span>, <span class="keyword">null</span>);
 <span class="comment">// where match(dfloc.MEMBER_NAME) against ('foo')</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 会員名称と会員アカウントを "foo" で BooleanMode のテキスト検索</span><code>
@@ -304,7 +304,7 @@ textColumnList.add(dbm.columnMemberAccount());
 cb.query().<span class="point">match</span>(textColumnList, <span class="literal">"foo"</span>
   , WayOfMySQL.FullTextSearchModifier.<span class="point">InBooleanMode</span>);
 <span class="comment">// where match(dfloc.MEMBER_NAME, dfloc.MEMBER_ACCOUNT)</span>
-<span class="comment">//       against ('foo' IN BOOLEAN MODE)</span>
+<span class="comment">//       against ('foo' in boolean mode)</span>
 </code></pre>
 	<p>
 		有効なモードは以下の通りです。
@@ -319,6 +319,11 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		条件値が null もしくは空文字の場合は、ConditionBeanの基本仕様と同じく条件は無効になります。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
+	<p>
+		条件値はバインド変数とはなりません。これは MySQL
+		の仕様としてバインド変数が利用できないためです。
+		条件値に含まれるシングルクォーテーションとバックスラッシュに関しては、DBFluteが内部処理として自動でエスケープします<span class="freecomment">(@since 0.9.8.3)</span>。
+	</p>
 
 	<h2 id="originaluse">DBMS独自の利用方法</h2>
 	<h3 id="additionalschema">別カタログ(別データベース)の利用</h3>
