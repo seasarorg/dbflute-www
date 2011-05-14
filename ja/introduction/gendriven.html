@@ -84,7 +84,7 @@
 		DBFluteにおける基本的なDBアクセスの例(ConditionBean)は以下のようになります。
 	</p>
 	<div class="relatedpage"><a href="../manual/function/ormapper/conditionbean/about.html">ConditionBeanについて</a></div>
-<pre><span class="codetitle">ex) 会員テーブルの会員名称が 'Stojkovic' であること {MEMBER, MEMBER_NAME} @Java</span><code>
+<pre><span class="codetitle">e.g. 会員テーブルの会員名称が 'Stojkovic' であること {MEMBER, MEMBER_NAME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().setMemberName_Equal(<span class="literal">"Stojkovic"</span>);
 Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
@@ -102,7 +102,7 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 		すると、この古い名前でのメソッドは削除され、新しい名前でのメソッドが新たに作成されます。
 		つまり、このDBアクセス部分のプログラムはコンパイルエラーとなり、テスト実行するまでもなく影響範囲が特定できます。
 	</p>
-<pre><span class="codetitle">ex) DB変更が発生して、再自動生成した直後 {MEMBER, MEMBER_NAME} @Java</span><code>
+<pre><span class="codetitle">e.g. DB変更が発生して、再自動生成した直後 {MEMBER, MEMBER_NAME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().<span class="point">setMemberName_Equal</span>(<span class="literal">"Stojkovic"</span>); <span class="comment">// compile error</span>
 Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
@@ -111,7 +111,7 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 	<p>
 		このコンパイルエラーになった箇所を、コンパイルが通るように(新しいカラムを利用するように)直せば良いのです。
 	</p>
-<pre><span class="codetitle">ex) 再自動生成した後に新しいカラムを利用するように修正 {MEMBER, MEM_NAME} @Java</span><code>
+<pre><span class="codetitle">e.g. 再自動生成した後に新しいカラムを利用するように修正 {MEMBER, MEM_NAME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().<span class="point">setMemName_Equal</span>(<span class="literal">"Stojkovic"</span>);
 Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
@@ -129,13 +129,13 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 		として実行し、その結果で影響範囲を知ることができます。
 	</p>
 	<div class="relatedpage"><a href="../manual/function/ormapper/outsidesql/about.html#twowaysql">2Way-SQL</a></div>
-<pre><span class="codetitle">ex) 2Way-SQLなので、そのまま実行して古いカラムの特定ができる {MEMBER, MEMBER_NAME} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. 2Way-SQLなので、そのまま実行して古いカラムの特定ができる {MEMBER, MEMBER_NAME} @OutsideSql</span><code>
 <span class="keyword">select</span> member.MEMBER_ID
      , member.<span class="point">MEMBER_NAME</span> <span class="comment">-- execution error</span>
   <span class="keyword">from</span> MEMBER member
  <span class="keyword">where</span> member.BIRTHDATE = <span class="comment">/*pmb.birthdate*/</span><span class="literal">'1960-04-12'</span>
 </code></pre>
-<pre><span class="codetitle">ex) 古いカラムを直して、再実行(実行エラーなし) {MEMBER, MEM_NAME} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. 古いカラムを直して、再実行(実行エラーなし) {MEMBER, MEM_NAME} @OutsideSql</span><code>
 <span class="keyword">select</span> member.MEMBER_ID
      , member.<span class="point">MEM_NAME</span> <span class="comment">-- OK</span>
   <span class="keyword">from</span> MEMBER member
@@ -145,13 +145,13 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 		また、プログラム上での影響範囲の特定に関しては、DBFluteでは、外だしSQL(のselect句)に対応するクラスを自動生成してプログラムで利用するため、
 		select句の構造が変わったら、ConditionBeanの時と同じように再自動生成(Sql2Entityタスクを実行)すれば、影響範囲をコンパイルエラーとして特定できます。
 	</p>
-<pre><span class="codetitle">ex) 外だしSQLの結果を利用しているプログラム(古いカラム) {MEMBER, MEMBER_NAME} @Java</span><code>
+<pre><span class="codetitle">e.g. 外だしSQLの結果を利用しているプログラム(古いカラム) {MEMBER, MEMBER_NAME} @Java</span><code>
 List&lt;SimpleMember&gt; memberList = memberBhv.outsideSql().selectList(...);
 <span class="keyword">for</span> (SimpleMember member : memberList) {
     <span class="abbreviation">...</span> = member.<span class="point">getMemberName()</span>; <span class="comment">// compile error</span>
 }
 </code></pre>
-<pre><span class="codetitle">ex) 外だしSQLの結果を利用しているプログラム(新しいカラム) {MEMBER, MEM_NAME} @Java</span><code>
+<pre><span class="codetitle">e.g. 外だしSQLの結果を利用しているプログラム(新しいカラム) {MEMBER, MEM_NAME} @Java</span><code>
 List&lt;SimpleMember&gt; memberList = memberBhv.outsideSql().selectList(...);
 <span class="keyword">for</span> (SimpleMember member : memberList) {
     <span class="abbreviation">...</span> = member.<span class="point">getMemName()</span>;

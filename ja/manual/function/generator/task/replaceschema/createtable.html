@@ -88,7 +88,7 @@
 		条件で定められている部分以外のファイル名は任意の文字列となります。基本的にはそのSQLファイルの役割を表現するようにします。また、replace-schema.sql
 		という名前のファイルも実行対象となります。
 	</p>
-<pre><span class="codetitle">ex) テーブル作成のSQLファイル @DBFluteClient</span><code>
+<pre><span class="codetitle">e.g. テーブル作成のSQLファイル @DBFluteClient</span><code>
 playsql
  |-replace-schema-basic.sql
  |-replace-schema-sequence.sql
@@ -101,7 +101,7 @@ playsql
 		で実行します。実行順序を明確にしておくために、習慣的に <em class="keyword">番号で管理</em>
 		しておくことをお奨めします。
 	</p>
-<pre><span class="codetitle">ex) テーブル作成のSQLファイルで番号管理 @DBFluteClient</span><code>
+<pre><span class="codetitle">e.g. テーブル作成のSQLファイルで番号管理 @DBFluteClient</span><code>
 playsql
  |-replace-schema-10-basic.sql
  |-replace-schema-20-view.sql
@@ -120,7 +120,7 @@ playsql
 		一つのファイル内に複数のSQLを定義できます。<em class="keyword">デリミタは ";" (セミコロン)</em>
 		とし、読み込まれた順序で実行していきます。
 	</p>
-<pre><span class="codetitle">ex) SQLのデリミタ @SQL-File</span><code>
+<pre><span class="codetitle">e.g. SQLのデリミタ @SQL-File</span><code>
 <span class="keyword">create table</span> MEMBER ...
 ;
 <span class="keyword">create table</span> PURCHASE ...
@@ -136,7 +136,7 @@ playsql
 		SQLコメントで "<em class="keyword">-- #df:begin#</em>" を開始とし、"<em class="keyword">-- #df:end#</em>"
 		を終了として、一つのSQLを囲みます。この中にデリミタ文字が含まれていても、それはSQLの一部とみなされます。
 	</p>
-<pre><span class="codetitle">ex) SQLの範囲を明示的に指定 @SQL-File for Oracle</span><code>
+<pre><span class="codetitle">e.g. SQLの範囲を明示的に指定 @SQL-File for Oracle</span><code>
 <span class="comment">-- #df:begin#</span>
 <span class="keyword">create or replace procedure</span> SP_NO_PARAMETER
 <span class="keyword">as</span>
@@ -182,7 +182,7 @@ playsql
 		の "filterVariablesMap" を利用して、SQLファイル上は変数で扱い実際の値を環境ごとに切り替えられるDBFluteプロパティで管理します。
 	</p>
 	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#filtervariablesmap">dfprop - filterVariablesMap</a></div>
-<pre><span class="codetitle">ex) filterVariablesMapの定義 @replaceSchemaDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. filterVariablesMapの定義 @replaceSchemaDefinitionMap.dfprop</span><code>
 ; filterVariablesMap = <span class="keyword">map:</span>{
     ; mainSchema   = EXAMPLEDB
 }
@@ -193,7 +193,7 @@ playsql
 		databaseInfoMap.dfprop の情報を参照したい場合は、"dfprop.xxx"
 		という形式で指定することで利用できます<span class="freecomment">(@since 0.9.8.3)</span>。
 	</p>
-<pre><span class="codetitle">ex) filterVariablesMapを利用したSQL @replace-schema-xxx.sql</span><code>
+<pre><span class="codetitle">e.g. filterVariablesMapを利用したSQL @replace-schema-xxx.sql</span><code>
 <span class="keyword">create user</span> /*$mainSchema*/.MEMBER ...
 </code></pre>
 	<p>
@@ -219,7 +219,7 @@ playsql
 		"replaceSchemaDefinitionMap.dfprop" の "additionalUserMap" にて、システムユーザの情報を定義します。
 	</p>
 	<div class="detailpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#additionalusermap">dfprop - additionalUserMap</a></div>
-<pre><span class="codetitle">ex) additionalUserMapの定義("system" という名前の定義) @replaceSchemaDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. additionalUserMapの定義("system" という名前の定義) @replaceSchemaDefinitionMap.dfprop</span><code>
 ; additionalUserMap = <span class="keyword">map:</span>{
     ; system = <span class="keyword">map:</span>{
         <span class="comment">#; url = ...</span>
@@ -243,7 +243,7 @@ playsql
 		<em class="keyword">-- #df:changeUser([additionalUserMapのシステムユーザ情報の名前])#</em>
 		というSQLコメントを定義することで、ReplaceSchemaの中で一時的にシステムユーザに切り替えることが可能です。
 	</p>
-<pre><span class="codetitle">ex) システムユーザに切り替え("system" という名前の定義を利用) @replace-schema-xxx.sql</span><code>
+<pre><span class="codetitle">e.g. システムユーザに切り替え("system" という名前の定義を利用) @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="keyword">create user</span> ...;
 <span class="keyword">grant</span> ...;
@@ -259,7 +259,7 @@ playsql
 		基本的には、システムユーザで実行するDDLだけを定義する個別のSQLファイルを用意して、
 		アプリユーザで実行するSQLファイルと別にすることをお奨めします。
 	</p>
-<pre><span class="codetitle">ex) システムユーザ用のSQLを分ける @playsql</span><code>
+<pre><span class="codetitle">e.g. システムユーザ用のSQLを分ける @playsql</span><code>
 playsql
  |-replace-schema-00-system.sql
  |-replace-schema-10-basic.sql
@@ -272,7 +272,7 @@ playsql
 		を実行しないで続行するようにします。ユーザを作成するDDLの定義箇所で <em class="keyword">-- #df:checkUser()#</em>
 		というSQLコメントを定義することで、そのユーザが既に存在する場合に以降のシステムユーザでの実行を無効になります。
 	</p>
-<pre><span class="codetitle">ex) ユーザが既に存在する場合は権限付与は実行しない @replace-schema-xxx.sql</span><code>
+<pre><span class="codetitle">e.g. ユーザが既に存在する場合は権限付与は実行しない @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="comment">-- #df:checkUser()#</span>
 <span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;
@@ -307,7 +307,7 @@ playsql
 		アプリユーザが既に存在していも、毎回システムユーザで実行したいDDLがある場合に、<em class="keyword">-- #df:reviveUser()#</em>
 		というSQLコメントを定義することで、それ以降のSQLを再度システムユーザで実行します。
 	</p>
-<pre><span class="codetitle">ex) ユーザが既に存在する場合でも実行したいSQLがある場合 @replace-schema-xxx.sql</span><code>
+<pre><span class="codetitle">e.g. ユーザが既に存在する場合でも実行したいSQLがある場合 @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="comment">-- #df:checkUser()#</span>
 <span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;

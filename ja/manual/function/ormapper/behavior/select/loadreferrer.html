@@ -124,7 +124,7 @@
 		Behaviorの <em class="keyword">load[referrer-table]List()</em>
 		を呼び出し、第一引数に会員(一覧)のデータ、第二引数に ConditionBeanSetupper、もしくは、LoadReferrerOption を指定します。
 	</p>
-<pre><span class="codetitle">ex) LoadReferrerの実装手順 (Eclipseでコード補完) {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">e.g. LoadReferrerの実装手順 (Eclipseでコード補完) {MEMBER, PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
 List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb); <span class="comment">// まずは普通に会員一覧</span>
@@ -172,7 +172,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
     <span class="abbreviation">...</span>
 }
 </code></pre>
-<pre><span class="codetitle">ex) LoadReferrerを使って関連する購入を一括取得 {PURCHASE} @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. LoadReferrerを使って関連する購入を一括取得 {PURCHASE} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> PURCHASE dfloc 
  <span class="keyword">where</span> <span class="point">dfloc.MEMBER_ID in (1, 2, 3, 4)</span>
@@ -184,7 +184,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 		ConditionBeanSetupper で、子テーブルのソート条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
 		OrderBy が利用できます。業務的にほとんどの場合、ソート条件が必要になると想定されています。
 	</p>
-<pre><span class="codetitle">ex) 会員に関連する購入を購入日時の降順で取得 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員に関連する購入を購入日時の降順で取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
@@ -192,7 +192,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
     }
 })
 </code></pre>
-<pre><span class="codetitle">ex) 会員に関連する購入を購入日時の降順で取得 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 会員に関連する購入を購入日時の降順で取得 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> PURCHASE dfloc 
  <span class="keyword">where</span> dfloc.MEMBER_ID <span class="keyword">in</span> (1, 2, 3, 4)
@@ -208,7 +208,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 		ConditionBeanSetupper で、子テーブルのデータ取得条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
 		SetupSelect も利用でき、子テーブルの親テーブル(one-to-many-to-one)も一緒に取得することができます。
 	</p>
-<pre><span class="codetitle">ex) 会員に関連する購入と共に商品も取得 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員に関連する購入と共に商品も取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
@@ -236,7 +236,7 @@ cb.query().loadPurchaseList(memberList, <span class="keyword">new</span> Conditi
 		LoadReferrerOption に EntityListSetupper のコールバックを設定し、そのコールバックの中でさらに深い階層の LoadReferrer
 		を実装します。
 	</p>
-<pre><span class="codetitle">ex) 会員ステータスに関連する会員とさらに購入を取得 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員ステータスに関連する会員とさらに購入を取得 @Java</span><code>
 <span class="comment">// 会員ステータス (基点テーブル)</span>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
@@ -279,7 +279,7 @@ loadReferrerOption.<span class="point">setEntityListSetupper</span>(<span class=
 	<p>
 		それぞれの関連に対して LoadReferrer を呼び出せば、枝分かれの子テーブルが設定されたオブジェクトグラフを構築することができます。
 	</p>
-<pre><span class="codetitle">ex) 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
@@ -317,7 +317,7 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
 		まず、CustomizeEntity マークにおいて、必ず基点テーブルの主キーを <em class="keyword">PKマーク</em> に設定します。
 	</p>
 	<div class="detailpage"><a href="../../../generator/task/sql2entity/customizeentity.html#pkmark">CustomizeEntity - PKマーク</a></div>
-<pre><span class="codetitle">ex) LoadReferrer を利用するためにPKマークを設定 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. LoadReferrer を利用するためにPKマークを設定 @SQL-File</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="point">-- *MEMBER_ID*</span>
 <span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
@@ -331,7 +331,7 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
 		さらにそのとき、複合PKの場合は、PKマーク上の指定の順序、および、select句でのカラム定義の順序をDB定義上のPKの順序に合わせる必要があります。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dbway/postgresql/index.html">DBMSごとの取扱い - PostgreSQL - CustomizeEntityの対応テーブル</a></div>
-<pre><span class="codetitle">ex) メタデータが取得できないDBMSの場合は関連テーブルを @SQL-File</span><code>
+<pre><span class="codetitle">e.g. メタデータが取得できないDBMSの場合は関連テーブルを @SQL-File</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- *<span class="point">MEMBER</span>.MEMBER_ID*</span>
 <span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
@@ -347,7 +347,7 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
 		をリストに詰め込み、そのリストを LoadReferrer で実行します。すると、CustomizeEntity
 		から子テーブルを取得することができます。
 	</p>
-<pre><span class="codetitle">ex) CustomizeEntity を利用して購入を LoadReferrer @Java</span><code>
+<pre><span class="codetitle">e.g. CustomizeEntity を利用して購入を LoadReferrer @Java</span><code>
 List&lt;UnpaidSummaryMember&gt; memberList = <span class="attribute">memberBhv</span>.outsideSql()<span class="abbreviation">...</span>
 
 List&lt;Member&gt; domainList = <span class="keyword">new</span> ArrayList&lt;Member&gt;(); 

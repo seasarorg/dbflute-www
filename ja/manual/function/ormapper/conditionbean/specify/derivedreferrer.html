@@ -103,7 +103,7 @@
 		また、定数の名前は任意ですが、習慣的に以下のようにすると良いでしょう。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wf.html#flexiblename">FlexibleName</a></div>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrerのためのプロパティ定義 {MEMBER, MEMBER_LOGIN} @Java</span><code>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerのためのプロパティ定義 {MEMBER, MEMBER_LOGIN} @Java</span><code>
 <span class="keyword">public class</span> Member <span class="keyword">extends</span> BsMember {
     <span class="abbreviation">...</span>
     <span class="keyword">public static final</span> String ALIAS_latestLoginDatetime = <span class="literal">"LATEST_LOGIN_DATETIME"</span>;
@@ -129,7 +129,7 @@
 	</p>
 	<div class="relatedpage"><a href="#funcfilter">this - 導出値の関数によるフィルタ</a></div>
 	<div class="relatedpage"><a href="./specifycolumn.html#onlyonecolumn">SpecifyColumn - 他の機能から間借りされる</a></div>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.sp <span class="comment">// .sp と打って enter</span>
 --
@@ -191,7 +191,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 	<p>
 		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
 	</p>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
      , (<span class="keyword">select</span> max(sub1loc.LOGIN_DATETIME)
           <span class="keyword">from</span> MEMBER_LOGIN sub1loc 
@@ -210,7 +210,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
 		one-to-one のテーブルのカラムを導出カラムに、という使い方が実用的と考えられます。
 	</p>
-<pre><span class="codetitle">ex) 会員ステータスごとに会員セキュリティの更新日時の最大値を導出 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員ステータスごとに会員セキュリティの更新日時の最大値を導出 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
@@ -224,7 +224,7 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 		ネストした導出カラムの導出カラムという形式になり、DerivedReferrer の中で DerivedReferrer
 		を利用します。<span class="freecomment">(@since 0.9.7.7)</span>
 	</p>
-<pre><span class="codetitle">ex) 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb.specify().<span class="point">derivedMemberList()</span>.avg(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
@@ -239,7 +239,7 @@ cb.specify().<span class="point">derivedMemberList()</span>.avg(<span class="key
 }, MemberStatus.ALIAS_avgMaxPurchasePrice);
 cb.query().set<span class="abbreviation">...</span>
 </code></pre>
-<pre><span class="codetitle">ex) 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_STATUS_CODE as c1, dfloc.MEMBER_STATUS_<span class="abbreviation">...</span>
      , (<span class="keyword">select</span> avg((<span class="keyword">select</span> max(sub2loc.PURCHASE_PRICE)
                       <span class="keyword">from</span> PURCHASE sub2loc 
@@ -262,7 +262,7 @@ cb.query().set<span class="abbreviation">...</span>
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも導出カラムとして利用できます。Specify(Relation) の後に
 		DerivedReferrer を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 会員ログインから会員を経由して(会員ごとの)購入価格の合計を導出 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員ログインから会員を経由して(会員ごとの)購入価格の合計を導出 @Java</span><code>
 MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
 cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
@@ -276,7 +276,7 @@ cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().su
 		にて、そのフィルタ処理を指定することができます。<span class="freecomment">@since 0.9.7.4</span>
 	</p>
 	<div class="relatedpage"><a href="#usablefilter">this - 利用できるフィルタ関数</a></div>
-<pre><span class="codetitle">ex) 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
+<pre><span class="codetitle">e.g. 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
 cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     <span class="keyword">public void</span> query(MemberLoginCB subCB) {
         <span class="comment">// 一度もログインしていない、もしくは、モバイルでしか</span>
@@ -291,7 +291,7 @@ cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuer
 		フィルタ処理を組み合わせることもできます。例えば、coalesce() を指定した上で round()
 		するなど。DerivedReferrerOption のメソッドを呼び出した順番でSQL上でも同じ順番で処理されます。
 	</p>
-<pre><span class="codetitle">ex) null の場合は 0 に置き換えて、その後、精度 2 桁で四捨五入 @Java</span><code>
+<pre><span class="codetitle">e.g. null の場合は 0 に置き換えて、その後、精度 2 桁で四捨五入 @Java</span><code>
 <span class="keyword">new</span> DerivedReferrerOption().<span class="point">coalesce</span>(0).<span class="point">round</span>(2)
 </code></pre>
 	<h4>フィルタ処理の拡張</h4>

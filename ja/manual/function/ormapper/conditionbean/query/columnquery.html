@@ -91,7 +91,7 @@
 		などの比較条件メソッドを呼び出して、今度は右辺のカラムを指定するコールバックを引数に設定します。
 		必要であれば、さらに続けて右辺カラムの演算調整が必要であれば演算メソッドを呼び出します。
 	</p>
-<pre><span class="codetitle">ex) ColumnQueryの実装手順 (Eclipseでコード補完) {BIRTHDATE &lt; FORMALIZED_DATETIME} @Java</span><code>
+<pre><span class="codetitle">e.g. ColumnQueryの実装手順 (Eclipseでコード補完) {BIRTHDATE &lt; FORMALIZED_DATETIME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.coQ <span class="comment">// .coQ と打って enter</span>
 --
@@ -132,13 +132,13 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
         cb.specify().<span class="point">columnFormalizedDatetime()</span>;
     }
-}); <span class="comment">// 必要に応じて、右辺の演算メソッドを呼び出す ex) ...}).plus(3)</span>
+}); <span class="comment">// 必要に応じて、右辺の演算メソッドを呼び出す e.g. ...}).plus(3)</span>
 </code></pre>
 	<p>
 		SQL上では、指定された左辺と右辺のカラムを比較する条件が展開されます。
 	</p>
 	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
-<pre><span class="codetitle">ex) 生まれてから正式会員になった会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 生まれてから正式会員になった会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> dfloc.<span class="point">BIRTHDATE</span> &lt; dfloc.<span class="point">FORMALIZED_DATETIME</span>
@@ -147,7 +147,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	<p>
 		関連テーブル(many-to-one, one-to-one)のカラムも利用できます。
 	</p>
-<pre><span class="codetitle">ex) 会員セキュリティ情報の更新日時と退会日時が同じ会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員セキュリティ情報の更新日時と退会日時が同じ会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
@@ -165,7 +165,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	</p>
 	<div class="relatedpage"><a href="../setupselect/bizonetoone.html">SetupSelect(BizOneToOne)</a></div>
 	<div class="relatedpage"><a href="./bizonetoone.html">Query(BizOneToOne)</a></div>
-<pre><span class="codetitle">ex) (有効な)会員住所情報の更新日時と退会日時が同じ会員 @Java</span><code>
+<pre><span class="codetitle">e.g. (有効な)会員住所情報の更新日時と退会日時が同じ会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().<span class="point">queryMemberAddressAsValid</span>(currentDate());
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
@@ -185,7 +185,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 		をエリアス名を null 固定で指定します。(左辺、右辺両方で利用できます)
 	</p>
 	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
-<pre><span class="codetitle">ex) 生まれる前、もしくは生まれた瞬間に(支払済み)購入をしたことのある会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 生まれる前、もしくは生まれた瞬間に(支払済み)購入をしたことのある会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
@@ -202,7 +202,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> dfloc.BIRTHDATE &lt;= (<span class="keyword">select</span> min(sub1loc.PURCHASE_DATETIME)
@@ -217,7 +217,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 		導出カラムの利用を応用すると、カテゴリごとの最大値や平均値との比較条件が実現できます。Specify(Relation)
 		で辿ったカテゴリテーブルから、自分方向のリレーションに戻って DerivedReferrer をします。
 	</p>
-<pre><span class="codetitle">ex) サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @Java</span><code>
+<pre><span class="codetitle">e.g. サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
@@ -235,7 +235,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
     <span class="keyword">left outer join</span> MEMBER_SERVICE dfrel_3 <span class="keyword">on</span> dfloc.MEMBER_ID = dfrel_3.MEMBER_ID
@@ -258,7 +258,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 		右辺カラムの指定の後に続けて、演算メソッドを呼び出し、演算値を引数に設定します。
 	</p>
 	<div class="relatedpage"><a href="#usablecalculation">this - 利用できる演算調整</a></div>
-<pre><span class="codetitle">ex) 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @Java</span><code>
 <span class="abbreviation">...</span>
 <span class="keyword">final int</span> minDefault = <span class="literal">0</span>; <span class="comment">// 購入のない会員も含むため (null を 0 に)</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
@@ -276,7 +276,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     }
 }).<span class="point">multiply</span>(<span class="literal">500</span>).<span class="point">plus</span>(<span class="literal">1</span>);
 </code></pre>
-<pre><span class="codetitle">ex) 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> (<span class="keyword">select</span> coalesce(min(sub1loc.PURCHASE_PRICE), <span class="literal">0</span>)

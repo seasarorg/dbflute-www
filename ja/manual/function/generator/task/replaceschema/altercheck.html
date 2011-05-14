@@ -52,6 +52,7 @@
 				<li><a href="#createsql">CreateSQL の実行</a></li>
 				<li><a href="#altercheck">AlterCheck の実行</a></li>
 				<li><a href="#successstory">AlterCheck が成功</a></li>
+				<li><a href="#aboutngmark">NGマークは NG の強調</a></li>
 			</ul>
 		</li>
 		<li><a href="#rollbackfailure">ロールバックの失敗</a></li>
@@ -111,7 +112,7 @@
 		と同じ仕様でそのときのDB変更で変わったファイル、もしくは、新しく追加されたファイルだけを配置します。(いつもの) playsql
 		配下に直接置かないことで、PreviousDB に戻す処理(ロールバック)を自動化することができます。
 	</p>
-<pre><span class="codetitle">ex) AlterSQL と CreateSQL の配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterSQL と CreateSQL の配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -140,7 +141,7 @@ dbflute_exampledb
 		を直したら ReplaceSchema を再実行します。AlterCheck が成功、もしくは、別の NG が発生したらこのファイルは削除されます。
 	</p>
 	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
-<pre><span class="codetitle">ex) AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -175,14 +176,14 @@ dbflute_exampledb
 	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
 	<h3 id="altercheck">AlterCheck の実行</h3>
 	<p>
-		実行に成功した場合は、DBFlute は再度その状態のメタデータを取得し、AlterSQL 実行直後状態と比べます。差があれば、AlterSQL と CreateSQL
+		実行に成功した場合は、DBFlute は再度その状態のメタデータを取得し、AlterSQL 実行直後のものと比べます。差があれば、AlterSQL と CreateSQL
 		が不整合の状態にあると言え、バックアップされた SQL などが元の場所に戻り、PreviousDB へロールバックされ、AlterNGマークが作成されてタスクは終了します。
 	</p>
 	<p>
 		そのときの差分情報は、migration/schema 配下に alter-check-result.diffmap というテキストファイルに出力されます。
-		これを参考に AlterSQL を直し、AlterNGマークを削除して再度 ReplaceSchema を実行してやり直します。
+		これを参考に AlterSQL を直し、再度 ReplaceSchema を実行します。
 	</p>
-<pre><span class="codetitle">ex) AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -205,7 +206,7 @@ dbflute_exampledb
 	</p>
 	<p>
 		また、差分ルールは HistoryHTML の仕様と同じです。例えば、"カラム定義順序の違い" や "同じ構造で制約名だけの変更"
-		に関しては差と認識されません。
+		など、基本的にアプリに影響のない微修正ものに関しては差として認識されません。
 	</p>
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
 	<h3 id="successstory">AlterCheck が成功</h3>
@@ -218,6 +219,17 @@ dbflute_exampledb
 		最後のログメッセージには、AlterSQL の実行結果と CreateSQL の実行結果の両方が表示され正常終了となります。
 	</p>
 	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+	<div class="inucolumn">
+		<h3 id="aboutngmark">NGマークは NG の強調</h3>
+		<p>
+			そもそもNGマークの役割についてですが、単なる NG であることの強調という意味に尽きます。
+		</p>
+		<p>
+			しっかりとコンソールや dbflute.log
+			でエラーメッセージを見てアクションを取って欲しいのですが、
+			あまりコンソールを見ずに(エラーに気付かずに)先に進んでしまうこともありえるので、おおげさにマークファイルを出力しています。
+		</p>
+	</div>
 
 	<h2 id="rollbackfailure">ロールバックの失敗</h2>
 	<p>
@@ -257,7 +269,7 @@ dbflute_exampledb
 	<p>
 		また、dataprop ファイルも同じように新しい構造用に配置することができます。
 	</p>
-<pre><span class="codetitle">ex) 新しい構造のためのデータファイルの配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. 新しい構造のためのデータファイルの配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -293,7 +305,7 @@ dbflute_exampledb
 		AlterSQL のSQLファイルと同じディレクトリに、alter-schema で始まる拡張子が .bat もしくは .sh
 		のスクリプトファイルを配置します。SQLファイルも含めてファイル名の昇順で実行されます。
 	</p>
-<pre><span class="codetitle">ex) AlterSQL の外部スクリプトの配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterSQL の外部スクリプトの配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -350,7 +362,7 @@ dbflute_exampledb
 		差分結果は、migration/schema 配下の change-output-result.diffmap
 		というテキストファイルに出力されますので、AlterSQL の作成の参考として差分を確認すると良いでしょう。
 	</p>
-<pre><span class="codetitle">ex) PreviousDB との差分を出力 @playsql</span><code>
+<pre><span class="codetitle">e.g. PreviousDB との差分を出力 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data

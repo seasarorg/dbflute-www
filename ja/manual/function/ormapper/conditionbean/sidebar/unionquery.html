@@ -87,7 +87,7 @@
 		するだけ。関連テーブルがある場合は、SetupSelect を指定。その後、union() を呼び出して、UnionQuery
 		のコールバック実装を引数に指定します。
 	</p>
-<pre><span class="codetitle">ex) 会員の名称だけを取得 (Eclipseでコード補完) @Java</span><code>
+<pre><span class="codetitle">e.g. 会員の名称だけを取得 (Eclipseでコード補完) @Java</span><code>
 MemberCB() cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus(); <span class="comment">// 取得テーブル(カラム)を確定させて</span>
 cb.query().setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>); <span class="comment">// メインの絞り込み条件</span>
@@ -127,7 +127,7 @@ cb.query().addOrderBy_Birthdate_Asc(); <span class="comment">// order-by は uni
 	</p>
 	<div class="relatedpage"><a href="#beforeorderby">this - 必ず OrderBy の前に指定</a></div>
 	<div class="relatedpage"><a href="#nocasewhen">this - OrderBy で case when 構文がNG</a></div>
-<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
      , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
   <span class="keyword">from</span> MEMBER dfloc
@@ -145,7 +145,7 @@ cb.query().addOrderBy_Birthdate_Asc(); <span class="comment">// order-by は uni
 	<p>
 		UnionQuery を何度も連結させることができます。
 	</p>
-<pre><span class="codetitle">ex) UnionQueryの複数回の連結 @Java</span><code>
+<pre><span class="codetitle">e.g. UnionQueryの複数回の連結 @Java</span><code>
 cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB unionCB) {
         cb.query().setMemberStatusCode_Equal_Formalized();
@@ -169,7 +169,7 @@ cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
 	</p>
 	<div class="relatedpage"><a href="../query/existsreferrer.html">ExistsReferrer</a></div>
 	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
-<pre><span class="codetitle">ex) ExistsReferrer の中で UnionQuery @Java</span><code>
+<pre><span class="codetitle">e.g. ExistsReferrer の中で UnionQuery @Java</span><code>
 cb.query().<span class="point">existsPurchaseList</span>(new SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         subCB.query().setPaymentCompleteFlg_Equal_True();
@@ -181,7 +181,7 @@ cb.query().<span class="point">existsPurchaseList</span>(new SubQuery&lt;Purchas
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) ExistsReferrer の中で UnionQuery @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. ExistsReferrer の中で UnionQuery @DisplaySql</span><code>
  <span class="keyword">where exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
                  <span class="keyword">from</span> PURCHASE sub1loc 
                 <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
@@ -242,7 +242,7 @@ cb.query().<span class="point">existsPurchaseList</span>(new SubQuery&lt;Purchas
 			であれば、コールバックで絞り込み条件を指定するだけとなります(select 句や from, join 句は自動解決)。
 			また、"SQLが見づらくなりそう" という問題も、union を使ってもしっかり整形されたSQLとなります。
 		</p>
-<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus();
 cb.query().<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>);
@@ -252,7 +252,7 @@ cb.union(<span class="keyword">new</span> UnionQuery&lt;MemberCB&gt;() {
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 会員名称が "S" で始まる、もしくは、生年月日が 2000/01/01 以降 の会員 @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
      , dfrel_0.MEMBER_STATUS_CODE as c14, dfrel_0.MEMBER_STATUS_NAME as c15, <span class="abbreviation">...</span> 
   <span class="keyword">from</span> MEMBER dfloc

@@ -77,7 +77,7 @@
 		句の相関サブクエリで実現します。この機能を ExistsReferrer と呼びます。
 	</p>
 	<div class="detailpage"><a href="../../../ormapper/conditionbean/query/existsreferrer.html">ConditionBean - ExistsReferrer</a></div>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 @Java</span><code>
 cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         <span class="comment">// 2000円以上の購入をしたことのある会員</span>
@@ -85,7 +85,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
@@ -105,7 +105,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		句での相関サブクエリで実現します。この機能を (Specify)DerivedReferrer と呼びます。
 	</p>
 	<div class="detailpage"><a href="../../../ormapper/conditionbean/specify/derivedreferrer.html">ConditionBean - (Specify)DerivedReferrer</a></div>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @Java</span><code>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @Java</span><code>
 cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     <span class="keyword">public void</span> query(MemberLoginCB subCB) {
         subCB.specify().<span class="point">columnLoginDatetime()</span>; <span class="comment">// 導出カラムの指定</span>
@@ -119,7 +119,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
     <span class="abbreviation">...</span>
 }
 </code></pre>
-<pre><span class="codetitle">ex) (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
      , (<span class="keyword">select</span> max(sub1loc.LOGIN_DATETIME)
           <span class="keyword">from</span> MEMBER_LOGIN sub1loc 
@@ -135,7 +135,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		句での相関サブクエリで実現します。この機能を (Query)DerivedReferrer と呼びます。
 	</p>
 	<div class="detailpage"><a href="../../../ormapper/conditionbean/query/derivedreferrer.html">ConditionBean - (Query)DerivedReferrer</a></div>
-<pre><span class="codetitle">ex) (Query)DerivedReferrerを使って(支払済み)最大購入価格が10000円以上の会員を取得 @Java</span><code>
+<pre><span class="codetitle">e.g. (Query)DerivedReferrerを使って(支払済み)最大購入価格が10000円以上の会員を取得 @Java</span><code>
 cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         subCB.specify().columnPurchasePrice(); <span class="comment">// 導出カラムの指定</span>
@@ -143,7 +143,7 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
     }
 }).<span class="point">greaterEqual</span>(<span class="literal">10000</span>) <span class="comment">// 引数に条件値を設定</span>
 </code></pre>
-<pre><span class="codetitle">ex) (Query)DerivedReferrerを使って(支払済み)最大購入価格が10000円以上の会員を取得 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. (Query)DerivedReferrerを使って(支払済み)最大購入価格が10000円以上の会員を取得 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> (<span class="keyword">select</span> sum(sub1loc.PURCHASE_PRICE)
@@ -159,7 +159,7 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
 		例えば、一番若い会員のデータを検索(生年月日と最大の生年月日の等値)、というような条件。これは、where 句での基点テーブル(対応テーブル)のサブクエリで実現します。
 	</p>
 	<div class="detailpage"><a href="../../../ormapper/conditionbean/query/scalarcondition.html">ConditionBean - ScalarCondition</a></div>
-<pre><span class="codetitle">ex) ScalarConditionを使って一番若い正式会員(のレコード)を取得 @Java</span><code>
+<pre><span class="codetitle">e.g. ScalarConditionを使って一番若い正式会員(のレコード)を取得 @Java</span><code>
 cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) { <span class="comment">// 一番若い正式会員</span>
         subCB.specify().<span class="point">columnBirthdate()</span>; <span class="comment">// 比較対象カラムの指定</span>
@@ -167,7 +167,7 @@ cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;Membe
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) ScalarConditionを使って一番若い正式会員(のレコード)を取得 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. ScalarConditionを使って一番若い正式会員(のレコード)を取得 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> dfloc.BIRTHDATE = (<span class="keyword">select</span> max(sub1loc.BIRTHDATE)
@@ -192,7 +192,7 @@ cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;Membe
 		のコラボレーションにより、ColumnQuery の指定するカラムを導出カラムにすることで柔軟な比較ができます。 
 	</p>
 	<div class="detailpage"><a href="../../../ormapper/conditionbean/query/columnquery.html">ConditionBean - ColumnQuery</a></div>
-<pre><span class="codetitle">ex) 生まれる前、もしくは生まれた瞬間に購入をしたことのある会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 生まれる前、もしくは生まれた瞬間に購入をしたことのある会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> specify(MemberCB cb) {
@@ -209,7 +209,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> dfloc.BIRTHDATE &lt;= (<span class="keyword">select</span> min(sub1loc.PURCHASE_DATETIME)
@@ -261,7 +261,7 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 			ではどうしても無名インナークラス形式で、お決まりのメソッド宣言が必要になります。
 			今後の Java の動向から目が離せません。
 		</p>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員 (C# では delegate で実現) @C#</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 (C# では delegate で実現) @C#</span><code>
 cb.Query().ExistsPurchaseList(<span class="keyword">delegate</span>(PurchaseCB subCB) {
     <span class="comment">// 2000円以上の購入をしたことのある会員</span>
     subCB.Query().SetPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
@@ -273,7 +273,7 @@ cb.Query().ExistsPurchaseList(<span class="keyword">delegate</span>(PurchaseCB s
 			の補完機能でこの無名インナークラスのコールバック実装を支援してくれるため、一度覚えるとスムーズに実装できるからです。
 			逆に VisualStudio だとこういった支援がなく、実装後は読みやすさはあるものの、実装は意外に手間です。
 		</p>
-<pre><span class="codetitle">ex) Eclipse-3.5 以上でコールバック実装のコード補完 @Java</span><code>
+<pre><span class="codetitle">e.g. Eclipse-3.5 以上でコールバック実装のコード補完 @Java</span><code>
 <span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
 cb.query().existsPurchaseList(<span class="point">new </span>)
 --

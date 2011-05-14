@@ -115,7 +115,7 @@
 	<p>
 		以下、実際のExampleプロジェクトでの設定例です。
 	</p>
-<pre><span class="codetitle">ex) dbflute-postgresql-exampleの場合 {host=localhost,port=5432,dbname=exampledb} @databaseInfoMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. dbflute-postgresql-exampleの場合 {host=localhost,port=5432,dbname=exampledb} @databaseInfoMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     ; driver   = org.postgresql.Driver
     ; url      = jdbc:postgresql://localhost:5432/exampledb
@@ -176,7 +176,7 @@
 		<em class="keyword">limit</em>、<em class="keyword">offset</em> を利用します。
 	</p>
 	<h3 id="cbpaging">ConditionBeanのPaging</h3>
-<pre><span class="codetitle">ex) ConditionBeanでページング検索 {81-100} @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. ConditionBeanでページング検索 {81-100} @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc  
  <span class="keyword">order by</span> dfloc.MEMBER_NAME <span class="keyword">asc</span> 
@@ -184,7 +184,7 @@
 </code></pre>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
 	<h3 id="outsidesqlpaging">OutsideSqlのManualPaging</h3>
-<pre><span class="codetitle">ex) OutsideSqlのManualPagingでページング検索 {81-100} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. OutsideSqlのManualPagingでページング検索 {81-100} @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
 <span class="comment">-- ELSE select count(*)</span>
@@ -210,7 +210,7 @@
 	<p>
 		ConditionBean の lockForUpdate() では、<em class="keyword">for update</em> を利用します。
 	</p>
-<pre><span class="codetitle">ex) ConditionBeanで更新ロックの取得 (cb.lockForUpdate()) @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. ConditionBeanで更新ロックの取得 (cb.lockForUpdate()) @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> <span class="abbreviation">...</span>
@@ -267,7 +267,7 @@
 	<p>
 		PostgreSQL独自の "for update nowait" を利用できます。
 	</p>
-<pre><span class="codetitle">ex) selectした行をロック @Java</span><code>
+<pre><span class="codetitle">e.g. selectした行をロック @Java</span><code>
 cb.<span class="point">lockForUpdateNoWait</span>();
 Member member = memberBhv.selectEntityWithDeletedCheck(cb);
 <span class="comment">// select ... from MEMBER ... for update nowait</span>
@@ -278,11 +278,11 @@ Member member = memberBhv.selectEntityWithDeletedCheck(cb);
 	</p>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wl.html#ludia">Ludia</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/ws.html#senna">Senna</a></div>
-<pre><span class="codetitle">ex) 会員名称を "foo" で全文検索 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員名称を "foo" で全文検索 @Java</span><code>
 cb.query().<span class="point">match</span>(MemberDbm.getInstance().columnMemberName(), "foo");
 <span class="comment">// where dfloc.MEMBER_NAME %% 'foo'</span>
 </code></pre>
-<pre><span class="codetitle">ex) 会員名称を "foo" で全文検索 @Java</span><code>
+<pre><span class="codetitle">e.g. 会員名称を "foo" で全文検索 @Java</span><code>
 List&lt;String&gt; columnList = new ArrayList&lt;String&gt;();
 columnList.add(MemberDbm.getInstance().columnMemberName());
 columnList.add(MemberDbm.getInstance().columnMemberAccount());
@@ -312,7 +312,7 @@ cb.query().<span class="point">match</span>(columnList, "foo");
 	<p>
 		PostgreSQL独自の大文字小文字を吸収する曖昧検索 "ilike" 構文を利用することができます。
 	</p>
-<pre><span class="codetitle">ex) 会員名称が大文字小文字区別なしで "s" で始まる会員を検索 (ilike構文) @Java</span><code>
+<pre><span class="codetitle">e.g. 会員名称が大文字小文字区別なしで "s" で始まる会員を検索 (ilike構文) @Java</span><code>
 cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span class="keyword"> new</span> LikeSearchOption() {
     @Override
     <span class="keyword">public</span> ExtensionOperand getExtensionOperand() {
@@ -371,27 +371,27 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 	<p class="codeintro">
 		以下の二つの例は、同じことを示します。
 	</p>
-<pre><span class="codetitle">ex) create文で serial 型を利用 @SQL</span><code>
+<pre><span class="codetitle">e.g. create文で serial 型を利用 @SQL</span><code>
 <span class="keyword">create table</span> tablename (
     colname <span class="dbtype">serial</span>
 ) ;
 </code></pre>
-<pre><span class="codetitle">ex) create文で serial 型と同じ設定 @SQL</span><code>
+<pre><span class="codetitle">e.g. create文で serial 型と同じ設定 @SQL</span><code>
 <span class="keyword">create sequence</span> tablename_colname_seq;
 <span class="keyword">create table</span> tablename (
     colname <span class="dbtype">integer</span> <span class="attribute">DEFAULT</span> nextval('tablename_colname_seq') <span class="attribute">NOT NULL</span>
 ) ;
 </code></pre>
 	<h3>シーケンスを作成</h3>
-<pre><span class="codetitle">ex) シーケンスを作成 {SEQ_MEMBER} @SQL</span><code>
+<pre><span class="codetitle">e.g. シーケンスを作成 {SEQ_MEMBER} @SQL</span><code>
 <span class="keyword">create sequence</span> SEQ_MEMBER <span class="keyword">start</span> 1 <span class="keyword">increment</span> 1;
 </code></pre>
 	<h3>シーケンスを取得</h3>
-<pre><span class="codetitle">ex) シーケンスを取得 {SEQ_MEMBER} @SQL</span><code>
+<pre><span class="codetitle">e.g. シーケンスを取得 {SEQ_MEMBER} @SQL</span><code>
 <span class="keyword">select</span> <span class="attribute">nextval</span> (<span class="literal">'SEQ_MEMBER'</span>)
 </code></pre>
 	<h3>ストアドファンクションを作成</h3>
-<pre><span class="codetitle">ex) パラメータなしのファンクションを作成 @SQL</span><code>
+<pre><span class="codetitle">e.g. パラメータなしのファンクションを作成 @SQL</span><code>
 <span class="keyword">create or replace function</span> SP_NO_PARAMETER()
 <span class="keyword">returns</span> <span class="dbtype">integer</span> <span class="keyword">as</span>
 <span class="attribute">$BODY$</span>
@@ -400,7 +400,7 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 <span class="keyword">end</span>;
 <span class="attribute">$BODY$</span> <span class="keyword">LANGUAGE</span> <span class="literal">'plpgsql'</span>;
 </code></pre>
-<pre><span class="codetitle">ex) パラメータありのファンクションを作成 @SQL</span><code>
+<pre><span class="codetitle">e.g. パラメータありのファンクションを作成 @SQL</span><code>
 <span class="keyword">create or replace function</span> SP_IN_OUT_PARAMETER(
   v_in_varchar <span class="attribute">in</span> <span class="dbtype">varchar</span>
   , v_out_varchar <span class="attribute">out</span> <span class="dbtype">varchar</span>
@@ -413,7 +413,7 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 <span class="keyword">end</span>;
 <span class="attribute">$BODY$</span> <span class="keyword">LANGUAGE</span> <span class="literal">'plpgsql'</span>;
 </code></pre>
-<pre><span class="codetitle">ex) ResultSetパラメータ(一つ)のファンクションを作成 @SQL</span><code>
+<pre><span class="codetitle">e.g. ResultSetパラメータ(一つ)のファンクションを作成 @SQL</span><code>
 <span class="keyword">create or replace function</span> SP_RESULT_SET_PARAMETER(cur <span class="attribute">out</span> <span class="dbtype">refcursor</span>)
 <span class="keyword">as</span>
 <span class="attribute">$BODY$</span>
@@ -422,7 +422,7 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 <span class="keyword">end</span>;
 <span class="attribute">$BODY$</span> <span class="keyword">LANGUAGE</span> <span class="literal">'plpgsql'</span>;
 </code></pre>
-<pre><span class="codetitle">ex) ResultSet戻り値のファンクションを作成 @SQL</span><code>
+<pre><span class="codetitle">e.g. ResultSet戻り値のファンクションを作成 @SQL</span><code>
 <span class="keyword">create or replace function</span> SP_RETURN_RESULT_SET()
 <span class="keyword">returns</span> <span class="dbtype">refcursor</span> <span class="keyword">as</span>
 <span class="attribute">$BODY$</span>

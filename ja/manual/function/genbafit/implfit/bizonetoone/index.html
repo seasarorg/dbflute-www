@@ -65,7 +65,7 @@
 		有効期間を指定することで、会員と住所が one-to-one になります。リレーションをSQLで表現すると以下のようになります。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/example/exampledb.html">ExampleDB</a></div>
-<pre><span class="codetitle">ex) 業務的one-to-oneの検索SQL {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<pre><span class="codetitle">e.g. 業務的one-to-oneの検索SQL {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 <span class="keyword">select</span> MEMBER.*
      , MEMBER_ADDRESS.* <span class="comment">-- ONE member has ONE address at the date</span>
   <span class="keyword">from</span> MEMBER
@@ -93,7 +93,7 @@
 		(プロパティで設定して再自動生成すると)以下のような実装ができるようになり、実行すると join
 		句には指定された固定条件が自動的に付与され、one-to-oneとして扱うことができるようになります。
 	</p>
-<pre><span class="codetitle">ex) 業務的one-to-oneを利用したConditionBeanの検索 {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<pre><span class="codetitle">e.g. 業務的one-to-oneを利用したConditionBeanの検索 {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 Date targetDate = <span class="abbreviation">...</span>;
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.<span class="point">setupSelect_MemberAddressAsValid</span>(targetDate);
@@ -109,7 +109,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		を指定することで、業務的one-to-oneのリレーションを定義することができます。
 	</p>
 	<div class="detailpage"><a href="../../../../reference/dfprop/additionalforeignkey/index.html#fixedcondition">additionalForeignKeyMap.dfprop - fixedCondition</a></div>
-<pre><span class="codetitle">ex) 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -131,7 +131,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		バインド変数コメントを利用したリレーションの場合は、ConditionBean
 		のリレーション関連のメソッドにおいて、メソッドの引数にて条件値を指定できるようになります(指定する必要があります)。
 	</p>
-<pre><span class="codetitle">ex) バインド変数コメントを利用 @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. バインド変数コメントを利用 @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     <span class="abbreviation">...</span>
     ; fixedCondition =
@@ -139,7 +139,7 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
  and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
 }
 </code></pre>
-<pre><span class="codetitle">ex) バインド変数を指定する SetupSelect {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<pre><span class="codetitle">e.g. バインド変数を指定する SetupSelect {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 Date targetDate = <span class="abbreviation">...</span>;
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberAddressAsValid(<span class="point">targetDate</span>);
@@ -149,7 +149,7 @@ cb.setupSelect_MemberAddressAsValid(<span class="point">targetDate</span>);
 		SetupSelect と Query を両方利用する場合は、必ず両方に同じ値を指定します。
 		もし、違う値を指定してしまった場合は、最後に設定された値が有効になります(内部的には上書きをしているだけ)。
 	</p>
-<pre><span class="codetitle">ex) バインド変数を指定する SetupSelect と Query {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<pre><span class="codetitle">e.g. バインド変数を指定する SetupSelect と Query {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 Date targetDate = <span class="abbreviation">...</span>;
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberAddressAsValid(<span class="point">targetDate</span>);
@@ -164,7 +164,7 @@ cb.query().queryMemberAddressAsValid(<span class="point">targetDate</span>).setA
 	<p>
 		但し、SpecifyColumnは、既に SetupSelect で条件値が指定されていることが前提となるため、条件値の指定は不要です(そもそも引数が存在しない)。
 	</p>
-<pre><span class="codetitle">ex) バインド変数を利用したリレーションの SpecifyColumn {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+<pre><span class="codetitle">e.g. バインド変数を利用したリレーションの SpecifyColumn {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 Date targetDate = <span class="abbreviation">...</span>;
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberAddressAsValid(targetDate);
@@ -226,7 +226,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		例えば、会員と会員住所情報の業務的one-to-oneの固定条件に、会員退会情報の退会日時を利用したい場合は、テーブル名は
 		$localTable、リレーション名は memberWithdrawalAsOne と指定します。
 	</p>
-<pre><span class="codetitle">ex) 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -242,7 +242,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		と指定します。SQLでは、参照先テーブルがインラインビューになり、その中で結合をして該当カラムを利用できるようにします。ゆえに、解決される alias
 		名は、参照先テーブルと同じものになります。
 	</p>
-<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -251,7 +251,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
     ; fixedSuffix = AsValid
 }
 </code></pre>
-<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを利用する時のSQL @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを利用する時のSQL @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
     <span class="keyword">left outer join</span> (<span class="keyword">select</span> dffixedbase.*, <span class="point">dffixedjoin_0_0.DISPLAY_ORDER</span>
@@ -266,7 +266,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		そのときは over() の第二引数に該当のカラム名を指定することで、alias 名変数の後に続くカラムを任意の alias
 		名で指定できるようになります。インラインビューの中では select 句で as を使って alias 名が宣言されます。
 	</p>
-<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを alias 名で扱う @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを alias 名で扱う @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -275,7 +275,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
     ; fixedSuffix = AsValid
 }
 </code></pre>
-<pre><span class="codetitle">ex) 参照先テーブルの Foreign テーブルのカラムを alias 名で扱うときのSQL @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを alias 名で扱うときのSQL @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
     <span class="keyword">left outer join</span> (<span class="keyword">select</span> <span class="abbreviation">...</span>, <span class="abbreviation">...</span>DISPLAY_ORDER <span class="keyword">as</span> <span class="point">STATUS_ORDER</span>
@@ -297,7 +297,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		参照元テーブルを参照したテーブル自体(Referrer)のカラムを利用する場合は、リレーション名を省略します。
 		(省略記法は、この場合のみ利用可能です)
 	</p>
-<pre><span class="codetitle">ex) Referrer テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. Referrer テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
@@ -307,7 +307,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
     ; fixedSuffix = AsValid
 }
 </code></pre>
-<pre><span class="codetitle">ex) Referrer の Foreign テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. Referrer の Foreign テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
 ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID

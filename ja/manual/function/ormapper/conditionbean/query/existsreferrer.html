@@ -93,7 +93,7 @@
 		query() の後、<em class="keyword">exists[referrer-table]List()</em>
 		を呼び出し、SubQuery のコールバック実装を引数に指定します。
 	</p>
-<pre><span class="codetitle">ex) ExistsReferrerの実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+<pre><span class="codetitle">e.g. ExistsReferrerの実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
 --
@@ -134,7 +134,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	<p>
 		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
 	</p>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
@@ -148,7 +148,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		子テーブルの親テーブル(many-to-many)のカラムも条件として利用できます。ExistsReferrer の中で Query(Relation)
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 商品名が "S" で始まる商品を購入したことのある会員 @Java</span><code>
+<pre><span class="codetitle">e.g. 商品名が "S" で始まる商品を購入したことのある会員 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
@@ -161,7 +161,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		子テーブルの子テーブル(one-to-many-to-many)のカラムも条件として利用できます。ExistsReferrer の中でさらに ExistsReferrer
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員の会員ステータス @Java</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員の会員ステータス @Java</span><code>
 MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
 cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB subCB) {
@@ -178,7 +178,7 @@ cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberC
 		親テーブルの子テーブル(many-to-one-to-many)のカラムも条件として利用できます。Query(Relation) の後に ExistsReferrer
 		を使って実現します。
 	</p>
-<pre><span class="codetitle">ex) 2000円以上の購入をしたことのある会員の会員ログイン @Java</span><code>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員の会員ログイン @Java</span><code>
 MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
 cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
@@ -192,7 +192,7 @@ cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span cla
 		は有効です。会員と購入の関係で言えば、"(一度でも何かしら)購入したことのある会員(一覧)"
 		という業務的な条件を意味します。
 	</p>
-<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
@@ -200,7 +200,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
     }
 });
 </code></pre>
-<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
  <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
@@ -212,7 +212,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		もし、サブクエリ内の条件値が存在しないときに ExistsReferrer
 		自体を無効にしたいというのであれば、if 文で分岐させます。
 	</p>
-<pre><span class="codetitle">ex) 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
+<pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 <span class="keyword">final</span> Integer price = <span class="abbreviation">...</span>; 
 <span class="keyword">if</span> (price != <span class="keyword">null</span>) {

@@ -136,7 +136,7 @@
 	<p>
 		"/**/" 形式のコメントの中で、"pmb.[property-name]" という形式で記述します。
 	</p>
-<pre><span class="codetitle">ex) バインド変数コメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. バインド変数コメントの利用 @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S'</span>
   <span class="keyword">and</span> BIRTHDATE <span class="keyword">&lt;=</span> <span class="comment">/*pmb.birthdate*/</span><span class="literal">'2010-06-06'</span>
@@ -153,7 +153,7 @@
 		で囲います。日付の場合に、日付リテラルを利用することができます(サポートしているDBMSにおいてのみ)。
 		文字列の日付フォーマットが解析されないDBMSの場合に(2Way-SQLを実現するために)有効です。
 	</p>
-<pre><span class="codetitle">ex) バインド変数コメントのテスト値で日付リテラル @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. バインド変数コメントのテスト値で日付リテラル @OutsideSql</span><code>
   <span class="keyword">and</span> BIRTHDATE = <span class="comment">/*pmb.birthdate*/</span><span class="literal">date '2010-06-06'</span>
 </code></pre>
 	<p>
@@ -201,7 +201,7 @@
 	</p>
 	<div class="relatedpage"><a href="#bindnestdproperty">this - ネストしたプロパティの扱い</a></div>
 	<div class="relatedpage"><a href="#forcomment">this - FORコメント</a></div>
-<pre><span class="codetitle">ex) ネストしたプロパティで、LikeSearch条件のオプション利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. ネストしたプロパティで、LikeSearch条件のオプション利用 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!$$Domain$$.Member member:likeContain!!</span>
 <span class="abbreviation">...</span>
@@ -242,7 +242,7 @@
 		"/**/" 形式のコメントの中で、"$pmb.[property-name]"
 		という形式で記述します。パラメータの中の文字列がそのままSQL上に展開されます。
 	</p>
-<pre><span class="codetitle">ex) 埋め込み変数コメントの利用 {memberId=123} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. 埋め込み変数コメントの利用 {memberId=123} @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_ID = <span class="comment">/*$pmb.memberId*/</span><span class="literal">3</span>
   <span class="comment">-- and MEMBER_ID = 123</span>
 </code></pre>
@@ -250,11 +250,11 @@
 	<p>
 		テスト値がクォートされている場合は、展開された値がクォートされます。<span class="freecomment">@since 0.9.7.1</span>
 	</p>
-<pre><span class="codetitle">ex) 埋め込み変数コメントでクォートされる場合 {memberName=bar} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. 埋め込み変数コメントでクォートされる場合 {memberName=bar} @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_NAME = <span class="comment">/*$pmb.memberName*/</span><span class="literal">'foo'</span>
   <span class="comment">-- and MEMBER_NAME = 'bar'</span>
 </code></pre>
-<pre><span class="codetitle">ex) 埋め込み変数コメントでクォートされる場合 (InScope) {statusList=bar,baz} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. 埋め込み変数コメントでクォートされる場合 (InScope) {statusList=bar,baz} @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_STATUS_CODE in <span class="comment">/*$pmb.statusList*/</span>(<span class="literal">'foo'</span>)
   <span class="comment">-- and MEMBER_STATUS_CODE in ('bar', 'baz')</span>
 </code></pre>
@@ -295,7 +295,7 @@
 		"/**/" 形式のコメントの中で、"IF [condition-expression]" という形式で記述し、ENDコメントでスコープを定義します。
 	</p>
 	<div class="relatedpage"><a href="#endcomment">this - ENDコメント</a></div>
-<pre><span class="codetitle">ex) IFコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. IFコメントの利用 @OutsideSql</span><code>
  <span class="keyword">where</span>
    <span class="comment">/*IF pmb.memberId != null*/</span>
    MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
@@ -312,18 +312,18 @@
 		条件表現として、以下のポイントがあります。
 	</p>
 	<ul>
-		<li>文字列リテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberName &gt; 'Pixy'*/</span></li>
-		<li>数値リテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberId &gt;= 6*/</span></li>
-		<li>日付リテラルが利用できる <span class="freecomment">ex) /*IF pmb.birthdate &gt; date '2000/03/28'*/</span></li>
-		<li>nullリテラルが利用できる <span class="freecomment">ex) /*IF pmb.memberName != null*/</span></li>
-		<li>等値条件で判定できる <span class="freecomment">ex) /*IF pmb.memberName == 'Pixy'*/</span></li>
-		<li>非等値条件で判定できる <span class="freecomment">ex) /*IF pmb.memberId != 3*/</span></li>
-		<li>大なり小なり条件で判定できる <span class="freecomment">ex) /*IF pmb.memberId &lt; 3*/</span></li>
-		<li>boolean型を利用できる <span class="freecomment">ex) /*IF pmb.memberFlg*/</span></li>
-		<li>(引数なしの)メソッド呼び出しができる <span class="freecomment">ex) /*IF pmb.isPaging()*/</span></li>
-		<li>boolean型で否定判定できる <span class="freecomment">ex) /*IF !pmb.memberFlg*/</span></li>
-		<li>AND条件で条件連結できる <span class="freecomment">ex) /*IF pmb.isPaging() && pmb.memberId != null*/</span></li>
-		<li>OR条件で条件連結できる <span class="freecomment">ex) /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
+		<li>文字列リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberName &gt; 'Pixy'*/</span></li>
+		<li>数値リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberId &gt;= 6*/</span></li>
+		<li>日付リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.birthdate &gt; date '2000/03/28'*/</span></li>
+		<li>nullリテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberName != null*/</span></li>
+		<li>等値条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberName == 'Pixy'*/</span></li>
+		<li>非等値条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberId != 3*/</span></li>
+		<li>大なり小なり条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberId &lt; 3*/</span></li>
+		<li>boolean型を利用できる <span class="freecomment">e.g. /*IF pmb.memberFlg*/</span></li>
+		<li>(引数なしの)メソッド呼び出しができる <span class="freecomment">e.g. /*IF pmb.isPaging()*/</span></li>
+		<li>boolean型で否定判定できる <span class="freecomment">e.g. /*IF !pmb.memberFlg*/</span></li>
+		<li>AND条件で条件連結できる <span class="freecomment">e.g. /*IF pmb.isPaging() && pmb.memberId != null*/</span></li>
+		<li>OR条件で条件連結できる <span class="freecomment">e.g. /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
 		<li>AND条件とOR条件の(一つのIFコメント内での)併用はできない</li>
 	</ul>
 	<h3 id="alternatebool">複雑な条件はメソッド化</h3>
@@ -335,12 +335,12 @@
 		このようにすることで、プログラム言語の文法を利用して柔軟に条件を実装でき、また、条件の妥当性を単体テストなどでチェックしやすくなります。
 		そういったポリシーから、IFコメントではそもそも複雑な条件を書けないように制限している、という面もあります(AND条件とOR条件の併用禁止など)。
 	</p>
-<pre><span class="codetitle">ex) ParameterBeanのExクラスにて複雑な条件のメソッド @Java</span><code>
+<pre><span class="codetitle">e.g. ParameterBeanのExクラスにて複雑な条件のメソッド @Java</span><code>
 <span class="keyword">public boolean</span> existsPurchase() {
     <span class="keyword">return</span> (_purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>) && <span class="abbreviation">...</span>;
 }
 </code></pre>
-<pre><span class="codetitle">ex) ParameterBeanのExクラスのメソッドをIFコメントで利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. ParameterBeanのExクラスのメソッドをIFコメントで利用 @OutsideSql</span><code>
  <span class="comment">/*IF pmb.existsPurchase()*/</span>
  <span class="keyword">and exists</span> (<span class="keyword">select</span> PURCHASE_ID
              <span class="keyword">from</span> PURCHASE
@@ -372,7 +372,7 @@
 	<p>
 		IFコメントのスコープ内において、"--" 形式のコメントの中で、"ELSE [SQL-expression]" という形式で記述します。
 	</p>
-<pre><span class="codetitle">ex) ELSEコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. ELSEコメントの利用 @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
 <span class="keyword">select</span> member.MEMBER_ID
      , member.MEMBER_NAME
@@ -389,7 +389,7 @@
 	<p>
 		IFコメントとELSEコメントの間には、行コメント("--")を含めることができません。
 	</p>
-<pre><span class="codetitle">ex) ELSEコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. ELSEコメントの利用 @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
 <span class="keyword">select</span> member.MEMBER_ID
      , member.MEMBER_NAME <span class="point">-- NG comment</span> 
@@ -417,7 +417,7 @@
 		句をまるごと囲って利用するのが最も想定される使い方です。
 	</p>
 	<div class="relatedpage"><a href="#endcomment">this - ENDコメント</a></div>
-<pre><span class="codetitle">ex) BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
 <span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
@@ -433,7 +433,7 @@
  <span class="comment">/*END*/</span>
  <span class="keyword">order by</span> MEMBER_ID
 </code></pre>
-<pre><span class="codetitle">ex) 実行して囲った中の判定対象のコメントが全て無効だった場合 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 実行して囲った中の判定対象のコメントが全て無効だった場合 @DisplaySql</span><code>
 <span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
  <span class="keyword">order by</span> MEMBER_ID
 </code></pre>
@@ -450,7 +450,7 @@
 		<li>FIRSTコメント <span class="freecomment">@since 0.9.7.0</span></li>
 		<li>ネストしたBEGINコメント(後述) <span class="freecomment">@since 0.9.7.0</span></li>
 	</ul>
-<pre><span class="codetitle">ex) BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
 <span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
@@ -466,7 +466,7 @@
  <span class="comment">/*END*/</span>
  <span class="keyword">order by</span> MEMBER_ID
 </code></pre>
-<pre><span class="codetitle">ex) 実行して二番目のmemberNameだけが有効な場合 (and が消える) @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 実行して二番目のmemberNameだけが有効な場合 (and が消える) @DisplaySql</span><code>
 <span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
  <span class="keyword">where</span>
    MEMBER_NAME <span class="keyword">like</span> <span class="literal">'M%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
@@ -486,7 +486,7 @@
 		(memberId が null の場合、ネストしたBEGIN直後の and が削除されます)
 		<span class="freecomment">@since 0.9.7.0</span>
 	</p>
-<pre><span class="codetitle">ex) サブクエリの条件でネストしたBEGINコメントを利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. サブクエリの条件でネストしたBEGINコメントを利用 @OutsideSql</span><code>
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
    <span class="comment">/*IF pmb.memberId != null*/</span>
@@ -512,7 +512,7 @@
 		の場合は、(ネストされたスコープも含めて)上位スコープから丸ごと削除されます。例えば、サブクエリの where
 		句において、ネストしたBEGINコメントを利用する場合は、以下のようにサブクエリ自体を丸ごと分岐させるIFコメントを活用すると良いでしょう。
 	</p>
-<pre><span class="codetitle">ex) サブクエリの条件を分岐 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. サブクエリの条件を分岐 @OutsideSql</span><code>
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
    <span class="comment">/*IF pmb.memberId != null*/</span>
@@ -554,12 +554,12 @@
 	<p>
 		"/**/" 形式のコメントの中で、"FOR [list-expression]" という形式で記述し、ENDコメントでスコープを定義します。
 	</p>
-<pre><span class="codetitle">ex) FORコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. FORコメントの利用 @OutsideSql</span><code>
 <span class="comment">/*FOR pmb.memberNameList*/</span>
 <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
 <span class="comment">/*END*/</span>
 </code></pre>
-<pre><span class="codetitle">ex) FORコメントで展開された条件 {listSize=3} @ExecutedSql</span><code>
+<pre><span class="codetitle">e.g. FORコメントで展開された条件 {listSize=3} @ExecutedSql</span><code>
 <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
 <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
 <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
@@ -579,7 +579,7 @@
 		と記述すると、そのバインド変数コメントは、現在要素の値を利用します。"/*#current.memberName*/"
 		と続けてプロパティを辿ることもできます。また、IFコメントや(ネストした)FORコメント、埋め込み変数コメントでも同様に利用できます。
 	</p>
-<pre><span class="codetitle">ex) FORコメントの利用 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. FORコメントの利用 @OutsideSql</span><code>
 <span class="comment">/*FOR pmb.memberNameList*/</span>
 <span class="keyword">and</span> member.MEMBER_NAME = <span class="comment">/*#current*/</span><span class="literal">'foo%'</span>
 <span class="comment">/*END*/</span>
@@ -597,7 +597,7 @@
 		<dt>LASTコメント</dt>
 		<dd>最後のループで有効になる</dd>
 	</dl>
-<pre><span class="codetitle">ex) where句の最初の条件としてFORコメントを利用 (NEXTコメント) @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. where句の最初の条件としてFORコメントを利用 (NEXTコメント) @OutsideSql</span><code>
 <span class="comment">/*BEGIN*/</span>
 <span class="keyword">where</span>
   <span class="comment">/*FOR pmb.memberNameList*/</span>
@@ -608,13 +608,13 @@
   <span class="comment">/*END*/</span>
 <span class="comment">/*END*/</span>
 </code></pre>
-<pre><span class="codetitle">ex) FORコメントを利用して展開された表示用SQL(where句の最初の条件) @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. FORコメントを利用して展開された表示用SQL(where句の最初の条件) @DisplaySql</span><code>
 <span class="keyword">where</span>
   member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'foo%'</span>
   <span class="keyword">and</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'bar%'</span>
   <span class="keyword">and</span> member.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'baz%'</span>
 </code></pre>
-<pre><span class="codetitle">ex) where句の二番目以降の条件としてFORコメントを利用(FIRST, NEXT, LASTコメント) @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. where句の二番目以降の条件としてFORコメントを利用(FIRST, NEXT, LASTコメント) @OutsideSql</span><code>
 <span class="comment">/*BEGIN*/</span>
 <span class="keyword">where</span>
   <span class="comment">/*IF pmb.memberId != null*/</span>
@@ -625,7 +625,7 @@
   <span class="comment">/*LAST*/</span>)<span class="comment">/*END*//*END*/</span>
 <span class="comment">/*END*/</span>
 </code></pre>
-<pre><span class="codetitle">ex) FORコメントを利用して展開された表示用SQL(where句の二番目以降の条件) @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. FORコメントを利用して展開された表示用SQL(where句の二番目以降の条件) @DisplaySql</span><code>
 <span class="keyword">where</span>
   member.MEMBER_ID = <span class="literal">3</span>
   <span class="keyword">and</span> (
@@ -640,7 +640,7 @@
 		囲われた文字は、Sql2Entityタスクなどで実行される 2Way-SQL
 		としてのSQLの一部として評価されます。
 	</p>
-<pre><span class="codetitle">ex) "and (" が最初のループのときにだけ有効になる @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. "and (" が最初のループのときにだけ有効になる @OutsideSql</span><code>
 <span class="comment">/*FIRST*/</span>and (<span class="comment">/*END FIRST*/</span>
 </code></pre>
 	<h4>コメント上で定義した値を展開</h4>
@@ -648,7 +648,7 @@
 		ENDコメントを省略して、コメントを定義した場所に、コメント上で定義した値を展開することができます。"[comment-name] '[value]'"
 		という形式で記述します。(この場合、ENDコメントを定義してはいけません)
 	</p>
-<pre><span class="codetitle">ex) "or " が二回目以降のループのときにコメントと置き換わる @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. "or " が二回目以降のループのときにコメントと置き換わる @OutsideSql</span><code>
 <span class="comment">/*NEXT 'or '*/</span>
 </code></pre>
 	<h3 id="sameadjustment">BEGINコメント内ではIFコメントと同じ扱い</h3>
@@ -660,7 +660,7 @@
 		条件で連結するだけのような場合は、ループ変数コメントを利用しなくても解決が可能です。
 	</p>
 	<div class="relatedpage"><a href="#begincomment">Beginコメント</a></div>
-<pre><span class="codetitle">ex) ループ変数コメントを利用しなくてもいいような場合 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. ループ変数コメントを利用しなくてもいいような場合 @OutsideSql</span><code>
 <span class="comment">/*BEGIN*/</span>
 <span class="keyword">where</span>
   <span class="comment">/*IF pmb.memberId != null*/</span>
@@ -671,7 +671,7 @@
   <span class="comment">/*END*/</span>
 <span class="comment">/*END*/</span>
 </code></pre>
-<pre><span class="codetitle">ex) where句の先頭の条件になっても and が調整される @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. where句の先頭の条件になっても and が調整される @DisplaySql</span><code>
 <span class="keyword">where</span>
   member.MEMBER_NAME = <span class="abbreviation">...</span>
   <span class="keyword">and</span> member.MEMBER_NAME = <span class="abbreviation">...</span>
@@ -683,7 +683,7 @@
 		そのFORコメントの中で定義されているバインド変数コメントの中で、文字列型、かつ、カレント変数経由のもの全てに適用されます。
 	</p>
 	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#likesearch">ParameterBean - LikeSearch条件のオプション</a></div>
-<pre><span class="codetitle">ex) MEMBER_NAMEはLikeSearchOptionの処理対象となる @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. MEMBER_NAMEはLikeSearchOptionの処理対象となる @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!List&lt;String&gt; memberNameList:</span><span class="point">likeContain</span><span class="comment">!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
@@ -695,7 +695,7 @@
   <span class="comment">/*END*/</span>
 <span class="comment">/*END*/</span>
 </code></pre>
-<pre><span class="codetitle">ex) LikeSearchOptionが処理されたループ内の条件 @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. LikeSearchOptionが処理されたループ内の条件 @DisplaySql</span><code>
 <span class="keyword">where</span>
   member.MEMBER_NAME = <span class="literal">'%foo%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
   <span class="keyword">and</span> member.MEMBER_NAME = <span class="literal">'%bar%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
@@ -720,7 +720,7 @@
 		<dt>likeContain</dt><dd>部分一致</dd>
 		<dt>likeSuffix</dt><dd>後方一致</dd>
 	</dl>
-<pre><span class="codetitle">ex) MEMBER_NAMEは部分一致、MEMBER_ACCOUNTは単なる等値 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. MEMBER_NAMEは部分一致、MEMBER_ACCOUNTは単なる等値 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!List&lt;$$Domain$$.Member&gt; memberList:</span><span class="point">likeContain</span><span class="comment">!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
@@ -755,7 +755,7 @@
 		また、上位のFORコメントのカレント変数は、ネストしたFORコメント内では利用できません。
 		ネストしたFORコメント内でのカレント変数は、ネストしたFORコメントのためのカレント変数となります。
 	</p>
-<pre><span class="codetitle">ex) purchaseListの中のカレント変数は、purchaseListのカレント @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. purchaseListの中のカレント変数は、purchaseListのカレント @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!List&lt;$$Domain$$.Member&gt; memberList:likeContain!!</span>
 <span class="abbreviation">...</span>
@@ -769,7 +769,7 @@
 		どうしても上位のカレント変数をネストしたFORコメント内で利用したい場合は、ネストしたFORコメントのカレント変数のオブジェクトに、
 		上位のカレント変数への参照を保持させることで実現できます。(オブジェクトの構造で解決します)
 	</p>
-<pre><span class="codetitle">ex) purchaseListの中のカレント変数から、memberListのカレントを参照 @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. purchaseListの中のカレント変数から、memberListのカレントを参照 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!List&lt;$$Domain$$.Member&gt; memberList:likeContain!!</span>
 <span class="abbreviation">...</span>
