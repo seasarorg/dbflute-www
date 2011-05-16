@@ -107,15 +107,15 @@ mvn archetype:create \
 	</p>
 	<h4 id="basic">基本的な設定</h4>
 	<p>
-		基本的な設定を行うことで、<em class="keyword">既に作成されているDBFluteクライアントに適用</em>
-		できます。環境構築のゴールは利用できませんが、DBFluteタスクのゴールが実行できるようになります。
+		基本的な設定を行うことで、DBFluteタスクのゴールが実行できるようになります。
+		環境構築のゴールは利用できませんが、<em class="keyword">既に作成されているDBFluteクライアントでも適用</em>
+		できます。EMechaと併用する場合に有効です。
 	</p>
 	<dl class="keymainlist">
 		<dt>dbfluteVersion</dt><dd>利用しているDBFluteのバージョン</dd>
-		<dt>dbPackage</dt><dd>basicInfoMap.dfprop の packageBase に対応</dd>
 		<dt>schemaName</dt><dd>DBFluteクライアントの名前(dbflute_xxxのxxx部分)</dd>
 	</dl>
-<pre><span class="codetitle">e.g. プラグイン情報の追加(実行のための基本的な設定) {0.9.6.7, exampledb} @pom.xml</span><code>
+<pre><span class="codetitle">e.g. プラグイン情報の追加(実行のための基本的な設定) {0.9.8.3, exampledb} @pom.xml</span><code>
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;project&gt;
 <span class="abbreviation">...</span>
@@ -127,9 +127,8 @@ mvn archetype:create \
         &lt;artifactId&gt;<span class="literal">maven-dbflute-plugin</span>&lt;/artifactId&gt;
         &lt;version&gt;<span class="literal">0.3.0</span>&lt;/version&gt;
         &lt;configuration&gt;
-          &lt;dbfluteVersion&gt;<span class="literal">0.9.6.7</span>&lt;/dbfluteVersion&gt;
-          &lt;dbPackage&gt;<span class="literal">com.example.dbflute.basic.dbflute</span>&lt;/dbPackage&gt;
-          &lt;schemaName&gt;<span class="literal">exampledb</span>&lt;/schemaName&gt;<span class="comment">&lt;!-- The project name of DBFlute client --&gt;</span>
+          &lt;dbfluteVersion&gt;<span class="literal">0.9.8.3</span>&lt;/dbfluteVersion&gt;
+          &lt;schemaName&gt;<span class="literal">exampledb</span>&lt;/schemaName&gt;
         &lt;/configuration&gt;
       &lt;/plugin&gt;
 <span class="abbreviation">...</span>
@@ -138,14 +137,58 @@ mvn archetype:create \
 <span class="abbreviation">...</span>
 &lt;/project&gt;
 </code></pre>
-	<h4 id="database">データベース接続設定</h4>
 	<p>
-		基本的な設定に加えて、データベースの接続情報を設定することで、<em class="keyword">DBFluteの環境構築をするゴールが利用</em> できます。
+		別途記述するDBFluteランタイムのバージョン指定と合わせると、pom.xml
+		の中でDBFluteのバージョンの記載が重複してしまいます。pom.xml の中で変数定義をして一元管理すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. DBFluteのバージョンを変数指定で一元管理 {0.9.8.3, exampledb} @pom.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+<span class="abbreviation">...</span>
+
+  &lt;properties&gt;
+    &lt;dbflute.version&gt;<span class="literal">0.9.8.3</span>&lt;/dbflute.version&gt;
+  &lt;/properties&gt;
+
+<span class="abbreviation">...</span>
+
+  &lt;build&gt;
+    &lt;plugins&gt;
+<span class="abbreviation">...</span>
+      &lt;plugin&gt;
+        &lt;groupId&gt;<span class="literal">org.seasar.dbflute</span>&lt;/groupId&gt;
+        &lt;artifactId&gt;<span class="literal">maven-dbflute-plugin</span>&lt;/artifactId&gt;
+        &lt;version&gt;<span class="literal">0.3.0</span>&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;dbfluteVersion&gt;<span class="point">${dbflute.version}</span>&lt;/dbfluteVersion&gt;
+          &lt;schemaName&gt;<span class="literal">exampledb</span>&lt;/schemaName&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+<span class="abbreviation">...</span>
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+<span class="abbreviation">...</span>
+&lt;/project&gt;
+
+<span class="abbreviation">...</span>
+
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+      &lt;artifactId&gt;dbflute-runtime&lt;/artifactId&gt;
+      &lt;version&gt;<span class="point">${dbflute.version}</span>&lt;/version&gt;
+    &lt;/dependency&gt;
+
+<span class="abbreviation">...</span>
+</code></pre>
+	<h4 id="envsetting">環境構築系ゴールの利用</h4>
+	<p>
+		基本的な設定に加えて、ベースパッケージやデータベースの接続情報を設定することで、<em class="keyword">DBFluteの環境構築をするゴールが利用</em> できます。
 	</p>
 <pre><span class="codetitle">e.g. Oracleを利用するように設定 {localhost, 1521, XE, exampledb} @pom.xml</span><code>
 <span class="abbreviation">...</span>
         &lt;configuration&gt;
           <span class="abbreviation">...</span>
+          &lt;dbPackage&gt;<span class="literal">com.example.dbflute.basic.dbflute</span>&lt;/dbPackage&gt;
           &lt;database&gt;<span class="literal">oracle</span>&lt;/database&gt;
           &lt;databaseDriver&gt;<span class="literal">oracle.jdbc.OracleDriver</span>&lt;/databaseDriver&gt;
           &lt;databaseUrl&gt;<span class="literal">jdbc:oracle:thin:@localhost:1521:XE</span>&lt;/databaseUrl&gt;
