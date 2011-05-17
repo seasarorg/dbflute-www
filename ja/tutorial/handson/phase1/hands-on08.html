@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>ハンズオン セクション 7 | DBFlute</title>
+	<title>ハンズオン セクション 8 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-tutorial">
@@ -37,18 +37,19 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 7</h1>
+	<h1>ハンズオン セクション 8</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#insert">データの登録</a>
+		<li><a href="#exclusivecontrol">排他制御</a></li>
+		<li><a href="#update">排他制御ありの更新</a>
 			<ul>
 				<li><a href="#makelogic">ロジックの作成</a></li>
 				<li><a href="#commoncolumn">共通カラムの設定</a></li>
-				<li><a href="#versionno">バージョンNOも設定不要</a></li>
 			</ul>
 		</li>
-		<li><a href="#morelogic">さらに登録してみましょう</a></li>
+		<li><a href="#updatenonstrict">排他制御なしの更新</a></li>
+		<li><a href="#delete">排他制御ありの更新</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -56,110 +57,117 @@
 	<p>
 		さて、ハンズオンの続きです。
 	</p>
-	<div class="relatedpage"><a href="./hands-on06.html">ハンズオン セクション 6</a></div>
+	<div class="relatedpage"><a href="./hands-on07.html">ハンズオン セクション 7</a></div>
 	<p>
-		"Behaviorで登録 (+ 自動採番、共通カラム)" を学んでいきましょう。
+		"Behaviorで更新、削除 (+ 排他制御、共通カラム)" を学んでいきましょう。
 	</p>
 
 	<h2 id="ready">事前準備</h2>
 	<p>
-		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.HandsOn07Logic
+		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.HandsOn08Logic
 		クラスを作成してください。この時点では空っぽで構いません。
 	</p>
 
-	<h2 id="insert">データの登録</h2>
+	<h2 id="exclusivecontrol">排他制御</h2>
 	<p>
-		今までひたすら検索をやってきましたが、ここでようやく登録です。
-		Behavior から Entity をもらうのではなく、Entity を渡してみましょう。
-		<span class="freecomment">(講師による説明あり)</span>
+		実装する前に、更新処理でついてまわる "排他制御" という概念を理解しましょう。
+		<span class="freecomment">(講師による講習あり)</span>
 	</p>
-	<div class="detailpage"><a href="../../../manual/function/ormapper/behavior/update/insert.html">Behavior - insert()</a></div>
+	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御</a></div>
+
+	<h2 id="update">排他制御ありの更新</h2>
+	<p>
+		それでは、まずは排他制御ありの更新です。<span class="freecomment">(講師による説明あり)</span>
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/ormapper/behavior/update/update.html">Behavior - update()</a></div>
 	<h3 id="makelogic">ロジックの作成</h3>
 	<p>
-		そして、以下のロジックを作成してテストしてみてください。
+		では、エクササイズです。以下のロジックを作成してテストしてみてください。
 	</p>
 	<dl class="textlist">
 		<dt>ロジックのメソッド</dt>
-		<dd>Member insertMyselfMember()</dd>
+		<dd>void updateMemberChangedToFormalized(Integer memberId, Integer versionNo)</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>自分自身の会員を登録</li>
+				<li>指定された会員を正式会員に更新する</li>
+				<li>排他制御ありで更新する</li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_insertMyselfMember_会員が登録されていること()</dd>
+		<dd>test_updateMemberChangedToFormalized_会員が更新されていること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>登録後の Entity から主キーの値を使って検索すること</li>
-				<li>とりあえず、会員名称と生年月日だけアサート</li>
+				<li>任意の仮会員の会員IDとバージョンNOを渡して更新すること</li>
+				<li>更新処理後、DB上のデータが更新されていることをアサート</li>
+			</ul>
+		</dd>
+		<dd>test_updateMemberChangedToFormalized_排他制御例外が発生すること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>何かしらの方法で排他制御例外を発生させてみること</li>
+				<li>排他制御例外の内容をログに出力して確認すること</li>
 			</ul>
 		</dd>
 	</dl>
-	<div class="relatedpage"><a href="../../../manual/function/genbafit/implfit/autoincrement/index.html">現場フィット - 自動採番</a></div>
 	<h3 id="commoncolumn">共通カラムの設定</h3>
 	<p>
-		先ほどのロジックで、登録日時や更新日時はどうしたでしょうか？
-		個別個別に設定しないと登録できなかったかと思います。
-	</p>
-	<p>
-		ですが DBFlute には、データ登録・更新時に発生する共通カラムへの定型的な設定処理、これを自動で行う機能があります。
-		<span class="freecomment">(講師による説明あり)</span>
-	</p>
-	<div class="relatedpage"><a href="../../../manual/function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
-	<p>
-		commonColumnMap.dfprop に、以下の内容を設定して再自動生成(DocとGenerate)してください。
-	</p>
-<pre><span class="codetitle">ex) DBFluteプロパティでの共通カラムの設定 @commonColumnMap.dfprop</span><code>
-<span class="abbreviation">...</span>
-    ; commonColumnMap = <span class="keyword">map:</span>{
-        ; REGISTER_DATETIME=TIMESTAMP ; REGISTER_USER=VARCHAR ; REGISTER_PROCESS=VARCHAR
-        ; UPDATE_DATETIME=TIMESTAMP   ; UPDATE_USER=VARCHAR   ; UPDATE_PROCESS=VARCHAR
-    }
-    ; beforeInsertMap = <span class="keyword">map:</span>{
-        ; REGISTER_DATETIME = <span class="attribute">$$AccessContext$$</span>.getAccessTimestampOnThread()
-        ; REGISTER_USER     = <span class="attribute">$$AccessContext$$</span>.getAccessUserOnThread()
-        ; REGISTER_PROCESS  = <span class="attribute">$$AccessContext$$</span>.getAccessProcessOnThread()
-        ; UPDATE_DATETIME   = entity.getRegisterDatetime()
-        ; UPDATE_USER       = entity.getRegisterUser()
-        ; UPDATE_PROCESS    = entity.getRegisterProcess()
-    }
-    ; beforeUpdateMap = <span class="keyword">map:</span>{
-        ; UPDATE_DATETIME   = <span class="attribute">$$AccessContext$$</span>.getAccessTimestampOnThread()
-        ; UPDATE_USER       = <span class="attribute">$$AccessContext$$</span>.getAccessUserOnThread()
-        ; UPDATE_PROCESS    = <span class="attribute">$$AccessContext$$</span>.getAccessProcessOnThread()
-    }
-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		SchemaHTMLを確認し、先ほどのロジックから共通カラムの設定をコメントアウトして再実行してみてください。
-		ログで共通カラムの登録された値を確認してみてください。
-	</p>
-	<h3 id="versionno">バージョンNOも設定不要</h3>
-	<p>
-		バージョンNOに関しては次のセッションで詳しく説明がありますが、
-		とりあえず登録時にバージョンNOは明示的に設定する必要はないということだけ覚えておいてください。
+		既に共通カラムの設定は前回のセクションで完了しています。なので、更新日時や更新ユーザは明示的に設定する必要はありません。
 	</p>
 
-	<h2 id="morelogic">さらに登録してみましょう</h2>
+	<h2 id="updatenonstrict">排他制御なしの更新</h2>
 	<p>
-		では、さらに登録してみましょう。
+		それでは排他制御なしの更新のエクササイズです。
 	</p>
 	<dl class="textlist">
 		<dt>ロジックのメソッド</dt>
-		<dd>Member insertYourselfMember()</dd>
+		<dd>void updateMemberChangedToFormalizedNonstrict(Integer memberId)</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>誰かを正式会員として登録</li>
-				<li>必須の関連テーブルも登録</li>
+				<li>指定された会員を正式会員に更新する</li>
+				<li>排他制御なしで更新する</li>
 			</ul>
 		</dd>
-		<dt>テストメソッド</dt>
-		<dd>test_insertYourselfMember_会員が登録されていること()</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_updateMemberChangedToFormalizedNonstrict_会員が更新されていること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>代表的なカラムだけを利用して登録されていることをアサート</li>
-				<li>関連テーブルの登録もアサート</li>
-				<li>登録していない関連テーブルが登録されていないこともアサート</li>
+				<li>任意の仮会員の会員IDを渡して更新すること</li>
+				<li>更新処理後、DB上のデータが更新されていることをアサート</li>
+			</ul>
+		</dd>
+		<dd>test_updateMemberChangedToFormalizedNonstrict_排他制御例外が発生すること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>通常なら排他制御例外が起きるはずの状況でも排他制御例外が発生しないことをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="delete">排他制御ありの更新</h2>
+	<p>
+		それでは排他制御ありの削除のエクササイズです。
+	</p>
+	<dl class="textlist">
+		<dt>ロジックのメソッド</dt>
+		<dd>void deleteMemberSimply(Integer memberId)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された会員を削除する</li>
+				<li>排他制御ありで削除する</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_deleteMemberSimply_会員が削除されていること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>任意の仮会員の会員IDを渡して削除すること</li>
+				<li>削除処理後、DB上のデータが削除されていることをアサート</li>
+			</ul>
+		</dd>
+		<dd>test_deleteMemberSimply_排他制御例外が発生すること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>削除後に更新処理を行って排他制御例外を発生させてみること</li>
 			</ul>
 		</dd>
 	</dl>
@@ -168,7 +176,7 @@
 	<p>
 		さて、次のセクションへ
 	</p>
-	<div class="detailpage"><a href="./hands-on08.html">ハンズオン セクション 8</a></div>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on09.html"> -->ハンズオン セクション 9<!-- </a> --></span></div>
 
 </div>
 </div>
