@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>ハンズオン セクション 8 | DBFlute</title>
+	<title>ハンズオン セクション 9 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-tutorial">
@@ -37,18 +37,18 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 8</h1>
+	<h1>ハンズオン セクション 9</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#exclusivecontrol">排他制御</a></li>
-		<li><a href="#update">排他制御ありの更新</a>
+		<li><a href="#introduction">外だしSQLについて</a></li>
+		<li><a href="#outsidesql">外だしSQLの実装</a>
 			<ul>
-				<li><a href="#commoncolumn">共通カラムの設定</a></li>
+				<li><a href="#beta">ベタなやり方</a></li>
+				<li><a href="#functional">機能的なやり方</a></li>
 			</ul>
 		</li>
-		<li><a href="#updatenonstrict">排他制御なしの更新</a></li>
-		<li><a href="#delete">排他制御ありの削除</a></li>
+		<li><a href="#exercise">さらに外だし</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -56,119 +56,140 @@
 	<p>
 		さて、ハンズオンの続きです。
 	</p>
-	<div class="relatedpage"><a href="./hands-on07.html">ハンズオン セクション 7</a></div>
+	<div class="relatedpage"><a href="./hands-on08.html">ハンズオン セクション 8</a></div>
 	<p>
-		"Behaviorで更新、削除 (+ 排他制御、共通カラム)" を学んでいきましょう。
+		"はじめての外だしSQL" を学んでいきましょう。
 	</p>
 
 	<h2 id="ready">事前準備</h2>
 	<p>
-		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.HandsOn08Logic
+		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.HandsOn09Logic
 		クラスを作成してください。この時点では空っぽで構いません。
 	</p>
 
-	<h2 id="exclusivecontrol">排他制御</h2>
+	<h2 id="introduction">外だしSQLについて</h2>
 	<p>
-		実装する前に、更新処理でついてまわる "排他制御" という概念を理解しましょう。
+		DBFluteにおける外だしSQLのコンセプトをもう一度おさらいしましょう。
 		<span class="freecomment">(講師による講習あり)</span>
 	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/exclusivecontrol/index.html">現場フィット - 排他制御</a></div>
-
-	<h2 id="update">排他制御ありの更新</h2>
+	<div class="detailpage"><a href="../../../introduction/dbaccessif.html">バランス重視のDBアクセスI/F</a></div>
 	<p>
-		それでは、まずは排他制御ありの更新です。<span class="freecomment">(講師による説明あり)</span>
+		そして、外だしSQLの概要を学んでいきましょう。
+		<span class="freecomment">(講師による講習あり)</span>
 	</p>
-	<div class="detailpage"><a href="../../../manual/function/ormapper/behavior/update/update.html">Behavior - update()</a></div>
+	<div class="detailpage"><a href="../../../manual/function/ormapper/outsidesql/index.html">外だしSQL</a></div>
+
+	<h2 id="outsidesql">外だしSQLの実装</h2>
 	<p>
-		以下のロジックを講師と一緒に作成してみましょう。<span class="freecomment">(講師による実演)</span>
+		それでは、まずは外だしSQLの実装です。<span class="freecomment">(講師による講習あり)</span>
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/ormapper/outsidesql/howto.html">外だしSQLの使い方</a></div>
+	<h3 id="beta">ベタなやり方</h3>
+	<p>
+		以下のロジックを講師と一緒に作成してみましょう。まずは、ベタなやり方でやっていきます。
+		<span class="freecomment">(講師による実演)</span>
+	</p>
+	<p>
+		CustomizeEntity や ParameterBean は、Sql2Entity で自動生成します。
 	</p>
 	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>void updateMemberChangedToFormalized(Integer memberId, Integer versionNo)</dd>
+		<dt>外だしSQLのファイル</dt>
+		<dd>MemberBhv_selectBetaMember.sql</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>指定された会員を正式会員に更新する</li>
-				<li>排他制御ありで更新する</li>
+				<li>会員ID、会員名称、生年月日、会員ステータス名称を取得</li>
+				<li>会員IDの等値、会員名称の前方一致、会員ステータスの等値を and で連結</li>
+				<li>それぞれ条件値がない場合は条件自体が無効になるように</li>
+				<li>全ての条件値がない場合は全件検索になるように</li>
+			</ul>
+		</dd>
+		<dt>ロジックのメソッド</dt>
+		<dd>List&lt;BetaMember&gt; letsBeta(BetaMemberPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean で会員を検索する</li>
 				<li>引数の値で null は許されない</li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_updateMemberChangedToFormalized_会員が更新されていること()</dd>
+		<dd>test_letsBeta_会員が検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>任意の仮会員の会員IDとバージョンNOを渡して更新すること</li>
-				<li>更新処理後、DB上のデータが更新されていることをアサート</li>
+				<li>会員名称が "S" で始まる正式会員を更新すること</li>
+				<li>条件値を設定しなかった条件が除去されていることをログで確認</li>
+				<li>検索の集計結果が期待通りであることをアサート</li>
 			</ul>
 		</dd>
-		<dd>test_updateMemberChangedToFormalized_排他制御例外が発生すること()</dd>
+		<dd>test_letsBeta_条件値なしで全件検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>何かしらの方法で排他制御例外を発生させてみること</li>
-				<li>排他制御例外の内容をログに出力して確認すること</li>
+				<li>全ての引数を null にして実行</li>
+				<li>where句が存在しないことをログで確認</li>
+				<li>検索結果が全件であることをアサート</li>
 			</ul>
 		</dd>
 	</dl>
-	<h3 id="commoncolumn">共通カラムの設定</h3>
+	<h3 id="functional">機能的なやり方</h3>
 	<p>
-		既に共通カラムの設定は前回のセクションで完了しています。なので、更新日時や更新ユーザは明示的に設定する必要はありません。
-	</p>
-
-	<h2 id="updatenonstrict">排他制御なしの更新</h2>
-	<p>
-		それでは排他制御なしの更新のエクササイズです。
+		それでは、全く同じ内容の外だしSQLを、機能的なやり方で実装してみましょう。
+		<span class="freecomment">(講師による実演)</span>
 	</p>
 	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>void updateMemberChangedToFormalizedNonstrict(Integer memberId)</dd>
+		<dt>外だしSQLのファイル</dt>
+		<dd>MemberBhv_selectFunctionalMember.sql</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>指定された会員を正式会員に更新する</li>
-				<li>排他制御なしで更新する</li>
+				<li>EMechaを使ってSQLファイルを作成</li>
+				<li>プロパティの自動判別を利用</li>
+				<li>SQLの内容自体は先ほどのと全く同じ</li>
+			</ul>
+		</dd>
+		<dt>ロジックのメソッド</dt>
+		<dd>List&lt;FunctionalMember&gt; letsFunctional(FunctionalMemberPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>先ほどのロジックと同じ</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_letsFunctional_会員が検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>先ほどのテストと同じ</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="exercise">さらに外だし</h2>
+	<p>
+		それでは外だしSQLのエクササイズです。(せっかくなので機能的なやり方で)
+	</p>
+	<dl class="textlist">
+		<dt>外だしSQLのファイル</dt>
+		<dd>PurchaseBhv_selectPurchaseMonthSummary.sql</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>"会員と購入月" ごとの購入の平均購入価格、合計購入数量を検索する</li>
+				<li>支払済みの購入だけでも検索できるようにする</li>
+				<li>会員名称の曖昧検索ができるようにする</li>
+				<li>会員のサービスポイント数の大なり条件が指定できるようにする</li>
+				<li>会員IDの昇順、購入月の降順で並べる</li>
+			</ul>
+		</dd>
+		<dt>ロジックのメソッド</dt>
+		<dd>List&lt;PurchaseMonthSummary&gt; selectLetsSummary(PurchaseMonthSummaryPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean で検索して、検索結果を戻す</li>
 				<li>引数の値で null は許されない</li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_updateMemberChangedToFormalizedNonstrict_会員が更新されていること()</dd>
+		<dd>test_selectPurchaseSummary_集計が検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>任意の仮会員の会員IDを渡して更新すること</li>
-				<li>更新処理後、DB上のデータが更新されていることをアサート</li>
-			</ul>
-		</dd>
-		<dd>test_updateMemberChangedToFormalizedNonstrict_排他制御例外が発生すること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>通常なら排他制御例外が起きるはずの状況でも排他制御例外が発生しないことをアサート</li>
-			</ul>
-		</dd>
-	</dl>
-
-	<h2 id="delete">排他制御ありの削除</h2>
-	<p>
-		それでは排他制御ありの削除のエクササイズです。
-	</p>
-	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>void deleteMemberSimply(Integer memberId)</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>指定された会員を削除する</li>
-				<li>排他制御ありで削除する</li>
-				<li>引数の値は null も許される (null なら何もしない)</li>
-			</ul>
-		</dd>
-		<dt>対応テストメソッド</dt>
-		<dd>test_deleteMemberSimply_会員が削除されていること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>任意の仮会員の会員IDを渡して削除すること</li>
-				<li>削除処理後、DB上のデータが削除されていることをアサート</li>
-			</ul>
-		</dd>
-		<dd>test_deleteMemberSimply_排他制御例外が発生すること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>削除後に更新処理を行って排他制御例外を発生させてみること</li>
+				<li>会員名称に "vi" を含む会員を対象に検索</li>
+				<li>期待通りのSQLがログに出力されることを確認する</li>
 			</ul>
 		</dd>
 	</dl>
@@ -177,7 +198,7 @@
 	<p>
 		さて、次のセクションへ
 	</p>
-	<div class="detailpage"><a href="./hands-on09.html">ハンズオン セクション 9</a></div>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on10.html"> -->ハンズオン セクション 10<!-- </a> --></span></div>
 
 </div>
 </div>

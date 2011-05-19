@@ -366,12 +366,15 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 	</p>
 	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
 	<p>
-		プロパティ定義のプロパティ名の後ろに ":cls([classification-name])"
-		と追加することで、ParameterBeanにて区分値メソッドが利用できます。(cls オプションと呼びます)
+		テーブル区分値の場合は、対応するカラムを参照カラムのオプション ":ref([table-name].[column-name])"
+		にて指定すると、ParameterBeanにて区分値メソッドが利用できます。プロパティ名と対応するカラム名が FlexibleName
+		として一致する場合は、カラム名の指定は省略できます。このオプションは厳密には区分値用のものではありませんが、
+		対応するカラムが明確になることで自動的に区分値が解決されます。(ref オプションと呼びます)
 	</p>
+	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
 <pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:<span class="point">cls(MemberStatus)</span>!!</span>
+<span class="comment">-- !!String memberStatusCode:<span class="point">ref:(MEMBER)</span>!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
@@ -381,18 +384,15 @@ SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
 pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 </code></pre>
 	<p>
-		また、後述の "参照カラムのオプション" で関連付けたカラムが区分値カラムの場合、その区分値の設定を引き継ぐため、
-		明示的な区分値の関連付け(cls)を利用しなくても区分値を利用できます。
-		JavaDocコメントなどにカラムの情報も付与されるなどのメリットがあるため、対応するカラムがはっきりしている場合はこちらのやり方で良いでしょう。
-		<span class="freecomment">@since 0.9.7.1</span>
+		暗黙の区分値の場合は、プロパティ定義のプロパティ名の後ろに ":cls([classification-name])"
+		と追加することで、ParameterBeanにて区分値メソッドが利用できます。(cls オプションと呼びます)
 	</p>
-	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
-<pre><span class="codetitle">e.g. memberStatusCodeを会員の同名カラムに関連付け (区分値情報が引き継がれる) @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. paymentCompleteFlg を Flg に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
+<span class="comment">-- !!String paymentCompleteFlg:<span class="point">cls(Flg)</span>!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+  <span class="keyword">from</span> PURCHASE
+ <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteFlg*/</span><span class="literal">0</span>
 </code></pre>
 	<p>
 		リスト型に関しては、区分値を関連付けても区分値メソッドは生成されませんので、少なくとも cls オプションを付ける意味はありません。
