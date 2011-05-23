@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,タスク,Task,Generate,自動生成" />
+	<meta name="keywords" content="DBFlute,暗号化,復号化,SQL関数,Cipher,encrypt,decrypt,ハッシュ関数,SHA1,パスワード" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Generateタスク | DBFlute</title>
+	<title>暗号化・復号化処理の組み込み | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,141 +37,141 @@
 </div>
 
 <div id="content">
-	<h1>Generateタスク</h1>
+	<h1>暗号化・復号化処理の組み込み</h1>
 	<ul class="indexlist">
-		<li><a href="#about">Generateタスクとは？</a>
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">組み込みのやり方</a>
 			<ul>
-				<li><a href="#timing">主な実行タイミング</a></li>
+				<li><a href="#dbfluteconfig">DBFluteConfig</a></li>
+				<li><a href="#severalfilter">フィルタの複数登録</a></li>
 			</ul>
 		</li>
-		<li><a href="#command">実行コマンド</a></li>
-		<li><a href="#environment">環境構築</a></li>
-		<li><a href="#overview">処理概要</a>
+		<li><a href="#scope">組み込み対象</a>
 			<ul>
-				<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-				<li><a href="#deleteold">2. 古いクラスを削除</a></li>
-				<li><a href="#generate">3. クラスを自動生成</a></li>
-				<li><a href="#bqptobhv">4. BehaviorQueryPathをBehaviorに反映</a></li>
-				<li><a href="#refresh">5. Eclipseプロジェクトをリフレッシュ(オプション)</a></li>
+				<li><a href="#scopepolicy">ポリシー</a></li>
+				<li><a href="#scopefunction">対象となる機能</a></li>
+				<li><a href="#scopeoutcolumn">対象外のカラム</a></li>
 			</ul>
 		</li>
-		<li><a href="#unsupportedname">サポートされない名前</a></li>
-		<li><a href="#variousoption">様々なオプション</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
 
-	<h2 id="about">Generateタスクとは？</h2>
+	<h2 id="overview">概要</h2>
 	<p>
-		メタデータを元に、主に "Entity" などのテーブル対応のクラスを自動生成するDBFluteタスクです。
+		主にSQL関数を使った暗号化処理を、ConditionBean や Behavior などに組み込むことができます。
+		<span class="freecomment">@since 0.9.8.4</span>
 	</p>
-	<h3 id="timing">主な実行タイミング</h3>
+<pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER_SECURITY.LOGIN_PASSWORD} @Java</span><code>
+MemberSecurityCB cb = <span class="keyword">new</span> MemberSecurityCB();
+cb.query().setLoginPassword_Equal(<span class="literal">"cipher"</span>);
+</code></pre>
+<pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER_SECURITY.LOGIN_PASSWORD} @DisplaySql</span><code>
+ <span class="keyword">where</span> dfloc.LOGIN_PASSWORD = sha1('cipher')
+</code></pre>
+
+	<h2 id="howto">組み込みのやり方</h2>
+	<h3 id="dbfluteconfig">DBFluteConfig</h3>
+	<p>
+		DBFluteConfig で GearedCipherManager を登録します。暗号化カラムに対して CipherFunctionFilter
+		の実装クラスを関連付けます。
+	</p>
+	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html">allcommon - DBFluteConfig</a></div>
+<pre><span class="codetitle">e.g. 暗号化・復号化処理の組み込み {MEMBER.UPDATE_USER} @Java</span><code>
+<span class="comment">// 実際にキーをどのようにして扱うかは実業務では厳密に考慮する必要がある</span>
+<span class="comment">// ここではとりあえず Example ということで簡単でベタなやり方で表現している</span>
+<span class="keyword">final</span> String secretKey = <span class="abbreviation">...</span>
+
+GearedCipherManager manager = <span class="keyword">new</span> GearedCipherManager();
+ColumnInfo updateUser = MemberDbm.getInstance().columnUpdateUser();
+manager.addFunctionFilter(updateUser, <span class="keyword">new</span> CipherFunctionFilter() {
+    <span class="keyword">public</span> String encrypt(String valueExp) {
+        String exp = <span class="literal">"hex(aes_encrypt(%1$s, '%2$s'))"</span>;
+        <span class="keyword">return</span> String.format(exp, valueExp, secretKey);
+    }
+
+    <span class="keyword">public</span> String decrypt(String valueExp) {
+        String exp = <span class="literal">"convert(aes_decrypt(unhex(%1$s), '%2$s') using utf8)"</span>;
+        <span class="keyword">return</span> String.format(exp, valueExp, secretKey);
+    }
+});
+</code></pre>
+<pre><span class="codetitle">e.g. 不可逆の暗号化処理の組み込み {MEMBER_SECURITY.LOGIN_PASSWORD} @Java</span><code>
+GearedCipherManager manager = <span class="keyword">new</span> GearedCipherManager();
+ColumnInfo loginPassword = MemberSecurityDbm.getInstance().columnLoginPassword();
+manager.addFunctionFilter(loginPassword, <span class="keyword">new</span> CipherFunctionFilter() {
+    <span class="keyword">public</span> String encrypt(String valueExp) {
+        <span class="keyword">return</span> <span class="literal">"sha1("</span> + valueExp + <span class="literal">")"</span>;
+    }
+
+    <span class="keyword">public</span> String decrypt(String valueExp) {
+        <span class="keyword">return</span> valueExp; <span class="comment">// どのみち戻せないのでそのまま</span>
+    }
+});
+</code></pre>
+	<h3 id="severalfilter">フィルタの複数登録</h3>
+	<p>
+		同じカラムに対して複数のフィルタを追加した場合は、追加された順番にフィルタが実行されます。
+	</p>
+
+	<h2 id="scope">組み込み対象</h2>
+	<h3 id="scopepolicy">ポリシー</h3>
 	<ul>
-		<li>実装開始直前 (開発用DBスキーマの作成後)</li>
-		<li>DB変更の発生</li>
-		<li>DBFluteアップグレード直後</li>
-		<li>本番運用後のDB変更</li>
+		<li>アプリから値をDBに格納する場合は暗号化</li>
+		<li>DBからアプリで値を取得する場合は復号化</li>
+		<li>DBからDBに直接データを移行する場合は何もしない (暗号化されたデータを維持)</li>
+		<li>DB上の値とDB上の値を比較上権威する場合は何もしない (実質的にサポートされない)</li>
+		<li>外だしSQLやプロシージャは全くの対象外 (何もしないというより何もできない)</li>
 	</ul>
-
-	<h2 id="command">実行コマンド</h2>
+	<h3 id="scopefunction">対象となる機能</h3>
 	<p>
-		DBFluteクライアント配下の <em class="keyword">generate.(bat|sh)</em> をコマンドから実行します。
+		組み込んだ暗号化・復号化処理が動作する機能は以下の通りです。
 	</p>
-
-	<h2 id="environment">環境構築</h2>
-	<p>
-		DBFluteのセットアップが終わった時点から利用できます。
-		但し、スキーマのメタデータがないと無意味ですので、実行前にJDBCタスクが必ず(一度は)実行されていることが前提です。
-	</p>
-	<div class="relatedpage"><a href="../../../../../environment/setup/index.html">DBFluteのセットアップ</a></div>
-
-	<h2 id="overview">処理概要</h2>
-	<p>
-		Generateタスクを実行すると処理が始まります。
-	</p>
-	<ul class="flowlist">
-		<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-		<li><a href="#deleteold">2. 古いクラスを削除</a></li>
-		<li><a href="#generate">3. クラスを自動生成</a></li>
-		<li><a href="#bqptobhv">4. BehaviorQueryPathをBehaviorに反映</a></li>
-		<li><a href="#refresh">5. Eclipseプロジェクトをリフレッシュ(オプション)</a></li>
-	</ul>
-	<h3 id="schemaxml">1. SchemaXMLを参照</h3>
-	<p>
-		JDBCタスクで出力された SchemaXML (スキーマのメタ情報)を読み込みます。
-	</p>
-	<div class="relatedpage"><a href="../jdbc/index.html">JDBCタスク</a></div>
-	<h3 id="deleteold">2. 古いクラスを削除</h3>
-	<p>
-		存在していないテーブル対応の既存の<span class="existscloset">クラスは、(ファイルシステム上から)削除されます</span>。
-	</p>
-	<p>
-		但し、一度自動生成した後(そのとき古いクラスを生成して)、自動生成の出力先ディレクトリやパッケージ構造などの設定を変更して再自動生成した場合は、
-		以前の環境における古いクラスは削除されません。(DI設定ファイルの名前の変更なども同様です)
-	</p>
-	<h3 id="generate">3. クラスを自動生成</h3>
-	<p>
-		取得したメタデータからクラスを自動生成します。
-	</p>
-	<p>
-		クラスファイルは、<em class="keyword">自動生成するクラスの出力先ディレクトリ(basicInfoMap.dfpropのgenerateOutputDirectory)</em>
-		配下にパッケージ構造をそのままディレクトリ構造として出力します。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/basicinfo/index.html#generateoutputdirectory">dfprop - generateOutputDirectory</a></div>
-	<p>
-		パッケージ構造は、<em class="keyword">基底のパッケージ(basicInfoMap.dfpropのpackageBase)</em>
-		にそれぞれの<span class="existscloset">クラス固有のパッケージ構造</span>を付け足したものになります。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/basicinfo/index.html#packagebase">dfprop - packageBase</a></div>
-	<dl class="keymainlist">
-		<dt>allcommon</dt><dd>DBFluteランタイムと連携する共通クラス <span class="freecomment">(allcommon)</span></dd>
-		<dt>Entity</dt><dd>データを反映させるクラス <span class="freecomment">(bsentity|exentity)</span></dd>
-		<dt>DBMeta</dt><dd>メタデータを保持するクラス <span class="freecomment">(bsentity.dbmeta)</span></dd>
-		<dt>Behavior</dt><dd>DBアクセス処理を提供するクラス <span class="freecomment">(bsbhv|exbhv)</span></dd>
-		<dt>ConditionBean(など)</dt><dd>検索条件を組み立てるクラス <span class="freecomment">(cbean)</span></dd>
+	<dl class="textlist">
+		<dt>ConditionBeanによる検索</dt>
+		<dd>
+			カラムデータを取得するときに復号化、検索条件では暗号化。
+			ScalarSelectも含む。
+		</dd>
+		<dd>
+			DerivedReferrer は集計関数の処理の前に復号化されます。
+			よって、(Query)DerivedReferrer では復号化された状態で比較するためアプリから指定した条件値は暗号化されません。
+		</dd>
+		<dd>
+			一方で、ScalarCondition の集計関数の中では、暗号化も復号化もされません。
+			よって、暗号化された値のまま max() や avg() されるため、実質的に利用できません。
+			ColumnQuery も同様で、利用自体はできますが暗号化された状態のままでカラム同士を比較することになります。
+		</dd>
+		<dt>一件登録・更新</dt>
+		<dd>カラムデータを更新するときに暗号化</dd>
+		<dt>バッチ登録・更新</dt>
+		<dd>カラムデータを更新するときに暗号化</dd>
+		<dt>ConditionBeanによる更新・削除</dt>
+		<dd>カラムデータを更新するときに暗号化、検索条件では暗号化</dd>
+		<dt>ConditionBeanによる登録の固定値</dt>
+		<dd>queryInsert() における固定値の埋め込みにだけ暗号化 <span class="freecomment">(その他は暗号化も復号化もなし)</span></dd>
 	</dl>
-	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/index.html">allcommon</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/entity/index.html">Entity</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/entity/dbmeta/index.html">DBMeta</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/behavior/index.html">Behavior</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/conditionbean/index.html">ConditionBean</a></div>
-	<h4 id="disetting">DI設定ファイルも自動生成</h4>
 	<p>
-		クラスと同時にDI設定ファイルも自動生成されます。DI設定ファイルは、利用しているDIコンテナによって
-		<em class="keyword">XML ファイル</em> のものと <em class="keyword">クラス</em> のものと分かれます。
+		基本的には、暗号化対象のカラムはあまりそれ自体のデータを使って複雑な計算処理や比較条件などが行われないことが前提となっています。
+		例えば、ログインパスワードやクレジット番号などを想定しているため、それらのカラムに対して利用することが考えにくい
+		ScalarCondition は対象外となっていますし、その他にもドキュメントとして列挙されているもの以外でのグレーゾーンな領域で、
+		業務的に効果的でない仕様になっている可能性はあります。
 	</p>
-	<div class="detailpage"><a href="../../../../reference/diway/index.html">DIコンテナごとの取扱い</a></div>
+	<h3 id="scopeoutcolumn">対象外のカラム</h3>
 	<p>
-		XMLファイルの場合は、<em class="keyword">DBFluteが自動生成するリソース(basicInfoMap.dfpropのresourceOutputDirectory)</em>
-		配下に出力されます。
+		また、暗号化対象カラムが以下の場合は利用できません。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/basicinfo/index.html#resourceoutputdirectory">dfprop - resourceOutputDirectory</a></div>
-	<p>
-		クラスの場合は、共通クラス(allcommon)の一部として出力されます。
-	</p>
-	<h3 id="bqptobhv">4. BehaviorQueryPathをBehaviorに反映</h3>
-	<p>
-		<span class="existscloset" title="exists a closet option">BehaviorQueryPathをBehaviorに反映</span>します。
-		Sql2Entityタスクで定義したBehaviorQueryPathを削除しないためにGenerateタスクでも同じ処理を実行しています。
-	</p>
-	<div class="relatedpage"><a href="../sql2entity/index.html#bqptobhv">Sql2Entity - BehaviorQueryPathをBehaviorに反映</a></div>
-	<h3 id="refresh">5. Eclipseプロジェクトをリフレッシュ(オプション)</h3>
-	<p>
-		refreshDefinitionMap.dfprop にてリフレッシュ設定がされている場合に、
-		指定されているEclipseプロジェクトをリフレッシュ(更新)します。
-		これにより、ファイルシステム上は生成されていてもEclipse上には反映されていないという状態が発生しません。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/refreshdefinition/index.html">refreshDefinitionMap.dfprop</a></div>
+	<ul>
+		<li>PK</li>
+		<li>FK</li>
+		<li>排他制御カラム</li>
+	</ul>
 
-	<h2 id="unsupportedname">サポートされない名前</h2>
+	<h2 id="example">Exampleのススメ</h2>
 	<p>
-		特殊なテーブル名やカラム名はサポートされません。
+		dbflute-mysql-example では、実際に暗号化・復号化処理を組み込んでいます。
+		ぜひExampleを参考にしてみてください。
 	</p>
-	<div class="detailpage"><a href="../../../../../environment/supported.html#unsupportedname">サポートされない名前</a></div>
-
-	<h2 id="variousoption">様々なオプション</h2>
-	<p>
-		DBFluteプロパティを利用することで、様々なオプションが利用可能です。
-	</p>
-	<div class="detailpage"><a href="../../../../reference/dfprop/index.html">DBFluteプロパティ</a></div>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#database">DBFlute Example - データベース(DBMS)</a></div>
 
 </div>
 </div>

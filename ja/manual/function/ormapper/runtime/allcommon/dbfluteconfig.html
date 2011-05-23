@@ -42,7 +42,7 @@
 		<li><a href="#about">DBFluteConfigとは？</a>
 			<ul>
 				<li><a href="#beforeinit">初期化される前に設定すること</a></li>
-				<li><a href="#unitconfig">単体テストの環境でも設定すること</a></li>
+				<li><a href="#settingplain">どこで設定すればいいの？</a></li>
 				<li><a href="#settinglog">設定されたときのログ</a></li>
 			</ul>
 		</li>
@@ -62,6 +62,7 @@
 		<li><a href="#tablesqlnamefilter">tableSqlNameFilter</a></li>
 		<li><a href="#outsidesqlpackage">outsideSqlPackage</a></li>
 		<li><a href="#outsidesqlexecutorfactory">outsideSqlExecutorFactory</a></li>
+		<li><a href="#gearedciphermanager">gearedCipherManager</a></li>
 		<li><a href="#usesqllogregistry">useSqlLogRegistry</a></li>
 		<li><a href="#fulltextsearchoperand">fullTextSearchOperand</a></li>
 		<li><a href="#valuetype">ValueType</a>
@@ -103,17 +104,56 @@ config.<span class="point">lock()</span>;
 		どうしてもアプリ稼働途中で変更をしたいというような場面がある場合は、
 		ソースをしっかり読んで挙動を確認し、十分テストした上で利用することが求められます。
 	</p>
+	<h3 id="settingplain">どこで設定すればいいの？</h3>
 	<p>
-		どの環境でも必ず設定するコンフィグに関しては、DBFluteの初期化前に同期して必ず設定されるような仕組みにしておくと良いでしょう。
-		例えば、DBFluteInitializer に代わって、それを継承したクラスが初期化されるようにし、そのクラスでコンフィグの設定を行うなど。
-		(DIコテンナ次第でどのような仕組みで実現できるかは異なります)
+		環境依存の設定なのか、どの環境でも必ず設定したい固定的な設定なのかによって変わります。
 	</p>
-	<h3 id="unitconfig">単体テストの環境でも設定すること</h3>
 	<p>
-		単体テストの環境でも共通の設定がある場合は、テストケースの初期化時などに DBFluteConfig
-		の設定をすることを忘れないようにして下さい。
-		(DBFluteの初期化と同期して設定されるような仕組みになっている場合は意識する必要はありません)
+		例えば、WEBアプリ上では設定したいが、バッチでは設定したくない、テスト環境では設定したくない、もしくは、設定する値が変わる、
+		というような環境依存の設定であれば、それぞれの環境における初期化領域で設定をします。
+		必要に応じて、単体テストの環境でも設定します。
 	</p>
+	<p>
+		一方で、どの環境でも必ず設定したい固定的な設定の場合は、DBFluteの初期化と同期させると良いでしょう。littleAdjustmentMap.dfprop
+		の extendedDBFluteInitializerClass で DBFluteInitializer
+		を継承した独自のクラスを設定することができます<span class="freecomment">(@since 0.9.8.4)</span>。再自動生成後、その独自のクラスの中で固定的な
+		DBFluteConfig の設定が書いてあれば、どの環境であろうとDBFluteの初期化時に一緒に呼び出されることになります。
+		この方法を利用しなくても、DIコンテナによってはそれ自身の機能で差し替えができることがありますが要領は一緒です。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#extendeddbfluteinitializerclass">dfprop - extendedDBFluteInitializerClass</a></div>
+<pre><span class="codetitle">e.g. DBFluteInitializerを継承した独自クラスを作成 @Package</span><code>
+src/main/java
+ |-com.example<span class="abbreviation">...</span>
+    |-dbflute
+       |-allcommon
+       |-bsbhv
+       |-...
+       |-exentity
+       |-nogen <span class="comment">// means no-generate</span>
+          |-ExtendedDBFluteInitializer <span class="comment">// どこにどんな名前で作るかは任意</span>
+</code></pre>
+<pre><span class="codetitle">e.g. DBFluteInitializerを継承した独自クラスを指定 @littleAdjustmentMap.dfprop</span><code>
+<span class="abbreviation">...</span>
+; extendedDBFluteInitializerClass = com.exa<span class="abbreviation">...</span>nogen.ExtendedDBFluteInitializer
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		具体的には、DBFluteInitializer の prologue メソッドをオーバーライドし、その中で設定処理を書きます。
+		ただし、必ずスーパークラスの prologue メソッド自体を呼び出すことを忘れてはいけません。
+	</p>
+<pre><span class="codetitle">e.g. DBFluteInitializerを継承した独自クラスでDBFluteConfigの設定 @Java</span><code>
+<span class="abbreviation">...</span>
+    @Override
+    <span class="keyword">protected void</span> prologue() {
+        <span class="keyword">super</span>.prologue();
+
+        DBFluteConfig config = DBFluteConfig.getInstance();
+        config.unlock();
+        config.set<span class="abbreviation">...</span>
+        config.lock();
+    }
+<span class="abbreviation">...</span>
+</code></pre>
 	<h3 id="settinglog">設定されたときのログ</h3>
 	<p>
 		どのコンフィグにおいても、設定されたときはINFOレベルのログが出力されます。
@@ -368,7 +408,7 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		また、Generateタスク実行時に TableSqlName をフィルタするような機能を併用する場合、コールバックの引数は既にそのフィルタが実行された値となります。
 		具体的には、スキーマ名の静的な修飾を行う SchemaTableName や、予約語テーブル名のためのクォーテーション処理などです。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - 自動組み立てSQLのテーブル名にスキーマ名を付与<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/projectfit/schematablename/index.html"> -->現場フィット - スキーマ修飾テーブル<!-- </a> --></span></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#quotetablenamelist">dfprop - quoteTableNameList</a></div>
 	<p>
 		利用する際は、<em class="keyword">環境が変わってスキーマ名が変わっても動作するというテスト</em> もしくは
@@ -403,6 +443,13 @@ DBFluteConfig.getInstance().<span class="point">setTableSqlNameFilter</span>(<sp
 		このコンフィグは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+
+	<h2 id="gearedciphermanager">gearedCipherManager</h2>
+	<p>
+		ConditionBean や Behavior(の更新系の処理) において、(主にはSQL関数の)暗号化・復号化処理を連動させることができます。
+		<span class="freecomment">@since 0.9.8.4</span>
+	</p>
+	<div class="detailpage"><a href="../../../genbafit/projectfit/gearedcipher/index.html">現場フィット - 連動する暗号化・復号化処理</a></div>
 
 	<h2 id="usesqllogregistry">useSqlLogRegistry</h2>
 	<p>
