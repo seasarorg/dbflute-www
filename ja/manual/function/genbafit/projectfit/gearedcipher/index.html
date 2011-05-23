@@ -119,7 +119,7 @@ manager.addFunctionFilter(loginPassword, <span class="keyword">new</span> Cipher
 		<li>アプリから値をDBに格納する場合は暗号化</li>
 		<li>DBからアプリで値を取得する場合は復号化</li>
 		<li>DBからDBに直接データを移行する場合は何もしない (暗号化されたデータを維持)</li>
-		<li>DB上の値とDB上の値を比較上権威する場合は何もしない (実質的にサポートされない)</li>
+		<li>DB上の値とDB上の値の比較条件では互いに復号化する (復号化された状態で比較)</li>
 		<li>外だしSQLやプロシージャは全くの対象外 (何もしないというより何もできない)</li>
 	</ul>
 	<h3 id="scopefunction">対象となる機能</h3>
@@ -133,13 +133,16 @@ manager.addFunctionFilter(loginPassword, <span class="keyword">new</span> Cipher
 			ScalarSelectも含む。
 		</dd>
 		<dd>
-			DerivedReferrer は集計関数の処理の前に復号化されます。
-			よって、(Query)DerivedReferrer では復号化された状態で比較するためアプリから指定した条件値は暗号化されません。
+			DerivedReferrer では集計関数の処理の前に復号化されます。
+			よって、(Query)DerivedReferrer ではアプリから指定した暗号化されない条件値と復号化された集権関数の結果で比較されます。
 		</dd>
 		<dd>
-			一方で、ScalarCondition の集計関数の中では、暗号化も復号化もされません。
-			よって、暗号化された値のまま max() や avg() されるため、実質的に利用できません。
-			ColumnQuery も同様で、利用自体はできますが暗号化された状態のままでカラム同士を比較することになります。
+			ScalarCondition では対象のカラムと集計関数の中において復号化され、復号化された状態同士で比較されます。
+			よって、パフォーマンス上の問題がある場合は、ファンクションインデックスなどの導入も検討した方が良いでしょう。
+		</dd>
+		<dd>
+			ColumnQuery では、互いのカラムで復号化されます。ScalarCondition
+			と同じくファンクションインデックスなどの導入も考慮に入れると良いでしょう。
 		</dd>
 		<dt>一件登録・更新</dt>
 		<dd>カラムデータを更新するときに暗号化</dd>
