@@ -45,6 +45,8 @@
 			<ul>
 				<li><a href="#regen">クラスの再自動生成</a></li>
 				<li><a href="#sqlcheck">外だしSQLのチェック</a></li>
+				<li><a href="#unittest">単体テストの実行</a></li>
+				<li><a href="#dbchange">DB変更が発生したら (まとめ)</a></li>
 			</ul>
 		</li>
 		<li><a href="#livingdb">運用後のDB変更</a>
@@ -96,6 +98,7 @@
 	<p>
 		正常に通れば、次は再自動生成です。JDBCタスク、Docタスク、Generateタスクと一気に実行してください。
 		自動でEclipseプロジェクトがリフレッシュされるはずですが、一体何が起こるでしょうか？
+		<span class="freecomment">(今までのエクササイズが終わっていれば何かが...)</span>
 		見ればわかるはずですので、その通り直します。<span class="freecomment">(講師によるフォローあり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
@@ -106,30 +109,24 @@
 	</p>
 	<h3 id="sqlcheck">外だしSQLのチェック</h3>
 	<p>
-		さらに、OutsideSqlTestタスクを実行してみましょう。エラーが出ませんか？
+		さらに、OutsideSqlTestタスクを実行してみましょう。エラーが出ませんか？<span class="freecomment">(今までのエクササイズが終わっていれば...)</span>
 		エラー内容の通りに直しましょう。OutsideSqlTestタスクは、全ての外だしSQLを実行して実行エラーが発生しないかをチェックします。
 		Sql2Entity対象外の外だしSQLも実行するので、DB変更時の影響範囲の特定に有効です。<span class="freecomment">(講師によるフォローあり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTestタスク</a></div>
 	<p>
-		そして、Sql2Entityタスクを実行してみましょう。エラーは出ないでしょう。
-		OutsideSqlTestタスクの時点でSQLの影響範囲は修正されているはずなので。
-		特にコンパイルエラーも発生しないはずです。これは、今回のDB変更では、
-		<em class="keyword">SQLの修正は必要だったが、SQLのIN/OUTの構造にはたまたま影響しなかった</em>
-		だけと言えます。内容によっては影響する場合もあるでしょう。<span class="freecomment">(講師によるフォローあり)</span>
+		そして、Sql2Entityタスクを実行してみましょう。Generateタスクのときと同じようにな感じですね<span class="freecomment">(今までのエクササイズが終わっていれば...)</span>。
+		さあ、直しましょう。<span class="freecomment">(講師によるフォローあり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/sql2entity/index.html">Sql2Entityタスク</a></div>
+	<h3 id="unittest">単体テストの実行</h3>
 	<p>
-		ということでDB変更が発生した場合は、以下のようなDBFluteタスクのオンパレードとなります。
+		最後に、今まで作った単体テストを全て実行してグリーンになることを確認しましょう。
 	</p>
-	<ol>
-		<li>ReplaceSchemaでDBスキーマの再作成</li>
-		<li>JDBCタスクで(DBFlute上の)メタ情報を更新</li>
-		<li>Docタスクで最新版のドキュメントを生成</li>
-		<li>Generateで最新版のクラスを生成、影響範囲の検知と修正</li>
-		<li>OutsideSqlTestで外だしSQLの影響範囲の検知と修正</li>
-		<li>Sql2Entityで外だしSQL構成への影響範囲の検知と修正</li>
-	</ol>
+	<h3 id="dbchange">DB変更が発生したら (まとめ)</h3>
+	<p>
+		ということでDB変更が発生した場合は、DBFluteタスクのオンパレードとなります。
+	</p>
 	<div class="detailpage"><a href="../../../manual/function/generator/task/dbchange.html">DBFluteタスク - DB変更が発生したら</a></div>
 
 	<h2 id="livingdb">運用後のDB変更</h2>

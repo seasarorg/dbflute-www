@@ -41,13 +41,15 @@
 	<ul class="indexlist">
 		<li><a href="#answer">DB変更が発生したら何をする？</a>
 			<ul>
-				<li><a href="#reps">1. ReplaceSchemaでDBスキーマ再作成、AlterCheck</a></li>
+				<li><a href="#reps">1. ReplaceSchemaでDBスキーマ再作成 (+ AlterCheck)</a></li>
 				<li><a href="#jdbc">2. JDBCタスクでメタデータを更新</a></li>
 				<li><a href="#doc">3. Docタスクで最新版のドキュメントを自動生成</a></li>
 				<li><a href="#gen">4. Generateタスクで最新版のクラスを自動生成</a></li>
 				<li><a href="#otest">5. OutsideSqlTestで外だしSQLの影響範囲の検知と修正</a></li>
 				<li><a href="#sql2en">6. Sql2Entityで外だしSQL構成の影響範囲の検知と修正</a></li>
-				<li><a href="#commit">7. 割り切ったもの以外の修正が終わったらコミット</a></li>
+				<li><a href="#unittest">7. 自動単体テスト(JUnit)を全て実行</a></li>
+				<li><a href="#commit">8. 割り切ったもの以外の修正が終わったらコミット</a></li>
+				<li><a href="#update">9. ディベロッパーはバージョン管理システムから最新を</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -57,14 +59,17 @@
 		DB変更が発生したときのDBFluteタスク実行の流れは以下のようになります。
 		アーキテクト(つまり誰か一人の人)が中心となって、ディベロッパーと連携をとりながら以下の作業を行っていきます。
 	</p>
-	<h3 id="reps">1. ReplaceSchemaでDBスキーマ再作成、AlterCheck</h3>
+	<h3 id="reps">1. ReplaceSchemaでDBスキーマ再作成 (+ AlterCheck)</h3>
 	<p>
 		ERDツールでDDL文を再生成した後、それを使ってDBスキーマ(ローカルDB)の再作成を行います。
 		マスタデータやテストデータにも影響がある場合は、エクセルデータも修正します。
 	</p>
 	<div class="relatedpage"><a href="./replaceschema/index.html">ReplaceSchema</a></div>
 	<p>
+		運用後のDB変更であれば、AlterCheck
+		を利用してalter文の整合性チェックをした上で再作成します。
 	</p>
+	<div class="relatedpage"><a href="./replaceschema/livingdbmigration.html">運用後のDB変更</a></div>
 	<h3 id="jdbc">2. JDBCタスクでメタデータを更新</h3>
 	<p>
 		DBスキーマが最新になったので、DBFluteが保持しているメタデータを最新のものに更新します。
@@ -106,10 +111,26 @@
 		HistoryHTML、Generateで自動生成されたクラス、OutsideSqlTestで直した外だしSQL、Sql2Entityで
 		自動生成されたクラスなど、もろもろをバージョン管理システムへコミットします。
 	</p>
-	<h3 id="commit">7. 割り切ったもの以外の修正が終わったらコミット</h3>
+	<h3 id="unittest">7. 自動単体テスト(JUnit)を全て実行</h3>
+	<p>
+		JUnit(など)で作成した自動単体テストを全て実行して、グリーンになることを確認します。
+		業務的な影響範囲でアーキテクト自身が直し切れない場合は、ディベロッパーに直してもらうことも考慮します。
+	</p>
+	<h3 id="commit">8. 割り切ったもの以外の修正が終わったらコミット</h3>
 	<p>
 		アーキテクトだけでは直し切れない修正がある場合は、コミット後にディベロッパーにその旨をしっかり通知して直してもらいます。
 		ディベロッパーから修正報告があって、JUnitの単体テストなどが全て通るようになったらDB変更完了です。
+	</p>
+	<h3 id="update">9. ディベロッパーはバージョン管理システムから最新を</h3>
+	<p>
+		ディベロッパーはバージョン管理システムから最新のリソース(DDLやエクセルデータやソースファイルなど)を更新します。
+		ローカルDBだけは最新にはなっていないので(DB自体はバージョン管理システムで管理しないので)、ReplaceSchemaを叩きます。
+	</p>
+	<p>
+		割り切られた修正があれば、それぞれ自分が担当する修正を行いアーキテクトに報告をします。
+	</p>
+	<p>
+		これにてDB変更完了です。
 	</p>
 
 </div>
