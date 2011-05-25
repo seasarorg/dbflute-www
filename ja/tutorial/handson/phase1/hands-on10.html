@@ -137,25 +137,26 @@
 	<p>
 		それでは、運用後を想定したDB変更をしてみましょう。
 	</p>
+	<h3 id="chnageoutput">ChangeOutput</h3>
+	<p>
+		migration/create 配下に replace-schema-10-basic.sql
+		をコピーして以下の変更を反映。反映したら、一旦ここで ReplaceSchema を実行してみましょう。
+	</p>
 	<dl class="textlist">
+		<dt>会員セキュリティ情報にリマインダ回数を追加</dt>
+		<dd>MEMBER_SECURITY に REMINDER_USE_COUNT を追加</dd>
+		<dd>REMINDER_USE_COUNT は INTEGER 型</dd>
+		<dd>REMINDER_USE_COUNT は NOT NULL</dd>
 		<dt>会員サービスに代理キーを付与</dt>
 		<dd>MEMBER_SERVICE に MEMBER_SERVICE_ID を追加</dd>
 		<dd>PK が MEMBER_ID から MEMBER_SERVICE_ID に変更</dd>
 		<dd>MEMBER_SERVICE_ID は INTEGER 型</dd>
 		<dd>MEMBER_SERVICE_ID は AUTO_INCREMENT</dd>
-		<dt>会員セキュリティ情報にリマインダ回数を追加</dt>
-		<dd>MEMBER_SECURITY に REMINDER_USE_COUNT を追加</dd>
-		<dd>REMINDER_USE_COUNT は INTEGER 型</dd>
-		<dd>REMINDER_USE_COUNT は NOT NULL</dd>
+		<dd>MEMBER_ID にユニーク制約を付与</dd>
 	</dl>
-	<h3 id="chnageoutput">ChangeOutput</h3>
-	<p>
-		migration/create 配下に replace-schema-10-basic.sql
-		をコピーして今回の変更を反映。一旦、ここで ReplaceSchema を実行してみましょう。
-	</p>
 	<p>
 		落ちます。データがDB変更されていないからですね。migration/create/data/ut/xls
-		配下に 20-member.xls と 30-product.xls
+		配下に(同じディレクトリ構造で) 20-member.xls と 30-product.xls
 		をコピーして今回の内容を反映。データの修正内容は以下の通り。
 	</p>
 	<dl class="keymainlist">
@@ -185,6 +186,7 @@
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add constraint</span> FK_MEMBER_SERVICE_MEMBER 
     <span class="keyword">foreign key</span> (MEMBER_ID) <span class="keyword">references</span> MEMBER (MEMBER_ID);
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">modify column</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> AUTO_INCREMENT NOT NULL;
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add constraint</span> UQ_MEMBER_SERVICE <span class="keyword">unique</span> (MEMBER_ID);
 </code></pre>
 	<p>
 		せっかくなのでわざと間違えてみましょう。REMINDER_USE_COUNT の型を BIGINT に、MEMBER_SERVICE_ID の
@@ -217,6 +219,15 @@
 <span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 3 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'SST';
 alter table PRODUCT_STATUS add constraint unique(DISPLAY_ORDER);
 </code></pre>
+
+	<div class="inucolumn">
+		<h2>実業務ではERDツール</h2>
+		<p>
+			ハンズオンではERDツールを割り切ってDDLを手修正してもらっていますが、
+			実業務ではERDツールで変更してDDLは自動生成することが推奨されます。
+			ここでは、DDLの勉強になればと。
+		</p>
+	</div>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>
