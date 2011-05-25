@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,チュートリアル,ハンズオン,hands-on" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ハンズオン セクション 10 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ハンズオン セクション 10</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#ready">事前準備</a></li>
+		<li><a href="#develop">(一次)開発時のDB変更</a>
+			<ul>
+				<li><a href="#regen">クラスの再自動生成</a></li>
+				<li><a href="#sqlcheck">外だしSQLのチェック</a></li>
+			</ul>
+		</li>
+		<li><a href="#livingdb">運用後のDB変更</a>
+			<ul>
+				<li><a href="#chnageoutput">ChangeOutput</a></li>
+				<li><a href="#altercheck">AlterCheck</a></li>
+			</ul>
+		</li>
+		<li><a href="#morelivingdb">さらに運用後のDB変更</a></li>
+		<li><a href="#nextsection">次のセクション</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		さて、ハンズオンの続きです。
+	</p>
+	<div class="relatedpage"><a href="./hands-on09.html">ハンズオン セクション 9</a></div>
+	<p>
+		"DB変更が発生しました" を学んでいきましょう。
+	</p>
+
+	<h2 id="ready">事前準備</h2>
+	<p>
+		特に要りません。
+	</p>
+
+	<h2 id="develop">(一次)開発時のDB変更</h2>
+	<p>
+		以下のDB変更が発生しました。DDL修正後、ReplaceSchema してみましょう。
+		<span class="freecomment">(講師による実演あり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
+	<dl class="textlist">
+		<dt>明らかにおかしいカラム名があった</dt>
+		<dd>SERVICE_POINT_COUNT に変更</dd>
+		<dt>商品の定価が必須になった</dt>
+		<dd>REGULAR_PRICE に NotNull 制約を付与</dd>
+	</dl>
+	<p>
+		ReplaceSchema で落ちます。エラー内容から原因を特定してみましょう。
+		商品の定価が必須になったので、データのなかったレコードでエラーが発生するはずです。
+		商品のデータ入っているエクセルデータを開いて、以下のようにデータを定義して、再度 ReplaceSchema してみましょう。
+	</p>
+	<dl class="valuemainlist">
+		<dt>商品ID: 15</dt><dd>定価: 500000</dd>
+		<dt>商品ID: 16</dt><dd>定価: 4000000</dd>
+	</dl>
+	<h3 id="regen">クラスの再自動生成</h3>
+	<p>
+		正常に通れば、次は再自動生成です。JDBCタスク、Docタスク、Generateタスクと一気に実行してください。
+		自動でEclipseプロジェクトがリフレッシュされるはずですが、一体何が起こるでしょうか？
+		見ればわかるはずですので、その通り直します。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/doc/index.html">Docタスク</a></div>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
+	<p>
+		HistoryHTML を見てみましょう。変更した内容が出力されているはずです。
+	</p>
+	<h3 id="sqlcheck">外だしSQLのチェック</h3>
+	<p>
+		さらに、OutsideSqlTestタスクを実行してみましょう。エラーが出ませんか？
+		エラー内容の通りに直しましょう。OutsideSqlTestタスクは、全ての外だしSQLを実行して実行エラーが発生しないかをチェックします。
+		Sql2Entity対象外の外だしSQLも実行するので、DB変更時の影響範囲の特定に有効です。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTestタスク</a></div>
+	<p>
+		そして、Sql2Entityタスクを実行してみましょう。エラーは出ないでしょう。
+		OutsideSqlTestタスクの時点でSQLの影響範囲は修正されているはずなので。
+		特にコンパイルエラーも発生しないはずです。これは、今回のDB変更では、
+		<em class="keyword">SQLの修正は必要だったが、SQLのIN/OUTの構造にはたまたま影響しなかった</em>
+		だけと言えます。内容によっては影響する場合もあるでしょう。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/sql2entity/index.html">Sql2Entityタスク</a></div>
+
+	<h2 id="livingdb">運用後のDB変更</h2>
+	<p>
+		次は運用後のDB変更を想定してやってみましょう。<span class="freecomment">(講師による講習あり)</span>
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/generator/task/replaceschema/livingdbmigration.html">運用後のDB変更</a></div>
+	<p>
+		それでは、運用後を想定したDB変更をしてみましょう。
+	</p>
+	<dl class="textlist">
+		<dt>会員サービスに代理キーを付与</dt>
+		<dd>MEMBER_SERVICE に MEMBER_SERVICE_ID を追加</dd>
+		<dd>PK が MEMBER_ID から MEMBER_SERVICE_ID に変更</dd>
+		<dd>MEMBER_SERVICE_ID は INTEGER 型</dd>
+		<dd>MEMBER_SERVICE_ID は AUTO_INCREMENT</dd>
+		<dt>会員セキュリティ情報にリマインダ回数を追加</dt>
+		<dd>MEMBER_SECURITY に REMINDER_USE_COUNT を追加</dd>
+		<dd>REMINDER_USE_COUNT は INTEGER 型</dd>
+		<dd>REMINDER_USE_COUNT は NOT NULL</dd>
+	</dl>
+	<h3 id="chnageoutput">ChangeOutput</h3>
+	<p>
+		migration/create 配下に replace-schema-10-basic.sql
+		をコピーして今回の変更を反映。一旦、ここで ReplaceSchema を実行してみましょう。
+	</p>
+	<p>
+		落ちます。データがDB変更されていないからですね。migration/create/data/ut/xls
+		配下に 20-member.xls と 30-product.xls
+		をコピーして今回の内容を反映。データの修正内容は以下の通り。
+	</p>
+	<dl class="keymainlist">
+		<dt>MEMBER_SERVICE_ID</dt>
+		<dd>上から 1, 2, 3, 4...</dd>
+		<dt>REMINDER_USE_COUNT</dt>
+		<dd>上から適当に</dd>
+	</dl>
+	<p>
+		そして、ReplaceSchema を実行、そして変更点(change-output-result.diffmap)を確認しましょう。
+	</p>
+	<h3 id="altercheck">AlterCheck</h3>
+	<p>
+		差分結果が想定されたものと一致するならば、今度は migration/alter 配下に alter-schema.sql
+		を作成して、以下の内容を転記して、ちょっとお待ち下さい。(ReplaceSchemaはまだ！)
+	</p>
+<pre><span class="codetitle">e.g. 運用後のDB変更のエクササイズの alter 文 @alter-schema.sql</span><code>
+<span class="comment">-- add column</span>
+<span class="keyword">alter table</span> MEMBER_SECURITY <span class="keyword">add</span> REMINDER_USE_COUNT <span class="dbtype">INTEGER</span> NOT NULL <span class="keyword">after</span> REMINDER_ANSWER;
+
+<span class="comment">-- add identity column as primary key</span>
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> NOT NULL;
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">drop foreign key</span> FK_MEMBER_SERVICE_MEMBER;
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">drop primary key</span>;
+<span class="keyword">update</span> MEMBER_SERVICE <span class="keyword">set</span> MEMBER_SERVICE_ID = MEMBER_ID;
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add primary key</span> (MEMBER_SERVICE_ID);
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add constraint</span> FK_MEMBER_SERVICE_MEMBER 
+    <span class="keyword">foreign key</span> (MEMBER_ID) <span class="keyword">references</span> MEMBER (MEMBER_ID);
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">modify column</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> AUTO_INCREMENT NOT NULL;
+</code></pre>
+	<p>
+		せっかくなのでわざと間違えてみましょう。REMINDER_USE_COUNT の型を BIGINT に、MEMBER_SERVICE_ID の
+		AUTO_INCREMENT を除去して ReplaceSchema してみましょう。
+	</p>
+	<p>
+		そうしたら、差分(alter-check-result.diffmap)を確認してみてください。間違えた通りに差分が出力されたはずです。create
+		の結果と alter の結果が一致するまではエラーとなりDB変更はロールバックされ続けます。
+	</p>
+	<p>
+		では、元に戻して ReplaceSchema を実行、その後は既にやった通りのクラスの再自動生成(JDBC, Doc, Generate)
+		に、外だしSQLのチェック(OutsideSqlTest, Sql2Entity)をやります。
+	</p>
+
+	<h2 id="morelivingdb">さらに運用後のDB変更</h2>
+	<p>
+		それでは、エクササイズです。さらに運用後を想定したDB変更をしてみましょう。
+	</p>
+	<dl class="textlist">
+		<dt>商品ステータスに表示順カラムを追加</dt>
+		<dd>PRODUCT_STATUS に DISPLAY_ORDER を追加</dd>
+		<dd>DISPLAY_ORDER はユニーク制約</dd>
+		<dd>ONS, PST, SST の順番で 1, 2, 3</dd>
+	</dl>
+<pre><span class="codetitle">e.g. さらに運用後のDB変更のエクササイズの alter 文 @alter-schema.sql</span><code>
+<span class="comment">-- add column for display order</span>
+<span class="keyword">alter table</span> PRODUCT_STATUS <span class="keyword">add</span> DISPLAY_ORDER INTEGER NOT NULL <span class="keyword">after</span> PRODUCT_STATUS_NAME;
+<span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 1 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'ONS';
+<span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 2 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'PST';
+<span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 3 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'SST';
+alter table PRODUCT_STATUS add constraint unique(DISPLAY_ORDER);
+</code></pre>
+
+	<h2 id="nextsection">次のセクション</h2>
+	<p>
+		さて、次のセクションへ
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on11.html"> -->ハンズオン セクション 11<!-- </a> --></span></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+				<li><a href="../../../../ja/tutorial/architect.html#various">雑多な情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/developer.html#exampledb">ExampleDB (前提)</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#style">DBアクセスのスタイル</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#object">意識するクラス</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#task">意識するタスク</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/developer.html#example">Exampleのススメ</a></li>
+				<li><a href="../../../../ja/tutorial/developer.html#offer">アーキテクトへの相談</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
