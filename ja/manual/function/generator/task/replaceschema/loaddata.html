@@ -54,10 +54,21 @@
 		<li><a href="#xls">エクセルデータの登録</a></li>
 		<li><a href="#dataloadingtype">dataLoadingTypeによる切り替え</a></li>
 		<li><a href="#defaultvaluemap">デフォルト値の設定(dataprop)</a></li>
-		<li><a href="#islogginginsertsql">登録データのロギング</a></li>
+		<li><a href="#loadingcontrolmap">データ登録制御(dataprop)</a>
+			<ul>
+				<li><a href="#logginginserttype">loggingInsertType</a></li>
+				<li><a href="#issuppressbatchupdate">isSuppressBatchUpdate</a></li>
+			</ul>
+		</li>
 		<li><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></li>
 		<li><a href="#binary">バイナリデータの登録</a></li>
-		<li><a href="#debug">登録エラーが発生したら？</a></li>
+		<li><a href="#debug">登録エラーが発生したら？</a>
+			<ul>
+				<li><a href="#anywaymsg">とにかくログを</a></li>
+				<li><a href="#nonbatchretry">バッチ更新なしの自動リトライ</a></li>
+				<li><a href="#nonbatchloading">バッチ更新せずデータ登録</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">処理概要</h2>
@@ -131,12 +142,14 @@ playsql
        |     |-<span class="literal">20-[table-name].tsv</span>
        |     |-<span class="literal">defaultValueMap.dataprop</span>   <span class="comment">// デフォルト値プロパティ(非必須)</span>
        |     |-<span class="literal">convertValueMap.dataprop</span>   <span class="comment">// コンバートプロパティ(非必須)</span>
+       |     |-<span class="literal">loadingControlMap.dataprop</span>   <span class="comment">// データ登録制御プロパティ(非必須)</span>
        |-csv <span class="comment">// TSVの次に登録される(存在しない場合はスキップ)</span>
        |  |-[encoding]
        |     |-<span class="literal">10-[table-name].csv</span>
        |     |-<span class="literal">20-[table-name].csv</span>
        |     |-<span class="literal">defaultValueMap.dataprop</span>   <span class="comment">// デフォルト値プロパティ(非必須)</span>
        |     |-<span class="literal">convertValueMap.dataprop</span>   <span class="comment">// コンバートプロパティ(非必須)</span>
+       |     |-<span class="literal">loadingControlMap.dataprop</span>   <span class="comment">// データ登録制御プロパティ(非必須)</span>
        |-xls <span class="comment">// CSVの次に登録される(存在しない場合はスキップ)</span>
        |  |-<span class="literal">10-[title].xls</span>
        |  |-<span class="literal">20-[title].xls</span>
@@ -144,6 +157,7 @@ playsql
        |  |-<span class="literal">tableNameMap.dataprop</span>         <span class="comment">// テーブル名文字数制限回避プロパティ(非必須)</span>
        |  |-<span class="literal">notTrimColumnMap.dataprop</span>     <span class="comment">// トリムしないカラム指定プロパティ(非必須)</span>
        |  |-<span class="literal">emptyStringColumnMap.dataprop</span> <span class="comment">// 空文字許すカラム指定プロパティ(非必須)</span>
+       |  |-<span class="literal">loadingControlMap.dataprop</span>     <span class="comment">// データ登録制御プロパティ(非必須)</span>
     |-ut <span class="comment">// dataLoadingTypeが "ut" の場合に登録対象となる(commonの後に登録される)</span>
        |-...(same structure as common directory)
 </code></pre>
@@ -251,31 +265,66 @@ dataLoadingType = it
 		ここでは "共通カラムの自動設定" というよりも、"共通カラム対する疑似のデフォルト制約" という感じになります。
 	</p>
 
-	<h2 id="islogginginsertsql">登録データのロギング</h2>
+	<h2 id="loadingcontrolmap">データ登録制御(dataprop)</h2>
 	<p>
-		登録されるデータは、一レコードずつログに出力されます。エラー発生時などの確認にとても役に立ちますが、ReplaceSchema
-		で扱うデータの規模が大きくなったときに少しでも処理スピードを速くしたい場合のために、このログをOFFにすることができます。
+		例えば、データ登録の処理を制御(微調整)するプロパティがあります。<span class="freecomment">@since 0.9.8.4</span>
 	</p>
-	<p>
-		"replaceSchemaDefinitionMap.dfprop" の "isLoggingInsertSql" を "false" に設定すると、
-		データ登録での一つ一つのデータに対するログは出力されません。
-	</p>
+<pre><span class="codetitle">e.g. 共通的なカラムに固定の値を定義 @loadingControlMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="comment"># ALL, NONE, PART</span>
+    ; loggingInsertType = <span class="literal">PART</span>
+
+    <span class="comment"># true or false</span>
+    ; isSuppressBatchUpdate = <span class="literal">false</span>
+}
+</code></pre>
 	<dl class="textlist">
 		<dt>設定ファイル</dt>
-		<dd>replaceSchemaDefinitionMap.dfprop</dd>
+		<dd>loadingControlMap.dataprop (UTF-8)</dd>
 		<dt>プロパティ</dt>
-		<dd>isLoggingInsertSql (true or false)</dd>
-		<dt>補足</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>全てのデータファイル形式で有効</li>
-			</ul>
-		</dd>
+		<dd>個別個別のプロパティ</dd>
 	</dl>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#islogginginsertsql">dfprop - isLoggingInsertSql</a></div>
 	<p>
-		但し、エラー発生したときは、エラー発生箇所の特定にログは欠かせません。
-		エラー発生時は、このプロパティを(一時的に)元に戻してから再度実行してログを確認することをお奨めします。
+		幾つかのプロパティは、DBFluteプロパティの設定をディレクトリ単位で上書きできるプロパティと言えます。
+		データの特徴に合わせて設定したり、一時的に利用したりと様々な場面での調整が想定されます。
+	</p>
+	<h3 id="logginginserttype">loggingInsertType</h3>
+	<p>
+		登録データのログ出力のタイプを指定します。
+	</p>
+	<dl class="keymainlist">
+		<dt>ALL</dt><dd>全てのデータを出力する</dd>
+		<dt>NONE</dt><dd>全てのデータを出力しない</dd>
+		<dt>PART</dt><dd>一部のデータを出力する (最初の 10 件)</dd>
+	</dl>
+	<p>
+		大量のデータを登録する場合は、ReplaceSchema
+		が少しでも早く終わるようにするために、ログ出力されるデータを少なくするか、全くなくすかを検討すると良いでしょう。
+	</p>
+	<p>
+		ただし、エラー発生したときは、エラー発生箇所の特定にログは欠かせません。
+		エラーが発生したときに登録されたデータのログを見たい場合は、
+		このプロパティを(一時的に)元に戻してから再度実行してログを確認することをお奨めします。
+	</p>
+	<p>
+		デフォルトの値は、replaceSchemaDefinitionMap.dfprop の isLoggingInsertSql
+		の値に依存します。そのプロパティのデフォルト(セットアップデフォルトも含む)は true
+		なので、DBFluteをセットアップしてから何も変更していなければ ALL と同じ挙動になっています。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#islogginginsertsql">dfprop - isLoggingInsertSql</a></div>
+	<h3 id="issuppressbatchupdate">isSuppressBatchUpdate</h3>
+	<p>
+		バッチ更新をせず都度登録をするか否かを指定します。
+	</p>
+	<p>
+		データ登録エラーが発生したときにエラー発生レコードを特定するために、利用するとよいでしょう。
+		ただし、エクセルデータであれば、このプロパティを利用しなくても自動リトライ処理によってエラー発生レコードは特定はしやすいはずです。
+	</p>
+	<div class="relatedpage"><a href="#nonbatchretry">バッチ更新なしの自動リトライ</a></div>
+	<p>
+		デフォルトの値は、replaceSchemaDefinitionMap.dfprop の isSuppressBatchUpdate
+		の値に依存します。そのプロパティのデフォルト(セットアップデフォルトも含む)は false
+		なので、DBFluteをセットアップしてから何も変更していなければバッチ更新されます。
 	</p>
 
 	<h2 id="isincrementsequencetodatamax">シーケンス値の調整</h2>
@@ -359,22 +408,72 @@ playsql
 
 	<h2 id="debug">登録エラーが発生したら？</h2>
 	<p>
-		データ登録はReplaceSchemaの中で最もエラーが発生しやすい場所です。例えば、NotNull制約のカラムに "null"
-		が定義されていたり、数値のカラムに文字列が定義されていたりと、データ不備はすぐにエラーにつながります。
+		データ登録は ReplaceSchema の中で最もエラーが発生しやすい場所です。例えば、NotNull制約のカラムに "null"
+		が定義されていたり、数値のカラムに文字列が定義されていたりと、データ不備はすぐにエラーとして検知されます。
 	</p>
+	<h3 id="anywaymsg">とにかくログを</h3>
 	<p>
 		エラーが発生したら真っ先に <em class="keyword">コンソールログ</em> もしくは <em class="keyword">[DBFluteクライアント]/log/dbflute.log</em>
 		を確認しましょう。例外メッセージを必ず読み、そして、それまでの登録されたデータのログから
 		"どのデータでエラーが発生したのか" を特定します。
 	</p>
+	<h3 id="nonbatchretry">バッチ更新なしの自動リトライ</h3>
 	<p>
-		もし、"登録データのロギングをOFF" にしている場合は、"ON" に戻してから再度実行して登録されたデータのログを確認することをお奨めします。
+		データはオプションで変更しない限りバッチ更新されます。スピードは確保できますが、その代わりエラーが発生したときに
+		"どのレコードでエラーが発生したのか" が非常にわかりにくくなってしまいます。ReplaceSchema
+		は、登録エラーが発生したときに、バッチ更新をせずそのテーブルのデータ登録のリトライを行い、
+		エラー発生レコードの補足情報を例外メッセージに付与します。<span class="freecomment">@since 0.9.8.4</span>
 	</p>
-	<div class="relatedpage"><a href="#islogginginsertsql">登録データのロギング</a></div>
 	<p>
-		それでも、エラー箇所のデータが特定出来ない場合は、"バッチ更新をしないで登録をON" にして、再度実行することをお奨めします。
+		ただし、これはエクセルデータの登録に限ります。(デリミタデータでは未サポート)
 	</p>
-	<div class="relatedpage"><a href="./loadxls.html#issuppressbatchupdate">バッチ更新をしないで登録</a></div>
+<pre><span class="codetitle">e.g. エラー発生時にバッチ更新せず自動リトライしたログ @Console</span><code>
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Failed to register the table data.
+
+[Xls File]
+playsql/data/ut/xls/30-product.xls
+
+[Table]
+PURCHASE
+
+[SQLException]
+java.sql.BatchUpdateException
+<span class="attribute">Column 'PURCHASE_DATETIME' cannot be null</span>
+
+[Non-Batch Retry]
+com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException
+<span class="attribute">Column 'PURCHASE_DATETIME' cannot be null</span>
+[PURCHASE_ID, MEMBER_ID, PRODUCT_ID, PURCHASE_DATETIME, PURCHASE_COUNT, PURCHASE_PRICE, PAYMENT_COMPLETE_FLG, REGISTER_DATETIME, REGISTER_USER, UPDATE_DATETIME, UPDATE_USER, VERSION_NO]
+<span class="point">{41, 4, 11, null, 4, 1700, 1, 2011-05-28 16:51:52.991, foo, 2011-05-28 16:51:52.991, foo, 0}</span>
+Row Number: <span class="literal">41</span>
+
+[Bind Type]
+PURCHASE_ID = java.lang.Long
+MEMBER_ID = java.lang.Integer
+PRODUCT_ID = java.lang.Integer (NumberStringProcessor)
+PURCHASE_DATETIME = java.sql.Timestamp (DateStringProcessor)
+PURCHASE_COUNT = java.lang.Integer (NumberStringProcessor)
+PURCHASE_PRICE = java.lang.Integer (NumberStringProcessor)
+PAYMENT_COMPLETE_FLG = java.lang.Integer (NumberStringProcessor)
+REGISTER_DATETIME = java.sql.Timestamp
+REGISTER_USER = java.lang.String (RealStringProcessor)
+UPDATE_DATETIME = java.sql.Timestamp
+UPDATE_USER = java.lang.String (RealStringProcessor)
+VERSION_NO = java.lang.Long (NumberStringProcessor)
+* * * * * * * * * */
+</code></pre>
+	<p>
+		ただし、厳密にリトライで同じエラーが発生するかどうかは確実とは言い切れませんので、
+		メイン処理のエラー内容とリトライのエラー内容とを見比べて同じエラーかどうか(リトライが成功しているかどうか)を確認してから参考にするようにしてください。
+	</p>
+	<h3 id="nonbatchloading">バッチ更新せずデータ登録</h3>
+	<p>
+		万が一のために、プロパティで "バッチ更新をしないで登録" するようにすることができます。
+		登録データが全てログに出力されているようになっていれば(デフォルトでは出力される)、エラー発生レコードを特定できます。
+	</p>
+	<div class="relatedpage"><a href="#logginginserttype">データ登録制御(dataprop) - loggingInsertType</a></div>
+	<div class="relatedpage"><a href="#issuppressbatchupdate">データ登録制御(dataprop) - isSuppressBatchUpdate</a></div>
 
 </div>
 </div>

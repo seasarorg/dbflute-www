@@ -59,6 +59,7 @@
 				<li><a href="#datefromto">DateFromTo条件のオプション</a></li>
 				<li><a href="#classification">区分値条件のオプション</a></li>
 				<li><a href="#reference">参照カラムのオプション</a></li>
+				<li><a href="#propertycomment">プロパティのコメント</a></li>
 			</ul>
 		</li>
 		<li><a href="#packageresolve">プログラム型のパッケージ解決</a>
@@ -445,6 +446,39 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		の機能をParameterBeanで利用する場合には、このオプションが必須となります。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/deprecatedfit/shortcharhandling/index.html"> -->現場フィット - char型の桁数不足の取扱い<!-- </a> --></span></div>
+	<h3 id="propertycomment">プロパティのコメント</h3>
+	<p>
+		それぞれのプロパティにコメントを付けることができます。
+		決まった形式でコメントを書くことで、単に外だしSQL上で業務的な意味がわかりやすくなるというだけでなく、
+		自動生成された ParameterBean のプロパティのメソッドの JavaDoc
+		コメントにそのコメントに転記され、実装しながらそのコメントを読むことができます。
+		<span class="freecomment">@since 0.9.8.4</span>
+	</p>
+	<p>
+		プロパティ項目の宣言の後に、"//" というマークの後に一行コメントを書きます。
+	</p>
+<pre><span class="codetitle">e.g. プロパティにコメントを書く @OutsideSql</span><code>
+<span class="comment">-- !df:pmb<span class="comment">!</span>
+<span class="comment">-- !!String memberId!!</span>   <span class="point">// それぞれのプロパティの説明や補足などを書く</span>
+<span class="comment">-- !!String memberName!!</span> <span class="point">// このように書いておけば JavaDoc で読める</span>
+<span class="comment">-- !!Date birthdate!!</span>    <span class="point">// なのでJavaDocで利用できない文字は使えない</span>
+<span class="comment">-- !!String statusCode!!</span> <span class="point">// スラスラ(//)ってなんか Java っぽい</span>
+select <span class="abbreviation">...</span>
+  from <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		プロパティの自動判別を利用した場合は、comment([comment])
+		という形式のオプションとしてコメントを記述できます。
+		ただし、この場合あまり書き過ぎると見づらくなるのでシンプルなコメントにとどめておくと良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#autodetect">プロパティの自動判別</a></div>
+<pre><span class="codetitle">e.g. 自動判別されるプロパティにコメントを書く @OutsideSql</span><code>
+<span class="comment">-- !df:pmb<span class="comment">!</span>
+<span class="comment">-- !!String AutoDetect!!</span>
+select <span class="abbreviation">...</span>
+  from <span class="abbreviation">...</span>
+ where MEMBER_ID = <span class="comment">/*pmb.memberId:comment(ここにコメントを書く)*/3</span>
+</code></pre>
 
 	<h2 id="packageresolve">プログラム型のパッケージ解決</h2>
 	<p>
