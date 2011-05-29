@@ -49,7 +49,9 @@
 				<li><a href="#isentitydbmetadbcommentvalid">isEntityDBMetaDbCommentValid</a></li>
 				<li><a href="#schemahtmlfilename">schemaHtmlFileName</a></li>
 				<li><a href="#issuppressschemahtmloutsidesql">isSuppressSchemaHtmlOutsideSql</a></li>
-				<li><a href="#dataxlstemplatemap">dataXlsTemplateMap</a></li>
+				<li><a href="#loaddatareversemap">loadDataReverseMap</a></li>
+				<li><a href="#schemasynccheckmap">schemaSyncCheckMap</a></li>
+				<li><a href="#dataxlstemplatemap">dataXlsTemplateMap <span class="freecomment">@until 0.9.8.3</span></a></li>
 				<li><a href="#dataxlstemplaterecordlimit">dataXlsTemplateRecordLimit <span class="freecomment">@until 0.9.8.2</span></a></li>
 				<li><a href="#isdataxlstemplatecontainscommoncolumn">isDataXlsTemplateContainsCommonColumn <span class="freecomment">@until 0.9.8.2</span></a></li>
 			</ul>
@@ -64,7 +66,9 @@
 	</p>
 	<ul>
 		<li><a href="../../../function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
-		<li><a href="../../../function/generator/task/doc/dataxlstemplate.html">データエクセルテンプレート</a></li>
+		<li><a href="../../../function/generator/task/doc/historyhtml.html">HistoryHTML</a></li>
+		<li><a href="../../../function/generator/task/doc/loaddatareverse.html">LoadDataReverse</a></li>
+		<li><a href="../../../function/generator/task/doc/schemasynccheck.html">SchemaSyncCheck</a></li>
 	</ul>
 	<div class="relatedpage"><a href="../../../function/generator/task/doc/index.html">Docタスク</a></div>
 
@@ -77,10 +81,10 @@
 	</p>
 	<h3 id="documentoutputdirectory">documentOutputDirectory</h3>
 	<p>
-		Docタスクで自動生成する SchemaHTML、DataXlsTemplate などドキュメント類の出力先ディレクトリを指定します。
+		Docタスクで自動生成する SchemaHTML、HistoryHTML などドキュメント類の出力先ディレクトリを指定します。
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/doc/schemahtml.html">Doc - SchemaHTML</a></div>
-	<div class="relatedpage"><a href="../../../function/generator/task/doc/dataxlstemplate.html">Doc - DataXlsTemplate</a></div>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/historyhtml.html">Doc - HistoryHTML</a></div>
 	<p>
 		基本的には、利用する必要はありません。どの(DBFlute)プロジェクトに行っても、同じところにドキュメントが置いてあるというのは価値のあることです。
 		構造的にどうしても必要になったときに利用するようにして下さい(例えば、ApplicationBehaviorの利用時など)。
@@ -205,7 +209,66 @@
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>false *外だしSQLの情報を出力する</dd>
 	</dl>
-	<h3 id="dataxlstemplatemap">dataXlsTemplateMap</h3>
+	<h3 id="loaddatareversemap">loadDataReverseMap</h3>
+	<p>
+		LoadDataReverse の生成に関するプロパティを指定します。
+		<span class="freecomment">@since 0.9.8.4</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/loaddatareverse.html">Docタスク - LoadDataReverse</a></div>
+	<p>
+		map の中の recordList を指定すると LoadDataReverse が有効になります。
+		値がマイナスの場合は無制限でデータが出力されます。出力データに共通カラムを含める場合は isContainsCommonColumn を true
+		に、ReplaceSchema でそのまま利用することを前提賭する場合は、isOutputToPlaySql を true に。
+	</p>
+<pre><span class="codetitle">e.g. loadDataReverseMapの仕様 @documentDefinitionMap.dfprop</span><code>
+; loadDataReverseMap = <span class="keyword">map:</span>{
+    ; recordLimit = [limit size] <span class="comment"># デフォルト: 設定なし</span>
+    ; isContainsCommonColumn = [true or false] <span class="comment"># デフォルト: false</span>
+    ; isOutputToPlaySql = [true or false] <span class="comment"># デフォルト: false</span>
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>list型プロパティの中に、map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>recordLimit がマイナスの場合は、無制限でデータが出力される</li>
+				<li>エクセルの最大行数(65000を決め打ち) を超えるデータはTSV形式で出力される</li>
+				<li>isOutputToPlaySql が true の場合は playsql 配下に直接出力される</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="schemasynccheckmap">schemaSyncCheckMap</h3>
+	<p>
+		SchemaSyncCheck の生成に関するプロパティを指定します。
+		<span class="freecomment">@since 0.9.8.4</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/schemasynccheck.html">Docタスク - SchemaSyncCheck</a></div>
+	<p>
+		map の中の user を指定すると SchemaSyncCheck が有効になります。
+		もちろん、その状況で必須の他の情報もしっかり設定する必要があります。
+	</p>
+<pre><span class="codetitle">e.g. schemaSyncCheckMapの仕様 @documentDefinitionMap.dfprop</span><code>
+; schemaSyncCheckMap = <span class="keyword">map:</span>{
+    ; url = [connection url] <span class="comment"># デフォルト: databaseInfoMap.dfpropのものと同じ</span>
+    ; catalog = [catalog (database name)] <span class="comment"># デフォルト: url から自動判別される</span>
+    ; schema = [schema] <span class="comment"># デフォルト: 設定なし (スキーマの概念のないDBMSでは空指定)</span>
+    ; user = [user] <span class="comment"># 必須</span>
+    ; password = [password] <span class="comment"># デフォルト: 設定なし</span>
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>list型プロパティの中に、map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>catalog は基本的に url の中から自動で判別されるため指定の必要なし</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="dataxlstemplatemap">dataXlsTemplateMap <span class="freecomment">@until 0.9.8.3</span></h3>
 	<p>
 		DataXlsTemplate の生成に関するプロパティを指定します。
 		(同時に DataXlsTemplate を生成するか否かの指定にもなります)
@@ -217,7 +280,7 @@
 		値がマイナスの場合は無制限でデータが出力されます。出力データに共通カラムを含める場合は isContainsCommonColumn を true
 		に、ReplaceSchema の LoadData のリバース(LoadDataReverse)の場合は isLoadDataReverse を true に。
 	</p>
-<pre><span class="codetitle">e.g. dataXlsTemplateMapの仕様 @replaceSchemaDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. dataXlsTemplateMapの仕様 @documentDefinitionMap.dfprop</span><code>
 ; dataXlsTemplateMap = <span class="keyword">map:</span>{
     ; recordLimit = [limit size] <span class="comment"># デフォルト: 設定なし</span>
     ; isContainsCommonColumn = [true or false] <span class="comment"># デフォルト: false</span>

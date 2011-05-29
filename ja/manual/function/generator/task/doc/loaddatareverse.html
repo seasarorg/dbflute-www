@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,タスク,Task,Doc,DataXlsTemplate,データエクセルテンプレート,エクセルデータの土台,エクセルデータの雛形,エクセルデータのひな形,データダンプ,Dump" />
+	<meta name="keywords" content="DBFlute,タスク,Task,Doc,LoadDataReverse,データエクセルテンプレート,エクセルデータの土台,エクセルデータの雛形,エクセルデータのひな形,データダンプ,Dump" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>DataXlsTemplate | DBFlute</title>
+	<title>LoadDataReverse | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,55 +37,44 @@
 </div>
 
 <div id="content">
-	<h1>DataXlsTemplate</h1>
+	<h1>LoadDataReverse</h1>
 	<ul class="indexlist">
-		<li><a href="#notice">LoadDataReverseとして再出発</a></li>
-		<li><a href="#about">DataXlsTemplateとは？</a>
+		<li><a href="#about">LoadDataReverseとは？</a>
 			<ul>
 				<li><a href="#notdump">厳密なデータダンプではない</a></li>
+				<li><a href="#lreverseimage">LoadDataReverse概念図</a></li>
 			</ul>
 		</li>
-		<li><a href="#howto">DataXlsTemplateの作成方法</a>
+		<li><a href="#howto">利用方法</a>
 			<ul>
 				<li><a href="#recordlimit">出力レコード数の設定(出力設定)</a></li>
 				<li><a href="#commoncolumn">共通カラムの出力有無</a></li>
+				<li><a href="#temporary">一時的に利用する機能</a></li>
 			</ul>
 		</li>
-		<li><a href="#fkorder">FK順序の考慮</a></li>
-		<li><a href="#largename">長いテーブル名の考慮</a></li>
+		<li><a href="#replaceschema">ReplaceSchemaのデータとして</a>
+			<ul>
+				<li><a href="#playsqloutput">playsql 配下に出力</a></li>
+				<li><a href="#manually">手動による調整</a></li>
+				<li><a href="#goodoption">適切なオプションで出力</a></li>
+				<li><a href="#fkorder">FK順序の考慮</a></li>
+				<li><a href="#largename">長いテーブル名の考慮</a></li>
+			</ul>
+		</li>
 		<li><a href="#largedata">大量件数のデータの場合</a>
 			<ul>
 				<li><a href="#overexcel">エクセルの最大行数を超えた場合</a></li>
 				<li><a href="#manydata">全体的に行数が多い場合</a></li>
 			</ul>
 		</li>
-		<li><a href="#loaddatareverse">LoadDataReverse</a>
-			<ul>
-				<li><a href="#reverseview">概要</a></li>
-				<li><a href="#loaddatareverseimage">LoadDataReverse概念図</a></li>
-				<li><a href="#howtoreverse">利用方法</a></li>
-				<li><a href="#outputreps">ReplaceSchema領域へ出力</a></li>
-				<li><a href="#manually">手動による調整</a></li>
-				<li><a href="#goodoption">適切なオプションで出力</a></li>
-			</ul>
-		</li>
 		<li><a href="#spec">細かい仕様</a></li>
 	</ul>
 
-	<div class="inucolumn">
-		<h2 id="notice">LoadDataReverseとして再出発</h2>
-		<p>
-			この DataXlsTemplate は、LoadDataReverse という機能に変更されました<span class="freecomment">(@since 0.9.8.4)</span>。
-		</p>
-		<div class="detailpage"><a href="./loaddatareverse.html">LoadDataReverse</a></div>
-		<p>
-			以降の内容は、それまでのバージョンを利用されている方のためのページとなります。
-		</p>
-	</div>
-
-	<h2 id="about">DataXlsTemplateとは？</h2>
+	<h2 id="about">LoadDataReverseとは？</h2>
 	<p>
-		DB上の(一部の)データをエクセルデータに出力したもので、オプションによりDocタスクで自動生成されます。
+		DB上の(一部の)データをエクセルやTSVなどのデータファイルとして出力する機能です<span class="freecomment">(@since 0.9.8.4)</span>。
+	</p>
+	<p>
 		主に以下の二つの目的があります。
 	</p>
 	<ul>
@@ -99,14 +88,18 @@
 		におけるエクセルデータの土台にする、という目的のものです。
 		もし、業務の一環としてのデータダンプを目的とするなら、もっとデータの精密度を高めたり、もっと色々な状況に対応できるようにしたりする必要があるでしょう。
 	</p>
+	<h3 id="lreverseimage">LoadDataReverse概念図</h3>
+	<p class="imgbox">図 : LoadDataReverse概念図
+		<a href="../../../../../data/model/doc-LoadDataReverse-view.png" title="LoadDataReverse概念図"><img src="../../../../../data/model/doc-LoadDataReverse-view.png" alt="LoadDataReverse概念図" width="550" height="330" /></a>
+	</p>
 
-	<h2 id="howto">DataXlsTemplateの作成方法</h2>
+	<h2 id="howto">利用方法</h2>
 	<h3 id="recordlimit">出力レコード数の設定(出力設定)</h3>
 	<p>
-		この機能は、オプションです。documentDefinitionMap.dfprop の dataXlsTemplateMap の recordLimit
-		を設定すると DBFluteクライアント/output/doc/data 配下に dataxls[セクション番号]-xxx.xls という形式の名前で出力されます。
+		この機能は、オプションです。documentDefinitionMap.dfprop の loadDataReverseMap の recordLimit
+		を設定すると DBFluteクライアント/output/doc/data 配下に load-data-[セクション番号]-xxx.xls という形式の名前で出力されます。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#dataxlstemplatemap">dfprop - dataXlsTemplateMap</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#loaddatareversemap">dfprop - loadDataReverseMap</a></div>
 	<h3 id="commoncolumn">共通カラムの出力有無</h3>
 	<p>
 		デフォルトでは共通カラムは出力されません。ReplaceSchema
@@ -114,19 +107,80 @@
 	</p>
 	<div class="relatedpage"><a href="../replaceschema/loaddata.html#defaultvaluemap">データ登録 - デフォルト値の設定(dataprop)</a></div>
 	<p>
-		共通カラムを出力したい場合は、documentDefinitionMap.dfprop の dataXlsTemplateMap の isContainsCommonColumn を有効にします。
+		共通カラムを出力したい場合は、documentDefinitionMap.dfprop の loadDataReverseMap の isContainsCommonColumn を true にします。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#dataxlstemplatemap">dfprop - dataXlsTemplateMap</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#loaddatareversemap">dfprop - loadDataReverseMap</a></div>
 
-	<h2 id="fkorder">FK順序の考慮</h2>
+	<div class="inucolumn">
+		<h3 id="temporary">一時的に利用する機能</h3>
+		<p>
+			この機能は、一時的に利用する機能と言えるため、プロパティを設定して機能を利用した後は、
+			また元に戻しておく、つまり、コメントアウトして無効にしておくことが想定されます。
+		</p>
+	</div>
+
+	<h2 id="replaceschema">ReplaceSchemaのデータとして</h2>
+	<p>
+		この機能はほとんどの目的な、ReplaceSchema のデータ登録で使うデータの土台としての利用と言え、
+		真っ先にヘッダのカラム定義のコピーするなどテンプレートとして利用が思い付きます。
+		さらに、スキーマ上のデータをそのまま ReplaceSchema のデータとして利用することも考えられます。
+	</p>
+	<p>
+		例えば、既に開発中や運用中のプロジェクトで、テストデータをデータベース上でしか管理していないような状態から
+		ReplaceSchema でのテストデータ管理に移行するような場合に、この機能が多いに活躍するでしょう。
+	</p>
+	<h3 id="playsqloutput">playsql 配下に出力</h3>
+	<p>
+		ReplaceSchemaでそのまま利用することが前提にある場合は、ReplaceSchema で利用する playsql
+		ディレクトリ配下に直接出力することができます。documentDefinitionMap.dfprop の loadDataReverseMap の isOutputToPlaySql
+		を true にします。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#loaddatareversemap">dfprop - loadDataReverseMap</a></div>
+	<dl class="textlist">
+		<dt>出力先ディレクトリ</dt>
+		<dd><em class="keyword">DBFluteクライアント/playsql/data/[現在のdataLoadingType]/firstxls</em></dd>
+		<dd>dataLoadingTypeは、デフォルトでは ut</dd>
+		<dt>ファイル名</dt>
+	</dl>
+	<p>	
+		firstxls ディレクトリに出力されます。これは、通常の xls
+		ディレクトリとは違い、TSVやCSVのデータ登録よりも先に実行されるエクセルデータの配置領域です。
+	</p>
+	<div class="relatedpage"><a href="../replaceschema/loadxls.html#xlsfiledir">データ登録(エクセル) - エクセルファイルの配置</a></div>
+	<h3 id="manually">手動による調整</h3>
+	<p>
+		この時点で、シンプルなテーブル構造、シンプルなデータであれば、このまま ReplaceSchema
+		でデータ登録することも可能です。firstxls なので、TSVやCSV、通常のxlsよりも先に登録されます。
+		ただ、実業務では多くの場合そのようにはならないでしょうし、セクションの割り振りなどは業務上のカテゴリを無視してものとなっているため、
+		実際には手動で調整する必要があるでしょう。
+	</p>
+	<ul>
+		<li>業務カテゴリごとにエクセルファイルを構成し直す <span class="freecomment">(ファイル名変えたり、シートを移動したり)</span></li>
+		<li>固定的な環境共通のマスタデータとテストデータを分ける <span class="freecomment">(マスタは common に)</span></li>
+		<li>FK制約の階層をどうしても自動で解決できなかったものの順序を調整</li>
+		<li>(必要に応じて) firstxls から xls に移動 <span class="freecomment">(メインは xls なので)</span></li>
+		<li>この機能でサポートされていないデータ型のデータを調整 <span class="freecomment">(画像などのバイナリ型など)</span></li>
+	</ul>
+	<p>
+		これらの調整ができて、DDLなどの他の要素の準備も整ったら、ReplaceSchemaへの移行完了です。
+	</p>
+	<h3 id="goodoption">適切なオプションで出力</h3>
+	<p>
+		一部データだけだとFK制約で落ちる可能性があり、既に成り立っているテストデータであれば共通カラムのデータも重要であることが考えられます。
+		全てのデータが欲しいのであれば、recordList はマイナス値にし、共通カラムのデータが必要であれば isContainsCommonColumn を true にします。
+	</p>
+	<p>
+		isLoadDataReverse は一時的に true にして、出力し終わったら false に戻していつもの LoadDataReverse
+		に、という利用が想定されます。ぜひ、この機能を活用して ReplaceSchema でのテストデータ管理を実現しましょう。
+	</p>
+	<h3 id="fkorder">FK順序の考慮</h3>
 	<p>
 		ReplaceSchemaのエクセルデータの土台のためという目的を考慮して、FK順序を "ある程度"
 		考慮して順番でテーブルのデータが出力されます。
 		完全に厳密ではありませんが、単純な関連であればそのままの順番で ReplaceSchema に適用できるでしょう。
 	</p>
-	<div class="relatedpage"><a href="#loaddatareverse">this - LoadDataReverse</a></div>
-
-	<h2 id="largename">長いテーブル名の考慮</h2>
+	<div class="relatedpage"><span class="working"><!-- <a href="#loaddatareverse"> -->this - LoadDataReverse<!-- </a> --></span></div>
+	<h3 id="largename">長いテーブル名の考慮</h3>
 	<p>
 		エクセルのシート名に利用できる文字数に、(約)30文字までという制限があります。
 		それを超えるテーブル名がある場合は、ReplaceSchema の長いテーブル名対応の機能に沿った tableNameMap.dataprop
@@ -151,85 +205,9 @@
 	</p>
 	<p>
 		その場合、タスクのメモリ設定を調整することで実行できるようになる可能性がありますが、
-		基本的には DataXlsTemplate そのような大容量のデータを落とすための機能ではありません。
+		基本的には LoadDataReverse そのような大容量のデータを落とすための機能ではありません。
 	</p>
 	<div class="relatedpage"><a href="../index.html#memory">DBFluteタスク - タスクのメモリ設定</a></div>
-
-	<h2 id="loaddatareverse">LoadDataReverse</h2>
-	<h3 id="reverseview">概要</h3>
-	<p>
-		ReplaceSchema のエクセルデータの土台のためという目的をさらに飛躍させて、
-		DB上のデータをそのまま ReplaceSchema で利用しようという機能です。<span class="freecomment">@since 0.9.8.3</span>
-	</p>
-	<div class="relatedpage"><a href="../replaceschema/index.html">ReplaceSchema</a></div>
-	<p>
-		例えば、既に開発中でテストデータがDB上にしか存在していないような場合で、かつ、そのテストデータがテストする上でとても重要というような場合。
-		ReplaceSchema に移行するためには、そのテストデータを抽出して ReplaceSchema がデータ登録できる形式に調整してあげる必要があります。
-		何もなしでそれをやろうとすると大変ですが、DataXlsTemplate の LoadDataReverse がその作業を支援します。
-	</p>
-	<h3 id="loaddatareverseimage">LoadDataReverse概念図</h3>
-	<p class="imgbox">図 : LoadDataReverse概念図
-		<span class="working"><!-- <a href="../../../../../data/model/reps-LoadDataReverse-view.png" title="LoadDataReverse概念図"> --><img src="../../../../../data/model/reps-LoadDataReverse-view.png" alt="LoadDataReverse概念図" width="550" height="330" /><!-- </a> --></span>
-	</p>
-	<h3 id="howtoreverse">利用方法</h3>
-	<p>
-		documentDefinitionMap.dfprop の dataXlsTemplateMap の isLoadDataReverse を有効にし、Docタスクを実行します。
-		すると、DataXlsTemplate が output/doc 配下ではなく、ReplaceSchema の playsql 配下のデータ領域に直接出力されます。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#dataxlstemplatemap">dfprop - dataXlsTemplateMap</a></div>
-	<h3 id="outputreps">ReplaceSchema領域へ出力</h3>
-	<p>
-		Docタスクを実行した際のタスクログ(コンソール or dbflute.log)に、抽出されたテーブルとレコード件数が表示され、
-		エクセルデータが作成されます。(Eclipse上のリフレッシュは手動で)
-	</p>
-	<dl class="textlist">
-		<dt>出力先ディレクトリ</dt>
-		<dd><em class="keyword">DBFluteクライアント/playsql/data/[現在のdataLoadingType]/firstxls</em></dd>
-		<dd>dataLoadingTypeは、デフォルトでは ut</dd>
-		<dt>ファイル名</dt>
-		<dd>loadxls[セクション番号]-xxx.xls</dd>
-		<dd>セクション番号は 01 始まり</dd>
-	</dl>
-	<p>	
-		firstxls ディレクトリに出力されます。これは、通常の xls
-		ディレクトリとは違い、TSVやCSVのデータ登録よりも先に実行されるエクセルデータの配置領域です。
-	</p>
-	<div class="relatedpage"><a href="../replaceschema/loadxls.html#xlsfiledir">データ登録(エクセル) - エクセルファイルの配置</a></div>
-	<p>
-		セクションは、FK制約の階層構造を参考に、他のテーブルへの依存の少ないテーブルから上位のセクションに割り振られます。
-		よって、厳密ではありませんが、FK制約の階層構造のレイヤ数の分、セクション(エクセルファイル)が作成されます。
-		例えば、ExampleDB では、2 階層となり二つのセクションができあがります。実業務の複雑なテーブル構造では、セクションが 7, 8
-		ともっと増えることが想定されます。(10 を超えることもあるでしょう)
-	</p>
-	<p>
-		また、追加スキーマ(AdditionalSchema)やビュー(VIEW)対応のテーブルの出力は抑制されます。
-	</p>
-	<h3 id="manually">手動による調整</h3>
-	<p>
-		この時点で、シンプルなテーブル構造、シンプルなデータであれば、このまま ReplaceSchema
-		でデータ登録することも可能です。firstxls なので、TSVやCSV、通常のxlsよりも先に登録されます。
-		ただ、実業務では多くの場合そのようにはならないでしょうし、セクションの割り振りなどは業務上のカテゴリを無視してものとなっているため、
-		実際には手動で調整する必要があるでしょう。
-	</p>
-	<ul>
-		<li>業務カテゴリごとにエクセルファイルを構成し直す <span class="freecomment">(ファイル名変えたり、シートを移動したり)</span></li>
-		<li>固定的な環境共通のマスタデータとテストデータを分ける <span class="freecomment">(マスタは common に)</span></li>
-		<li>FK制約の階層をどうしても自動で解決できなかったものの順序を調整</li>
-		<li>(必要に応じて) firstxls から xls に移動 <span class="freecomment">(メインは xls なので)</span></li>
-		<li>この機能でサポートされていないデータ型のデータを調整 <span class="freecomment">(画像などのバイナリ型など)</span></li>
-	</ul>
-	<p>
-		これらの調整ができて、DDLなどの他の要素の準備も整ったら、ReplaceSchemaへの移行完了です。
-	</p>
-	<h3 id="goodoption">適切なオプションで出力</h3>
-	<p>
-		一部データだけだとFK制約で落ちる可能性があり、既に成り立っているテストデータであれば共通カラムのデータも重要であることが考えられます。
-		全てのデータが欲しいのであれば、recordList はマイナス値にし、共通カラムのデータが必要であれば isContainsCommonColumn を true にします。
-	</p>
-	<p>
-		isLoadDataReverse は一時的に true にして、出力し終わったら false に戻していつもの DataXlsTemplate
-		に、という利用が想定されます。ぜひ、この機能を活用して ReplaceSchema でのテストデータ管理を実現しましょう。
-	</p>
 
 	<h2 id="spec">細かい仕様</h2>
 	<p>
@@ -248,11 +226,16 @@
 			そのテーブルのデータも出力したい場合は、一時的にそのテーブルも自動生成対象にする必要があります。
 			<div class="relatedpage"><a href="../../../../reference/dfprop/databaseinfo/index.html">databaseInfoMap.dfprop</a></div>
 		</dd>
+		<dt>自動生成対象テーブルのみ</dt>
+		<dd>
+			自動生成対象となっていないテーブルはデータ出力対象外です。もし、対象外のテーブルのデータも出力したい場合は、
+			この機能を利用するときだけ一時的にそのテーブルを自動生成対象にする必要があります。
+		</dd>
 		<dt>ビュー(VIEW)は対象外</dt>
 		<dd>
 			ビュー(VIEW)はデータ出力対象外です。
-			当然のことと言えば当然ですが、ビューをシノニムの代わりに使っているような場合は、MigrateReps
-			タスクのときだけ一時的にその参照先テーブルを出力対象にする必要があります。
+			当然のことと言えば当然ですが、ビューをシノニムの代わりに使っているような場合は、
+			この機能を利用するときだけ一時的にその参照先テーブルを自動生成対象にする必要があります。
 		</dd>
 		<dt>シノニム(SYNONYM)は出力対象</dt>
 		<dd>

@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,タスク,Task,Doc,SchemaHTML,スキーマ情報,テーブル一覧" />
+	<meta name="keywords" content="DBFlute,タスク,Task,Doc,SchemaSyncCheck,スキーマ同期,スキーマの違い,同期チェック,二つのスキーマ,テスト環境とローカル環境" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Docタスク | DBFlute</title>
+	<title>SchemaSyncCheck | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,107 +37,51 @@
 </div>
 
 <div id="content">
-	<h1>Docタスク</h1>
+	<h1>SchemaSyncCheck</h1>
 	<ul class="indexlist">
-		<li><a href="#about">Docタスクとは？</a>
+		<li><a href="#about">SchemaSyncCheckとは？</a></li>
+		<li><a href="#howto">利用方法</a>
 			<ul>
-				<li><a href="#timing">主な実行タイミング</a></li>
+				<li><a href="#temporary">一時的に利用する機能</a></li>
 			</ul>
 		</li>
-		<li><a href="#command">実行コマンド</a></li>
-		<li><a href="#environment">環境構築</a></li>
-		<li><a href="#overview">処理概要</a>
-			<ul>
-				<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-				<li><a href="#schemahtml">2. SchemaHTMLを自動生成</a></li>
-				<li><a href="#historyhtml">3. HistoryHTMLを自動生成</a></li>
-				<li><a href="#lreverse">4. LoadDataReverseの処理 (オプション)</a></li>
-				<li><a href="#synccheck">5. SchemaSyncCheckの処理 (オプション)</a></li>
-				<li><a href="#refresh">6. Eclipseプロジェクトをリフレッシュ(オプション)</a></li>
-			</ul>
-		</li>
-		<li><a href="#variousoption">様々なオプション</a></li>
 	</ul>
 
-	<h2 id="about">Docタスクとは？</h2>
+	<h2 id="about">SchemaSyncCheckとは？</h2>
 	<p>
-		様々なドキュメント(主に <em class="keyword">SchemaHTML</em>)を自動生成するDBFluteタスクです。
+		二つのスキーマの構造が同期されているのかどうかをチェックする機能です<span class="freecomment">(@since 0.9.8.4)</span>。
+		主に以下の二つの目的があります。
 	</p>
-	<h3 id="timing">主な実行タイミング</h3>
-	<ul>
-		<li>実装開始直前 (開発用DBスキーマの作成後)</li>
-		<li>DB変更の発生</li>
-		<li>DBFluteアップグレード直後</li>
-		<li>本番運用後のDB変更</li>
-	</ul>
-
-	<h2 id="command">実行コマンド</h2>
 	<p>
-		DBFluteクライアント配下の <em class="keyword">doc.(bat|sh)</em> をコマンドから実行します。
+		例えば、結合テスト環境とローカル環境で本当に同じスキーマ構造をしているのかどうか不明なときに、確認作業の支援機能として利用できます。
+		本来はそのような状況が発生しないような仕組み作りが必要ですが(例えば、ReplaceSchema を活用するなど)、
+		どうしてもズレが発生する可能性のある仕組みが既にでき上がってしまっている場合などに活躍するでしょう。
 	</p>
 
-	<h2 id="environment">環境構築</h2>
+	<h2 id="howto">利用方法</h2>
 	<p>
-		DBFluteのセットアップが終わった時点から利用できます。
-		但し、スキーマのメタデータがないと無意味ですので、実行前にJDBCタスクが必ず(一度は)実行されていることが前提です。
+		この機能は、オプションです。documentDefinitionMap.dfprop の schemaSyncCheckMap
+		で同期チェック対象スキーマの情報を設定するとDocタスクにてチェック処理が行われるようになります。
+		もし、同期されていない(構造に違いがある)場合は、Docタスクがエラーで中断し
+		DBFluteクライアント/schema 配下に sync-check-result.diffmap という形式の名前で差分が出力されます。
 	</p>
-	<div class="relatedpage"><a href="../../../../../environment/setup/index.html">DBFluteのセットアップ</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#schemasynccheckmap">dfprop - schemaSyncCheckMap</a></div>
+	<p>
+		previous がメインとして接続しているスキーマ、databaseInfoMap.dfprop にて定義されているものとなります。
+		next は、schemaSyncCheckMap で定義した同期チェック対象スキーマです。
+	</p>
+	<p>
+		同期チェックの仕様は、HistoryHTMLでの差分抽出ロジックと(制限も含めて)同じです。
+	</p>
+	<div class="relatedpage"><a href="./historyhtml.html">HistoryHTML</a></div>
 
-	<h2 id="overview">処理概要</h2>
-	<p>
-		Docタスクを実行すると処理が始まります。
-	</p>
-	<ul class="flowlist">
-		<li><a href="#schemaxml">1. SchemaXMLを参照</a></li>
-		<li><a href="#schemahtml">2. SchemaHTMLを自動生成</a></li>
-		<li><a href="#historyhtml">3. HistoryHTMLを自動生成</a></li>
-		<li><a href="#lreverse">4. LoadDataReverseの処理 (オプション)</a></li>
-		<li><a href="#synccheck">5. SchemaSyncCheckの処理 (オプション)</a></li>
-		<li><a href="#refresh">6. Eclipseプロジェクトをリフレッシュ(オプション)</a></li>
-	</ul>
-	<h3 id="schemaxml">1. SchemaXMLを参照</h3>
-	<p>
-		JDBCタスクで出力された SchemaXML (スキーマのメタ情報)を読み込みます。
-	</p>
-	<div class="relatedpage"><a href="../jdbc/index.html">JDBCタスク</a></div>
-	<h3 id="schemahtml">2. SchemaHTMLを自動生成</h3>
-	<p>
-		取得したメタデータを人が見やすい形にして、<em class="keyword">[DBFluteクライアント]/output/doc/schema-[client-project].html</em>
-		に出力します。このHTMLファイルを <em class="keyword">SchemaHTML</em>
-		と言います。このファイルはDocタスク実行のたびに上書きされます。
-	</p>
-	<div class="detailpage"><a href="./schemahtml.html">SchemaHTML</a></div>
-	<h3 id="historyhtml">3. HistoryHTMLを自動生成</h3>
-	<p>
-		スキーマの変更履歴を人が見やすい形にして、<em class="keyword">[DBFluteクライアント]/output/doc/history-[client-project].html</em>
-		に出力します。このHTMLファイルを <em class="keyword">HistoryHTML</em>
-		と言います。このファイルはDocタスク実行のたびに上書きされます。<span class="freecomment">@since 0.9.7.1</span>
-	</p>
-	<div class="detailpage"><a href="./historyhtml.html">HistoryHTML</a></div>
-	<h3 id="lreverse">4. LoadDataReverseの処理 (オプション)</h3>
-	<p>
-		オプションで、DB上の(一部の)データをエクセル形式で閲覧できる、かつ、ReplaceSchema
-		のデータ登録で利用するエクセルデータの作成の土台にもできるエクセルデータを出力します<span class="freecomment">(@since 0.9.8.4)</span>。
-	</p>
-	<div class="detailpage"><a href="./loaddatareverse.html">LoadDataReverse</a></div>
-	<h3 id="synccheck">5. SchemaSyncCheckの処理 (オプション)</h3>
-	<p>
-		オプションで、二つのスキーマの構造が同期されているかどうかをチェックします<span class="freecomment">(@since 0.9.8.4)</span>。
-	</p>
-	<div class="detailpage"><a href="./schemasynccheck.html">SchemaSyncCheck</a></div>
-	<h3 id="refresh">6. Eclipseプロジェクトをリフレッシュ(オプション)</h3>
-	<p>
-		refreshDefinitionMap.dfprop にてリフレッシュ設定がされている場合に、
-		指定されているEclipseプロジェクトをリフレッシュ(更新)します<span class="freecomment">(@since 0.9.8.4)</span>。
-		これにより、ファイルシステム上は生成されていてもEclipse上には反映されていないという状態が発生しません。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/refreshdefinition/index.html">refreshDefinitionMap.dfprop</a></div>
-
-	<h2 id="variousoption">様々なオプション</h2>
-	<p>
-		DBFluteプロパティを利用することで、様々なオプションが利用可能です。
-	</p>
-	<div class="detailpage"><a href="../../../../reference/dfprop/documentdefinition/index.html">documentDefinitionMap.dfprop</a></div>
+	<div class="inucolumn">
+		<h3 id="temporary">一時的に利用する機能</h3>
+		<p>
+			この機能は、一時的に利用する機能と言えるため、プロパティを設定して機能を利用した後は、
+			また元に戻しておく、つまり、コメントアウトして無効にしておくことが想定されます。
+		</p>
+	</div>
 
 </div>
 </div>
