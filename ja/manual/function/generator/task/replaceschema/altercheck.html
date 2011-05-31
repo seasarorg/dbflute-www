@@ -62,7 +62,13 @@
 				<li><a href="#alterbeta">あえて AlterSQL はベタに</a></li>
 			</ul>
 		</li>
-		<li><a href="#changeoutput">ChangeOutput</a></li>
+		<li><a href="#largedev">運用後でもまとまった開発なら</a></li>
+		<li><a href="#changeoutput">ChangeOutput</a>
+			<ul>
+				<li><a href="#nonrequired">ChangeOutputは必要であれば</a></li>
+				<li><a href="#ddldiff">DDLのDIFFにも利用できる</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -345,10 +351,26 @@ dbflute_exampledb
 			今後の分析次第ではまた違った解釈で色々なアプローチを検討していくかもしれません。<span class="freecomment">(2011/05/01現在)</span>
 		</p>
 	</div>
+	<h2 id="largedev">運用後でもまとまった開発なら</h2>
+	<p>
+		運用後の開発でも、ある程度まとまった規模の開発であれば、最終的な AlterSQL を作成する前に、ローカルのDBを何度も
+		ReplaceSchema して更新していくことになるでしょう。
+	</p>
+	<p>
+		そういった場合は、とにかく
+		<em class="keyword">まとまった開発が始まる直前のスキーマ(リリースまでの本番DBと同じ状態)を再現できるように</em>
+		だけしておいて、何も気にせずローカルDBを更新していきましょう。そして、いざ開発が落ち着いてきて AlterSQL
+		を作成したら、一旦ローカル環境を以前のスキーマに戻して AlterCheck を使うと良いでしょう。
+	</p>
+	<p>
+		要は、playsql 配下のリソース(DDLやデータなど)を残しておくことがポイントなのですが、
+		バージョン管理システムでタグ付けしておいてもいいですし、ベタにコピーして退避させておいてもいいでしょう。
+		そのプロジェクトの運用に合った形でうまく AlterCheck を利用できればと。
+	</p>
 
 	<h2 id="changeoutput">ChangeOutput</h2>
 	<p>
-		AlterSQL を(手動)作成するのに、HistoryHTML で PreviousDB との差分を参考にしたいと思っても、そもそも順番が逆転していますから HistoryHTML
+		AlterSQL を(手動)作成するのに HistoryHTML で PreviousDB との差分を参考にしたいと思っても、そもそも順番が逆転していますから HistoryHTML
 		を参考にすることはできません(HistoryHTML に PreviousDB との差分が反映されるのは AlterCheck の後になりますので)。そういう場合は、AlterCheck
 		を実行する前に CreateSQL だけで PreviousDB との差分を出力する機能 <em class="keyword">ChangeOutput</em>
 		が利用できます。
@@ -379,9 +401,28 @@ dbflute_exampledb
 		あくまで、既に別途管理していた差分情報、もしくは、頭の中で整理していた差分情報をより明瞭にするという目的での利用が想定されます。
 	</p>
 	<p>
-		一方で、この機能は、単純に二つのスキーマの構造の差をチェックするのにも利用できます。
-		(同じ構造のはず、と思われる二つのスキーマの同一性を確認したい場合など)
+		一方で、この機能は、単純に二つのDDLの差をチェックする用途にも利用できます。
 	</p>
+	<div class="inucolumn">
+		<h3 id="nonrequired">ChangeOutputは必要であれば</h3>
+		<p>
+			AlterCheck は毎回必ず利用したい機能ですが、ChangeOutput
+			は必要であれば使うという流れで良いでしょう。AlterSQL
+			を作成する前のちょっとした支援機能という位置付けで。
+		</p>
+		<p>
+			もちろん AlterSQL の作成において、ChangeOutput
+			の内容を踏まえて作成する習慣が付いているのであれば遠慮なく毎回利用しましょう。
+		</p>
+	</div>
+	<div class="inucolumn">
+		<h3 id="ddldiff">DDLのDIFFにも利用できる</h3>
+		<p>
+			ChangeOutput は本来の目的とは別に、単に <em class="keyword">二つのDDLの構造の差を確かめる</em>
+			する用途にも利用できます。例えば、同じスキーマを作成する手動で作成されたDDLとツールで自動生成されたDDL、
+			これらが同じ結果をもたらすかどうか確認できます。
+		</p>
+	</div>
 
 </div>
 </div>
