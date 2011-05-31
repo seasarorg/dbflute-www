@@ -45,7 +45,12 @@
 				<li><a href="#loaddatareverse">DataXlsTemplate は LoadDataReverse に</a></li>
 			</ul>
 		</li>
-		<li><a href="#impl">実装上の注意点</a></li>
+		<li><a href="#impl">実装上の注意点</a>
+			<ul>
+				<li><a href="#sqlserverescape">SQLServerの正規表現ワイルドカードをエスケープ</a></li>
+				<li><a href="#optionresolved">LikeSearchOptionで特殊ワイルドカードは実行時解決</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="basic">お約束の注意点</h2>
@@ -65,8 +70,36 @@
 	<div class="detailpage"><a href="../../../manual/function/generator/task/doc/loaddatareverse.html">LoadDataReverse</a></div>
 
 	<h2 id="impl">実装上の注意点</h2>
+	<h3 id="sqlserverescape">SQLServerの正規表現ワイルドカードをエスケープ</h3>
 	<p>
-		特になし
+		SQLServer の LikeSearch では、正規表現ワイルドカードが利用できます。"[a-b]"
+		という風に [ と ] で囲った中で正規表現が利用できます。ConditionBean および ParameterBean
+		で行われている一致の方向が決まったときの自動のエスケープにおいて、
+		その括弧もエスケープをするようにしました。
+	</p>
+	<p>
+		これにて、アプリで自前でエスケープする必要はありませんが、このバージョンにアップグレードする際に既にエスケープ処理が入っていると、
+		二重でエスケープされてしまうので、自前のエスケープは基本的に除去する必要があります。
+	</p>
+	<h3 id="optionresolved">LikeSearchOptionで特殊ワイルドカードは実行時解決</h3>
+	<p>
+		Oracle と DB2 において、LikeSearchOption を ConditionBean や ParameterBean ではなく、
+		単なるエスケープのための文字列ユーティリティクラスとして利用している方のみ意識する項目です。
+		例えば、LikeSearchOption.generateRealValue() というメソッドに心当たりがない方は意識する必要はありません。
+	</p>
+	<p>
+		LikeSearchOption のクラス自体にワイルドカードをエスケープする処理が存在しますが、
+		Oracleの全角のパーセントやSQLServerの正規表現括弧など、DBMS独自のワイルドカードのエスケープは Behavior
+		で検索処理を実行したときに解決されます。
+	</p>
+	<p>
+		それまでのバージョンでは、どのDBMSでも全角のパーセントを固定でエスケープしていましたが、
+		ワイルドカードでない文字をエスケープした場合にエラーになるDBMSが若干存在するため(Apache Derbyなど)、
+		DBMS独自のワイルドカードをエスケープするかどうかの判定を精密に行うために Behavior の中に移行しました。
+	</p>
+	<p>
+		よって、(Oracle, DB2 にて) LikeSearchOption を単なるユーティリティクラスとして利用している場合、
+		つまり option.generateRealValue() メソッドを直接呼び出した場合は、このバージョンから全角のパーセントはエスケープされないのでご注意下さい。
 	</p>
 
 </div>
