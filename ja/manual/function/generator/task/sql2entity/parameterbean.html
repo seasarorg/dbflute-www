@@ -77,6 +77,7 @@
 				<li><a href="#optionderiving">オプションの導出</a></li>
 				<li><a href="#optionset">明示的オプション指定</a></li>
 				<li><a href="#typeadjustment">参照カラムのオプションによる型調整</a></li>
+				<li><a href="#supplement">補助機能である</a></li>
 			</ul>
 		</li>
 		<li><a href="#alternatebool">代理判定メソッドの自動判別</a></li>
@@ -583,11 +584,17 @@ select <span class="abbreviation">...</span>
 		判別対象となるプロパティの基本ルールは以下の通りです。
 	</p>
 	<ul>
-		<li>バインド変数コメント、IFコメント<span class="freecomment">(@since 0.9.8.4)</span>、FORコメント<span class="freecomment">(@since 0.9.8.4)</span>のプロパティ</li>
+		<li>バインド変数コメントでテスト値を持っているもの</li>
+		<li>IFコメントで比較値で型が判別できるもの(できそうなもの) <span class="freecomment">(@since 0.9.8.4)</span></li>
+		<li>FORコメントでカレント変数がバインド変数コメントで利用され判別できるもの <span class="freecomment">(@since 0.9.8.4)</span></li>
 		<li>プロパティのパス指定が "pmb." で始まること</li>
 		<li>プロパティのパス指定がネストしていないこと <span class="freecomment">("pmb.foo" は OK, "pmb.foo.bar" は対象外)</span></li>
 		<li>(バインド変数コメントであれば)テスト値を持っていること</li>
 	</ul>
+	<p>
+		厳密にどこまでが判別対象となるかは若干の曖昧さがあります。
+		実際にやってみて判別されていないものがあれば、同時に明示的なプロパティの指定もするという流れが良いでしょう。
+	</p>
 	<h4>明示的なプロパティの同時利用</h4>
 	<p>
 		明示的なプロパティ指定も同時に利用できます。同じ名前のプロパティが双方に存在した場合は、明示的に指定されたものが(オプションも含めて)優先されます。
@@ -601,7 +608,10 @@ select <span class="abbreviation">...</span>
 	</p>
 	<h3 id="typederiving">プログラム型の導出</h3>
 	<p>
-		プログラム型はテスト値から導出されます。導出ロジックは以下の通りです。
+		プログラム型はバインド変数コメントならテスト値、IFコメントなら比較値から導出されます。
+	</p>
+	<p>
+		導出ロジックは以下の通りです。
 	</p>
 	<dl class="textlist">
 		<dt>Integer</dt><dd>数値リテラルで Integer.MAX_VALUE 以下の値</dd>
@@ -718,7 +728,7 @@ select <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCodeList:ref(MEMBER)*/</span>(<span class="literal">'FML'</span>)
 </code></pre>
-	<h3>補助機能である</h3>
+	<h3 id="supplement">補助機能である</h3>
 	<p>
 		多くのケースにてこの自動判別機能が利用できると想定されます。ただし、ご覧の通りある程度の曖昧さを許容する仕様となっており、
 		項目指定コストを軽減するための(あくまで)補助的な機能と位置付けられています。
