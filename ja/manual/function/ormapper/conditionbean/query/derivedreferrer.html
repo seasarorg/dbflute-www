@@ -90,7 +90,7 @@
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		specify() の後、<em class="keyword">derived[referrer-table]List()</em>
+		query() の後、<em class="keyword">derived[referrer-table]List()</em>
 		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
 		のコールバック実装を引数に指定します。第二引数は、導出カラムを受け取るためのプロパティに対応するエリアス名、
 		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption
@@ -124,11 +124,11 @@ cb.query().derivedPurchaseList().<span class="point">sum</span>(subQuery)
 --
 
 <span class="comment">// "new " (new + 空白一つ) と打って ctrl + space そして enter</span>
-cb.specify().derivedPurchaseList().sum(<span class="point">new </span>)
+cb.query().derivedPurchaseList().sum(<span class="point">new </span>)
 --
 
 <span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
-cb.specify().derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+cb.query().derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         <span class="comment">// TODO Auto-generated method stub</span>
@@ -139,7 +139,7 @@ cb.specify().derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery
 
 <span class="comment">// ctrl (or command) + D で不要な空行やTODOコメントを消して</span>
 <span class="comment">// サブクエリ(子テーブル)の導出カラムと絞り込み条件を指定</span>
-cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+cb.query().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         subCB.specify().<span class="point">columnPurchasePrice()</span>; <span class="comment">// 導出カラムの指定</span>
         subCB.query().setPaymentCompleteFlg_Equal_True(); <span class="comment">// 絞り込み条件</span>
@@ -147,7 +147,7 @@ cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery
 }).greE <span class="comment">// 続けて比較条件を指定、ここでは .greE (GreaterEqual)</span>
 --
 
-cb.specify().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+cb.query().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> query(PurchaseCB subCB) {
         subCB.specify().columnPurchasePrice(); <span class="comment">// 導出カラムの指定</span>
         subCB.query().setPaymentCompleteFlg_Equal_True(); <span class="comment">// 絞り込み条件</span>

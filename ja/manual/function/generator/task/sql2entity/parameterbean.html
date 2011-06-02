@@ -564,7 +564,7 @@ select <span class="abbreviation">...</span>
 	<h2 id="autodetect">プロパティ項目の自動判別</h2>
 	<h3 id="autodetectmark">自動判別マーク</h3>
 	<p>
-		プロパティ項目をバインド変数コメントから(ある程度の精度で)自動判別することが可能です。
+		プロパティ項目をIFコメントやバインド変数コメントなどから(ある程度の精度で)自動判別することが可能です。
 		プロパティ項目の指定と同じくSQLの行コメント形式 "--" にて、"!!AutoDetect!!"
 		と指定すると、バインド変数コメントとそのテスト値からプロパティ名とプログラム型を導出します<span class="freecomment">(@since 0.9.8.0)</span>。
 		例えば、"/*pmb.memberId*/3" といったバインド変数コメントがSQLの中に存在する場合は、テスト値の "3"
@@ -578,22 +578,22 @@ select <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
    <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
 </code></pre>
+	<h4>プロパティの基本ルール</h4>
 	<p>
-		プロパティ項目は、以下の条件に合致するバインド変数コメントからのみ導出されます。
+		判別対象となるプロパティの基本ルールは以下の通りです。
 	</p>
 	<ul>
+		<li>バインド変数コメント、IFコメント<span class="freecomment">(@since 0.9.8.4)</span>、FORコメント<span class="freecomment">(@since 0.9.8.4)</span>のプロパティ</li>
 		<li>プロパティのパス指定が "pmb." で始まること</li>
 		<li>プロパティのパス指定がネストしていないこと <span class="freecomment">("pmb.foo" は OK, "pmb.foo.bar" は対象外)</span></li>
-		<li>テスト値を持っていること</li>
+		<li>(バインド変数コメントであれば)テスト値を持っていること</li>
 	</ul>
-	<p>
-		条件に合致しないバインド変数コメントやIFコメントだけで使っているプロパティ、
-		FORコメントやカレント変数を使ったバインド変数コメントのプロパティなどは対象外です。
-	</p>
+	<h4>明示的なプロパティの同時利用</h4>
 	<p>
 		明示的なプロパティ指定も同時に利用できます。同じ名前のプロパティが双方に存在した場合は、明示的に指定されたものが(オプションも含めて)優先されます。
 		自動判別の結果が要件に合わない場合(プログラム型やオプションなど)において、明示的な指定で上書きして調整します。
 	</p>
+	<h4>予約プロパティ名は対象外</h4>
 	<p>
 		DBFluteで予約されているプロパティ名は対象外です(そもそも利用してはいけません)。
 		例えば、"outsideSqlPath", "entityType", "fetchSize", "pageStartIndex", "pageEndIndex"

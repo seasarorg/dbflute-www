@@ -41,58 +41,72 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
+				<li><a href="#firststep">まずは、PreviousSQL を保存</a></li>
+				<li><a href="#secondstep">そして、AlterCheck を実行</a></li>
 				<li><a href="#conceptimage">AlterCheck概念図</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">AlterCheck の利用方法</a>
 			<ul>
-				<li><a href="#previousdb">(前の)最新の状態に</a></li>
-				<li><a href="#sqlfile">SQLファイルの配置</a></li>
-				<li><a href="#altersql">AlterSQL の実行</a></li>
-				<li><a href="#createsql">CreateSQL の実行</a></li>
+				<li><a href="#saveprevious">PreviousSQL を保存</a></li>
 				<li><a href="#altercheck">AlterCheck の実行</a></li>
-				<li><a href="#successstory">AlterCheck が成功</a></li>
+				<li><a href="#alterng">ALterNGマーク</a></li>
+				<li><a href="#replaceng">ReplaceNGマーク</a></li>
 				<li><a href="#aboutngmark">NGマークは NG の強調</a></li>
 			</ul>
 		</li>
-		<li><a href="#rollbackfailure">ロールバックの失敗</a></li>
-		<li><a href="#loaddata">新DB用のデータファイル</a></li>
 		<li><a href="#outsidescript">AlterSQL で外部スクリプト</a>
 			<ul>
 				<li><a href="#alterbeta">あえて AlterSQL はベタに</a></li>
 			</ul>
 		</li>
-		<li><a href="#largedev">運用後でもまとまった開発なら</a></li>
-		<li><a href="#changeoutput">ChangeOutput</a>
-			<ul>
-				<li><a href="#nonrequired">ChangeOutputは必要であれば</a></li>
-				<li><a href="#ddldiff">DDLのDIFFにも利用できる</a></li>
-			</ul>
-		</li>
+		<li><a href="#ddldiff">DDLのDIFFにも利用できる</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		ReplaceSchema で差分DDLを検証する仕組みがあります<span class="freecomment">(@since 0.9.8.3)</span>。
+		ReplaceSchema で差分DDLを検証する仕組みがあります<span class="freecomment">(@since 0.9.8.4)</span>。
 		<em class="keyword">AlterCheck</em> と呼ばれるこの仕組みを利用してフルDDLと差分SQLをしっかりと整合性をとって運用していくことが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="./livingdbmigration.html">LivingDBMigration</a></div>
 	<p>
-		前のDB(PreviousDB)に差分DDL(AlterSQL)を加えたものと、フルDDL(CreateSQL)の実行結果は同じはずです。ReplaceSchema
-		で差分SQLを実行し、その後でフルDDLを使った通常の ReplaceSchema を実行して差分をチェックします(AlterCheck)。
-		この課程を自動化します。
+		前のDB(PreviousSQL)に差分DDL(AlterSQL)を加えたものと、最新のフルDDL(ReplaceSQL)の実行結果は同じはずです。ReplaceSchema
+		で前のDB(PreviousDB)の状態に戻して差分SQLを実行し、その後でフルDDLを使った通常の ReplaceSchema
+		を実行して差分をチェックします(AlterCheck)。この課程を自動化します。
+	</p>
+	<dl class="keymainlist">
+		<dt>PreviousSQL</dt><dd>前の状態のスキーマをゼロから復元するためのフルDDL(SQLやデータ)</dd>
+		<dt>AlterSQL</dt><dd>本番に適用させる予定の前の状態のスキーマを最新にする差分SQL</dd>
+		<dt>ReplaceSQL</dt><dd>最新の状態のスキーマをゼロから作成するフルDDL(SQLやデータ)</dd>
+	</dl>
+	<h3 id="firststep">まずは、PreviousSQL を保存</h3>
+	<p>
+		DB変更する前の段階で、(今の)最新状態を PreviousSQL として保存するために ReplaceSchema。
 	</p>
 	<dl class="textlist">
-		<dt>AlterSQL を実行</dt>
-		<dd>PreviousDB にそのまま AlterSQL を実行し、メタデータを保持しておきます。</dd>
-		<dt>CreateSQL を実行</dt>
-		<dd>CreateSQL を使った通常の ReplaceSchema 処理を実行し、またその結果のメタデータを取得します。</dd>
-		<dt>二つの結果の差分を検証</dt>
+		<dt>1. PreviousSQL を保存</dt>
+		<dd>現在最新の playsql 直下のフルDDL(+ データ)をコピー保存</dd>
+		<dt>2. PreviousSQL をチェック</dt>
+		<dd>実際に、コピー保存したPreviousSQLで内部的に ReplaceSchema 処理を実行</dd>
+	</dl>
+	<p>
+		この課程を忘れてしまったとしても、バージョン管理システムから PreviouSQL
+		を取得して、所定の位置に手動で配置しても AlterCheck は利用できます。
+	</p>
+	<h3 id="secondstep">そして、AlterCheck を実行</h3>
+	<p>
+		DB変更をしたあと(開発が落ち着いてDBが確定して)、AlterSQL を作成したら ReplaceSchema。
+	</p>
+	<dl class="textlist">
+		<dt>1. PreviousSQL を実行</dt>
+		<dd>PreviousSQL を利用して内部的に ReplaceSchema を実行してスキーマを PreviousDB の状態に</dd>
+		<dt>2. AlterSQL を実行</dt>
+		<dd>PreviousDB に AlterSQL を実行し、メタデータを保持</dd>
+		<dt>3. ReplaceSQL を実行</dt>
+		<dd>ReplaceSQL を使って内部的に ReplaceSchema 処理を実行し、メタデータを取得</dd>
+		<dt>4. 二つの結果の差分を検証</dt>
 		<dd>
-			二つのメタデータをチェックし、差があれば PreviousDB を復元してタスクを中断します。
-			差分を確認して AlterSQL を直し再度 ReplaceSchema タスクを実行、これを差がなくなるまで繰り返します。
-			差がなければ "PreviousDB + AlterSQL" と CreateSQL
-			の結果が同じであるということが確認され、DB は新しいDB構造の状態になります。
+			二つのメタデータをチェックし、差があれば差分情報を出力してタスクを中断します。
 		</dd>
 	</dl>
 	<h3 id="conceptimage">AlterCheck概念図</h3>
@@ -101,112 +115,91 @@
 	</p>
 
 	<h2 id="howto">AlterCheck の利用方法</h2>
-	<h3 id="previousdb">(前の)最新の状態に</h3>
+	<h3 id="saveprevious">PreviousSQL を保存</h3>
 	<p>
-		まずは、Subversion などのバージョン管理からリソースを全て最新の状態にし、もしDB変更に関わる更新がある場合は、
-		(いつも通りの) ReplaceSchema を実行して、DBを(前の)最新の状態にします。この時点で ReplaceSchema
-		は必ず成功していなければなりません。
-	</p>
-	<h3 id="sqlfile">SQLファイルの配置</h3>
-	<p>
-		playsql の配下の migration/alter ディレクトリに AlterSQL を配置します。alter-schema で始まる .sql
-		のファイルが AlterSQL として認識されます。このディレクトリに AlterSQL が一つ以上あると ReplaceSchema が
-		AlterCheck を行います。
+		まずは、(運用後の小さな、もしくは、それなりの規模の)開発が始まる前、DB変更が発生する前の最新の状態を復元できる DDL
+		やデータをまるごと保存します。これが PreviousSQL となり、リリースするまでは本番DBと同じ構造を表現するリソースとなります。
 	</p>
 	<p>
-		また、migration/create に CreateSQL を配置します。playsql 配下の SQL
-		と同じ仕様でそのときのDB変更で変わったファイル、もしくは、新しく追加されたファイルだけを配置します。(いつもの) playsql
-		配下に直接置かないことで、PreviousDB に戻す処理(ロールバック)を自動化することができます。
+		playsql配下に migration というディレクトリを作成し、その直下に <em class="keyword">save-previous.dfmark</em>
+		という名前の空ファイルを作成して(中身は参照されません)、ReplaceSchema
+		を実行します。 このマークファイルがあると ReplaceSchema が <em class="keyword">SavePrevious</em> を行います。
 	</p>
-<pre><span class="codetitle">e.g. AlterSQL と CreateSQL の配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. save-previous.dfmark の作成 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
     |-<span class="point">migration</span>
-    |  |-<span class="point">alter</span>
-    |  |  |-alter-schema-10-basic.sql
-    |  |  |-alter-schema-20-view.sql
-    |  |-<span class="point">create</span>
-    |     |-replace-schema-10-basic.sql
-    |     |-replace-schema-20-view.sql
-    |     |-take-finally.sql
+    |  |-<span class="point">save-previous.dfmark</span>
 </code></pre>
 	<p>
-		また、新DB用のデータファイルも create 配下に配置することができます。
+		すると、playsql 直下の DDL やデータがまるごと playsql/migration/previous
+		配下にコピー保存されます。その後、妥当性をチェックするために、その保存された PreviousSQL
+		を使って内部的に ReplaceSchema が実行されます。正常に終了した場合は、migration
+		配下に previous-OK.dfmark (単に OK であることを強調するマーク)が作成されます。
 	</p>
-	<div class="relatedpage"><a href="#loaddata">this - 新DB用のデータファイル</a></div>
-	<h3 id="altersql">AlterSQL の実行</h3>
-	<p>
-		この状態で ReplaceSchema タスクを実行すると、まずは AlterSQL
-		が実行されます。そもそも AlterSQL が実行に失敗する場合は、ReplaceSchema は PreviousDB
-		にロールバックし、タスクをすぐに中断します。
-	</p>
-	<p>
-		その際、AlterSQL が NG であることを示すマークファイル(AlterNGマーク)が alter 配下に作成されます。
-		お決まりの最後のログメッセージ(Final Message)の情報をもとに AlterSQL
-		を直したら ReplaceSchema を再実行します。AlterCheck が成功、もしくは、別の NG が発生したらこのファイルは削除されます。
-	</p>
-	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
-<pre><span class="codetitle">e.g. AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+<pre><span class="codetitle">e.g. PreviousSQL が正常に保存された場合 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
-    |-migration</span>
-    |  |-alter
-    |  |  |-alter-schema-10-basic.sql
-    |  |  |-alter-schema-20-view.sql
-    |  |  |-<span class="point">alter-NG.dfmark</span>
-    |  |-create
+    |-<span class="point">migration</span>
+    |  |-<span class="point">previous</span>
+    |     |-data
+    |     |  |-<span class="abbreviation">...</span>
     |     |-replace-schema-10-basic.sql
     |     |-replace-schema-20-view.sql
-    |     |-take-finally.sql
+    |     |-<span class="abbreviation">...</span>
+    |  |-<span class="point">previous-OK.dfmark</span>
 </code></pre>
 	<p>
-		AlterSQL の実行が終わると、DBFlute はその状態のメタデータを取得し、migration/schema 配下に SchemaXML
-		として出力します。ここでの SchemaXML は内部的なリソースとして扱われるため、通常は意識する必要はありません。
-	</p>
-	<h3 id="createsql">CreateSQL の実行</h3>
-	<p>
-		その後 DBFlute は、PreviousDB へのロールバックを実現するために、playsql 配下の上書き予定の SQL を migration/tmp/previous
-		ディレクトリにバックアップし、代わりに CreateSQL を playsql
-		配下に配置します。この一時ディレクトリも通常意識する必要はありません。そして、いつもの ReplaceSchema
-		の処理を実行されます。つまり、CreateSQL を使った最新のDBの状態への Replace となります。
+		逆に、保存した PreviousSQL がそもそもエラーになってしまうような場合は、previous-NG.dfmark
+		が作成されます。再実行で SavePrevious が正常に終了したら自動的に削除されます。
 	</p>
 	<p>
-		この処理でエラーが発生した(CreateSQLやデータファイルに不備があった)場合、バックアップされた SQL などが元の場所に戻り、PreviousDB
-		へロールバックされます。その際、CreateSQL が NG であることを示すマークファイル(CreateNGマーク)が create 配下に作成されます。
-		最後のログメッセージ(Final Message)の情報をもとに CreateSQL やデータファイルを直して再実行します。
-		AlterCheck が成功、もしくは、別の NG が発生したらこのファイルは削除されます。
+		万が一、開発前にこの課程を忘れてしまった場合でも、後でバージョン管理システムから直前のバージョンを取得して、
+		この課程をやり直しても AlterCheck は利用できます。また、この仕組みでなくても、要は migration/previous
+		配下に PreviousDB を復元できる DDL が手動でも配置されればOKです。
 	</p>
-	<div class="relatedpage"><a href="#loaddata">this - 新DB用のデータファイル</a></div>
-	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
 	<h3 id="altercheck">AlterCheck の実行</h3>
 	<p>
-		実行に成功した場合は、DBFlute は再度その状態のメタデータを取得し、AlterSQL 実行直後のものと比べます。差があれば、AlterSQL と CreateSQL
-		が不整合の状態にあると言え、バックアップされた SQL などが元の場所に戻り、PreviousDB へロールバックされ、AlterNGマークが作成されてタスクは終了します。
+		そして、DB変更した後、開発が落ち着いてDB構造も固まって AlterSQL
+		を作成した(する)タイミングにて、現在の最新状態と PreviousDB + AlterSQL の整合性をチェックします。
 	</p>
 	<p>
-		そのときの差分情報は、migration/schema 配下に alter-check-result.diffmap というテキストファイルに出力されます。
-		これを参考に AlterSQL を直し、再度 ReplaceSchema を実行します。
+		playsql/migration配下に alter というディレクトリを作成し、そこに AlterSQL を配置します。alter-schema で始まる .sql
+		のファイルが AlterSQL として認識されます。このディレクトリに AlterSQL が一つ以上あると ReplaceSchema が
+		AlterCheck を行います。
 	</p>
-<pre><span class="codetitle">e.g. AlterSQL の実行自体にエラーがあることを示すAlterNGマーク @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterSQL の配置 @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-<span class="point">alter</span>
+    |  |  |-<span class="point">alter-schema.sql</span>
+    |  |-previous
+    |  |-<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		まずは、この時点では AlterSQL の中身は空っぽでも構いません。PreviousDB に AlterSQL
+		を実行した結果と、ReplaceSQL で作成した結果に不整合(食い違い)がある場合は ReplaceSchema は中断され、
+		その差分が migration/schema 配下に <em class="keyword">alter-check-result.diffmap</em>
+		(map形式のテキストファイル) に出力されます。それを参考に、AlterSQL をトライアンドエラーで作成しても良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. AlterSQL の配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
     |-migration
     |  |-alter
-    |  |  |-alter-schema-10-basic.sql
-    |  |  |-alter-schema-20-view.sql
-    |  |  |-alter-NG.dfmark
-    |  |-create
-    |  |  |-replace-schema-10-basic.sql
-    |  |  |-replace-schema-20-view.sql
-    |  |  |-take-finally.sql
+    |  |  |-alter-schema.sql
+    |  |-previous
+    |  |-<span class="abbreviation">...</span>
     |  |-schema
     |     |-<span class="point">alter-check-result.diffmap</span>
 </code></pre>
 	<p>
-		この差分結果は、HistoryHTML で利用されているものと同様のものです。ここでは、"PreviousDB + AlterSQL" から "CreateSQL"
+		この差分結果は、HistoryHTML で利用されているものと同様のものです。ここでは、"PreviousDB + AlterSQL" から "ReplaceSQL"
 		への差、ということで出力されます。例えば、テーブルが追加されている(ADD)とある場合、AlterSQL でそのテーブルを ADD
 		するように修正、と解釈できます。
 	</p>
@@ -215,16 +208,48 @@ dbflute_exampledb
 		など、基本的にアプリに影響のない微修正ものに関しては差として認識されません。
 	</p>
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
-	<h3 id="successstory">AlterCheck が成功</h3>
 	<p>
-		AlterCheck が成功した場合は、CreateSQLは playsql 配下に配置された状態のままとなり、そのままコミットできる形になります。
-		AlterSQL は、migration/history 配下の日付付きのディレクトリに保存のために配置されます。
-		バックアップされた PreviousDB 用の SQL や一時的に利用していたリソース(差分結果やSchemaXMLなど)は削除されます。
+		AlterSQL を修正しながら、結果が一致するまで ReplaceSchema
+		を叩き続けます。一致したら、AlterSQL の妥当性がチェックされたということで、チェック済み AlterSQL
+		として migration/history 配下に保存されます(alter 配下から移動します)。
 	</p>
 	<p>
-		最後のログメッセージには、AlterSQL の実行結果と CreateSQL の実行結果の両方が表示され正常終了となります。
+		タスク実行がエラーになったとき、原因が実行時エラーなのか、不整合なのか、または別のエラーなのか、コンソールやタスクログの
+		<em class="keyword">最後のログメッセージ(Final Message)</em> でそれらを確認することができます。
 	</p>
 	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
+	<h3 id="alterng">ALterNGマーク</h3>
+	<p>
+		そもそも AlterSQL が文法的に間違っていて実行時にエラーとなった場合、および、不整合があって差分が発生した場合、
+		migration 配下に alter-NG.dfmark というファイルが作成されます。これは単に AlterSQL
+		がダメだったよ、ということをおおげさに表現するマークファイルです。AlterCheck が成功したら自動的に削除されます。
+	</p>
+<pre><span class="codetitle">e.g. AlterNGマーク @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-alter
+    |  |  |-alter-schema-10-basic.sql
+    |  |  |-alter-schema-20-view.sql
+    |  |-<span class="point">alter-NG.dfmark</span>
+</code></pre>
+	<h3 id="replaceng">ReplaceNGマーク</h3>
+	<p>
+		AlterCheck 実行時の最新状態、つまり playsql 直下のDDLやデータが文法的に間違っていて実行時にエラーとなる場合、
+		migration 配下に replace-NG.dfmark というファイルが作成されます。これは単に ReplaceSQL
+		がダメだったよ、ということをおおげさに表現するマークファイルです。AlterCheck が成功したら自動的に削除されます。
+	</p>
+<pre><span class="codetitle">e.g. ReplaceNGマーク @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-alter
+    |  |  |-alter-schema-10-basic.sql
+    |  |  |-alter-schema-20-view.sql
+    |  |-<span class="point">replace-NG.dfmark</span>
+</code></pre>
 	<div class="inucolumn">
 		<h3 id="aboutngmark">NGマークは NG の強調</h3>
 		<p>
@@ -236,70 +261,6 @@ dbflute_exampledb
 			あまりコンソールを見ずに(エラーに気付かずに)先に進んでしまうこともありえるので、おおげさにマークファイルを出力しています。
 		</p>
 	</div>
-
-	<h2 id="rollbackfailure">ロールバックの失敗</h2>
-	<p>
-		そもそもロールバックが失敗するような状態で AlterCheck を利用することが基本的に許されませんが、万が一ロールバックの失敗した場合は、
-		そもそも PreviousDB の環境が確立されていないということで、PreviousDB が NG 状態であることを示すマークファイル(PreviousNGマーク)が
-		migration 配下に作成されます。このマークがあると、ReplaceSchema は AlterCheck を行わず、いつも通りの ReplaceSchema
-		を実行します。つまり、PreviousDB のためのリソースを使った ReplaceSchema が実行されます。
-	</p>
-	<p>
-		PreviousDB が確立した状態になるまで AlterCheck は封印されます。
-		成功すると自動的にPreviousNGマークは削除され、AlterCheck を使った ReplaceSchema が実行できるようになります。
-	</p>
-	<div class="inucolumn">
-		<h3>ロールバックがポイント</h3>
-		<p>
-			PreviousDB へ自動でロールバックされることが、この機能のポイントであると言えるでしょう。
-			<em class="keyword">AlterSQL や CreateSQL (or データファイル) の修正の後にすぐに再実行して検証する</em>
-			というワークフローを実践することができるのです。
-		</p>
-		<p>
-			やり方がベタなので、少々ロールバックの処理自体に時間が取られますが、中途半端な状態になってしまうとそもそも AlterSQL
-			を適用できなくなってしまいますし、元に戻すのに若干の面倒な作業が発生してしまいます。
-		</p>
-		<p>
-			ちなみに、ロールバック処理自身の情報は、最後のログメッセージ(Final Message)にはロールバック自体がエラーになるときを除いては登場しません。
-			FinalInfo では AlterSQL や CreateSQL の結果が優先して表示されます。
-		</p>
-		<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
-	</div>
-
-	<h2 id="loaddata">新DB用のデータファイル</h2>
-	<p>
-		DB変更の影響はSQLだけでなく、エクセルデータやTSVデータなどのデータファイルにも及びます。
-		新しい構造のために修正されたデータファイルは、migration/create/data
-		配下に配置します。そこからの配置はいつものデータファイルの配置(playsql/data)と同じ仕様です。
-	</p>
-	<p>
-		また、dataprop ファイルも同じように新しい構造用に配置することができます。
-	</p>
-<pre><span class="codetitle">e.g. 新しい構造のためのデータファイルの配置 @playsql</span><code>
-dbflute_exampledb
- |-playsql
-    |-data
-    |-migration
-    |  |-alter
-    |  |  |-alter-schema-10-basic.sql
-    |  |  |-alter-schema-20-view.sql
-    |  |  |-alter-NG.dfmark
-    |  |-create
-    |  |  |-data
-    |  |  |  |-common
-    |  |  |  |  |-xls
-    |  |  |  |     |-<span class="point">10-master.xls</span>
-    |  |  |  |-ut
-    |  |  |     |-tsv
-    |  |  |     |  |-UTF-8
-    |  |  |     |     |-<span class="point">10-PURCHASE.tsv</span>
-    |  |  |     |-xls
-    |  |  |        |-<span class="point">20-member.xls</span>
-    |  |  |        |-<span class="point">defaultValueMap.dataprop</span>
-    |  |  |-replace-schema-10-basic.sql
-    |  |  |-replace-schema-20-view.sql
-    |  |  |-take-finally.sql
-</code></pre>
 
 	<h2 id="outsidescript">AlterSQL で外部スクリプト</h2>
 	<p>
@@ -320,10 +281,6 @@ dbflute_exampledb
     |  |  |-alter-schema-10-basic.sql
     |  |  |-alter-schema-20-view.sql
     |  |  |-<span class="point">alter-schema-30-special.sh</span>
-    |  |-create
-    |  |  |-replace-schema-10-basic.sql
-    |  |  |-replace-schema-20-view.sql
-    |  |  |-take-finally.sql
 </code></pre>
 	<p>
 		スクリプトの exitCode が 0 以外の場合は、スクリプト実行エラーとみなされます。
@@ -351,74 +308,11 @@ dbflute_exampledb
 			今後の分析次第ではまた違った解釈で色々なアプローチを検討していくかもしれません。<span class="freecomment">(2011/05/01現在)</span>
 		</p>
 	</div>
-	<h2 id="largedev">運用後でもまとまった開発なら</h2>
-	<p>
-		運用後の開発でも、ある程度まとまった規模の開発であれば、最終的な AlterSQL を作成する前に、ローカルのDBを何度も
-		ReplaceSchema して更新していくことになるでしょう。
-	</p>
-	<p>
-		そういった場合は、とにかく
-		<em class="keyword">まとまった開発が始まる直前のスキーマ(リリースまでの本番DBと同じ状態)を再現できるように</em>
-		だけしておいて、何も気にせずローカルDBを更新していきましょう。そして、いざ開発が落ち着いてきて AlterSQL
-		を作成したら、一旦ローカル環境を以前のスキーマに戻して AlterCheck を使うと良いでしょう。
-	</p>
-	<p>
-		要は、playsql 配下のリソース(DDLやデータなど)を残しておくことがポイントなのですが、
-		バージョン管理システムでタグ付けしておいてもいいですし、ベタにコピーして退避させておいてもいいでしょう。
-		そのプロジェクトの運用に合った形でうまく AlterCheck を利用できればと。
-	</p>
 
-	<h2 id="changeoutput">ChangeOutput</h2>
-	<p>
-		AlterSQL を(手動)作成するのに HistoryHTML で PreviousDB との差分を参考にしたいと思っても、そもそも順番が逆転していますから HistoryHTML
-		を参考にすることはできません(HistoryHTML に PreviousDB との差分が反映されるのは AlterCheck の後になりますので)。そういう場合は、AlterCheck
-		を実行する前に CreateSQL だけで PreviousDB との差分を出力する機能 <em class="keyword">ChangeOutput</em>
-		が利用できます。
-	</p>
-	<p>
-		migration/create 配下に CreateSQL を配置して ReplaceSchema を実行すると、その CreateSQL と PreviousDB
-		との差分が出力されます。実行後は PreviousDB の状態にロールバックされます。CreateSQL
-		やロールバックエラーになった場合の挙動に関しては、AlterCheck と同様です。
-	</p>
-	<p>
-		差分結果は、migration/schema 配下の change-output-result.diffmap
-		というテキストファイルに出力されますので、AlterSQL の作成の参考として差分を確認すると良いでしょう。
-	</p>
-<pre><span class="codetitle">e.g. PreviousDB との差分を出力 @playsql</span><code>
-dbflute_exampledb
- |-playsql
-    |-data
-    |-migration
-    |  |-create
-    |  |  |-replace-schema-10-basic.sql
-    |  |  |-replace-schema-20-view.sql
-    |  |  |-take-finally.sql
-    |  |-schema
-    |     |-<span class="point">change-output-result.diffmap</span> <span class="comment">// PreviousDB との差分</span>
-</code></pre>
-	<p>
-		ただし、差分を全く把握せずにDB変更を進めて、この機能での差分結果にまるまる寄りかかって AlterSQL を作成するというのは、そもそもあまり健康的なことではありません。
-		あくまで、既に別途管理していた差分情報、もしくは、頭の中で整理していた差分情報をより明瞭にするという目的での利用が想定されます。
-	</p>
-	<p>
-		一方で、この機能は、単純に二つのDDLの差をチェックする用途にも利用できます。
-	</p>
 	<div class="inucolumn">
-		<h3 id="nonrequired">ChangeOutputは必要であれば</h3>
+		<h2 id="ddldiff">DDLのDIFFにも利用できる</h2>
 		<p>
-			AlterCheck は毎回必ず利用したい機能ですが、ChangeOutput
-			は必要であれば使うという流れで良いでしょう。AlterSQL
-			を作成する前のちょっとした支援機能という位置付けで。
-		</p>
-		<p>
-			もちろん AlterSQL の作成において、ChangeOutput
-			の内容を踏まえて作成する習慣が付いているのであれば遠慮なく毎回利用しましょう。
-		</p>
-	</div>
-	<div class="inucolumn">
-		<h3 id="ddldiff">DDLのDIFFにも利用できる</h3>
-		<p>
-			ChangeOutput は本来の目的とは別に、単に <em class="keyword">二つのDDLの構造の差を確かめる</em>
+			AlterCheck は本来の目的とは別に、単に <em class="keyword">二つのDDLの構造の差を確かめる</em>
 			する用途にも利用できます。例えば、同じスキーマを作成する手動で作成されたDDLとツールで自動生成されたDDL、
 			これらが同じ結果をもたらすかどうか確認できます。
 		</p>
