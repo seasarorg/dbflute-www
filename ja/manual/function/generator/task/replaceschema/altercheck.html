@@ -41,23 +41,24 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
-				<li><a href="#firststep">まずは、PreviousSQL を保存</a></li>
+				<li><a href="#worddef">言葉の定義</a></li>
+				<li><a href="#firststep">まずは、PreviousDDL を保存</a></li>
 				<li><a href="#secondstep">そして、AlterCheck を実行</a></li>
 				<li><a href="#conceptimage">AlterCheck概念図</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">AlterCheck の利用方法</a>
 			<ul>
-				<li><a href="#saveprevious">PreviousSQL を保存</a></li>
+				<li><a href="#saveprevious">PreviousDDL を保存</a></li>
 				<li><a href="#altercheck">AlterCheck の実行</a></li>
 				<li><a href="#alterng">ALterNGマーク</a></li>
-				<li><a href="#replaceng">ReplaceNGマーク</a></li>
+				<li><a href="#nextng">NextNGマーク</a></li>
 				<li><a href="#aboutngmark">NGマークは NG の強調</a></li>
 			</ul>
 		</li>
-		<li><a href="#outsidescript">AlterSQL で外部スクリプト</a>
+		<li><a href="#outsidescript">AlterDDL で外部スクリプト</a>
 			<ul>
-				<li><a href="#alterbeta">あえて AlterSQL はベタに</a></li>
+				<li><a href="#alterbeta">あえて AlterDDL はベタに</a></li>
 			</ul>
 		</li>
 		<li><a href="#ddldiff">DDLのDIFFにも利用できる</a></li>
@@ -66,34 +67,37 @@
 	<h2 id="overview">概要</h2>
 	<p>
 		ReplaceSchema で差分DDLを検証する仕組みがあります<span class="freecomment">(@since 0.9.8.4)</span>。
-		<em class="keyword">AlterCheck</em> と呼ばれるこの仕組みを利用してフルDDLと差分SQLをしっかりと整合性をとって運用していくことが推奨されます。
+		<em class="keyword">AlterCheck</em> と呼ばれるこの仕組みを利用してフルDDLと差分DDLをしっかりと整合性をとって運用していくことが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="./livingdbmigration.html">LivingDBMigration</a></div>
 	<p>
-		前のDB(PreviousSQL)に差分DDL(AlterSQL)を加えたものと、最新のフルDDL(ReplaceSQL)の実行結果は同じはずです。ReplaceSchema
-		で前のDB(PreviousDB)の状態に戻して差分SQLを実行し、その後でフルDDLを使った通常の ReplaceSchema
-		を実行して差分をチェックします(AlterCheck)。この課程を自動化します。
+		<em class="keyword">前のDB(Previous-DB) + 差分DDL(AlterDDL) = 最新のフルDDL(NextDDL)</em>
 	</p>
-	<dl class="textlist">
-		<dt>PreviousSQL</dt>
-		<dd>前の状態のスキーマをゼロから復元するためのフルDDL(SQLやデータ)</dd>
-		<dd>playsql/migration/previous 配下</dd>
-		<dt>AlterSQL</dt>
-		<dd>本番に適用させる予定の前の状態のスキーマを最新にする差分SQL</dd>
-		<dd>playsql/migration/alter 配下</dd>
-		<dt>ReplaceSQL</dt>
-		<dd>最新の状態のスキーマをゼロから作成するフルDDL(SQLやデータ)</dd>
-		<dd>playsql 配下 (いつもの場所)</dd>
-	</dl>
-	<h3 id="firststep">まずは、PreviousSQL を保存</h3>
 	<p>
-		DB変更する前の段階で、(今の)最新状態を PreviousSQL として保存するために ReplaceSchema。
+		前のDBに差分DDLを加えたものと、最新のフルDDLの実行結果は同じはずです。ReplaceSchema
+		で前のDBの状態に戻して差分DDLを実行し、その後で最新のフルDDLで最新のDBを作って差分をチェックします。この課程を自動化します。
+	</p>
+	<h3 id="worddef">言葉の定義</h3>
+	<dl class="textlist">
+		<dt>PreviousDDL</dt>
+		<dd>前の状態のスキーマをゼロから復元するためのフルDDL (+ データ)</dd>
+		<dd>playsql/migration/previous 配下</dd>
+		<dt>AlterDDL</dt>
+		<dd>本番に適用させる予定の前の状態のスキーマを最新にする差分DDL (+ スクリプト)</dd>
+		<dd>playsql/migration/alter 配下</dd>
+		<dt>NextDDL</dt>
+		<dd>最新の状態のスキーマをゼロから作成するフルDDL (+ データ)</dd>
+		<dd>playsql 配下 ※いつもの場所、本線(メイン)のDDL</dd>
+	</dl>
+	<h3 id="firststep">まずは、PreviousDDL を保存</h3>
+	<p>
+		DB変更する前の段階で、(今の)最新状態を PreviousDDL として保存するために ReplaceSchema。
 	</p>
 	<dl class="textlist">
-		<dt>1. PreviousSQL を保存</dt>
+		<dt>1. PreviousDDL を保存</dt>
 		<dd>現在最新の playsql 直下のフルDDL(+ データ)をコピー保存</dd>
-		<dt>2. PreviousSQL をチェック</dt>
-		<dd>実際に、コピー保存したPreviousSQLで内部的に ReplaceSchema 処理を実行</dd>
+		<dt>2. PreviousDDL をチェック</dt>
+		<dd>実際に、コピー保存したPreviousDDLで内部的に ReplaceSchema 処理を実行</dd>
 	</dl>
 	<p>
 		この課程を忘れてしまったとしても、バージョン管理システムから PreviouSQL
@@ -101,15 +105,15 @@
 	</p>
 	<h3 id="secondstep">そして、AlterCheck を実行</h3>
 	<p>
-		DB変更をしたあと(開発が落ち着いてDBが確定して)、AlterSQL を作成したら ReplaceSchema。
+		DB変更をしたあと(開発が落ち着いてDBが確定して)、AlterDDL を作成したら ReplaceSchema。
 	</p>
 	<dl class="textlist">
-		<dt>1. PreviousSQL を実行</dt>
-		<dd>PreviousSQL を利用して内部的に ReplaceSchema を実行してスキーマを PreviousDB の状態に</dd>
-		<dt>2. AlterSQL を実行</dt>
-		<dd>PreviousDB に AlterSQL を実行し、メタデータを保持</dd>
-		<dt>3. ReplaceSQL を実行</dt>
-		<dd>ReplaceSQL を使って内部的に ReplaceSchema 処理を実行し、メタデータを取得</dd>
+		<dt>1. PreviousDDL を実行</dt>
+		<dd>PreviousDDL を利用して内部的に ReplaceSchema を実行してスキーマを Previous-DB の状態に</dd>
+		<dt>2. AlterDDL を実行</dt>
+		<dd>Previous-DB に AlterDDL を実行し、メタデータを保持</dd>
+		<dt>3. NextDDL を実行</dt>
+		<dd>NextDDL を使って内部的に ReplaceSchema 処理を実行し、メタデータを取得</dd>
 		<dt>4. 二つの結果の差分を検証</dt>
 		<dd>
 			二つのメタデータをチェックし、差があれば差分情報を出力してタスクを中断します。
@@ -121,10 +125,10 @@
 	</p>
 
 	<h2 id="howto">AlterCheck の利用方法</h2>
-	<h3 id="saveprevious">PreviousSQL を保存</h3>
+	<h3 id="saveprevious">PreviousDDL を保存</h3>
 	<p>
 		まずは、(運用後の小さな、もしくは、それなりの規模の)開発が始まる前、DB変更が発生する前の最新の状態を復元できる DDL
-		やデータをまるごと保存します。これが PreviousSQL となり、リリースするまでは本番DBと同じ構造を表現するリソースとなります。
+		やデータをまるごと保存します。これが PreviousDDL となり、リリースするまでは本番DBと同じ構造を表現するリソースとなります。
 	</p>
 	<p>
 		playsql配下に migration というディレクトリを作成し、その直下に <em class="keyword">save-previous.dfmark</em>
@@ -140,11 +144,11 @@ dbflute_exampledb
 </code></pre>
 	<p>
 		すると、playsql 直下の DDL やデータがまるごと playsql/migration/previous
-		配下にコピー保存されます。その後、妥当性をチェックするために、その保存された PreviousSQL
+		配下にコピー保存されます。その後、妥当性をチェックするために、その保存された PreviousDDL
 		を使って内部的に ReplaceSchema が実行されます。正常に終了した場合は、migration
 		配下に previous-OK.dfmark (単に OK であることを強調するマーク)が作成されます。
 	</p>
-<pre><span class="codetitle">e.g. PreviousSQL が正常に保存された場合 @playsql</span><code>
+<pre><span class="codetitle">e.g. PreviousDDL が正常に保存された場合 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -158,25 +162,25 @@ dbflute_exampledb
     |  |-<span class="point">previous-OK.dfmark</span>
 </code></pre>
 	<p>
-		逆に、保存した PreviousSQL がそもそもエラーになってしまうような場合は、previous-NG.dfmark
+		逆に、保存した PreviousDDL がそもそもエラーになってしまうような場合は、previous-NG.dfmark
 		が作成されます。再実行で SavePrevious が正常に終了したら自動的に削除されます。
 	</p>
 	<p>
 		万が一、開発前にこの課程を忘れてしまった場合でも、後でバージョン管理システムから直前のバージョンを取得して、
 		この課程をやり直しても AlterCheck は利用できます。また、この仕組みでなくても、要は migration/previous
-		配下に PreviousDB を復元できる DDL が手動でも配置されればOKです。
+		配下に Previous-DB を復元できる DDL が手動でも配置されればOKです。
 	</p>
 	<h3 id="altercheck">AlterCheck の実行</h3>
 	<p>
-		そして、DB変更した後、開発が落ち着いてDB構造も固まって AlterSQL
-		を作成した(する)タイミングにて、現在の最新状態と PreviousDB + AlterSQL の整合性をチェックします。
+		そして、DB変更した後、開発が落ち着いてDB構造も固まって AlterDDL
+		を作成した(する)タイミングにて、現在の最新状態と Previous-DB + AlterDDL の整合性をチェックします。
 	</p>
 	<p>
-		playsql/migration配下に alter というディレクトリを作成し、そこに AlterSQL を配置します。alter-schema で始まる .sql
-		のファイルが AlterSQL として認識されます。このディレクトリに AlterSQL が一つ以上あると ReplaceSchema が
+		playsql/migration配下に alter というディレクトリを作成し、そこに AlterDDL を配置します。alter-schema で始まる .sql
+		のファイルが AlterDDL として認識されます。このディレクトリに AlterDDL が一つ以上あると ReplaceSchema が
 		AlterCheck を行います。
 	</p>
-<pre><span class="codetitle">e.g. AlterSQL の配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterDDL の配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -187,12 +191,12 @@ dbflute_exampledb
     |  |-<span class="abbreviation">...</span>
 </code></pre>
 	<p>
-		まずは、この時点では AlterSQL の中身は空っぽでも構いません。PreviousDB に AlterSQL
-		を実行した結果と、ReplaceSQL で作成した結果に不整合(食い違い)がある場合は ReplaceSchema は中断され、
+		まずは、この時点では AlterDDL の中身は空っぽでも構いません。Previous-DB に AlterDDL
+		を実行した結果と、NextDDL で作成した結果に不整合(食い違い)がある場合は ReplaceSchema は中断され、
 		その差分が migration/schema 配下に <em class="keyword">alter-check-result.diffmap</em>
-		(map形式のテキストファイル) に出力されます。それを参考に、AlterSQL をトライアンドエラーで作成しても良いでしょう。
+		(map形式のテキストファイル) に出力されます。それを参考に、AlterDDL をトライアンドエラーで作成しても良いでしょう。
 	</p>
-<pre><span class="codetitle">e.g. AlterSQL の配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterDDL の配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -205,8 +209,8 @@ dbflute_exampledb
     |     |-<span class="point">alter-check-result.diffmap</span>
 </code></pre>
 	<p>
-		この差分結果は、HistoryHTML で利用されているものと同様のものです。ここでは、"PreviousDB + AlterSQL" から "ReplaceSQL"
-		への差、ということで出力されます。例えば、テーブルが追加されている(ADD)とある場合、AlterSQL でそのテーブルを ADD
+		この差分結果は、HistoryHTML で利用されているものと同様のものです。ここでは、"Previous-DB + AlterDDL" から "NextDDL"
+		への差、ということで出力されます。例えば、テーブルが追加されている(ADD)とある場合、AlterDDL でそのテーブルを ADD
 		するように修正、と解釈できます。
 	</p>
 	<p>
@@ -215,8 +219,8 @@ dbflute_exampledb
 	</p>
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
 	<p>
-		AlterSQL を修正しながら、結果が一致するまで ReplaceSchema
-		を叩き続けます。一致したら、AlterSQL の妥当性がチェックされたということで、チェック済み AlterSQL
+		AlterDDL を修正しながら、結果が一致するまで ReplaceSchema
+		を叩き続けます。一致したら、AlterDDL の妥当性がチェックされたということで、チェック済み AlterDDL
 		として migration/history 配下に保存されます(alter 配下から移動します)。
 	</p>
 	<p>
@@ -226,8 +230,8 @@ dbflute_exampledb
 	<div class="relatedpage"><a href="../index.html#finalmessage">最後のログメッセージ</a></div>
 	<h3 id="alterng">ALterNGマーク</h3>
 	<p>
-		そもそも AlterSQL が文法的に間違っていて実行時にエラーとなった場合、および、不整合があって差分が発生した場合、
-		migration 配下に alter-NG.dfmark というファイルが作成されます。これは単に AlterSQL
+		そもそも AlterDDL が文法的に間違っていて実行時にエラーとなった場合、および、不整合があって差分が発生した場合、
+		migration 配下に alter-NG.dfmark というファイルが作成されます。これは単に AlterDDL
 		がダメだったよ、ということをおおげさに表現するマークファイルです。AlterCheck が成功したら自動的に削除されます。
 	</p>
 <pre><span class="codetitle">e.g. AlterNGマーク @playsql</span><code>
@@ -240,13 +244,13 @@ dbflute_exampledb
     |  |  |-alter-schema-20-view.sql
     |  |-<span class="point">alter-NG.dfmark</span>
 </code></pre>
-	<h3 id="replaceng">ReplaceNGマーク</h3>
+	<h3 id="nextng">NextNGマーク</h3>
 	<p>
 		AlterCheck 実行時の最新状態、つまり playsql 直下のDDLやデータが文法的に間違っていて実行時にエラーとなる場合、
-		migration 配下に replace-NG.dfmark というファイルが作成されます。これは単に ReplaceSQL
+		migration 配下に next-NG.dfmark というファイルが作成されます。これは単に NextDDL
 		がダメだったよ、ということをおおげさに表現するマークファイルです。AlterCheck が成功したら自動的に削除されます。
 	</p>
-<pre><span class="codetitle">e.g. ReplaceNGマーク @playsql</span><code>
+<pre><span class="codetitle">e.g. NextNGマーク @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -254,7 +258,7 @@ dbflute_exampledb
     |  |-alter
     |  |  |-alter-schema-10-basic.sql
     |  |  |-alter-schema-20-view.sql
-    |  |-<span class="point">replace-NG.dfmark</span>
+    |  |-<span class="point">next-NG.dfmark</span>
 </code></pre>
 	<div class="inucolumn">
 		<h3 id="aboutngmark">NGマークは NG の強調</h3>
@@ -268,17 +272,17 @@ dbflute_exampledb
 		</p>
 	</div>
 
-	<h2 id="outsidescript">AlterSQL で外部スクリプト</h2>
+	<h2 id="outsidescript">AlterDDL で外部スクリプト</h2>
 	<p>
-		AlterSQL において、SQLの実行だけでなく外部スクリプトを実行することができます。
+		AlterDDL において、SQLの実行だけでなく外部スクリプトを実行することができます。
 		DBへの差分反映は、単純なSQLで済まされない場合もあります。DBMSのコマンドを利用して特殊な操作をすることもあるでしょう。
 		そういう場合のために、外部スクリプトが実行できるようになっています。
 	</p>
 	<p>
-		AlterSQL のSQLファイルと同じディレクトリに、alter-schema で始まる拡張子が .bat もしくは .sh
+		AlterDDL のSQLファイルと同じディレクトリに、alter-schema で始まる拡張子が .bat もしくは .sh
 		のスクリプトファイルを配置します。SQLファイルも含めてファイル名の昇順で実行されます。
 	</p>
-<pre><span class="codetitle">e.g. AlterSQL の外部スクリプトの配置 @playsql</span><code>
+<pre><span class="codetitle">e.g. AlterDDL の外部スクリプトの配置 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
@@ -296,9 +300,9 @@ dbflute_exampledb
 		として取得され、DBFluteタスクのログと一緒に出力されます。なので場合によっては、ログが文字化けする可能性はありますが、処理に影響はありません。
 	</p>
 	<div class="inucolumn">
-		<h3 id="alterbeta">あえて AlterSQL はベタに</h3>
+		<h3 id="alterbeta">あえて AlterDDL はベタに</h3>
 		<p>
-			AlterSQL の実装方法として、SQLファイルと外部スクリプトというベタな方式に絞っているのは、本番環境への適用を考えてのことです。
+			AlterDDL の実装方法として、SQLファイルと外部スクリプトというベタな方式に絞っているのは、本番環境への適用を考えてのことです。
 			本番環境のDBは、多くの場合開発者の手の届かないところにあります。
 			また、DBFluteを本番環境のDBが見える場所に配置して直接接続できるというようなことも少ないでしょう。
 			それはセキュリティのことを考えると当然のこととも言えます。
@@ -309,7 +313,7 @@ dbflute_exampledb
 			の機能で登録しても(そういった機能は実装可能ですが)、本番環境では別の方法(DBMS のコマンドなど)で追加する必要があるかもしれません。
 		</p>
 		<p>
-			そういうことから、あえて AlterSQL はベタに実装することを想定した仕様にしています。
+			そういうことから、あえて AlterDDL はベタに実装することを想定した仕様にしています。
 			ただ、この本番環境適用は、そもそも多種多様でまだまだ分析の余地のある領域でもあるため、
 			今後の分析次第ではまた違った解釈で色々なアプローチを検討していくかもしれません。<span class="freecomment">(2011/05/01現在)</span>
 		</p>
