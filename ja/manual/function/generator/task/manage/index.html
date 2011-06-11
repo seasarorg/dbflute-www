@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,タスク,Task,Manage,manage,一括実行,DB変更,リフレッシュ,Refresh,F5,再自動生成" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Manageタスク | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Manageタスク</h1>
+	<ul class="indexlist">
+		<li><a href="#about">Manageタスクとは？</a></li>
+		<li><a href="#command">実行コマンド</a></li>
+		<li><a href="#environment">環境構築</a></li>
+		<li><a href="#renewal">Renewalタスク</a></li>
+		<li><a href="#regenerate">Regenerateタスク</a></li>
+		<li><a href="#refresh">Refreshタスク</a></li>
+	</ul>
+
+	<h2 id="about">Manageタスクとは？</h2>
+	<p>
+		DBFluteの管理で利用できる様々なタスクを実行できるタスクです。<span class="freecomment">@since 0.9.8.5</span>
+	</p>
+
+	<h2 id="command">実行コマンド</h2>
+	<p>
+		DBFluteクライアント配下の <em class="keyword">manage.(bat|sh)</em>
+		をコマンドから実行します。その際、どのサブタスクを実行するかを第一引数で必ず指定します。
+	</p>
+	<dl class="keymainlist">
+		<dt>renewal</dt><dd>"Renewalタスク" を実行</dd>
+		<dt>regenerate</dt><dd>"Regenerateタスク" を実行</dd>
+		<dt>refresh</dt><dd>"Refreshタスク" を実行</dd>
+	</dl>
+	<p>
+		第二引数は、それぞれのタスクに依存します。
+	</p>
+
+	<h2 id="environment">環境構築</h2>
+	<p>
+		DBFluteのセットアップが終わった時点から利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../../../../environment/setup/index.html">DBFluteのセットアップ</a></div>
+
+	<h2 id="renewal">Renewalタスク</h2>
+	<p>
+		DB変更が発生した際に実行するDBFluteタスクをひとまとめにしたタスクです。ReplaceSchema から始まり、再自動生成に加えて
+		OutsideSqlTest で外だしSQLのDB変更の影響範囲などもチェックします。
+	</p>
+	<div class="detailpage"><a href="../dbchange.html">DB変更が発生したら</a></div>
+	<p>
+		ReplaceSchema, JDBC, Doc, Generate, OutsideSqlTest, Sql2Entity とまとめて実行します。
+	</p>
+<pre><span class="codetitle">e.g. Renewalタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">renewal</span>
+</code></pre>
+	<p>
+		途中でどれかのタスクが中断した場合は、Renewalタスク自体が中断となります。
+	</p>
+	<p>
+		第二引数による指定は特にありません。
+	</p>
+
+	<h2 id="regenerate">Regenerateタスク</h2>
+	<p>
+		スキーマは変更せず単に再自動生成だけを行うタスクです。
+		DBFluteの(自動生成に関する)設定を変更したり、DBFluteをアップグレードしたりする場合に実行します。
+	</p>
+	<p>
+		JDBC, Doc, Generate, Sql2Entity とまとめて実行します。
+	</p>
+<pre><span class="codetitle">e.g. Regenerateタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">regenerate</span>
+</code></pre>
+	<p>
+		途中でどれかのタスクが中断した場合は、Renewalタスク自体が中断となります。
+	</p>
+	<p>
+		第二引数による指定は特にありません。
+	</p>
+
+	<h2 id="refresh">Refreshタスク</h2>
+	<p>
+		Eclipse上のプロジェクトをリフレッシュ(F5)するだけのタスクです。
+		例えば、Mavenなどの外部ツールで Eclipse 管理のリソースを修正したような場合に、
+		スクリプトなどでこのタスクと連携させておくと自動的に Eclipse が認識するようになります。
+	</p>
+<pre><span class="codetitle">e.g. Refreshタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">refresh</span>
+</code></pre>
+	<p>
+		利用するためには refreshDefinitionMap.dfprop が定義されている必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/refreshdefinition/index.html">refreshDefinitionMap.dfprop</a></div>
+	<p>
+		第二引数を特に何も指定しなかった場合は、refreshDefinitionMap.dfprop
+		で指定されているプロジェクトがリフレッシュされます。
+		第二引数でプロジェクト名を指定した場合は、その指定されたプロジェクトだけがリフレッシュされます。スラッシュ区切りで複数のプロジェクトも指定できます。
+	</p>
+<pre><span class="codetitle">e.g. Refreshタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">refresh</span> <span class="literal">foo-prj/bar-prj</span>
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

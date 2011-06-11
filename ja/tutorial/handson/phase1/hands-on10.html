@@ -51,7 +51,8 @@
 		</li>
 		<li><a href="#livingdb">運用後のDB変更</a>
 			<ul>
-				<li><a href="#chnageoutput">ChangeOutput</a></li>
+				<li><a href="#saveprevious">SavePrevious</a></li>
+				<li><a href="#dbchange">普通にDB変更</a></li>
 				<li><a href="#altercheck">AlterCheck</a></li>
 			</ul>
 		</li>
@@ -137,10 +138,14 @@
 	<p>
 		それでは、運用後を想定したDB変更をしてみましょう。
 	</p>
-	<h3 id="chnageoutput">ChangeOutput</h3>
+	<h3 id="saveprevious">SavePrevious</h3>
 	<p>
-		migration/create 配下に replace-schema-10-basic.sql
-		をコピーして以下の変更を反映。反映したら、一旦ここで ReplaceSchema を実行してみましょう。
+		まずは、DB変更前のスキーマ(現状のスキーマ)のDDL(PreviousDDL)を保存しましょう。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/altercheck.html#saveprevious">AlterCheck - PreviousDDLを保存</a></div>
+	<h3 id="dbchange">普通にDB変更</h3>
+	<p>
+		以下の内容を playsql 配下の DDL に反映して ReplaceSchema を実行。
 	</p>
 	<dl class="textlist">
 		<dt>会員セキュリティ情報にリマインダ回数を追加</dt>
@@ -155,9 +160,9 @@
 		<dd>MEMBER_ID にユニーク制約を付与</dd>
 	</dl>
 	<p>
-		落ちます。データがDB変更されていないからですね。migration/create/data/ut/xls
-		配下に(同じディレクトリ構造で) 20-member.xls と 30-product.xls
-		をコピーして今回の内容を反映。データの修正内容は以下の通り。
+		落ちます。データがDB変更されていないからですね。playsql/data/ut/xls
+		配下の 20-member.xls と 30-product.xls
+		に今回の内容を反映。データの修正内容は以下の通り。
 	</p>
 	<dl class="keymainlist">
 		<dt>MEMBER_SERVICE_ID</dt>
@@ -166,12 +171,16 @@
 		<dd>上から適当に</dd>
 	</dl>
 	<p>
-		そして、ReplaceSchema を実行、そして変更点(change-output-result.diffmap)を確認しましょう。
+		気を取り直して、ReplaceSchema を実行。
 	</p>
 	<h3 id="altercheck">AlterCheck</h3>
 	<p>
-		差分結果が想定されたものと一致するならば、今度は migration/alter 配下に alter-schema.sql
-		を作成して、以下の内容を転記して、ちょっとお待ち下さい。(ReplaceSchemaはまだ！)
+		そして AlterDDL、まずは "空っぽ" で作成して ReplaceSchema
+		してみましょう。alter-check-result.diffmap にて差分が確認できるかと思います。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/altercheck.html#altercheck">AlterCheck - AlterCheck の実行</a></div>
+	<p>
+		AlterDDL に以下の内容を転記して、ちょっとお待ち下さい。(ReplaceSchemaはまだ！)
 	</p>
 <pre><span class="codetitle">e.g. 運用後のDB変更のエクササイズの alter 文 @alter-schema.sql</span><code>
 <span class="comment">-- add column</span>
