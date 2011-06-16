@@ -62,6 +62,7 @@
 			<ul>
 				<li><a href="#systeminfo">システムユーザの接続情報</a></li>
 				<li><a href="#systemddl">システムユーザで実行するDDL</a></li>
+				<li><a href="#systemexample">ユーザ作成SQLのExample</a></li>
 				<li><a href="#notsystem">サブスキーマのユーザでの利用(非推奨)</a></li>
 			</ul>
 		</li>
@@ -348,12 +349,35 @@ playsql
 		例えば、サブスキーマのオブジェクトが再作成された場合に(例えばサブスキーマのReplaceSchemaを実行するなど)、
 		メインスキーマ自体は何も変わっていなくても、メインユーザの権限がなくなっている可能性があります(DBMSによって挙動が違う可能性あり)。
 	</p>
+	<h3 id="systemexample">ユーザ作成SQLのExample</h3>
+	<p>
+		例えば、MySQLでユーザを作成する場合は、
+	</p>
+<pre><span class="codetitle">e.g. MySQLでのユーザ作成SQL @replace-schema-00-system.sql</span><code>
+<span class="comment">-- #df:changeUser(system)#</span>
+<span class="comment">-- #df:checkUser()#</span>
+<span class="keyword">create database</span> <span class="comment">/*$dfprop.mainCatalog*/</span>;
+
+<span class="comment">-- #df:reviveUser()#</span>
+<span class="comment">-- #df:checkUser()#</span>
+<span class="keyword">grant all privileges on</span> <span class="comment">/*$dfprop.mainCatalog*/</span>.*
+  <span class="keyword">to</span> <span class="comment">/*$dfprop.mainUser*/</span>@localhost <span class="keyword">identified by</span> '<span class="comment">/*$dfprop.mainPassword*/</span>';
+
+<span class="keyword">flush privileges</span>;
+</code></pre>
+	<p>
+		上記内容の replace-schema-00-system.sql を以下からダウンロードできます。
+	</p>
+	<p>
+		<a href="http://dbflute.sandbox.seasar.org/download/misc/setting-example/reps-00-system-for-mysql.zip">reps-00-system-for-mysql.zip</a>
+	</p>
 	<h3 id="notsystem">サブスキーマのユーザでの利用(非推奨)</h3>
 	<p>
 		この機能は、特にシステムユーザでなくても利用可能な機能です。例えば、サブスキーマのユーザに切り替えで実行するようなことも可能です。
 		但し、この機能はあまりそういう利用方法を想定していません。なぜなら、サブスキーマに関してはサブスキーマ側で "ReplaceSchema"
 		環境を構築して(DBFluteクライアントをもう一つ用意して)構成管理をする方が管理しやすいからです。
 	</p>
+
 	<h2>サブスキーマのテーブルdrop</h2>
 	<p>
 		メインユーザがアクセスできる範囲のサブスキーマのテーブルdrop処理を実行することが可能です。
