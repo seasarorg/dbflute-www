@@ -41,7 +41,6 @@
 	<ul class="indexlist">
 		<li><a href="#overview">処理概要</a>
 			<ul>
-				<li><a href="#switchdata">登録データの環境ごとの切り替え</a></li>
 				<li><a href="#loadorder">登録データの順序</a></li>
 				<li><a href="#errorhandling">エラーハンドリング</a></li>
 				<li><a href="#transaction">トランザクション</a></li>
@@ -52,7 +51,7 @@
 		<li><a href="#tsv">TSVデータの登録</a></li>
 		<li><a href="#csv">CSVデータの登録</a></li>
 		<li><a href="#xls">エクセルデータの登録</a></li>
-		<li><a href="#dataloadingtype">dataLoadingTypeによる切り替え</a></li>
+		<li><a href="#repsenvtype">環境ごとの切り替え</a></li>
 		<li><a href="#defaultvaluemap">デフォルト値の設定(dataprop)</a></li>
 		<li><a href="#loadingcontrolmap">データ登録制御(dataprop)</a>
 			<ul>
@@ -90,18 +89,14 @@
 	<p>
 		※DBFluteでは、TSVやCSVのような形式のデータを一律 <em class="keyword">デリミタデータ</em> を呼びます。
 	</p>
-	<h3 id="switchdata">登録データの環境ごとの切り替え</h3>
-	<p>
-		登録するデータは、"dataLoadingType" によって環境ごとの切り替えが可能です。
-	</p>
-	<div class="relatedpage"><a href="#dataloadingtype">dataLoadingTypeによる切り替え</a></div>
+	<div class="relatedpage"><a href="#repsenvtype">this - 環境ごとの切り替え</a></div>
 	<h3 id="loadorder">登録データの順序</h3>
 	<p>
-		"common" の全てのファイルが登録された後に、"[dataLoadingType]" のデータが登録されます。
+		"common" の全てのファイルが登録された後に、"[repsEnvType]" のデータが登録されます。
 	</p>
 	<ol>
 		<li>"common" 配下の (TSV --&gt; CSV --&gt; エクセル)</li>
-		<li>"[dataLoadingType]" 配下の (TSV --&gt; CSV --&gt; エクセル)</li>
+		<li>"[repsEnvType]" 配下の (TSV --&gt; CSV --&gt; エクセル)</li>
 	</ol>
 	<h3 id="errorhandling">エラーハンドリング</h3>
 	<p>
@@ -132,10 +127,10 @@
 	<p>
 		DBFluteクライアントの playsql ディレクトリ配下に配置します。
 	</p>
-<pre><span class="codetitle">e.g. データファイルの配置仕様の概要(dataLoadingTypeはデフォルトの "ut") @playsql</span><code>
+<pre><span class="codetitle">e.g. データファイルの配置仕様の概要(repsEnvTypeはデフォルトの "ut") @playsql</span><code>
 playsql
  |-data
-    |-common <span class="comment">// dataLoadingTypeに関わらず常に登録対象となる(最初に登録される)</span>
+    |-common <span class="comment">// repsEnvTypeに関わらず常に登録対象となる(最初に登録される)</span>
        |-tsv <span class="comment">// 一番最初に登録される(存在しない場合はスキップ)</span>
        |  |-[encoding]
        |     |-<span class="literal">10-[table-name].tsv</span> 
@@ -158,7 +153,7 @@ playsql
        |  |-<span class="literal">notTrimColumnMap.dataprop</span>     <span class="comment">// トリムしないカラム指定プロパティ(非必須)</span>
        |  |-<span class="literal">emptyStringColumnMap.dataprop</span> <span class="comment">// 空文字許すカラム指定プロパティ(非必須)</span>
        |  |-<span class="literal">loadingControlMap.dataprop</span>     <span class="comment">// データ登録制御プロパティ(非必須)</span>
-    |-ut <span class="comment">// dataLoadingTypeが "ut" の場合に登録対象となる(commonの後に登録される)</span>
+    |-ut <span class="comment">// repsEnvType が "ut" の場合に登録対象となる(commonの後に登録される)</span>
        |-...(same structure as common directory)
 </code></pre>
 	<p>
@@ -195,25 +190,25 @@ playsql
 	</p>
 	<div class="relatedpage"><a href="./loadxls.html">エクセルデータの登録</a></div>
 
-	<h2 id="dataloadingtype">dataLoadingTypeによる切り替え</h2>
+	<h2 id="repsenvtype">環境ごとの切り替え</h2>
 	<p>
-		それぞれのデータ形式ごとの "common" および "[dataLoadingType]" ディレクトリに配置データが、実行時の
-		"dataLoadingType" に合わせて登録されます。"common" は常に登録されますが、"[dataLoadingType]"
-		ディレクトリ配下のデータは実行時の "dataLoadingType" と一致するディレクトリ配下のデータのみ登録されます。
+		それぞれのデータ形式ごとの "common" および "[repsEnvType]" ディレクトリに配置データが、実行時の
+		"repsEnvType" に合わせて登録されます。"common" は常に登録されますが、"[repsEnvType]"
+		ディレクトリ配下のデータは実行時の "repsEnvType" と一致するディレクトリ配下のデータのみ登録されます。
 	</p>
 	<p>
-		"dataLoadingType" は、"replaceSchemaDefinitionMap.dfprop" の "dataLoadingType"
-		にて定義されます。デフォルトは "ut" です。環境ごとに "dataLoadingType"
+		"repsEnvType" は、"replaceSchemaDefinitionMap.dfprop" の "repsEnvType"
+		にて定義されます。デフォルトは "ut" です。環境ごとに "repsEnvType"
 		を切り替える場合は、DBFluteプロパティの環境ごとに切り替え機能を利用して切り替えます。
 	</p>
-<pre><span class="codetitle">e.g. dataLoadingTypeを "it" に設定 @replaceSchemaDefinitionMap.dfprop</span><code>
-dataLoadingType = it
+<pre><span class="codetitle">e.g. repsEnvType を "it" に設定 @replaceSchemaDefinitionMap.dfprop</span><code>
+repsEnvType = it
 </code></pre>
 	<dl class="textlist">
 		<dt>設定ファイル</dt>
 		<dd>replaceSchemaDefinitionMap.dfprop</dd>
 		<dt>プロパティ</dt>
-		<dd>dataLoadingType (default: ut)</dd>
+		<dd>repsEnvType (default: ut)</dd>
 		<dt>補足</dt>
 		<dd>
 			<ul class="supplementlist">
@@ -221,7 +216,7 @@ dataLoadingType = it
 			</ul>
 		</dd>
 	</dl>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#dataloadingtype">dfprop - dataLoadingType</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#repsenvtype">dfprop - repsEnvType</a></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/environmenttype.html">環境ごとのDBFluteプロパティ</a></div>
 
 	<h2 id="defaultvaluemap">デフォルト値の設定(dataprop)</h2>

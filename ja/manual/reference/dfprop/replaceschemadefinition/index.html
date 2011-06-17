@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#property">プロパティ</a>
 			<ul>
-				<li><a href="#dataloadingtype">dataLoadingType</a></li>
+				<li><a href="#repsenvtype">repsEnvType <span class="freecomment">@since 0.9.8.5</span></a></li>
+				<li><a href="#dataloadingtype">dataLoadingType <span class="freecomment">@until 0.9.8.4</span></a></li>
 				<li><a href="#islogginginsertsql">isLoggingInsertSql</a></li>
 				<li><a href="#sqlfileencoding">sqlFileEncoding</a></li>
 				<li><a href="#skipsheet">skipSheet</a></li>
@@ -89,30 +90,44 @@
 	<p>
 		必須のプロパティはありません。
 	</p>
-	<h3 id="dataloadingtype">dataLoadingType</h3>
+	<h3 id="repsenvtype">repsEnvType <span class="freecomment">@since 0.9.8.5</span></h3>
 	<p>
-		ReplaceSchemaタスクのデータ登録において、登録対象とするデータのタイプを指定します。ここで指定したのと同じ名称のディレクトリを
-		<em class="keyword">[DBFluteクライアント]/playsql/data</em>
+		ReplaceSchemaの環境タイプを指定します。
+	</p>
+	<p>
+		例えば、データ登録において登録対象とするデータのタイプを指定します。
+		ここで指定したのと同じ名称のディレクトリを <em class="keyword">[DBFluteクライアント]/playsql/data</em>
 		配下から探して、DBに登録するデータを読み込みます。(もし、"it" なら playsql/data/it 配下)
 	</p>
-	<div class="detailpage"><a href="../../../function/generator/task/replaceschema/loaddata.html#dataloadingtype">ReplaceSchema - dataLoadingTypeによる切り替え</a></div>
 	<p>
 		このプロパティの設定値を切り替えることで、<em class="keyword">単体テスト環境、結合テスト環境および実環境ごとに使用するデータを切り替える</em>
 		ということが実現できます。
 	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/loaddata.html#repsenvtype">ReplaceSchema - 環境ごとの切り替え</a></div>
+	<p>
+		また、スキーマ作成(CreateSchema)や最終チェック(TakeFinally)でも利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/createtable.html#repsenvtype">ReplaceSchema - 環境ごとの実行チェック</a></div>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>タイプ名 (ディレクトリ名に利用できる名前)</dd>
-		<dt>デフォルト</dt><dd>ut</dd>
+		<dt>デフォルト</dt><dd>DBFluteの環境タイプ or ut</dd>
 		<dt>補足</dt>
 		<dd>
 			<ul class="supplementlist">
-				<li>習慣的に <em class="keyword">ut、it、real</em> などがお奨めです。</li>
+				<li>DBFluteの環境タイプが指定されている場合はデフォルトがその値に</li>
+				<li>習慣的に <em class="keyword">ut、it、product</em> などがお奨め</li>
+				<li>common は環境タイプにおける予約語なので利用できない</li>
 			</ul>
 		</dd>
 	</dl>
 	<p>
-		<em class="keyword">[DBFluteクライアント]/playsql/data/common</em>
-		は特別な領域で、このプロパティでどんな値を設定しようと常に登録対象となります。主にどの環境でも固定のマスタデータに利用します。
+		何も指定していなければ、DBFluteの環境タイプと値が同期します。
+	</p>
+	<div class="relatedpage"><a href="../environmenttype.html">環境タイプごとの dfprop</a></div>
+	<h3 id="dataloadingtype">dataLoadingType <span class="freecomment">@until 0.9.8.4</span></h3>
+	<p>
+		古いバージョンにおける repsEnvType と同じ役割のプロパティです。
+		デフォルト値が固定で ut であること以外は同じ仕様です。
 	</p>
 	<h3 id="islogginginsertsql">isLoggingInsertSql</h3>
 	<p>
@@ -276,6 +291,12 @@ additionalUserMap = <span class="keyword">map</span>:{
 		<dt>値候補</dt><dd>map型プロパティの key-value</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 	</dl>
+	<p>
+		環境ごとにパスワードが異なる場合のために、password
+		で外だしのパスワードファイルを指定することができます。
+		そのパスワードファイルはバージョン管理システムにはコミットしないように設定することで、環境ごとのパスワードを指定できます。
+	</p>
+	<div class="detailpage"><a href="../../../function/generator/task/replaceschema/systemuser.html#pwdfile">システムユーザでの実行 - パスワードファイルの利用</a></div>
 	<h3 id="additionaldropmaplist">additionalDropMapList</h3>
 	<p>
 		テーブル削除時に、追加的にテーブルを削除する設定を指定します。

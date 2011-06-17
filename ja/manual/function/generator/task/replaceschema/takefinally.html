@@ -46,7 +46,12 @@
 			</ul>
 		</li>
 		<li><a href="#assert">データの整合性チェック</a></li>
-		<li><a href="#testpattern">テストパターンのチェック</a></li>
+		<li><a href="#testpattern">テストパターンのチェック</a>
+			<ul>
+				<li><a href="#peronesql">SQL一つ一つごとの切り替え</a></li>
+				<li><a href="#persqlfile">SQLファイルごとの切り替え</a></li>
+			</ul>
+		</li>
 		<li><a href="#twocheck">二種類のチェックを明確に</a></li>
 	</ul>
 
@@ -156,16 +161,19 @@
 		この場合は、エラー発生時の情報として "Count" と "List"
 		で特に差はありませんので、SQLを書く上で都合の良い方を選びます。
 	</p>
+
 	<h2 id="testpattern">テストパターンのチェック</h2>
 	<p>
-		この機能は、"業務的な整合性チェック" だけでなく、"テストパターンのチェック"
+		データの整合性チェックは、"業務的な整合性チェック" だけでなく、"テストパターンのチェック"
 		にも利用できます。例えば、"結合テスト環境(の初期状態)において、正式会員が一人もいないのはNG"
 		という場合に、"結合テスト環境のみでチェック" という指定が可能です。
 	</p>
+	<h3 id="peronesql">SQL一つ一つごとの切り替え</h3>
 	<p>
-		"assertListExists" の後ろに "@[dataLoadingType]" を付与すると("Count" や "Zero" でも利用可能)、実行時の "dataLoadingType"
+		"assertListExists" の後ろに "@[repsEnvType]" を付与すると("Count" や "Zero" でも利用可能)、実行時の "repsEnvType"
 		と一致するときだけチェックされるようになります。
 	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#repsenvtype">dfprop - repsEnvType</a></div>
 <pre><span class="codetitle">e.g. 正式会員が一人もいないのはNG(結合テスト環境："it") @take-finally.sql</span><code>
 <span class="comment">-- #df:assertListExists@it#</span>
 <span class="keyword">select</span> *
@@ -186,10 +194,16 @@
 		専用の機能と言っても過言ではありません。(業務的な制約のチェックは、基本的にどの環境でも共通な制約であると考えられるため)
 	</p>
 	<p>
-		また、"テストパターンのチェック" を行う場合は、必ずこの "dataLoadingType"
+		また、"テストパターンのチェック" を行う場合は、必ずこの "repsEnvType"
 		を指定することをお奨めします。最初はUT環境だけで利用していても、後から結合環境でも利用するということはよくあるため、
 		少なくとも "UT環境のみ" における "テストパターンのチェック" かどうかは意識して定義することをお奨めします。
 	</p>
+	<h3 id="persqlfile">SQLファイルごとの切り替え</h3>
+	<p>
+		"環境ごとの実行チェック" 機能を使ってSQLファイルごとに切り替えることもできます。
+	</p>
+	<div class="detailpage"><a href="./createtable.html#repsenvtype">環境ごとの実行チェック</a></div>
+
 	<h2 id="twocheck">二種類のチェックを明確に</h2>
 	<p>
 		"業務的な整合性チェック" と "テストパターンのチェック"
@@ -209,6 +223,7 @@ playsql
 		また、実際の開発運用として、両方しっかり定義するのか、片方だけに集中するのかを明確にするのも大事です。例えば、"業務的な整合性チェック"
 		だけを定義するなら、そのことをSQLを定義する人(できれば、プロジェクトに関わる全ての人に)にしっかり周知しておくことをお奨めします。
 	</p>
+
 	<div class="inucolumn">
 		<h2>テストデータの品質向上</h2>
 		<p>

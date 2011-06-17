@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Eclipse | DBFlute</title>
+	<title>コードフォーマッター | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,77 +37,103 @@
 </div>
 
 <div id="content">
-	<h1>Eclipse</h1>
-	<p>
-		DBFluteとは直接無関係ながらも、同時に利用するととても便利なライブラリを紹介します。
-	</p>
+	<h1>コードフォーマッター</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">DBFlute と Eclipse</a></li>
-		<li><a href="#plugin">Eclipseプラグイン</a>
-			<ul>
-				<li><a href="#pluginstall">プラグインのインストール</a></li>
-			</ul>
-		</li>
-		<li><a href="#textencoding">テキストエンコーディング</a></li>
-		<li><a href="#formatter">コードフォーマッター</a></li>
+		<li><a href="#about">コードフォーマッターとは？</a></li>
+		<li><a href="#overview">フォーマッターの概要</a></li>
+		<li><a href="#setting">フォーマット定義の設定</a></li>
+		<li><a href="#import">フォーマット定義のインポート</a></li>
+		<li><a href="#formattersaveaction">保管時アクションへの関連付け</a></li>
+		<li><a href="#workspace">ワークスペースでも設定できる</a></li>
 	</ul>
 
-	<h2 id="overview">DBFlute と Eclipse</h2>
+	<h2 id="about">コードフォーマッターとは？</h2>
 	<p>
-		DBFluteは、利用上において特に Eclipse に依存してはいません。ですが、Eclipse 上で DBFlute
-		の利用を支援する EMecha が提供されていますし、Eclipse 上で実装することを想定して Example などが作成されています。
+		Eclipseには、ソースコードを自動整形する機能(フォーマッター)が備わっています。
 	</p>
 
-	<h2 id="plugin">Eclipseプラグイン</h2>
-	<h3 id="pluginstall">プラグインのインストール</h3>
-	<p>
-		Eclipseプラグインのインストールには大きく二つのやり方が存在します。
-	</p>
-	<dl class="textlist">
-		<dt>プラグインのJARファイルを直接配置</dt>
-		<dd>
-			プラグインのJARファイルをサイトからダウンロードしてきて、Eclipse自身のディレクトリ配下にある plugins
-			ディレクトリにそのJARファイルを配置します。Eclipseの起動時に認識されます。
-		</dd>
-		<dd>
-			plugins ディレクトリの場所はEclipseのバージョンやエディションによって違う可能性があります。 
-		</dd>
-		<dt>更新サイトを利用して自動インストール</dt>
-		<dd>
-			Eclipse自身がプラグインを簡易にインストールできるようにするための仕組みを提供しています。
-			メニューから [Help] - [Install New Software...]
-			を選択すると、更新サイトを利用したプラグインのインストール画面が起動します。
-		</dd>
-		<dd>
-			その画面でインストールしたいプラグインの更新サイトのURLを登録・選択すると、
-			その更新サイトでインストール可能なプラグインが列挙されますので、チェックして選んでインストールします。
-			<div class="relatedpage"><a href="../../../function/helper/emecha/install.html#updatesite">EMechaのインストール - 更新サイト</a></div>
-		</dd>
-		<dd>
-			プラグインのインストール画面はEclipseのバージョンによって操作方法が違う可能性があります。
-		</dd>
-	</dl>
-
-	<h2 id="textencoding">テキストエンコーディング</h2>
-	<p>
-		Eclipse上でテキストファイルを開く時のエンコーディングを指定することができます。
-	</p>
-	<p>
-		例えば UTF-8 に設定する場合、Eclipseプロジェクトのプロパティ(Eclipseプロジェクトを選択して alt + enter)の [Resource]
-		において、[Text file encoding] で [Other] を選んで UTF-8 を選択します。
-	</p>
-	<div class="relatedpage"><a href="../../programming/shortcut/operationcut.html#setting">操作ショートカット - 設定周り</a></div>
-	<p>
-		ワークスペースのエンコーディング設定 [Inherited from container] が既に UTF-8
-		になっていても、他のディベロッパーの環境では同じとは限りませんので、それぞれのプロジェクトごとに [Other]
-		を選んで明示的に設定するとプロジェクト直下の .settings ディレクトリに保存されるのでSVN経由で共有することができます。
-	</p>
-
-	<h2 id="formatter">コードフォーマッター</h2>
+	<h2 id="overview">フォーマッターの概要</h2>
 	<p>
 		Eclipseには、ソースコードを自動で整形する機能が備わっています。
 	</p>
-	<div class="detailpage"><a href="./formatter.html">コードフォーマッター</a></div>
+<pre><span class="codetitle">e.g. Eclipseのコードフォーマッターを利用すると @Java</span><code>
+<span class="comment">// フォーマットする前</span>
+<span class="keyword">if</span>(<span class="keyword">true</span>)
+{ foo = <span class="keyword">null</span>;
+  }
+<span class="comment">// フォーマットした後</span>
+<span class="keyword">if</span> (<span class="keyword">true</span>) {
+    foo = <span class="keyword">null</span>;
+}
+</code></pre>
+	<p>
+		Javaエディタ上で "ctrl + shift + F" と押すとフォーマッターを利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../programming/shortcut/codejustcut.html#look">コード調整ショートカット - 見た目周り</a></div>
+	<p>
+		ただし、Eclipseのデフォルトのフォーマット定義はプロジェクトによっては若干利用しづらいものである可能性があります。
+		具体的には以下の通りです。
+	</p>
+	<ul>
+		<li>横幅 80 文字で改行されてしまう</li>
+		<li>コメントの中までフォーマットされてしまう</li>
+	</ul>
+	<p>
+		そのため、独自のフォーマット定義を用意した方が利用しやすいことがあります。
+	</p>
+
+	<h2 id="setting">フォーマット定義の設定</h2>
+	<p>
+		独自のフォーマット定義は、Eclipseプロジェクトのプロパティ(Eclipseプロジェクトを選択して alt + enter)にて設定できます。
+		[Java Code Style] - [Formatter] において [Enable project specific settings]
+		をチェックし、Editボタンを押すと独自のフォーマット定義を細かく設定できます。
+	</p>
+	<div class="relatedpage"><a href="../../programming/shortcut/operationcut.html#setting">操作ショートカット - 設定周り</a></div>
+	<p>
+		例えば DBFlute では、横幅を 120 文字に、コメント内のフォーマットを OFF にしています。
+	</p>
+	<p>
+		フォーマット定義は、プロジェクト直下の .setting
+		ディレクトリに保存されます。このディレクトリをSVN経由で共有すれば、他のディベロッパーもそのまま同じ設定を利用することができます。
+	</p>
+
+	<h2 id="import">フォーマット定義のインポート</h2>
+	<p>
+		フォーマット定義をXMLファイルにエクスポートし、別のEclipseプロジェクトでインポートすることができます。フォーマット定義は .setting
+		ディレクトリに保存されるので、他のディベロッパーと共有したい場合はSVN経由で可能ですが、
+		別の開発プロジェクトなどで共有したい場合は、このXMLへのエクスポート、インポート機能が利用できるでしょう。
+	</p>
+	<p>
+		例えば、DBFluteで利用しているフォーマット定義は以下からダウンロードできます。
+	</p>
+	<p>
+		<a href="http://dbflute.sandbox.seasar.org/download/misc/setting-example/dbflute-formatter-profile.zip">dbflute-formatter-profile.zip</a>
+	</p>
+
+	<h2 id="formattersaveaction">保管時アクションへの関連付け</h2>
+	<p>
+		ファイルを保存(ctrl + S)した時に、自動でフォーマットされるように設定できます。
+		そうすることで、プロジェクト全体でフォーマッターの利用を統一化することができます。
+	</p>
+	<p>
+		Eclipseプロジェクトのプロパティ(Eclipseプロジェクトを選択して alt + enter)の [Java Editor] - [Save Actions]
+		において、[Enable project specific settings] をチェックし、[Perform the selected actions on save]
+		をチェックし、[Format source code] をチェックすることで、保存時に自動でフォーマッターが動作します。
+	</p>
+	<p>
+		ついでではありますが、[Organize imports] にもチェックしておくと(デフォルトでチェックがついている可能性あり)、
+		"インポートの編成" も同様に保存時に自動で実行されるようになります。
+	</p>
+	<div class="relatedpage"><a href="../../programming/shortcut/codejustcut.html#code">コード調整ショートカット - コード調整周り</a></div>
+	<p>
+		この保管時アクションの設定自体も、.settings ディレクトリに保存されるので、SVN経由で共有することができます。
+	</p>
+
+	<h2 id="workspace">ワークスペースでも設定できる</h2>
+	<p>
+		Eclipseプロジェクトごとではなく、ワークスペースに対してフォーマット定義を設定することもできます。
+		ただ、その場合はSVN経由での他のディベロッパーへの共有はできないので、複数人プロジェクトではあまり有効ではないと考えられます。
+	</p>
 
 </div>
 </div>
