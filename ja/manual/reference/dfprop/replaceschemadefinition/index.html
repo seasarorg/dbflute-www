@@ -60,6 +60,7 @@
 				<li><a href="#additionalusermap">additionalUserMap</a></li>
 				<li><a href="#additionaldropmaplist">additionalDropMapList</a></li>
 				<li><a href="#applicationplaysqldirectory">applicationPlaySqlDirectory</a></li>
+				<li><a href="#arrangebeforerepsmap">arrangeBeforeRepsMap</a></li>
 				<li><a href="#issuppresstruncatetable">isSuppressTruncateTable</a></li>
 				<li><a href="#issuppressdropforeignkey">isSuppressDropForeignKey</a></li>
 				<li><a href="#issuppressdroptable">isSuppressDropTable</a></li>
@@ -351,7 +352,40 @@ additionalUserMap = <span class="keyword">map</span>:{
 		<dt>値候補</dt><dd>DBFluteクライアントからの相対パス</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 	</dl>
-
+	<h3 id="arrangebeforerepsmap">arrangeBeforeRepsMap</h3>
+	<p>
+		ReplaceSchema実行前に、ファイルコピーなどのアレンジ操作を指定します。<span class="freecomment">@since 0.9.8.5</span>
+	</p>
+	<p>
+		例えば、DDLの出力先を保存できないERDツールや、フルパスで保存してしまうERDツールなどを利用している場合に、
+		このプロパティを利用してReplaceSchema実行前にDBFlute管理外の場所に出力されたDDLファイルを playsql
+		配下にコピーさせることができます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/arrangebeforereps.html">ReplaceSchema実行前の調整</a></div>
+<pre><span class="codetitle">e.g. arrangeBeforeRepsMapの仕様 @replaceSchemaDefinitionMap.dfprop</span><code>
+; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
+    ; copy = <span class="keyword">map:</span>{
+        <span class="comment"># DBFluteクライアントからの相対パス or 絶対パス</span>
+        ; [src-path] = [dest-path]
+    }
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>map型プロパティの中に、map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>アレンジ操作は copy のみ利用可能</li>
+				<li>"/" で始まれば絶対パス、それ以外はDBFluteクライアントからの相対パス</li>
+				<li>ディレクトリのコピーは指定できない</li>
+				<li>src で "foo/*.bar" と指定すると foo 配下の唯一の bar ファイルとなる</li>
+				<li>src で指定されたファイルがない場合でも特にエラーにはならない(ログ出力のみ)</li>
+				<li>dest のファイル既に存在している場合は、上書き処理される</li>
+				<li>src, dest 共にパス表現(一つ以上のスラッシュを含む)であること</li>
+			</ul>
+		</dd>
+	</dl>
 	<h3 id="issuppresstruncatetable">isSuppressTruncateTable</h3>
 	<p>
 		テーブル削除の前の truncate 処理を抑制するか否かを指定します。
