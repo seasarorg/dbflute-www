@@ -52,6 +52,8 @@
 				<li><a href="#derivedreferrer">子テーブルの導出カラム</a></li>
 				<li><a href="#derivedbase">基点テーブルの導出カラム</a></li>
 				<li><a href="#adjustment">右辺カラムの演算調整</a></li>
+				<li><a href="#funcfilter">右辺カラムをSQL関数でフィルタ</a></li>
+				<li><a href="#leftadjust">左辺カラムの演算やフィルタも</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -284,6 +286,56 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
          <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
            <span class="keyword">and</span> sub1loc.PAYMENT_COMPLETE_FLG = <span class="literal">1</span>
        ) &lt; (dfloc.MEMBER_ID * <span class="literal">500</span>) + <span class="literal">1</span>
+</code></pre>
+	<h3 id="funcfilter">右辺カラムをSQL関数でフィルタ</h3>
+	<p>
+		演算だけでなく、SQL関数を利用して変換(フィルタ)することができます<span class="freecomment">(@since 0.9.8.6)</span>。
+	</p>
+	<p>
+		右辺カラムの指定の後に続けて、convert() メソッドを呼び出し、ColumnConversionOption で変換処理を指定します。
+		フィルタ処理の仕様は (Specify)DerivedReferrer の場合と同様です。
+	</p>
+	<div class="detailpage"><a href="../specify/derivedreferrer.html#funcfilter">(Specify)DerivedReferrer - 導出値をSQL関数でフィルタ</a></div>
+<pre><span class="codetitle">e.g. 右辺カラムの日時に対して、時分秒ミリ秒を切り取って 1 日進める @Java</span><code>
+<span class="abbreviation">...</span>
+cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnBirthdate();
+    }
+}).greaterThan(new SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnFormalizedDatetime();
+    }
+}).<span class="point">convert</span>(<span class="keyword">new</span> ColumnConversionOption().truncTime().addDay(<span class="literal">1</span>));
+</code></pre>
+	<p>
+		演算とフィルタは組み合わせて利用することができます。(指定された順序に処理される)
+	</p>
+	<h3 id="leftadjust">左辺カラムの演算やフィルタも</h3>
+	<p>
+		右辺だけではなく左辺のカラムに対しても演算やSQL関数フィルタが利用できます<span class="freecomment">(@since 0.9.8.6)</span>。
+	</p>
+	<p>
+		右辺カラムの指定の後に続けて、left() メソッドを呼び出した後に続けて演算処理やフィルタ処理を指定すると、それら指定は左辺カラムに対して処理されます。
+		その後、right() を呼び出して続けて右辺のための処理を指定できます。(つまり、単にデフォルトが右辺カラムになっている)
+	</p>
+<pre><span class="codetitle">e.g. 左辺カラムは 1 を足して、右辺カラムは 2 を引く @Java</span><code>
+<span class="abbreviation">...</span>
+cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().specifyMemberServiceAsOne().columnPointCount();
+    }
+}).greaterThan(new SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().specifyMemberServiceAsOne()
+                .specifyServiceRank().<span class="point">derivedMemberServiceList()</span>
+                        .avg(<span class="keyword">new</span> SubQuery&lt;MemberServiceCB&gt;() {
+            <span class="keyword">public void</span> query(MemberServiceCB subCB) {
+                subCB.specify().columnPointCount();
+            }
+        }, <span class="keyword">null</span>, <span class="keyword">new</span> DerivedReferrerOption().coalesce(<span class="literal">0</span>));
+    }
+}).<span class="point">left</span>().plus(<span class="literal">1</span>).<span class="point">right</span>().minus(<span class="literal">2</span>);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>

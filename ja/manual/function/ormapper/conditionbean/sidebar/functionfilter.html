@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ConditionBean,specify,DerivedReferrer,子テーブルの導出カラム,関数フィルタ,SQL関数,SQL function" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>SQL関数フィルタ | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>SQL関数フィルタ</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#funcstyle">関数スタイル</a>
+			<ul>
+				<li><a href="#coalesce">coalesce()</a></li>
+				<li><a href="#round">round()</a></li>
+				<li><a href="#trunc">trunc()</a></li>
+			</ul>
+		</li>
+		<li><a href="#purposestyle">目的スタイル</a>
+			<ul>
+				<li><a href="#datetrunc">日付の切り捨て</a></li>
+				<li><a href="#dateadd">日付の加算</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		子テーブルの導出カラム(最大値や合計値)などの値を、SQL関数を利用してSQL上でフィルタ処理を施すことができます。
+		主にSQL上で利用が完結するような値をフィルタするのに有効です。
+	</p>
+	<p>
+		SQL関数フィルタの仕様は、以下の全ての機能で共通しています。
+	</p>
+	<dl class="keymainlist">
+		<dt>(Specify)DerivedReferrer</dt><dd>子テーブルの導出カラムの取得</dd>
+		<dt>(Query)DerivedReferrer</dt><dd>子テーブルの導出カラムで絞り込み</dd>
+		<dt>ColumnQuery</dt><dd>カラム同士の絞り込み条件</dd>
+	</dl>
+	<div class="relatedword"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
+	<div class="relatedword"><a href="../query/derivedreferrer.html">(Query)DerivedReferrer</a></div>
+	<div class="relatedword"><a href="../query/columnquery.html">ColumnQuery</a></div>
+	<p>
+		それぞれの機能のオプション指定にて利用できます。
+	</p>
+<pre><span class="codetitle">e.g. 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
+cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
+    <span class="keyword">public void</span> query(MemberLoginCB subCB) {
+        subCB.specify().columnLoginDatetime();
+        subCB.query().setMobileLoginFlg_Equal_False();
+    }
+}, Member.ALIAS_<span class="abbreviation">...</span>, <span class="point">new DerivedReferrerOption().coalesce("1192-01-01")</span>);
+</code></pre>
+
+	<h2 id="funcstyle">関数スタイル</h2>
+	<p>
+		具体的なSQL関数を意識したスタイルのメソッドが用意されています。
+	</p>
+	<h3 id="coalesce">coalesce()</h3>
+	<p>
+		null の場合のデフォルト値を指定できます<span class="freecomment">(@since 0.9.7.4)</span>。DerivedReferrerの導出値などで利用する集計関数(max(), avg()
+		など)は、計算対象レコードが存在しない場合に null を戻す可能性があります。特に (Query)DerivedReferrer
+		のようなSQL上で導出値の利用が完結するような場合には、null
+		だと条件式の結果が業務とは都合の合わないことがあるため、coalesce() 関数を使って null の場合に 0
+		として計算させたりすると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. 合計購入価格を導出する際に、そもそも購入したことのない会員は 0 に @Java</span><code>
+cb.query().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.specify().columnPurchasePrice();
+    }
+}, Member.ALIAS_<span class="abbreviation">...</span>, <span class="keyword">new</span> DerivedReferrerOption().<span class="point">coalesce</span>(0));
+</code></pre>
+	<p>
+		様々な型が想定されるため引数は Object 型です。バインド変数として扱われます。
+	</p>
+	<h3 id="round">round()</h3>
+	<p>
+		指定された精度で四捨五入します。SQL上では round
+		関数が利用されます。基本的には数値型を想定していますが、日付型に対して round
+		関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSの round 関数の仕様に依存します。
+	</p>
+	<p>
+		DBMS ごとの違いに対応できるように引数は Object 型です。バインド変数として扱われます。
+	</p>
+	<h3 id="trunc">trunc()</h3>
+	<p>
+		指定された精度で切り捨てします。SQL上では trunc
+		関数が利用されます。DBMSごとの関数名の違いは内部的に吸収されます。基本的には数値型を想定していますが、日付型に対して trunc
+		関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSの trunc 関数の仕様に依存します。
+	</p>
+	<p>
+		DBMS ごとの違いに対応できるように引数は Object 型です。バインド変数として扱われます。
+	</p>
+	<p>
+		別途、目的スタイルの切り捨てメソッド(truncDay() や truncTime()
+		など)が存在しますので、切り捨ての目的が合う場合はそちらを利用すると良いでしょう。
+	</p>
+
+	<h2 id="purposestyle">目的スタイル</h2>
+	<p>
+		関数は問わず、目的を意識したスタイルのメソッドが用意されています。
+		どのようなSQL関数を使って解決するかは、DBFluteが内部的に解決します。
+	</p>
+	<p>
+		(DBFluteとして)正式サポートされていない DBMS では、これら機能もサポートされない可能性があります。
+		また、正式サポートされている DBMS でも、そもそもSQL関数で実現できない、もしくは、独自性の強いSQL関数の仕様を持っている DBMS
+		の場合はサポートされないパターンがありますので、利用する際は必ず単体テストなどでの事前検証をお奨めします。
+	</p>
+	<h3 id="datetrunc">日付の切り捨て</h3>
+	<p>
+		例えば、時分秒を切り捨てるなど、日付に対する切り取りをします<span class="freecomment">(@since 0.9.8.6)</span>。
+	</p>
+	<dl class="keymainlist">
+		<dt>truncMonth()</dt><dd>月、日、時分秒ミリ秒を切り捨て (年初めになる)</dd>
+		<dt>truncDay()</dt><dd>日、時分秒ミリ秒を切り捨て (月初めになる)</dd>
+		<dt>truncTime()</dt><dd>時分秒ミリ秒を切り捨て (その日の始まりになる)</dd>
+	</dl>
+	<p>
+		引数はありません。また、二度呼び出しは許されません。
+	</p>
+	<h3 id="dateadd">日付の加算</h3>
+	<p>
+		例えば、一日進めるなど、日付に対する加算をします<span class="freecomment">(@since 0.9.8.6)</span>。
+	</p>
+	<dl class="keymainlist">
+		<dt>addYear()</dt><dd>"年" を進める (もしくは戻す)</dd>
+		<dt>addMonth()</dt><dd>"月" を進める (もしくは戻す)</dd>
+		<dt>addDay()</dt><dd>"日" を進める (もしくは戻す)</dd>
+		<dt>addHour()</dt><dd>"時" を進める (もしくは戻す)</dd>
+		<dt>addMinute()</dt><dd>"分" を進める (もしくは戻す)</dd>
+		<dt>addSecond()</dt><dd>"秒" を進める (もしくは戻す)</dd>
+	</dl>
+	<p>
+		引数はそれぞれ Integer 型を指定します。マイナス値を指定すると減算になります。また、null
+		を指定すると無効な呼び出しとして何も処理されません。二度呼び出しは許されません。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

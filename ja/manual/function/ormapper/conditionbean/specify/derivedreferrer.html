@@ -52,15 +52,14 @@
 				<li><a href="#manytomany">子テーブルの親テーブル(many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル(one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル(many-to-one-to-many)</a></li>
-				<li><a href="#funcfilter">導出値の関数によるフィルタ</a></li>
+				<li><a href="#funcfilter">導出値をSQL関数でフィルタ</a></li>
 				<li><a href="#specifiedderived">導出カラムで OrderBy</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#basicspec">基本仕様</a></li>
-				<li><a href="#usablefunc">利用できる関数</a></li>
-				<li><a href="#usablefilter">利用できるフィルタ関数</a></li>
+				<li><a href="#usablefunc">利用できる集計関数</a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
@@ -132,7 +131,7 @@
 		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption
 		を指定します。コールバックの中では、SpecifyColumn を使って導出カラムを(一つ)指定します。
 	</p>
-	<div class="relatedpage"><a href="#funcfilter">this - 導出値の関数によるフィルタ</a></div>
+	<div class="relatedpage"><a href="#funcfilter">this - 導出値をSQL関数でフィルタ</a></div>
 	<div class="relatedpage"><a href="./specifycolumn.html#onlyonecolumn">SpecifyColumn - 他の機能から間借りされる</a></div>
 <pre><span class="codetitle">e.g. (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -209,7 +208,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 	<p>
 		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
 	</p>
-	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
+	<div class="relatedpage"><a href="#usablefunc">this - 利用できる集計関数</a></div>
 	<h3 id="manytomany">子テーブルの親テーブル(many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
@@ -275,12 +274,12 @@ cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().su
     }
 }, MemberLogin.ALIAS_memberPurchasePriceSummary);
 </code></pre>
-	<h3 id="funcfilter">導出値の関数によるフィルタ</h3>
+	<h3 id="funcfilter">導出値をSQL関数でフィルタ</h3>
 	<p>
-		導出値をSQLの関数で基本的なフィルタを掛けることができます。関数メソッドのオーバーロードの第三引数である DerivedReferrerOption
+		導出値をSQL関数で変換(フィルタ)することができます。関数メソッドのオーバーロードの第三引数である DerivedReferrerOption
 		にて、そのフィルタ処理を指定することができます。<span class="freecomment">@since 0.9.7.4</span>
 	</p>
-	<div class="relatedpage"><a href="#usablefilter">this - 利用できるフィルタ関数</a></div>
+	<div class="detailpage"><a href="../sidebar/functionfilter.html">SQL関数フィルタ</a></div>
 <pre><span class="codetitle">e.g. 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
 cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
     <span class="keyword">public void</span> query(MemberLoginCB subCB) {
@@ -302,7 +301,7 @@ cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuer
 	<h4>フィルタ処理の拡張</h4>
 	<p>
 		フィルタ処理を拡張したい場合は(別の関数を使うなど)、DerivedReferrerOption を拡張することで実現できます。
-		但し、内部的なメソッドは予告なく構成などが変更される可能性がありますのでご注意を。
+		ただし、内部的なメソッドは予告なく構成などが変更される可能性がありますのでご注意を。
 	</p>
 	<h3 id="specifiedderived">導出カラムで OrderBy</h3>
 	<p>
@@ -332,7 +331,7 @@ cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuer
 			SetupSelect や OrderBy などサブクエリとして必要のない機能は呼び出してはいけません。
 		</dd>
 	</dl>
-	<h3 id="usablefunc">利用できる関数</h3>
+	<h3 id="usablefunc">利用できる集計関数</h3>
 	<p>
 		利用できる関数は以下の通りです。
 	</p>
@@ -364,36 +363,6 @@ cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuer
 	</dl>
 	<p>
 		関数の特徴によって、適切な関数フィルタを合わせると良いでしょう。
-	</p>
-	<h3 id="usablefilter">利用できるフィルタ関数</h3>
-	<p>
-		利用できるフィルタメソッドは以下の通りです。<span class="freecomment">@since 0.9.7.4</span>
-	</p>
-	<dl class="textlist">
-		<dt>coalesce(Object coalesce)</dt>
-		<dd>
-			max() や sum() など、関数によっては状況次第で null
-			を戻します(紐づく子テーブルのデータが一件も存在しなかった場合など)。このメソッドで、導出値が null
-			になった場合の代わりの値を指定することができます。SQL上では coalesce
-			関数が利用されます。日付型に対して文字列を指定した場合は、内部的にパースして(DfTypeUtil.toDate()を利用)、日付型に変換します。
-			絞り込み条件も考慮して、<em class="keyword">関連する子テーブルのレコードが一件も存在しない可能性がある場合</em> に有効です。
-		</dd>
-		<dt>round(Object round)</dt>
-		<dd>
-			導出値を指定された精度で四捨五入することができます。SQL上では round
-			関数が利用されます。基本的には数値型を想定していますが、日付型に対して round
-			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのround関数の仕様に依存します。
-		</dd>
-		<dt>trunc(Object trunc)</dt>
-		<dd>
-			導出値を指定された精度で切り捨てすることができます。SQL上では trunc
-			関数が利用されます(DBMSごとの違いは内部的に吸収)。基本的には数値型を想定していますが、日付型に対して trunc
-			関数が利用できるDBMSの場合は、引数に指定できる値はそのDBMSのtrunc関数の仕様に依存します。
-		</dd>
-	</dl>
-	<p>
-		これらは、細かい動作はDBMSの該当のSQL関数の仕様に依存します。
-		また、同じ動作をする関数が存在しないDBMSではサポートされません。
 	</p>
 
 	<h2 id="supported">サポートされる関連テーブル</h2>
