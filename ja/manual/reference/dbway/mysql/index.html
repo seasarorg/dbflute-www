@@ -82,17 +82,7 @@
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
 		<li><a href="#internal">DBFlute内部での取扱い</a></li>
-		<li><a href="#supplement">MySQL補足資料</a>
-			<ul>
-				<li><a href="#identitysetting">Identity設定</a></li>
-				<li><a href="#tablecomment">テーブルコメントの設定</a></li>
-				<li><a href="#uniquefeature">ユニーク制約の特徴</a></li>
-				<li><a href="#enginesetting">ストレージエンジンの設定</a></li>
-				<li><a href="#isolationsetting">トランザクション分離レベルの設定</a></li>
-				<li><a href="#charsetsetting">キャラセットの設定</a></li>
-				<li><a href="#delimiterdata">デリミタデータの取得</a></li>
-			</ul>
-		</li>
+		<li><a href="#supplement">MySQL補足資料</a></li>
 	</ul>
 
 	<h2 id="basic">基本情報</h2>
@@ -384,7 +374,7 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		もし、MyISAM である特別な理由がないのであれば、外部キー制約をサポートしている InnoDB
 		などのストレージエンジンを利用することで、そういった手間の発生を抑えることができます。
 	</p>
-	<div class="relatedpage"><a href="#enginesetting">this - ストレージエンジンの設定</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="#enginesetting"> -->this - ストレージエンジンの設定<!-- </a> --></span></div>
 	<h3 id="lowercase">MySQLの小文字管理のススメ</h3>
 	<p>
 		Linux 上でのMySQLは、SQL文でのテーブル名やカラム名の大文字小文字を区別します。
@@ -455,95 +445,10 @@ sql_mode=<span class="literal">"ONLY_FULL_GROUP_BY,STRICT_ALL_TABLES,PIPES_AS_CO
 	</dl>
 
 	<h2 id="supplement">MySQL補足資料</h2>
-	<h3 id="identitysetting">Identity設定</h3>
-<pre><span class="codetitle">e.g. Identity設定 {MEMBER_IDにIdentity} @SQL</span><code>
-<span class="keyword">create table</span> MEMBER (
-    MEMBER_ID <span class="dbtype">INTEGER</span> <span class="attribute">AUTO_INCREMENT NOT NULL</span>,
-    MEMBER_NAME <span class="dbtype">VARCHAR(200)</span> <span class="attribute">NOT NULL</span>,
-    ...
-)
-</code></pre>
-	<h3 id="tablecomment">テーブルコメントの設定</h3>
 	<p>
-		テーブルやカラムのコメントは、comment on ではなく create table
-		に設定します。(最大 60 文字)
+		MySQLの補足資料をまとめています。
 	</p>
-<pre><span class="codetitle">e.g. テーブルやカラムのコメントを設定 @SQL</span><code>
-<span class="keyword">CREATE TABLE</span> PURCHASE(
-    PURCHASE_ID <span class="dbtype">BIGINT</span> <span class="attribute">AUTO_INCREMENT NOT NULL COMMENT</span> '購入ID: 連番',
-    MEMBER_ID <span class="dbtype">INTEGER</span> <span class="attribute">NOT NULL COMMENT</span> '会員ID: 会員を参照するID。'
-    PURCHASE_COUNT <span class="dbtype">INTEGER</span> <span class="attribute">NOT NULL COMMENT</span> '購入数量: 購入した商品の（一回の購入における）数量。',
-    <span class="abbreviation">...</span>
-) <span class="attribute">COMMENT</span>='一つの商品に対する一回の購入を表現する。
-一回の購入で一つの商品を複数個買うこともある。' ;
-</code></pre>
-	<h3 id="uniquefeature">ユニーク制約の特徴</h3>
-	<p>
-		NotNull の FOO カラムと、そうでない BAR カラム
-		で複合ユニーク制約を付けた場合、"A と null" と "A と null"
-		の二つのレコードは登録できます。つまり、この場合の二つの null はそれぞれ別の値として扱われます。
-	</p>
-	<p>
-		<span class="freecomment">※試しに、会員の生年月日とバージョンNOに複合ユニーク制約を付けてもExampleのテストデータは正常に登録された</span>
-	</p>
-	<h3>発行された連番を insert 実行後に取得</h3>
-	<p>
-		同じトランザクション内で実行が前提です。そもそもトランザクションがない場合は利用できません。
-	</p>
-<pre><span class="codetitle">e.g. 発行された連番を insert 実行後に取得 @SQL</span><code>
-<span class="keyword">select</span> last_insert_id();
-</code></pre>
-	<h3 id="enginesetting">ストレージエンジンの設定</h3>
-	<p>
-		例えば、(デフォルトのストレージエンジンとして) InnoDB を利用する場合以下のように設定します。
-	</p>
-<pre><span class="codetitle">e.g. ストレージエンジンを InnoDB に設定 @my.cnf</span><code>
-[mysqld]
-default-table-type=<span class="literal">InnoDB</span>
-</code></pre>
-	<h3 id="isolationsetting">トランザクション分離レベルの設定</h3>
-	<p>
-		MySQLではトランザクション分離レベルはデフォルトで "Repeatable Read" になっていますが、
-		他のデータベースのデフォルトである "Read Committed" に合わせたい場合があります。
-	</p>
-<pre><span class="codetitle">e.g. トランザクション分離レベルをRead-Committedに設定 @my.cnf</span><code>
-[mysqld]
-transaction-isolation=<span class="literal">Read-Committed</span>
-</code></pre>
-	<h3 id="charsetsetting">キャラセットの設定</h3>
-<pre><span class="codetitle">e.g. キャラセットを "UTF-8" に設定 @my.cnf</span><code>
-[mysqld]
-default-character-set=<span class="literal">utf8</span>
-</code></pre>
-	<h3 id="delimiterdata">デリミタデータの取得</h3>
-	<p>
-		テーブルのデータをデリミタデータ(TSVやCSVなど)として出力するコマンドがあります。
-	</p>
-<pre><span class="codetitle">e.g. キャラセットを "UTF-8" に設定 @SQL</span><code>
-<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
-<span class="keyword">into outfile</span> <span class="literal">"/tmp/MEMBER.tsv"</span>
-<span class="keyword">fields terminated by</span> <span class="literal">'\t'</span>
-<span class="keyword">enclosed by</span> <span class="literal">'"'</span>;
-</code></pre>
-	<p>
-		データの中のダブルクォーテーションは、バックスラッシュ "\" でエスケープされ、改行の前にも "\"
-		が付与されます。よって、DBFlute の ReplaceSchema のデータ登録のための TSV
-		を作成する場合は、convertValueMap.dataprop でこれらをうまく置換して仕様を合わせる必要があります。
-	</p>
-	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/loadtsv.html#convertvaluemap">データ登録(TSV) - 値のコンバート設定(dataprop)</a></div>
-<pre><span class="codetitle">e.g. 実際に試してデータ登録したときの設定 (足りない可能性もある) @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$LINE$$</span> = <span class="keyword">map:</span>{
-        ; \\\\ = \\
-        ; \\" = ""
-    }
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
-        ; \N = 
-        ; <span class="attribute">$$empty$$</span> = <span class="attribute">$$empty$$</span>
-        ; <span class="attribute">contain:</span>\\\n = \n
-    }
-}
-</code></pre>
+	<div class="detailpage"><a href="./supplement.html">MySQLの補足資料</a></div>
 
 </div>
 </div>

@@ -155,6 +155,18 @@ cb.query().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&l
 	<p>
 		引数はありません。また、二度呼び出しは許されません。
 	</p>
+<pre><span class="codetitle">e.g. 右辺カラムの日時に対して時分秒ミリ秒を切り捨て @Java</span><code>
+<span class="abbreviation">...</span>
+cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnBirthdate();
+    }
+}).greaterThan(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnFormalizedDatetime();
+    }
+}).convert(<span class="keyword">new</span> ColumnConversionOption().<span class="point">truncTime</span>());
+</code></pre>
 	<h3 id="dateadd">日付の加算</h3>
 	<p>
 		例えば、一日進めるなど、日付に対する加算をします<span class="freecomment">(@since 0.9.8.6)</span>。
@@ -171,6 +183,18 @@ cb.query().derivedPurchaseList().max(<span class="keyword">new</span> SubQuery&l
 		引数はそれぞれ Integer 型を指定します。マイナス値を指定すると減算になります。また、null
 		を指定すると無効な呼び出しとして何も処理されません。二度呼び出しは許されません。
 	</p>
+<pre><span class="codetitle">e.g. 右辺カラムの日時に対して 1 日進める @Java</span><code>
+<span class="abbreviation">...</span>
+cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnBirthdate();
+    }
+}).greaterThan(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnFormalizedDatetime();
+    }
+}).convert(<span class="keyword">new</span> ColumnConversionOption().<span class="point">addDay</span>(<span class="literal">1</span>));
+</code></pre>
 
 </div>
 </div>

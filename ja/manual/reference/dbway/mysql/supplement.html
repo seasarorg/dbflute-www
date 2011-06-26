@@ -1,0 +1,316 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,MySQL,補足資料" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>MySQLの補足資料 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>MySQLの補足資料</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#function">SQL関数</a>
+			<ul>
+				<li><a href="#truncate">数値の切り捨て</a></li>
+				<li><a href="#datetrunc">日付の切り捨て</a></li>
+				<li><a href="#dateadd">日付の加算・減算</a></li>
+			</ul>
+		</li>
+		<li><a href="#table">テーブル定義</a>
+			<ul>
+				<li><a href="#identitysetting">Identity設定</a></li>
+				<li><a href="#tablecomment">テーブルコメントの設定</a></li>
+				<li><a href="#uniquefeature">ユニーク制約の特徴</a></li>
+				<li><a href="#insertedidentity">発行された連番を insert 実行後に取得</a></li>
+			</ul>
+		</li>
+		<li><a href="#env">環境周り</a>
+			<ul>
+				<li><a href="#enginesetting">ストレージエンジンの設定</a></li>
+				<li><a href="#isolationsetting">トランザクション分離レベルの設定</a></li>
+				<li><a href="#charsetsetting">キャラセットの設定</a></li>
+				<li><a href="#delimiterdata">デリミタデータの取得</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		DBFluteとは直接は無関係ながらも関わりの深い、MySQLに関する補足資料です。
+		厳密な仕様はDBMSのオフィシャルドキュメントの通りではありますが、ここでは簡易な資料としてまとめています。
+	</p>
+
+	<h2 id="function">SQL関数</h2>
+	<h3 id="truncate">数値の切り捨て</h3>
+	<p>
+		truncate() 関数を利用することで数値の切り捨てができます。
+	</p>
+<pre><span class="codetitle">e.g. 購入数量の平均値の小数点を切り捨て @SQL</span><code>
+<span class="point">truncate</span>(avg(PURCHASE_COUNT), <span class="literal">0</span>)
+</code></pre>
+	<ul class="codeoutro">
+		<li>数値の部分はバインド変数が適用できます</li>
+	</ul>
+	<p>
+		DBFluteでは、ConditionBeanのSQL関数フィルタの trunc() にてこれを利用しています。メソッドは trunc()
+		ですが、内部的に truncate() として解決されます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#trunc">CB - SQL関数フィルタ - trunc()</a></div>
+	<h3 id="datetrunc">日付の切り捨て</h3>
+	<p>
+		素直にはできないので、様々な関数を組み合わせて実現します。実現方法は一つに限りません。
+	</p>
+<pre><span class="codetitle">e.g. 更新日時の時分秒ミリ秒を切り捨てて日付に @SQL</span><code>
+cast(substring(UPDATE_DATETIME, <span class="literal">1</span>, <span class="literal">10</span>) as <span class="dbtype">date</span>)
+</code></pre>
+<pre><span class="codetitle">e.g. 更新日時の日と時分秒ミリ秒を切り捨てて日付に (月初めになる) @SQL</span><code>
+cast(concat(substring(UPDATE_DATETIME, <span class="literal">1</span>, <span class="literal">10</span>), <span class="literal">'-01'</span>) as <span class="dbtype">date</span>)
+</code></pre>
+	<p>
+		DBFluteでは、ConditionBeanのSQL関数フィルタの日付の切り捨てにてこれを利用しています。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#datetrunc">CB - SQL関数フィルタ - 日付の切り捨て</a></div>
+	<h3 id="dateadd">日付の加算・減算</h3>
+	<p>
+		date_add() 関数を利用することで加算と減算ができます。
+	</p>
+<pre><span class="codetitle">e.g. 更新日時を一日進める @SQL</span><code>
+<span class="point">date_add</span>(UPDATE_DATETIME, interval <span class="literal">1</span> day)
+</code></pre>
+	<ul class="codeoutro">
+		<li>数値の部分はバインド変数が適用できます</li>
+		<li>マイナス値を指定すると減算になります</li>
+		<li>day の他に、year, month, hour などが指定できます</li>
+	</ul>
+	<p>
+		DBFluteでは、ConditionBeanのSQL関数フィルタの日付の加算にてこれを利用しています。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#dateadd">CB - SQL関数フィルタ - 日付の加算</a></div>
+
+	<h2 id="table">テーブル定義</h2>
+	<h3 id="identitysetting">Identity設定</h3>
+<pre><span class="codetitle">e.g. Identity設定 {MEMBER_IDにIdentity} @SQL</span><code>
+<span class="keyword">create table</span> MEMBER (
+    MEMBER_ID <span class="dbtype">INTEGER</span> <span class="attribute">AUTO_INCREMENT NOT NULL</span>,
+    MEMBER_NAME <span class="dbtype">VARCHAR(200)</span> <span class="attribute">NOT NULL</span>,
+    ...
+)
+</code></pre>
+	<h3 id="tablecomment">テーブルコメントの設定</h3>
+	<p>
+		テーブルやカラムのコメントは、comment on ではなく create table
+		に設定します。最大文字数は、テーブルは 60 文字、カラムは (約!?) 255 文字です。
+	</p>
+<pre><span class="codetitle">e.g. テーブルやカラムのコメントを設定 @SQL</span><code>
+<span class="keyword">CREATE TABLE</span> PURCHASE(
+    PURCHASE_ID <span class="dbtype">BIGINT</span> <span class="attribute">AUTO_INCREMENT NOT NULL COMMENT</span> '購入ID: 連番',
+    MEMBER_ID <span class="dbtype">INTEGER</span> <span class="attribute">NOT NULL COMMENT</span> '会員ID: 会員を参照するID。'
+    PURCHASE_COUNT <span class="dbtype">INTEGER</span> <span class="attribute">NOT NULL COMMENT</span> '購入数量: 購入した商品の（一回の購入における）数量。',
+    <span class="abbreviation">...</span>
+) <span class="attribute">COMMENT</span>='一つの商品に対する一回の購入を表現する。
+一回の購入で一つの商品を複数個買うこともある。' ;
+</code></pre>
+	<h3 id="uniquefeature">ユニーク制約の特徴</h3>
+	<p>
+		NotNull の FOO カラムと、そうでない BAR カラム
+		で複合ユニーク制約を付けた場合、"A と null" と "A と null"
+		の二つのレコードは登録できます。つまり、この場合の二つの null はそれぞれ別の値として扱われます。
+	</p>
+	<p>
+		<span class="freecomment">※試しに、会員の生年月日とバージョンNOに複合ユニーク制約を付けてもExampleのテストデータは正常に登録された</span>
+	</p>
+	<h3 id="insertedidentity">発行された連番を insert 実行後に取得</h3>
+	<p>
+		同じトランザクション内での実行が前提です。トランザクション外で実行しても正常な値は取得されません。
+		ゆえに MyISAM では利用できません。
+	</p>
+<pre><span class="codetitle">e.g. 発行された連番を insert 実行後に取得 @SQL</span><code>
+<span class="keyword">select</span> last_insert_id();
+</code></pre>
+	<p>
+		DBFluteでは、Behavior の insert() の処理の中で、このSQLを内部的に発行して採番された値を Entity
+		に格納しています。デバッグログにもこのSQLが表示されます。
+	</p>
+	<div class="relatedpage"><a href="./index.html#autoincrement">MySQLの取扱い - 主キーでの自動採番</a></div>
+
+	<h2 id="env">環境周り</h2>
+	<h3 id="enginesetting">ストレージエンジンの設定</h3>
+	<p>
+		例えば、(デフォルトのストレージエンジンとして) InnoDB を利用する場合以下のように設定します。
+	</p>
+<pre><span class="codetitle">e.g. ストレージエンジンを InnoDB に設定 @my.cnf</span><code>
+[mysqld]
+default-table-type=<span class="literal">InnoDB</span>
+</code></pre>
+	<h3 id="isolationsetting">トランザクション分離レベルの設定</h3>
+	<p>
+		MySQLではトランザクション分離レベルはデフォルトで "Repeatable Read" になっていますが、
+		他のデータベースのデフォルトである "Read Committed" に合わせたい場合があります。
+	</p>
+<pre><span class="codetitle">e.g. トランザクション分離レベルをRead-Committedに設定 @my.cnf</span><code>
+[mysqld]
+transaction-isolation=<span class="literal">Read-Committed</span>
+</code></pre>
+	<h3 id="charsetsetting">キャラセットの設定</h3>
+<pre><span class="codetitle">e.g. キャラセットを "UTF-8" に設定 @my.cnf</span><code>
+[mysqld]
+default-character-set=<span class="literal">utf8</span>
+</code></pre>
+	<h3 id="delimiterdata">デリミタデータの取得</h3>
+	<p>
+		テーブルのデータをデリミタデータ(TSVやCSVなど)として出力するコマンドがあります。
+	</p>
+<pre><span class="codetitle">e.g. キャラセットを "UTF-8" に設定 @SQL</span><code>
+<span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
+<span class="keyword">into outfile</span> <span class="literal">"/tmp/MEMBER.tsv"</span>
+<span class="keyword">fields terminated by</span> <span class="literal">'\t'</span>
+<span class="keyword">enclosed by</span> <span class="literal">'"'</span>;
+</code></pre>
+	<p>
+		データの中のダブルクォーテーションは、バックスラッシュ "\" でエスケープされ、改行の前にも "\"
+		が付与されます。よって、DBFlute の ReplaceSchema のデータ登録のための TSV
+		を作成する場合は、convertValueMap.dataprop でこれらをうまく置換して仕様を合わせる必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/loadtsv.html#convertvaluemap">データ登録(TSV) - 値のコンバート設定(dataprop)</a></div>
+<pre><span class="codetitle">e.g. 実際に試してデータ登録したときの設定 (足りない可能性もある) @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$LINE$$</span> = <span class="keyword">map:</span>{
+        ; \\\\ = \\
+        ; \\" = ""
+    }
+    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+        ; \N = 
+        ; <span class="attribute">$$empty$$</span> = <span class="attribute">$$empty$$</span>
+        ; <span class="attribute">contain:</span>\\\n = \n
+    }
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<!-- 
+					<ul>
+						<li><a href="../../../../../ja/manual/function/generator/task/jdbc/index.html">JDBC</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/doc/index.html">Doc</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></li>
+						<li><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+					</ul>
+				 -->
+				</li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha(Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
