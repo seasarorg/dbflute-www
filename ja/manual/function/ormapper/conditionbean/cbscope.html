@@ -47,11 +47,11 @@
 	<div class="relatedpage"><a href="../outsidesql/index.html">外だしSQL(OutsideSql)</a></div>
 	<ul class="indexlist">
 		<li><a href="#flow">判断の流れ</a></li>
-		<li><a href="#flowa">A. 明らかな外だしSQLか否かを判断</a>
+		<li><a href="#flowa">A. 概念的な違いで判断</a>
 			<ul>
-				<li><a href="#cbresult">ConditionBeanによる検索で取得できる結果</a></li>
-				<li><a href="#notcb">ConditionBeanによる検索で取得できない結果</a></li>
-				<li><a href="#point">結果セットのユニーク性がポイント</a></li>
+				<li><a href="#domain">基点テーブルが定まる検索</a></li>
+				<li><a href="#customize">基点テーブルが定まらない検索</a></li>
+				<li><a href="#cbscope">ConditionBeanのスコープ</a></li>
 				<li><a href="#unique">結果セットのユニーク性を明確に</a></li>
 			</ul>
 		</li>
@@ -73,70 +73,66 @@
 	<p>
 		ここでは、ConditionBeanによる検索に焦点を当てています。更新に関しては別途まとめています。
 	</p>
-	<div class="detailpage"><a href="#update">this - ConditionBeanによる更新での判断</a></div>
+	<div class="relatedpage"><a href="#update">this - ConditionBeanによる更新での判断</a></div>
 
-	<h2 id="flowa">A. 明らかな外だしSQLか否かを判断</h2>
+	<h2 id="flowa">A. 概念的な違いで判断</h2>
 	<p>
-		ConditionBeanの細かい機能を確認する前に、まずは "明らかに外だしSQL"
-		と考えられる概念的な要素を確認し、早い段階で棲み分けを判断できるようにします。
-		<em class="keyword">検索結果の形式</em> に着目しています。
+		ConditionBeanの細かい機能を確認する前に、まずはそれぞれは持つ概念的なスコープを確認することで早い段階で棲み分けが判断できます。
+		やはり基本中の基本、<em class="keyword">基点テーブルは何？</em> に着目しています。
 	</p>
-	<h3 id="cbresult">ConditionBeanによる検索で取得できる結果</h3>
+	<h3 id="domain">基点テーブルが定まる検索</h3>
 	<p>
-		ConditionBeanによる検索で取得できる結果のデータ形式は以下の通りです。
+		例えば、会員一覧は会員IDでユニークになり、つまり、基点テーブルは会員です。
+		また、購入一覧のユニーク性は購入ID(もしくは、会員ID、商品ID、購入日時)です。
+		会員ごとの購入状況の集計(合計購入価格など)を検索という場合、"会員ごと"
+		と言っているので購入IDではなく会員IDでユニークになり、基点テーブルはやはり会員です。
+		(集計とか購入とかという言葉に惑わされてはいけません)
 	</p>
-	<ul>
-		<li><em class="keyword">DomainEntityのオブジェクトグラフ</em></li>
-		<li><em class="keyword">(一般的な)集計関数を使ったスカラ値</em></li>
-	</ul>
+	<dl class="keymainlist">
+		<dt>会員一覧</dt><dd>会員IDでユニーク、基点テーブルは会員</dd>
+		<dt>購入一覧</dt><dd>購入ID(会員ID、商品ID、購入日時)でユニーク、基点テーブルは購入</dd>
+		<dt>会員ごとの購入状況の集計</dt><dd>会員IDでユニーク、基点テーブルは会員</dd>
+	</dl>
+	<p>
+		さて、あなたの検索における
+		<em class="keyword">結果セットのユニーク性、つまり、基点テーブル</em> はなんでしょう？
+	</p>
+	<h3 id="customize">基点テーブルが定まらない検索</h3>
+	<p>
+		例えば、"月ごとの購入状況の集計(最大購入金額など)" というような場合、元になっている情報は購入テーブルですが、
+		結果セットのユニーク性は購入IDではなく <em class="keyword">(購入)月ごと</em>
+		です。そのようなユニーク性を持ったテーブルはどこにも存在しないため、厳密には基点テーブルは存在していないと言えます。
+		プログラムの管理上、"あえて言うなら" と曖昧に基点テーブルを購入と定めることはありますが、それは厳密な基点テーブルではありません。
+	</p>
+	<p>
+		"会員と月ごとの購入状況の集計" と会員という要素が入ったとしても、あくまで <em class="keyword">会員と月ごと</em>
+		でユニークとなるわけで、一致するユニーク性は会員でも購入でもありません。
+		実際にSQLでは、購入日時の年月部分を抜き出して購入月という実際のテーブル上には存在しない要素で結果セットを構築するでしょう。
+	</p>
+	<dl class="keymainlist">
+		<dt>月ごとの購入状況の集計</dt><dd>購入月でユニーク、基点テーブルはスキーマ上にはない</dd>
+		<dt>会員と月ごとの購入状況の集計</dt><dd>会員IDと購入月でユニーク、基点テーブルはスキーマ上にはない</dd>
+	</dl>
+	<p>
+		このような <em class="keyword">結果セットのユニーク性がスキーマ上のテーブルと一致しない検索は外だしSQL</em> です。
+	</p>
+	<h3 id="cbscope">ConditionBeanのスコープ</h3>
+	<p>
+		もう少しぼかした言い方をすると、基点テーブルが厳密に定まるものは ConditionBean
+		のスコープで、曖昧にしか定まらないものは確実に外だしSQLで実装します。
+	</p>
+	<p>
+		その違いが、受け取り Entity の違いに現れます。ConditionBean はオブジェクトグラフのDomainEntity
+		なのに対して、外だしSQLは(基本的に)フラット構造の CustomizeEntity になります。
+	</p>
 	<div class="relatedpage"><a href="../entity/index.html#about">Entityとは？ (DomainEntityの説明あり)</a></div>
 	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/wo.html#objectgraph">ObjectGraph (オブジェクトグラフ)</a></div>
+	<p>
+		例外が一つ、(一般的な)集計関数を使ったスカラ値の検索は、ConditionBean
+		のスコープです。結果セットの基点テーブルという概念がそもそも存在しない検索形式ですが、
+		ConditionBean の絞り込み条件を利用してとあるカラムの最大値や合計値などを検索することができます。
+	</p>
 	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/ws.html#scalarvalue">ScalarValue (スカラ値)</a></div>
-
-	<h3 id="notcb">ConditionBeanによる検索で取得できない結果</h3>
-	<p>
-		以下、ConditionBeanでは取得できない検索結果の主な例です。これを参考に
-		"自分が何を取得したいのか？" を明確にさせてから判断して下さい。
-	</p>
-	<ul>
-		<li>A. <em class="keyword">PKやFKでないカラム</em> を基準とする集計結果 {group by}</li>
-		<li>B. (FK制約などで) <em class="keyword">関連の全くない</em> テーブル同士を結合した結果</li>
-		<li>C. <em class="keyword">別テーブル同士</em> での UNION もしくは UNION ALL の結果</li>
-		<li>D. 特殊な計算結果(スカラ値) {<em class="keyword">DBMS依存の関数やアプリ作成の関数</em> など}</li>
-	</ul>
-	<h3 id="point">結果セットのユニーク性がポイント</h3>
-	<p>
-		会員一覧のユニーク性は会員IDです。購入一覧のユニーク性は購入IDです。さて、あなたの検索しようとしている
-		<em class="keyword">結果セットのユニーク性</em> はなんでしょうか？
-	</p>
-	<p>
-		例えば、"月ごとの購入状況の集計(最大購入金額など)"
-		というような場合は、元になっている情報は購入テーブルですが、結果セットのユニーク性は購入IDではなく
-		<em class="keyword">月ごと</em> であり、取得したい結果は DomainEntity
-		で受け取れるものではありません。こういった検索は外だしSQLが向いています。("ConditionBeanによる検索で取得できない結果" の "A" に相当します)
-	</p>
-	<p>
-		但し、オブジェクトグラフの構造を保ったまま <em class="keyword">定型的な導出カラム</em> を付与することはできます。例えば、会員一覧に
-		"(会員ごとの)最大購入金額" を追加する(子テーブルの導出カラム)、というような場合です。
-		違いのポイントは <em class="keyword">月ごとの最大購入金額</em> なのか、<em class="keyword">会員ごとの最大購入金額</em>
-		なのかというところで、後者は結果セットのユニーク性がテーブルのものと一致しています。
-	</p>
-	<div class="relatedpage"><a href="./specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
-<pre><span class="codetitle">e.g. (Specify)DerivedReferrer で会員ID、会員名称、最大購入金額(だけ)の検索 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.specify().columnMemberName();
-cb.specify().derivedPurchaseList().<span class="point">max</span>(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.specify().<span class="point">columnPurchasePrice()</span>;
-    }
-}, Member.<span class="attribute">ALIAS_maxPurchasePrice</span>);
-List&lt;Member&gt; memberList = memberBhv.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    <span class="abbreviation">...</span> = member.getMemberId();
-    <span class="abbreviation">...</span> = member.getMemberName();
-    <span class="abbreviation">...</span> = member.<span class="point">getMaxPurchaseCount()</span>;
-}
-</code></pre>
 	<div class="inucolumn">
 		<h3 id="unique">結果セットのユニーク性を明確に</h3>
 		<p>
@@ -155,6 +151,10 @@ List&lt;Member&gt; memberList = memberBhv.selectList(cb);
 			DBFluteを利用することが、(できるだけ)こういった意識が自然と身に付くことにつながればと考えています。
 		</p>
 		<div class="relatedpage"><a href="./about.html#purpose">ConditionBeanについて - 目的ドリブン</a></div>
+		<p>
+			ちなみに、"結果セットのユニーク性" を "レコードの粒度"
+			と呼ぶこともあります。基本的にはドキュメント上は前者で表現していますが、どちらも同じことを意味しています。
+		</p>
 	</div>
 
 	<h2 id="flowb">B. ConditionBeanでとりあえず実装</h2>
