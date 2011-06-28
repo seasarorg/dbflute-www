@@ -354,13 +354,13 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 	<h3 id="nullsfirstlast">NullsFirst/Lastの実現</h3>
 	<p>
 		nulls first/last 構文をサポートしていないため、case when 構文を使って NullsFirst/Last
-		を実現しています。ただ、UnionQuery と NullsFirst/Last を合わせることはできるので、特にそのことによる制約はありません。
-		(また、パフォーマンス上の懸念が多少あるので、大量データのときには注意して下さい)
+		を実現しています。特にそのことによる制約はありませんが(UnionQuery との併用も可能)、
+		パフォーマンス上の懸念が若干拭えないので、大量レコードをソートするときは意識しておいた方が良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/query/orderby/nullsfirstlast.html">ConditionBean - NullsFirst/Last</a></div>
 	<h3 id="engine">MySQLのストレージエンジンに注意</h3>
 	<p>
-		MySQLには、ストレージエンジンという概念があり、同じMySQLとはいえストレージエンジンが違えば挙動が変わります。
+		MySQL にはストレージエンジンという概念があり、同じ MySQL とはいえストレージエンジンが違えば挙動が変わります。
 	</p>
 	<p>
 		例えば、MyISAM では外部キー制約がないため、DBFluteではテーブル間のリレーションを自動生成時に活用することができません。AdditionalForeignKey
@@ -374,53 +374,21 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		もし、MyISAM である特別な理由がないのであれば、外部キー制約をサポートしている InnoDB
 		などのストレージエンジンを利用することで、そういった手間の発生を抑えることができます。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="#enginesetting"> -->this - ストレージエンジンの設定<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="./supplement.html#storageengine">MySQL補足資料 - ストレージエンジンの設定</a></div>
 	<h3 id="lowercase">MySQLの小文字管理のススメ</h3>
 	<p>
-		Linux 上でのMySQLは、SQL文でのテーブル名やカラム名の大文字小文字を区別します。
+		Linux 上での MySQL は、SQL文でのテーブル名やカラム名の大文字小文字を区別します。
 		開発はローカルPCの Windows で大文字小文字区別せずにSQLを書いていて、
-		いざ結合テストなどでサーバのLinuxで動かしたときにSQLが動かない、というような状況が発生する可能性があります。
-		環境に依存せず大文字小文字を区別ないようにするためには、my.cnf もしくは my.ini に以下のような設定をします。
+		いざ結合テストなどでサーバの Linux で動かしたときにSQLが動かない、というような状況が発生する可能性があります。
+		MySQL自体に、環境に依存せず大文字小文字を区別しないようにする設定があります。
 	</p>
-<pre><span class="codetitle">e.g. SQLでのテーブル名やカラム名の大文字小文字を区別しない設定 @my.cnf</span><code>
-[mysqld]
-lower_case_table_names=1
-</code></pre>
-	<p>
-		このようにするとMySQL内部では全て小文字で管理されるようになり、SQL文での大文字で書かれたテーブル名やカラム名が実行時に小文字に変換されて処理されます。
-	</p>
-	<p>
-		ただし、元の大文字小文字が判別できなくなってしまうため、その判別がどこかしらの処理で必要になるような場合は、この設定は適切ではありません。
-		DBFluteにおいても、例えばキャメルケースでテーブル名を表現しているような場合に、MemberStatus
-		が全て Memberstatus となってしまいます(動作に問題はありませんが見づらくなります)。そういうときは、この "lower_case_table_names"
-		の別の値も検討する必要があるでしょう(詳しくは MySQL のオフィシャルドキュメント参照)。 
-	</p>
+	<div class="detailpage"><a href="./supplement.html#lowercase">MySQL補足資料 - テーブル名、カラム名の小文字管理</a></div>
 	<h3 id="sqlmode">SQLモードのススメ</h3>
 	<p>
 		MySQLのSQLモードを設定することをお奨めします。なぜなら、MySQLのデフォルト設定だと幾つか開発現場に相性の悪い仕様があるからです。
-		例えば、MySQLは以下のような group by 句に存在しないカラムを select 句に指定してもエラーになりません。
+		特に、間違ったカラムを指定した group by がしっかりとエラーになるように設定すると良いでしょう。 
 	</p>
-<pre><span class="codetitle">e.g. 解決できないカラムがある group by のSQL {SQLモードを指定することによりエラーになる} @SQL</span><code>
-<span class="keyword">select</span> MEMBER_STATUS_CODE, <span class="point">MEMBER_NAME</span>
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">group by</span> MEMBER_STATUS_CODE;
-</code></pre>
-	<p>
-		こういった "安全ではない割り切り" が多数存在します。SQLモードを設定することでそれらをしっかり実行時エラーにすることが可能です。
-		SQLモードの設定は、my.cnf もしくは my.ini に以下のように設定することが可能です。カンマ区切りで複数指定が可能です。但し、"a, b"
-		というように空白を一つ開けるのは不可なので注意して下さい("a,b" と指定すること)。
-	</p>
-<pre><span class="codetitle">e.g. SQLモードの設定 {SQLモードを指定することによりエラーになる} @my.cnf</span><code>
-[mysqld]
-sql_mode=<span class="literal">"ONLY_FULL_GROUP_BY,STRICT_ALL_TABLES,PIPES_AS_CONCAT,ANSI_QUOTES,NO_ZERO_DATE,NO_ZERO_IN_DATE,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"</span>
-</code></pre>
-	<p>
-		代表的なSQLモードを挙げておきます。
-	</p>
-	<dl class="keymainlist">
-		<dt>ONLY_FULL_GROUP_BY</dt><dd>間違ったGroupByがちゃんとエラーになる</dd>
-		<dt>PIPES_AS_CONCAT</dt><dd>SQL上の文字列連結で'||'が利用可能になる</dd>
-	</dl>
+	<div class="detailpage"><a href="./supplement.html#sqlmode">MySQL補足資料 - SQLモード</a></div>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>

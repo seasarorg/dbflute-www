@@ -42,7 +42,11 @@
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#function">SQL関数</a>
 			<ul>
+				<li><a href="#currentdate">現在日付</a></li>
+				<li><a href="#coalesce">null の場合のデフォルト値</a></li>
+				<li><a href="#round">数値の丸め</a></li>
 				<li><a href="#truncate">数値の切り捨て</a></li>
+				<li><a href="#dateformat">日付のフォーマット</a></li>
 				<li><a href="#datetrunc">日付の切り捨て</a></li>
 				<li><a href="#dateadd">日付の加算・減算</a></li>
 			</ul>
@@ -57,9 +61,11 @@
 		</li>
 		<li><a href="#env">環境周り</a>
 			<ul>
-				<li><a href="#enginesetting">ストレージエンジンの設定</a></li>
+				<li><a href="#storageengine">ストレージエンジンの設定</a></li>
+				<li><a href="#lowercase">テーブル名、カラム名の小文字管理</a></li>
 				<li><a href="#isolationsetting">トランザクション分離レベルの設定</a></li>
 				<li><a href="#charsetsetting">キャラセットの設定</a></li>
+				<li><a href="#sqlmode">SQLモード</a></li>
 				<li><a href="#delimiterdata">デリミタデータの取得</a></li>
 			</ul>
 		</li>
@@ -72,6 +78,41 @@
 	</p>
 
 	<h2 id="function">SQL関数</h2>
+	<h3 id="currentdate">現在日付</h3>
+	<dl class="keymainlist">
+		<dt>current_date()</dt><dd>yyyy-MM-dd</dd>
+		<dt>current_time()</dt><dd>HH:mm:ss</dd>
+		<dt>current_timestamp()</dt><dd>yyyy-MM-dd HH:mm:ss</dd>
+		<dt>now()</dt><dd>current_timestamp() と同じ</dd>
+	</dl>
+	<h3 id="coalesce">null の場合のデフォルト値</h3>
+	<p>
+		coalesce() 関数を利用することで、対象値が null の場合のデフォルト値を設定することができます。
+	</p>
+<pre><span class="codetitle">e.g. 購入数量の平均値が null の場合は 0 にする @SQL</span><code>
+<span class="point">coalesce</span>(avg(PURCHASE_COUNT), <span class="literal">0</span>)
+</code></pre>
+	<ul class="codeoutro">
+		<li>デフォルト値の部分はバインド変数が適用できます</li>
+	</ul>
+	<p>
+		DBFluteでは、ConditionBeanのSQL関数フィルタの coalesce() にてこれを利用しています。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#coalesce">CB - SQL関数フィルタ - coalesce()</a></div>
+	<h3 id="round">数値の丸め</h3>
+	<p>
+		round() 関数を利用することで数値の丸めができます。厳密な丸め仕様はMySQLの仕様に依存します。
+	</p>
+<pre><span class="codetitle">e.g. 購入数量の平均値の小数点を丸める @SQL</span><code>
+<span class="point">round</span>(avg(PURCHASE_COUNT), <span class="literal">0</span>)
+</code></pre>
+	<ul class="codeoutro">
+		<li>数値の部分はバインド変数が適用できます</li>
+	</ul>
+	<p>
+		DBFluteでは、ConditionBeanのSQL関数フィルタの round() にてこれを利用しています。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#round">CB - SQL関数フィルタ - round()</a></div>
 	<h3 id="truncate">数値の切り捨て</h3>
 	<p>
 		truncate() 関数を利用することで数値の切り捨てができます。
@@ -87,6 +128,13 @@
 		ですが、内部的に truncate() として解決されます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/functionfilter.html#trunc">CB - SQL関数フィルタ - trunc()</a></div>
+	<h3 id="dateformat">日付のフォーマット</h3>
+	<p>
+		date_format() 関数を利用することでフォーマットすることができます。
+	</p>
+<pre><span class="codetitle">e.g. 更新日時を yyyy/MM/dd 形式でフォーマット @SQL</span><code>
+<span class="point">date_format</span>(UPDATE_DATETIME, <span class="literal">'%Y/%m/%d'</span>)
+</code></pre>
 	<h3 id="datetrunc">日付の切り捨て</h3>
 	<p>
 		素直にはできないので、様々な関数を組み合わせて実現します。実現方法は一つに限りません。
@@ -165,14 +213,41 @@ cast(concat(substring(UPDATE_DATETIME, <span class="literal">1</span>, <span cla
 	<div class="relatedpage"><a href="./index.html#autoincrement">MySQLの取扱い - 主キーでの自動採番</a></div>
 
 	<h2 id="env">環境周り</h2>
-	<h3 id="enginesetting">ストレージエンジンの設定</h3>
+	<h3 id="storageengine">ストレージエンジンの設定</h3>
 	<p>
 		例えば、(デフォルトのストレージエンジンとして) InnoDB を利用する場合以下のように設定します。
 	</p>
+	<div class="relatedpage"><a href="./index.html#engine">MySQLのストレージエンジンに注意</a></div>
 <pre><span class="codetitle">e.g. ストレージエンジンを InnoDB に設定 @my.cnf</span><code>
 [mysqld]
 default-table-type=<span class="literal">InnoDB</span>
 </code></pre>
+	<h3 id="lowercase">テーブル名、カラム名の小文字管理</h3>
+	<p>
+		MySQLは、Linux や Windows などの環境ごとに、テーブル名やカラム名のSQL上での大文字小文字の識別に違いがあります。
+		例えば、Linux では大文字小文字を区別し、Windows では区別しません。
+	</p>
+	<p>
+		これにより、開発は Windows で大文字小文字区別せずにSQLを書いていて、いざ結合テストなどでサーバの Linux
+		で動かしたときにSQLが動かない、というような状況が発生する可能性があります。
+	</p>
+	<p>
+		環境に依存せず大文字小文字を区別しないようにするためには、my.cnf(ini) に以下のような設定をします。
+	</p>
+<pre><span class="codetitle">e.g. SQLでのテーブル名やカラム名の大文字小文字を区別しない設定 @my.cnf</span><code>
+[mysqld]
+lower_case_table_names=1
+</code></pre>
+	<p>
+		このようにするとMySQL内部では全て小文字で管理されるようになり、SQL文での大文字で書かれたテーブル名やカラム名が実行時に小文字に変換されて処理されます。
+	</p>
+	<p>
+		ただし、元の大文字小文字が判別できなくなってしまうため、その判別がどこかしらの処理で必要になるような場合は、この設定は適切ではありません。
+		MySQLの中での管理が全て小文字になるため、MySQLからテーブル名やカラム名をメタ情報として取得すると、全て小文字になっています。
+		例えばキャメルケースでテーブル名を表現しているような場合、DBFlute のような自動生成ツールで、MemberStatus
+		が全て Memberstatus となってしまい、動作に問題はありませんが見づらくなります。そういうときは、この
+		"lower_case_table_names" の別の値も検討する必要があるかもしれません。 
+	</p>
 	<h3 id="isolationsetting">トランザクション分離レベルの設定</h3>
 	<p>
 		MySQLではトランザクション分離レベルはデフォルトで "Repeatable Read" になっていますが、
@@ -187,6 +262,36 @@ transaction-isolation=<span class="literal">Read-Committed</span>
 [mysqld]
 default-character-set=<span class="literal">utf8</span>
 </code></pre>
+	<h3 id="sqlmode">SQLモード</h3>
+	<p>
+		SQLのデフォルト挙動を微調整するための様々な設定が存在します。
+	</p>
+	<p>
+		例えば、MySQL は以下のような group by 句に存在しないカラムを select
+		句に指定してもエラーになりません。(他のDBMSでは大抵はしっかりとエラーになる)
+	</p>
+<pre><span class="codetitle">e.g. 解決できないカラムがある group by のSQL {SQLモードを指定すればエラーにできる} @SQL</span><code>
+<span class="keyword">select</span> MEMBER_STATUS_CODE, <span class="point">MEMBER_NAME</span>
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">group by</span> MEMBER_STATUS_CODE;
+</code></pre>
+	<p>
+		こういった "安全ではない割り切り" が多数存在します。SQLモードを設定することでそれらをしっかり実行時エラーにすることが可能です。
+		SQLモードの設定は、my.cnf(ini) に以下のように設定することが可能です。カンマ区切りで複数指定が可能です。但し、"a, b"
+		というように空白を一つ開けるのは不可なので注意して下さい("a,b" と指定すること)。
+	</p>
+<pre><span class="codetitle">e.g. SQLモードの設定 {SQLモードを指定することによりエラーになる} @my.cnf</span><code>
+[mysqld]
+sql_mode=<span class="literal">"ONLY_FULL_GROUP_BY,STRICT_ALL_TABLES,PIPES_AS_CONCAT,ANSI_QUOTES,NO_ZERO_DATE,NO_ZERO_IN_DATE,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"</span>
+</code></pre>
+	<p>
+		DBFluteであれば、型の解決などは自動生成時点で担保されるため、あまり厳密にせずとも問題は発生しにくいですが、
+		それでも設定しておいた方が良いと思われる代表的なSQLモードを挙げておきます。
+	</p>
+	<dl class="keymainlist">
+		<dt>ONLY_FULL_GROUP_BY</dt><dd>間違ったGroupByがちゃんとエラーになる</dd>
+		<dt>PIPES_AS_CONCAT</dt><dd>SQL上の文字列連結で '||' が利用可能になる</dd>
+	</dl>
 	<h3 id="delimiterdata">デリミタデータの取得</h3>
 	<p>
 		テーブルのデータをデリミタデータ(TSVやCSVなど)として出力するコマンドがあります。
