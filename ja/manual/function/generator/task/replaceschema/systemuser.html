@@ -126,10 +126,10 @@ DBFluteクライアント
     |-<span class="point">system-password.txt</span>
 </code></pre>
 	<p>
-		指定されたファイルが存在しない場合は、password を指定しなかった場合と同じ扱いになります。
+		指定されたファイルが存在しない場合は、例外となります。<span class="freecomment">@since 0.9.8.7 ※それ以前は password を設定しないのと同じ</span>
 	</p>
 	<p>
-		明示的にデフォルトパスワードを設定することもできます。
+		明示的に(ファイルが存在しない場合の)デフォルトパスワードを設定することもできます。
 		多くの人のパスワードが統一的だが一部の人だけ違う、というような場合に有効です。
 		明示的なデフォルトパスワードは、パスワードファイルの定義の後にパイプライン "|" を付けてその後に記述します。
 	</p>
@@ -139,6 +139,18 @@ DBFluteクライアント
         <span class="comment">#; url = ...</span>
         ; user = system
         ; password = df:dfprop/system-password.txt|<span class="point">orcl</span>
+    }
+}
+</code></pre>
+	<p>
+		空パスワードをデフォルトパスワードにしたい場合は、"|" だけ後ろに付けて空っぽにします。
+	</p>
+<pre><span class="codetitle">e.g. パスワードファイルがない場合は空パスワードを指定 @replaceSchemaDefinitionMap.dfprop</span><code>
+; additionalUserMap = <span class="keyword">map:</span>{
+    ; system = <span class="keyword">map:</span>{
+        <span class="comment">#; url = ...</span>
+        ; user = system
+        ; password = df:dfprop/system-password.txt|
     }
 }
 </code></pre>
