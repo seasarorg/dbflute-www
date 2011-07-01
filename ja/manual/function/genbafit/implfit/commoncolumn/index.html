@@ -151,33 +151,33 @@ member.update(member); <span class="comment">// common columns are auto set-up h
 	</p>
 <pre><span class="codetitle">e.g. 共通カラムの自動設定のために、InterceptorでAccessContextに値を登録 @Java</span><code>
 <span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
-    if (AccessContext.isExistAccessContextOnThread()) {
+    if (AccessContext.isExistCallbackContextOnThread()) {
         <span class="comment">// 既に設定されていたら何もしないで次へ</span>
         <span class="comment">// (二度呼び出しされたときのために念のため)</span>
         <span class="keyword">return</span> invocation.proceed();
     }
+    <span class="comment">// [アクセス日時]</span>
+    <span class="comment">// 例えば、アプリで日時を取得する統一したインターフェースからの日時を利用。</span>
+    Timestamp accessTimestamp = currentTimestamp();
+
+    <span class="comment">// [アクセスユーザ]</span>
+    <span class="comment">// 例えば、セッション上のログインユーザを利用。</span>
+    <span class="comment">// ログインしていない場合のことも考慮すること。</span>
+    String accessUser = getSession().getLoginUser();
+
+    <span class="comment">// [アクセスプロセス]</span>
+    <span class="comment">// 例えば、Pageクラスの名前をそのまま利用。</span>
+    <span class="comment">// アプリケーションでプロセスを判別できる適切な名前を設定すること。</span>
+    <span class="comment">// DBのカラムサイズに注意(サイズオーバーしないように)</span>
+    String accessProcess = getTargetClass(invocation).getName();
+
+    AccessContext context = <span class="keyword">new</span> AccessContext();
+    context.setAccessTimestamp(accessTimestamp);
+    context.setAccessUser(accessUser);
+    context.setAccessProcess(accessProcess);
+    AccessContext.setAccessContextOnThread(context);
+
     <span class="keyword">try</span> {
-        <span class="comment">// [アクセス日時]</span>
-        <span class="comment">// 例えば、アプリで日時を取得する統一したインターフェースからの日時を利用。</span>
-        Timestamp accessTimestamp = currentTimestamp();
-
-        <span class="comment">// [アクセスユーザ]</span>
-        <span class="comment">// 例えば、セッション上のログインユーザを利用。</span>
-        <span class="comment">// ログインしていない場合のことも考慮すること。</span>
-        String accessUser = getSession().getLoginUser();
-
-        <span class="comment">// [アクセスプロセス]</span>
-        <span class="comment">// 例えば、Pageクラスの名前をそのまま利用。</span>
-        <span class="comment">// アプリケーションでプロセスを判別できる適切な名前を設定すること。</span>
-        <span class="comment">// DBのカラムサイズに注意(サイズオーバーしないように)</span>
-        String accessProcess = getTargetClass(invocation).getName();
-
-        AccessContext context = <span class="keyword">new</span> AccessContext();
-        context.setAccessTimestamp(accessTimestamp);
-        context.setAccessUser(accessUser);
-        context.setAccessProcess(accessProcess);
-        AccessContext.setAccessContextOnThread(context);
-
         <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">finally</span> {
         <span class="comment">// 最後はしっかりクリアすること (必須)</span>
