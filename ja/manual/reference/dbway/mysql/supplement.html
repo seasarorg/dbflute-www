@@ -40,6 +40,12 @@
 	<h1>MySQLの補足資料</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
+		<li><a href="#sql">SQL周り</a>
+			<ul>
+				<li><a href="#fulltextsearch">全文検索</a></li>
+				<li><a href="#updatesubquery">更新時のサブクエリでの制限</a></li>
+			</ul>
+		</li>
 		<li><a href="#function">SQL関数</a>
 			<ul>
 				<li><a href="#currentdate">現在日付</a></li>
@@ -76,6 +82,27 @@
 		DBFluteとは直接は無関係ながらも関わりの深い、MySQLに関する補足資料です。
 		厳密な仕様はDBMSのオフィシャルドキュメントの通りではありますが、ここでは簡易な資料としてまとめています。
 	</p>
+	<div class="relatedpage"><a href="./index.html">MySQLの取扱い</a></div>
+
+	<h2 id="sql">SQL周り</h2>
+	<h3 id="fulltextsearch">全文検索</h3>
+	<p>
+		MyISAM もしくは "Tritonn + Senna" において全文検索ができます。
+	</p>
+<pre><span class="codetitle">e.g. foo という文字列が含まれる会員名称を全文検索 @SQL</span><code>
+<span class="point">match</span>(MEMBER_NAME) <span class="keyword">against</span> (<span class="literal">'foo'</span> <span class="keyword">in boolean mode</span>)
+</code></pre>
+	<p>
+		DBFluteでは、この構文が ConditionBean で利用できます。
+	</p>
+	<div class="relatedpage"><a href="./index.html#fulltextsearch">ConditionBeanで全文検索</a></div>
+	<h3 id="updatesubquery">更新時のサブクエリでの制限</h3>
+	<p>
+		update 文の where 句のサブクエリにて更新対象のテーブルを参照できないという制限があります。
+		また、delete 文も同じです。DBFlute の queryUpdate(), queryDelete() では、その制限により ConditionBean
+		の条件で指定できない機能が存在します。
+	</p>
+	<div class="relatedpage"><a href="./index.html#queryupdate">QueryUpdate/Deleteの実現</a></div>
 
 	<h2 id="function">SQL関数</h2>
 	<h3 id="currentdate">現在日付</h3>

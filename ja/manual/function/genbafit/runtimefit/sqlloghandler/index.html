@@ -185,7 +185,7 @@ CallbackContext.setCallbackContextOnThread(context);
 		例外で中断したリクエストで実行されたSQLだけを記録したい場合は、
 		コールバックでは一旦リストなどにSQLを登録して保持しておいて、例外が発生したときにだけ記録すると良いでしょう。
 	</p>
-<pre><span class="codetitle">e.g. 例外で中断したリクエストのSQLだけを記録 (Interceptor利用) @Java</span><code>
+<pre><span class="codetitle">e.g. 例外中断したリクエストのSQLを記録 (Interceptor利用) @Java</span><code>
 <span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
     <span class="abbreviation">...</span> <span class="comment">// 既に設定されていたらのチェック</span>
 
@@ -215,7 +215,45 @@ CallbackContext.setCallbackContextOnThread(context);
     }
 }
 </code></pre>
+	<h3 id="updateway">更新系のSQLだけを記録</h3>
+	<p>
+		検索は除外して更新系のSQLだけを記録したい場合は、内部的なクラスを利用することにはなってしまいますが、BehaviorCommand
+		クラスにて判定ができます。
+	</p>
+	<p>
+		ResourceContext.behaviorCommand().isSelect() が false
+		であれば更新系となります。insert() や update() などに加え、queryUpdate() や 外だしSQLの execute()
+		も含まれます。ただし、この判定メソッドはもともとこの機能のために用意されたものではないので、業務で利用する場合はしっかりとテストを行う必要があります。
+	</p>
+<pre><span class="codetitle">e.g. 更新系のSQLだけを記録 (Interceptor利用) @Java</span><code>
+<span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
+    <span class="abbreviation">...</span> <span class="comment">// 既に設定されていたらのチェック</span>
 
+    CallbackContext context = <span class="keyword">new</span> CallbackContext();
+    context.setSqlLogHandler(<span class="keyword">new</span> SqlLogHandler() {
+        <span class="keyword">public void</span> handle(String executedSql, String displaySql
+                         , Object[] args, Class&lt;?&gt;[] argTypes) {
+            if (!ResourceContext.behaviorCommand().isSelect()) {
+                <span class="comment">// ログに出力するなり好きなように</span>
+                <span class="abbreviation">...</span>
+            }
+        }
+    });
+    CallbackContext.setCallbackContextOnThread(context);
+
+    <span class="keyword">try</</span>> {
+        <span class="keyword">return</span> invocation.proceed();
+    } <span class="keyword">finally</span> {
+        <span class="comment">// 最後はしっかりクリアすること (必須)</span>
+        CallbackContext.clearCallbackContextOnThread();
+    }
+}
+</code></pre>
+	<p>
+		この ResourceContext と BehaviorCommand は、DBFluteランタイムの内部的なクラスと言えます。
+		よって、これらクラスは DBFlute のバージョンが変わればインターフェースや挙動が変わる可能性がありますので、
+		自動テスト(JUnitなど)としていつでも検証できる環境を整えておくことが推奨されます。
+	</p>
 
 </div>
 </div>

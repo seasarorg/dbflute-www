@@ -78,6 +78,7 @@
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
 				<li><a href="#lowercase">MySQLの小文字管理のススメ</a></li>
 				<li><a href="#sqlmode">SQLモードのススメ</a></li>
+				<li><a href="#additionaldrop">ReplaceSchema の AdditionalDrop は未実装</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
@@ -389,6 +390,11 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		特に、間違ったカラムを指定した group by がしっかりとエラーになるように設定すると良いでしょう。 
 	</p>
 	<div class="detailpage"><a href="./supplement.html#sqlmode">MySQL補足資料 - SQLモード</a></div>
+	<h3 id="additionaldrop">ReplaceSchema の AdditionalDrop は未実装</h3>
+	<p>
+		ReplaceSchema の AdditionalDrop は、MySQL において実装されていません。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/initializeschema.html#additionaldrop">別スキーマのテーブル削除</a></div>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
@@ -409,6 +415,18 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 			を直接参照して取得しています。ちなみに、MySQLにはスキーマの概念はないのですが、table_schema
 			カラムの値にはデータベース名が格納されています。また、InnoDB だと アプリで設定したコメントに加えて、InnoDB
 			が提供するテーブルの物理情報も一緒に取得されてしまうため、結構無理矢理切り離しています。(自動生成に利用した環境の物理情報はあまり重要でないため)
+		</dd>
+		<dt>メタ情報取得時の大文字小文字リトライ</dt>
+		<dd>
+			メタ情報取得時に大文字小文字を区別せずに取得できるように(念のため)リトライ処理を行いますが、MySQL で Windows で lower_case_table_names = 0
+			の場合に、"errno: 121" のエラーが発生してしまうため、MySQL ではリトライはしていません。
+			リトライせずとも正常にメタ情報が取得できるので特に問題ありません。
+		</dd>
+		<dt>プロシージャ取得時のカタログ名</dt>
+		<dd>
+			DatabaseMetaData.getProcedureColumns() にて他のデータベースのプロシージャのメタ情報を取得する際、
+			第三引数のプロシージャ名にデータベース名(カタログ名)を prefix として付与しなければならないため、そのようにしています。
+			(第一引数にてデータベース名を明示的に指定しているにも関わらず)
 		</dd>
 	</dl>
 
