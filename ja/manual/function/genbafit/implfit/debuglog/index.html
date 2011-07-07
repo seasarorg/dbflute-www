@@ -40,7 +40,12 @@
 	<h1>デバッグログ</h1>
 	<ul class="indexlist">
 		<li><a href="#about">デバッグログとは？</a></li>
-		<li><a href="#setting">デバッグログの設定</a></li>
+		<li><a href="#setting">デバッグログの設定</a>
+			<ul>
+				<li><a href="#dbflutepackage">DBFluteパッケージをログ出力の対象に</a></li>
+				<li><a href="#loglayout">ログレイアウトを調整</a></li>
+			</ul>
+		</li>
 		<li><a href="#sqlexeclog">DBFluteのSQL実行ログ</a></li>
 		<li><a href="#various">DBFluteの様々なログ</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
@@ -70,12 +75,42 @@
     	<li>"log4j.properties" を利用(XMLではない)</li>
     	<li>"console" という名前の Appender が設定されている</li>
     </ul>
-    <h3 id="">DBFluteパッケージをログ出力の対象に</h3>
+    <h3 id="dbflutepackage">DBFluteパッケージをログ出力の対象に</h3>
 	<p>
 	    DBFluteパッケージをログ出力の対象にすることで、SQL実行ログが出力されます。
 	</p>
 <pre><span class="codetitle">e.g. DBFluteパッケージをログ出力の対象にする @log4j.properties</span><code>
 log4j.logger.<span class="point">org.seasar.dbflute</span> = ALL, console
+</code></pre>
+	<p>
+		例えば、DIコンテナに Seasar を利用していて org.seasar
+		が既にログ出力の対象になっている場合は、DBFluteパッケージを明示的に設定する必要はありません。
+		(明示的に OFF にしない限り、親パッケージの設定が継承されるはずです)
+	</p>
+	<h3 id="loglayout">ログレイアウトを調整</h3>
+	<p>
+		ログレイアウトをしっかり調整することで、デバッグログがさらに見やすいものになります。
+		例えば、ログ出力したクラスやメソッド名にソースファイル上の行番号などを表示することで、
+		そのログメッセージの意味がわかりやすいものとなると同時に、トレースする際にその情報が多いに役に立ちます。
+	</p>
+<pre><span class="codetitle">e.g. foo アペンダのログレイアウトをいい感じに @log4j.properties</span><code>
+log4j.appender.foo=org.apache.log4j.ConsoleAppender
+<span class="abbreviation">...</span>
+log4j.appender.foo.layout=org.apache.log4j.PatternLayout
+log4j.appender.foo.layout.ConversionPattern=<span class="point">%d [%t]-%-5p (%C{1}#%M():%L) - %m%n</span>
+</code></pre>
+	<p>
+		ツールなどで Log4j の設定ファイルも自動生成されるような場合、簡易なレイアウトになっていることもありますので、
+		内容を確認してしっかり設定をすることが推奨されます。
+	</p>
+<pre><span class="codetitle">e.g. ログレイアウトをいい感じにした場合のログ @log4j.properties</span><code>
+<span class="abbreviation">...</span>:29:16,989 [main]-INFO  (DBFluteInitializer#announce():56) - ...Initializing DBFlute components
+<span class="abbreviation">...</span>:29:16,996 [main]-INFO  (DBFluteConfig#unlock():568) - ...Unlocking the configuration of DBFlute
+<span class="abbreviation">...</span>:29:16,997 [main]-INFO  (DBFluteConfig#setDataSourceHandler():287) - ...Setting dataSourceHandler: SpringDBCPDataSourceHandler(for Spring and Commons-DBCP)
+<span class="abbreviation">...</span>:29:16,997 [main]-INFO  (DBFluteConfig#lock():558) - ...Locking the configuration of DBFlute
+<span class="abbreviation">...</span>:29:18,077 [main]-DEBUG (XLog#log():41) - ...Initializing sqlExecution for the key 'MEMBER:selectList(MemberCB):Member'
+<span class="abbreviation">...</span>:29:18,259 [main]-DEBUG (XLog#log():41) - SqlExecution Initialization Cost: [00m00s183ms]
+<span class="abbreviation">...</span>
 </code></pre>
 
 	<h2 id="sqlexeclog">DBFluteのSQL実行ログ</h2>
@@ -115,8 +150,11 @@ log4j.logger.<span class="point">org.seasar.dbflute</span> = ALL, console
 </code></pre>
 	<p>
 		この要素の中の、"実行されるSQLの表示用SQL" を <em class="keyword">QueryLog</em>、それ以外の要素をまとめて
-		<em class="keyword">ExecuteStatusLog</em> と呼びます。これらログを DEBUG
-		ではなく、オプションでINFOレベルで出力するように変更することも可能です。
+		<em class="keyword">ExecuteStatusLog</em> と呼びます。
+	</p>
+	<p>
+		これらログを DEBUG ではなく、オプションで INFO レベルで出力するように変更することも可能です。また、QueryLog は QLog
+		というクラス、ExecuteStatusLog は XLog というクラスから出力されますので、Log4j の設定でそれらクラスを利用して制御できます。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#queryloglevelinfo">DBFluteConfig - queryLogLevelInfo</a></div>
 	<div class="relatedpage"><a href="../../../ormapper/runtime/allcommon/dbfluteconfig.html#executestatusloglevelinfo">DBFluteConfig - executeStatusLogLevelInfo</a></div>

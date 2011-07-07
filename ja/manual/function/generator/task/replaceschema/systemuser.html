@@ -191,12 +191,13 @@ playsql
  |-...
 </code></pre>
 	<h3 id="checkuser">アプリユーザの存在チェック</h3>
+	<h4 id="checkuserbasic">checkUser() の基本</h4>
 	<p>
 		ReplaceSchemaを実行する度にアプリユーザを作成するのではなく、既にユーザが存在する場合は以降の "システムユーザで実行するSQL"
 		を実行しないで続行するようにします。ユーザを作成するDDLの定義箇所で <em class="keyword">-- #df:checkUser()#</em>
 		というSQLコメントを定義することで、そのユーザが既に存在する場合に以降のシステムユーザでの実行を無効になります。
 	</p>
-<pre><span class="codetitle">e.g. ユーザが既に存在する場合は権限付与は実行しない @replace-schema-xxx.sql</span><code>
+<pre><span class="codetitle">e.g. ユーザが既に存在する場合は権限付与は実行しない (Oracle) @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
 <span class="comment">-- #df:checkUser()#</span>
 <span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;
@@ -210,16 +211,35 @@ playsql
 <span class="keyword">grant create materialized view to</span> /*$dfprop.mainUser*/;
 </code></pre>
 	<p>
-		この "checkUser" 機能は、単に該当SQLの実行が失敗するか否かだけを判定して、そのユーザでのそれ以降でのSQLの実行するかどうかを決めているので、
-		他の目的で同じような挙動をしたい場合があるならば、この機能をそのまま利用することができます。
-	</p>
-	<div class="relatedpage"><a href="#reviveuser">アプリユーザが存在していても実行したいDDL</a></div>
-	<p>
 		ユーザ名やパスワードなどは、変数のフィルタ機能を利用して指定すると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="./createtable.html#filtervariables">スキーマ作成 - 変数のフィルタ</a></div>
+	<h4 id="checkuserpurpose">checkUser() の目的指定</h4>
 	<p>
-		補足ですが、ユーザを drop して再作成することはできません。なぜなら、ユーザが既に存在する場合は ReplaceSchema
+		<em class="keyword">-- #df:checkUser([目的, 目的, ...])#</em> という形式で、明示的にチェックの目的を指定することができます<span class="freecomment">(@since 0.9.8.8)</span>。
+		このようにすることで、スキーマはもともと存在していてユーザだけを新しく作成するというような場合に、DBFluteが自動でその状況を判断して、
+		システムユーザでの実行後に自動で(その前にスキップされた)スキーマ初期化処理が再実行されます。
+		つまり、目的がわかることで、DBFluteがそういった微調整を自動で判断して行うことができるようになります。
+	</p>
+<pre><span class="codetitle">e.g. ユーザだけを作成するパターンが存在する (MySQL) @replace-schema-xxx.sql</span><code>
+<span class="comment">-- #df:changeUser(system)#</span>
+<span class="comment">-- #df:checkUser(mainSchema)#</span>
+<span class="keyword">create database</span> /*$dfprop.mainCatalog*/;
+
+<span class="comment">-- #df:reviveUser()#</span>
+<span class="comment">-- #df:checkUser(mainUser, grant)#</span>
+<span class="keyword">grant all privileges on</span> /*$dfprop.mainCatalog*/.*
+  <span class="keyword">to</span> /*$dfprop.mainUser*/@localhost <span class="keyword">identified by</span> '/*$dfprop.mainPassword*/';
+
+<span class="keyword">flush privileges</span>;
+</code></pre>
+	<h4 id="checkusersupplement">checkUser() の補足</h4>
+	<p>
+		この "checkUser" 機能は、単に該当SQLの実行が失敗するか否かだけを判定して、そのユーザでのそれ以降でのSQLの実行するかどうかを決めているので、
+		他の目的で同じような挙動をしたい場合があるならば、この機能をそのまま利用することができます。
+	</p>
+	<p>
+		また、ユーザを drop して再作成することはできません。なぜなら、ユーザが既に存在する場合は ReplaceSchema
 		自身が既にそのユーザで接続をしているからです。DBMSによって挙動は変わる可能性はありますが、基本的に接続中にセッションがあるユーザは
 		drop できません。一度作ったユーザは以降の ReplaceSchema 実行時もそのまま利用することを前提としています。
 	</p>
@@ -231,7 +251,7 @@ playsql
 	</p>
 <pre><span class="codetitle">e.g. ユーザが既に存在する場合でも実行したいSQLがある場合 @replace-schema-xxx.sql</span><code>
 <span class="comment">-- #df:changeUser(system)#</span>
-<span class="comment">-- #df:checkUser()#</span>
+<span class="comment">-- #df:checkUser(mainSchema, mainUser)#</span>
 <span class="keyword">create user</span> /*$dfprop.mainUser*/ <span class="keyword">identified by</span> /*$dfprop.mainPassword*/;
 
 <span class="keyword">grant connect to</span> /*$dfprop.mainUser*/;
@@ -240,7 +260,7 @@ playsql
 <span class="abbreviation">...</span>
 
 <span class="comment">-- #df:reviveUser()#</span>
-<span class="comment">-- #df:checkUser()#</span>
+<span class="comment">-- #df:checkUser(grant)#</span>
 <span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA <span class="keyword">to</span> /*$dfprop.mainUser*/;
 <span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_STATUS <span class="keyword">to</span> /*$dfprop.mainUser*/;
 <span class="keyword">grant SELECT on</span> /*$nextSchema*/.VENDOR_NEXT_SCHEMA_SECRET_AUTH <span class="keyword">to</span> /*$dfprop.mainUser*/;
@@ -280,16 +300,17 @@ playsql
 	<h3 id="mysqlexample">MySQL</h3>
 	<p>
 		例えば、MySQLで開発用のユーザとスキーマ(データベース)を作成する場合は、以下のようになります。
+		<span class="freecomment">(0.9.8.8 以前であれば、checkUserの引数は指定は削除すること)</span>
 	</p>
 <pre><span class="codetitle">e.g. MySQLでのユーザ作成SQL (ut環境のみで動作するように指定) @replace-schema-00-system.sql</span><code>
 <span class="comment">-- #df:checkEnv(ut)#</span>
 
 <span class="comment">-- #df:changeUser(system)#</span>
-<span class="comment">-- #df:checkUser()#</span>
+<span class="comment">-- #df:checkUser(mainSchema)#</span>
 <span class="keyword">create database</span> <span class="comment">/*$dfprop.mainCatalog*/</span>;
 
 <span class="comment">-- #df:reviveUser()#</span>
-<span class="comment">-- #df:checkUser()#</span>
+<span class="comment">-- #df:checkUser(mainUser, grant)#</span>
 <span class="keyword">grant all privileges on</span> <span class="comment">/*$dfprop.mainCatalog*/</span>.*
   <span class="keyword">to</span> <span class="comment">/*$dfprop.mainUser*/</span>@localhost <span class="keyword">identified by</span> '<span class="comment">/*$dfprop.mainPassword*/</span>';
 
