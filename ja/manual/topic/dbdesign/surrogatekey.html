@@ -47,11 +47,13 @@
 		<li><a href="#pkmain">PK制約における話題の中心</a>
 			<ul>
 				<li><a href="#comparing">あえて対比ポイントをずらす</a></li>
+				<li><a href="#notlogical">物理設計後のDB構造のお話</a></li>
 				<li><a href="#naturalkey">ナチュラルキー (自然キー)</a></li>
 			</ul>
 		</li>
 		<li><a href="#surrogatekey">サロゲートキー (代理キー)</a>
 			<ul>
+				<li><a href="#surrogateplusunique">サロゲートキー + (複合)ユニーク制約</a></li>
 				<li><a href="#surrogatepurpose">サロゲートキーの主な目的</a></li>
 			</ul>
 		</li>
@@ -78,7 +80,7 @@
 			</ul>
 		</li>
 		<li><a href="#letsthink">正解よりも考えるきっかけが大事</a></li>
-		<li><a href="#tworolepk">物理設計を忘れると複合主キー！？</a></li>
+		<li><a href="#forgotphysical">物理設計を忘れると複合主キー！？</a></li>
 		<li><a href="#tworolepk">ナチュラルキーPKは役割が二つ</a></li>
 	</ul>
 
@@ -93,6 +95,13 @@
 		話題として複合主キーというものに焦点があたることが多く、かつ、議論をする上での重要なポイントでもあるため、あえて
 		"サロゲートキーと複合主キー" というテーマにしています。
 	</p>
+	<h3 id="notlogical">物理設計後のDB構造のお話</h3>
+	<p>
+		論理設計終了段階でのDB構造ではなく、実際にデータが投入され、SQLが発行されてアプリケーションが動作する物理設計後のDB構造に焦点を当てています。
+		逆に論理設計の時点ではサロゲートキーはない方が設計がしやすい面もあり、少し論点が変わります。
+		ただ、サロゲートキーのことを考えなかった論理設計の構造をそのまま物理的なDBの構造に反映させてしまわないように気をつける必要があります。
+	</p>
+	<div class="relatedpage"><a href="#forgotphysical">this - 物理設計を忘れると複合主キー！？</a></div>
 	<h3 id="naturalkey">ナチュラルキー (自然キー)</h3>
 	<p>
 		まずは、言葉の整理から。業務的にそのテーブルをユニークにするキーを、ナチュラルキー(自然キー)と呼びます。
@@ -102,9 +111,11 @@
 	<div class="relatedpage"><a href="../../reference/example/exampledb.html">ExampleDB</a></div>
 
 	<h2 id="surrogatekey">サロゲートキー (代理キー)</h2>
+	<h3 id="surrogateplusunique">サロゲートキー + (複合)ユニーク制約</h3>
 	<p>
 		ナチュラルキーをPKにせず、例えば連番となるようなカラムを用意して、それをPKにします。
-		そして、<em class="keyword">ナチュラルキーには別途ユニーク制約を付与</em> します。
+		これがサロゲートキーと言われるものですが、<em class="keyword">ナチュラルキーには別途ユニーク制約を付与する</em>
+		というのを忘れてはいけません。
 	</p>
 	<p>
 		ここでは、ナチュラルキーにユニーク制約を付けずにサロゲートキーだけを導入する方式は、業務的・実装的に意味はないと考え、ここでは取り扱いません。
@@ -385,7 +396,7 @@
 		</p>
 	</div>
 	<div class="inucolumn">
-		<h2 id="tworolepk">物理設計を忘れると複合主キー！？</h2>
+		<h2 id="forgotphysical">物理設計を忘れると複合主キー！？</h2>
 		<p>
 			物理設計が徹底されていないDB設計だと、複合主キーが "残っている"
 			状況が生まれやすいかもしれません。というのは、論理モデルと物理モデルややはり違うものです。
