@@ -52,6 +52,7 @@
 			<ul>
 				<li><a href="#cbpaging">ConditionBeanのPaging</a></li>
 				<li><a href="#outsidesqlpaging">OutsideSqlのManualPaging</a></li>
+				<li><a href="#foundrows">found_rows()関数の利用</a></li>
 			</ul>
 		</li>
 		<li><a href="#updatelock">更新ロックの取得</a></li>
@@ -200,19 +201,27 @@
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/select/selectpagemanual.html">OutsideSql - manualPaging().selectPage()</a></div>
 	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
-	<h4>SQL_CALC_FOUND_ROWS & FOUND_ROWS()</h4>
+	<h3 id="foundrows">found_rows()関数の利用</h3>
 	<p>
-		SQL_CALC_FOUND_ROWS & FOUND_ROWS() 構文を利用する場合は、<em class="keyword">ページングの件数取得処理が実処理の後に実行されるように設定</em>
-		する必要があります。
+		MySQLは、sql_calc_found_rows & found_rows()
+		構文を利用することで、カウント検索で発生するコストを抑えられる可能性があります。
 	</p>
-	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/paging.html#option">ConditionBean - Paging - 細かい調整をするオプション</a></div>
-<pre><span class="codetitle">e.g. FOUND_ROWS() を利用したページング検索 {81-100} @Java</span><code>
+	<p>
+		ConditionBeanでは、Unionを利用しない検索でCountLaterオプションを指定した場合に、found_rows() が利用されます。
+		<span class="freecomment">@since 0.9.8.8</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/paging.html#countlater">ConditionBean - カウント検索を後に</a></div>
+	<p>
+		外だしSQLでは、CountLaterオプションをした上で、IFコメントを使って切り替えます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/select/selectpagemanual.html#countlater">外だしSQL - カウント検索を後に</a></div>
+<pre><span class="codetitle">e.g. found_rows() を利用したページング検索 {81-100} @Java</span><code>
 FooPmb pmb = <span class="keyword">new</span> FooPmb(); <span class="comment">// extends Paging</span>
 pmb.<span class="point">enablePagingCountLater()</span>;
 </code></pre>
-<pre><span class="codetitle">e.g. FOUND_ROWS() を利用したページング検索 {81-100} @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. found_rows() を利用したページング検索 {81-100} @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
-<span class="keyword">select</span> <span class="point">SQL_CALC_FOUND_ROWS</span>
+<span class="keyword">select</span> <span class="point">sql_calc_found_rows</span>
        foo_id
      , bar_name
      , <span class="abbreviation">...</span>
@@ -220,7 +229,7 @@ pmb.<span class="point">enablePagingCountLater()</span>;
  <span class="keyword">where</span> <span class="abbreviation">...</span>
  <span class="keyword">order by</span> <span class="abbreviation">...</span>
  <span class="keyword">limit</span> <span class="comment">/*$pmb.pageStartIndex*/</span><span class="literal">80</span>, <span class="comment">/*$pmb.fetchSize*/</span><span class="literal">20</span>
-<span class="comment">-- ELSE</span> <span class="point">FOUND_ROWS()</span>
+<span class="comment">-- ELSE select</span> <span class="point">found_rows()</span>
  <span class="comment">/*END*/</span>
 </code></pre>
 
