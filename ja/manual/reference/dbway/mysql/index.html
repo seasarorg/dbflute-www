@@ -203,14 +203,25 @@
 	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/parameterbean.html#typed">TypedParameterBean</a></div>
 	<h3 id="foundrows">found_rows()関数の利用</h3>
 	<p>
-		MySQLは、sql_calc_found_rows & found_rows()
-		構文を利用することで、カウント検索で発生するコストを抑えられる可能性があります。
+		MySQLでは、sql_calc_found_rows & found_rows()
+		構文の利用で、カウント検索のコストを抑えられる可能性があります。
+		(MySQLはカウント検索がネックになりやすいため有効です)
 	</p>
+	<h4>ConditionBean で found_rows()</h4>
 	<p>
-		ConditionBeanでは、Unionを利用しない検索でCountLaterオプションを指定した場合に、found_rows() が利用されます。
-		<span class="freecomment">@since 0.9.8.8</span>
+		ConditionBeanでは、Union を利用しない検索で CountLater オプションを指定した場合に、found_rows()
+		が利用されます。<span class="freecomment">@since 0.9.8.8</span>
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/paging.html#countlater">ConditionBean - カウント検索を後に</a></div>
+<pre><span class="codetitle">e.g. カウント検索をページング実データ検索の後に実行 @Java</span><code>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().addOrderBy_Birthdate_Desc();
+cb.paging(<span class="literal">20</span>, currentPageNumber);
+cb.<span class="point">enablePagingCountLater()</span>;
+<span class="abbreviation">...</span>
+</code></pre>
+	<h4>外だしSQL で found_rows()</h4>
 	<p>
 		外だしSQLでは、CountLaterオプションをした上で、IFコメントを使って切り替えます。
 	</p>
@@ -232,6 +243,19 @@ pmb.<span class="point">enablePagingCountLater()</span>;
 <span class="comment">-- ELSE select</span> <span class="point">found_rows()</span>
  <span class="comment">/*END*/</span>
 </code></pre>
+	<h4>Union と found_rows()</h4>
+	<p>
+		Union を利用すると fetch_rows() より厳密なカウントが取得できないため(正確には union all でない union
+		の場合)、Union が利用されている場合はこの方式は利用されません。ConditionBeanでは Union がある場合は通常のカウント検索となります。
+		外だしSQLでは Union との併用に注意が必要です。
+	</p>
+	<h4>トランザクション外での found_rows()</h4>
+	<p>
+		トランザクションの有無に関わらず found_rows()
+		は利用できますが、利用するデータソース(DataSource)次第では、トランザクションを利用しない場合に一定のコネクションが提供されない可能性があるため、
+		その場合、マルチスレッドな環境だと厳密には found_rows() が動作しません。
+		カウント検索と実データ検索とで同じコネクションが提供される状況(同一トランザクションなど)での利用が前提となります。
+	</p>
 
 	<h2 id="updatelock">更新ロックの取得</h2>
 	<p>

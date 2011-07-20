@@ -50,6 +50,7 @@
 			<ul>
 				<li><a href="#reselect">存在しないページが指定された時の再検索</a></li>
 				<li><a href="#countlater">総レコード数取得を後にするオプション</a></li>
+				<li><a href="#countleastjoin">カウント検索の結合を最小限にするオプション</a></li>
 			</ul>
 		</li>
 		<li><a href="#pagingnavi">ページングナビゲーション</a></li>
@@ -148,11 +149,15 @@ PagingResultBean&lt;SimpleMember&gt; page
 	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html#optimisticlock">DBアクセス - ページング検索 - ページングの排他制御</a></div>
 	<h3 id="countlater">総レコード数取得を後にするオプション</h3>
 	<p>
-		ConditionBean、外だしSQLのどちらにおいても、総レコード数の取得を、実データの取得の後に実行するオプション(CountLater)があります。
+		ConditionBean、外だしSQLのどちらにおいても、総レコード数の取得(カウント検索)を、実データの取得(実データ検索)の後に実行するオプション(CountLater)があります。
 		そうすることで、実データの取得だけで総レコード数が判明するような場合に総レコード数の取得処理を省略することができるので、
-		その分のコストを削減することができます。enablePagingCountLater() を呼び出すことでそのような挙動になります。
+		その分のコストを削減することができます。
+	</p>
+	<p>
+		cb.enablePagingCountLater() を呼び出すことで利用できます。
 	</p>
 	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html#processorder">DBアクセス - ページング検索 - ページング処理の順序</a></div>
+	<div class="relatedpage"><a href="../../../ormapper/conditionbean/sidebar/paging.html#countlater">ConditionBean - Paging - カウント検索を後に</a></div>
 <pre><span class="codetitle">e.g. CountLater を利用してのページング @Java</span><code>
 <span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
 MemberCB() cb = <span class="keyword">new</span> MemberCB();
@@ -163,10 +168,45 @@ cb.<span class="point">enablePagingCountLater()</span>;
 PagingResultBean&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.selectPage(cb);
 </code></pre>
 	<p>
-		デフォルトの挙動にしていないのは、総レコード数の取得を先に実行する方式がDBFluteの歴史の中で長い間利用されてきて実績があるからです。CountLater
+		また、このオプションをアプリ全体のデフォルトとしたい場合は、littleAdjustmentMap.dfprop
+		の isPagingCountLater を true にして再自動生成することで実現できます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#ispagingcountlater">dfprop - isPagingCountLater</a></div>
+	<p>
+		デフォルトの挙動にしていないのは、カウント検索を先に実行する方式がDBFluteの歴史の中で長い間利用されてきて実績があるからです。CountLater
 		は後から実装された機能であること、かつ、内部的な処理での比較的判定が複雑であることから、オプションという形での提供としています。
 		パフォーマンス的に優位と言っても限定的であるため、そもそもパフォーマンスが悪い場合はやはりインデックスや条件の見直しが必要です。
 		それに加えてとにかく限界までチューニングする、というような場合にこの CountLater を利用すると良いでしょう。
+	</p>
+	<h3 id="countleastjoin">カウント検索の結合を最小限にするオプション</h3>
+	<p>
+		ConditionBeanにおいて、総レコード数の取得の際の検索 "カウント検索"
+		のSQL上の結合(Join)を最小限にするオプション(CountLeastJoin)があります<span class="freecomment">(@since 0.9.8.8)</span>。
+		そうすることで、パフォーマンス向上が期待できます。
+		ただし、どの程度効果があるのかどうかは、そもそも不要な結合がどのくらいのコストになっているのか次第、
+		つまり、DBMSのオプティマイザ次第と言えるでしょう。
+	</p>
+	<p>
+		cb.enablePagingCountLeastJoin() を呼び出すことで利用できます。
+	</p>
+	<div class="relatedpage"><a href="../../../../topic/programming/dbaccess/pagingselect.html#countleastsql">DBアクセス - ページング検索 - 総レコード取得時のSQL</a></div>
+	<div class="relatedpage"><a href="../../../ormapper/conditionbean/sidebar/paging.html#countleastjoin">ConditionBean - Paging - カウント検索の結合を最小限に</a></div>
+<pre><span class="codetitle">e.g. CountLeastJoin を利用してのページング @Java</span><code>
+<span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
+MemberCB() cb = <span class="keyword">new</span> MemberCB();
+cb.setupSelect_MemberStatus();
+cb.query().addOrderBy_Birthdate_Desc();
+cb.paging(<span class="literal">20</span>, currentPageNumber);
+cb.<span class="point">enablePagingCountLeastJoin()</span>;
+PagingResultBean&lt;Member&gt; memberPage = <span class="attribute">memberBhv</span>.selectPage(cb);
+</code></pre>
+	<p>
+		また、このオプションをアプリ全体のデフォルトとしたい場合は、littleAdjustmentMap.dfprop
+		の isPagingCountLeastJoin を true にして再自動生成することで実現できます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#ispagingcountleastjoin">dfprop - isPagingCountLeastJoin</a></div>
+	<p>
+		ちなみに、OrderBy はオプションの有無に関わらず自動的にカウント検索では除去されます。
 	</p>
 
 	<h2 id="pagingnavi">ページングナビゲーション</h2>
