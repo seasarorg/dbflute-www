@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,sidebar" />
+	<meta name="keywords" content="DBFlute,ConditionBean,allowEmptyStringQuery,空文字" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>CB - Sidebar | DBFlute</title>
+	<title>EmptyStringQuery | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,40 +37,83 @@
 </div>
 
 <div id="content">
-	<h1>CB - Sidebar</h1>
+	<h1>EmptyStringQuery</h1>
 	<ul class="indexlist">
-		<li><a href="#linklist">リンクの一覧</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
+				<li><a href="#dbfluteconfig">一律の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#splitby">LikeSearch の SplitBy</a></li>
+				<li><a href="#unionsubquery">Union や SubQuery では</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<dl class="textlist">
-		<dt>検索全体に関する調整</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>更新ロック (各種DBMSの構文を利用) : <span class="working"><!-- <a href="./sidebar/lockforupdate.html"> -->LockForUpdate<!-- </a> --></span> - <span class="freecomment">cb.lockForUpdate()</span></li>
-				<li>JDBCパラメータの指定 (queryTimeoutなど) : <span class="working"><!-- <a href="./sidebar/statementconfig.html#querytimeout"> -->StatementConfig<!-- </a> --></span> - <span class="freecomment">cb.configure(...)</span></li>
-				<li>DBMS依存の機能 (ロックや全文検索など) : <span class="working"><!-- <a href="../../genbafit/implfit/databasedependency/index.html"> -->DatabaseDependency<!-- </a> --></span></li>
-				<li>無効な条件のチェック (無効な条件があったら例外) : <a href="./checkinvalidquery.html">CheckInvalidQuery</a> - <span class="freecomment">cb.checkInvalidQuery()</span></li>
-			</ul>
-			<dl class="hierarchylist">
-				<dt class="twoedged-title">{TwoEdgedSword}</dt><dd>※以下は厳重注意して利用すること</dd>
-				<dd>
-					<dl class="twoedged-element">
-						<dt><a href="./emptystringquery.html">EmptyStringQuery</a></dt>
-						<dd>空文字条件の許可 (空文字を有効な値として扱う)</dd>
-						<dt><a href="./innerjoinautodetect.html">InnerJoinAutoDetect</a></dt>
-						<dd>InnerJoinの自動判別 (チューニング用)</dd>
-						<dt><a href="./checksafetyresult.html">CheckSafetyResult</a></dt>
-						<dd>安全件数のチェック (指定件数以上なら例外)</dd>
-						<dt><a href="./embedcondition.html">EmbedCondition</a></dt>
-						<dd>バインド変数なし埋め込み条件 (危険要注意)</dd>
-						<dt><a href="./haswhereorderby.html">HasWhereOrderBy</a></dt>
-						<dd>where句・order-by句の有無 (DBアクセスなし)</dd>
-					</dl>
-				</dd>
-			</dl>
-		</dd>
-	</dl>
+	<h2 id="overview">概要</h2>
+	<p>
+		<em class="keyword">状況依存</em> のスポット対応の機能です。普段は意識する必要はありません。
+	</p>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		ConditionBeanの絞り込み条件では、空文字を設定した場合にそれは無効な値として扱われます(無効な条件)。
+	</p>
+	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
+	<p>
+		ただし、空文字をどうしても有効な条件値として扱いたい場合に、ConditionBean
+		の設定で実現できます<span class="freecomment">(@since 0.9.7.8)</span>。ただし、この機能はその ConditionBean の全ての Query
+		呼び出しで有効になります。一つの ConditionBean で空文字の扱い方が違う場合の利用はお奨めされません。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。しっかり精度高く利用しないと、逆にカオスを生み出します。
+		空文字が "値がないこと" を示すのか "空文字という業務的な値" を示すのか、その場その場でありえる可能性を深く検討してからの利用が推奨されます。
+	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+	<h3 id="dbfluteconfig">一律の設定</h3>
+	<p>
+		この機能を利用せず一律の設定で無効な値を例外にしたい場合は、DBFluteConfig を利用します。
+	</p>
+	<div class="relatedpage"><a href="../../runtime/allcommon/dbfluteconfig.html#emptystringqueryallowed">DBFluteConfig - emptyStringQueryAllowed</a></div>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
+	<p>
+		絞り込み条件などを設定する前に、ConditionBean の allowEmptyStringQuery() を呼び出します。
+	</p>
+<pre><span class="codetitle">e.g. ConditionBeanに絞り込み条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.allEmS <span class="comment">// .allEmS と打って enter</span>
+--
+cb.<span class="point">allowEmptyStringQuery()</span>
+cb.query().setMemberAccount_Equal(<span class="keyword">""</span>); <span class="comment">// 空文字等値になる</span>
+</code></pre>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<p>
+		メソッドを呼び出した後の Query 呼び出しのみ設定が有効になります。
+	</p>
+	<h3 id="splitby">LikeSearch の SplitBy</h3>
+	<p>
+		LikeSearch の SplitBy において、例えば、区切り文字が "|" として "FOO||BAZ"
+		というような条件値を設定した場合は、二つ目の要素の空文字の条件は作成されません。
+		つまり、このメソッドを使う使わないに関わらず同じ挙動(無視される)となります。
+		(一つでも空白文字が存在すれば、それは空白文字という条件値として扱われ、条件が作成されます)
+	</p>
+	<h3 id="unionsubquery">Union や SubQuery では</h3>
+	<p>
+		Union や SubQuery などの ConditionBean にも設定は継承されます。
+	</p>
 
 </div>
 </div>
