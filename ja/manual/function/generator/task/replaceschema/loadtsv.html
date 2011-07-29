@@ -48,11 +48,7 @@
 				<li><a href="#tsvdataspec">TSVファイルのデータ仕様</a></li>
 			</ul>
 		</li>
-		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a>
-			<ul>
-				<li><a href="#linereplace">分解前の行文字列を変換対象に</a></li>
-			</ul>
-		</li>
+		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a></li>
 	</ul>
 
 	<h2 id="tsv">TSVデータの登録</h2>
@@ -168,69 +164,9 @@ playsql
 
 	<h2 id="convertvaluemap">値のコンバート設定(dataprop)</h2>
 	<p>
-		TSVに定義されている値をそのまま登録するのではなく、ある値にマッピングして登録することが可能です。
+		定義されている値をそのまま登録するのではなく、ある値にマッピングして登録することが可能です。
 	</p>
-	<p>
-		TSVファイルと同じディレクトリに "convertValueMap.dataprop" という名前のテキストファイルを配置して、
-		カラム名とマッピングする値を定義します。すると、insert処理するときにマッピングした値で登録します。
-	</p>
-<pre><span class="codetitle">e.g. TSVで定義されている一文字のコードを三文字のコードへ変換して登録 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    MEMBER_STATUS_CODE = <span class="keyword">map:</span>{ F = FML ; P = PRV ; W = WDL }
-    ; [column-name] = <span class="keyword">map:</span>{[mapping-definition]}
-    ; ...
-}
-</code></pre>
-	<dl class="textlist">
-		<dt>設定ファイル</dt>
-		<dd>convertValueMap.dataprop (UTF-8)</dd>
-		<dt>プロパティ</dt>
-		<dd>カラム名とマッピングする値</dd>
-		<dt>補足</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>カラム名は大文字小文字区別なし</li>
-				<li>値のマッピングは大文字小文字区別あり</li>
-				<li>定義された上から順番通りに変換処理が実行される</li>
-				<li>変換処理された場合は defaultValueMap.dataprop の処理対象外となる <span class="freecomment">@since 0.9.8.2</span></li>
-				<li>変換処理された場合は 空文字を null として扱うデフォルトの挙動は無効になる <span class="freecomment">@since 0.9.8.2</span></li>
-				<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="freecomment">@since 0.9.7.5</span></li>
-				<li>カラム名に $$LINE$$ と指定すると分解する前の一行の文字列に対して置換(後述) <span class="freecomment">@since 0.9.8.2</span></li>
-				<li>変換前の文字に始めに "contain:" を付けると、値に含まれているその文字が置換される <span class="freecomment">@since 0.9.7.5</span></li>
-				<li>改行とタブを表現するために一部制御文字(\r, \n, \t)が利用できる <span class="freecomment">@since 0.9.7.5</span></li>
-				<li>制御文字をエスケープして、制御文字自体を表現できる <span class="freecomment">e.g. "\\r", "\\n", "\\t"</span> <span class="freecomment">@since 0.9.7.5</span></li>
-				<li>エスケープ文字のエスケープはエスケープ文字でエスケープ <span class="freecomment">e.g. "\\"</span> <span class="freecomment">@since 0.9.7.5</span></li>
-				<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="freecomment">@since 0.9.8.2</span></li>
-			</ul>
-		</dd>
-	</dl>
-	<p>
-		TSVデータはエクセルに比べてデータ編集がしづらいため、このような変換機能があります。
-	</p>
-	<h3 id="linereplace">分解前の行文字列を変換対象に</h3>
-	<p>
-		カラム名に $$LINE$$ と指定すると、一行の文字列をカラムに分解する前に変換処理を行います。
-		暗黙に "contains:" 指定がされているものとして処理されます。 
-		どうしてもデータ仕様が合わないなど分解処理自体でエラーになってしまう場合に有効です。
-	</p>
-	<p>
-		例えば、データの中に、"ダブルクォーテーション(一つ) + タブ"
-		という文字列があると、そのダブルクォーテーションは値の終端で、その次のタブは区切り文字、と判断され、正常に登録されません。
-		本来、値としてのダブルクォーテーションはもう一つダブルクォーテーションを並べてエスケープする必要がありますが、
-		どうしてもそのようなデータ形式にできない場合に、この機能を使って強制的にエスケープさせることでそのデータを正常に登録することができます。
-		MySQLの機能で取得したデリミタデータではダブルクォーテーションのエスケープがバックスラッシュで行われるため、その次の値にたまたまタブがあったりするとこの状況に当てはまります。
-		(最終手段と考えてください)
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/mysql/index.html#delimiterdata"> -->MySQLの取扱い - デリミタデータの取得<!-- </a> --></span></div>
-<pre><span class="codetitle">e.g. バックスラッシュによるエスケープをダブルクォーテーションに置換 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$LINE$$</span> = map:{
-        ; \\\\ = \\
-        ; \\" = ""
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
+	<div class="detailpage"><a href="./loaddata.html#convertvaluemap">データ登録 - 値のコンバート設定(dataprop)</a></div>
 
 </div>
 </div>
