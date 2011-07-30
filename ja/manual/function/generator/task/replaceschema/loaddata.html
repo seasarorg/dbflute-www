@@ -58,7 +58,6 @@
 				<li><a href="#mappingcontrolchar">マッピング定義の制御文字</a></li>
 				<li><a href="#mappingnullempty">マッピング定義のワイルドカード</a></li>
 				<li><a href="#mappingnullempty">マッピング定義のNullや空文字</a></li>
-				<li><a href="#mappingvariousoption">マッピング定義のその他オプション</a></li>
 				<li><a href="#linereplace">分解前の行文字列を変換対象に</a></li>
 				<li><a href="#timestampfilter">Timestamp型文字列の微調整</a></li>
 			</ul>
@@ -269,21 +268,49 @@ repsEnvType = it
 		<li>制御文字をエスケープして、制御文字自体を表現できる <span class="freecomment">e.g. "\\r", "\\n", "\\t"</span> <span class="freecomment">@since 0.9.7.5</span></li>
 		<li>エスケープ文字のエスケープはエスケープ文字でエスケープ <span class="freecomment">e.g. "\\"</span> <span class="freecomment">@since 0.9.7.5</span></li>
 	</ul>
+<pre><span class="codetitle">e.g. "\n" という文字を本物の改行に変換する @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; CONVERTED_COLUMN = <span class="keyword">map:</span>{
+        ; <span class="attribute">contain:</span>\\n = \n
+    }
+    <span class="abbriviation">...</span>
+}
+</code></pre>
 	<h3 id="mappingnullempty">マッピング定義のワイルドカード</h3>
 	<ul>
 		<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="freecomment">@since 0.9.7.5</span></li>
 		<li>カラム名に $$LINE$$ と指定すると分解する前の一行の文字列に対して置換(後述) <span class="freecomment">@since 0.9.8.2</span></li>
 	</ul>
+<pre><span class="codetitle">e.g. 全てのカラムにおいて "\n" という文字を本物の改行に変換する @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">contain:</span>\\n = \n
+    }
+    <span class="abbriviation">...</span>
+}
+</code></pre>
 	<h3 id="mappingnullempty">マッピング定義のNullや空文字</h3>
 	<ul>
 		<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="freecomment">@since 0.9.8.2</span></li>
 		<li>TSVやCSVファイルの空っぽのデータは $$empty$$ でヒットさせることができる</li>
 		<li>エクセルの空っぽセルのデータは $$null$$ でヒットさせることができる</li>
 	</ul>
-	<h3 id="mappingvariousoption">マッピング定義のその他オプション</h3>
-	<ul>
-		<li>変換前の値に $$timestamp$$ と指定するとTimestamp型特有の変換が可能(後述) <span class="freecomment">@since 0.9.9.0A</span></li>
-	</ul>
+<pre><span class="codetitle">e.g. TSVデータにおいて、空っぽの値を空文字として登録 @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">$$empty$$</span> = <span class="attribute">$$empty$$</span>
+    }
+    <span class="abbriviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">e.g. エクセルデータにおいて、空っぽの値(セル)を空文字として登録 @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">$$null$$</span> = <span class="attribute">$$empty$$</span>
+    }
+    <span class="abbriviation">...</span>
+}
+</code></pre>
 	<h3 id="linereplace">分解前の行文字列を変換対象に</h3>
 	<p>
 		これはTSVやCSVなどのでデリミタデータのみの機能です。カラム名に $$LINE$$
