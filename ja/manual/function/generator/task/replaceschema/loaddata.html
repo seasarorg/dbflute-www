@@ -54,6 +54,11 @@
 		<li><a href="#repsenvtype">環境ごとの切り替え</a></li>
 		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a>
 			<ul>
+				<li><a href="#mappingspec">マッピング定義の基本仕様</a></li>
+				<li><a href="#mappingcontrolchar">マッピング定義の制御文字</a></li>
+				<li><a href="#mappingnullempty">マッピング定義のワイルドカード</a></li>
+				<li><a href="#mappingnullempty">マッピング定義のNullや空文字</a></li>
+				<li><a href="#mappingvariousoption">マッピング定義のその他オプション</a></li>
 				<li><a href="#linereplace">分解前の行文字列を変換対象に</a></li>
 				<li><a href="#timestampfilter">Timestamp型文字列の微調整</a></li>
 			</ul>
@@ -252,6 +257,8 @@ repsEnvType = it
 				<li>カラム名は大文字小文字区別なし</li>
 				<li>値のマッピングは大文字小文字区別あり</li>
 				<li>定義された上から順番通りに変換処理が実行される</li>
+				<li>変換処理に複数該当する場合は該当した全ての変換処理が実行される</li>
+				<li>複数処理されるとき、次の変換処理の判定は前の変換処理が施された値に対して行われる</li>
 				<li>変換処理された場合は defaultValueMap.dataprop の処理対象外となる <span class="freecomment">@since 0.9.8.2</span></li>
 				<li>変換処理された場合は 空文字を null として扱うデフォルトの挙動は無効になる <span class="freecomment">@since 0.9.8.2</span></li>
 				<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="freecomment">@since 0.9.7.5</span></li>
@@ -261,10 +268,44 @@ repsEnvType = it
 				<li>制御文字をエスケープして、制御文字自体を表現できる <span class="freecomment">e.g. "\\r", "\\n", "\\t"</span> <span class="freecomment">@since 0.9.7.5</span></li>
 				<li>エスケープ文字のエスケープはエスケープ文字でエスケープ <span class="freecomment">e.g. "\\"</span> <span class="freecomment">@since 0.9.7.5</span></li>
 				<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="freecomment">@since 0.9.8.2</span></li>
+				<li>TSVやCSVでは空っぽのデータは$$empty$$でヒットさせることができる</li>
+				<li>エクセルデータでは空っぽのデータは$$null$$でヒットさせることができる</li>
 				<li>変換前の値に $$timestamp$$ と指定するとTimestamp型特有の変換が可能(後述) <span class="freecomment">@since 0.9.9.0A</span></li>
 			</ul>
 		</dd>
 	</dl>
+	<h3 id="mappingspec">マッピング定義の基本仕様</h3>
+	<ul>
+		<li>カラム名は大文字小文字区別なし</li>
+		<li>値のマッピングは大文字小文字区別あり</li>
+		<li>定義された上から順番通りに変換処理が実行される</li>
+		<li>変換処理に複数該当する場合は該当した全ての変換処理が実行される</li>
+		<li>複数処理されるとき、次の変換処理の判定は前の変換処理が施された値に対して行われる</li>
+		<li>変換処理された場合は defaultValueMap.dataprop の処理対象外となる <span class="freecomment">@since 0.9.8.2</span></li>
+		<li>変換処理された場合は 空文字を null として扱うデフォルトの挙動は無効になる <span class="freecomment">@since 0.9.8.2</span></li>
+		<li>変換前の値の前に "contain:" を付けると、値に含まれているその文字が置換される <span class="freecomment">@since 0.9.7.5</span></li>
+	</ul>
+	<h3 id="mappingcontrolchar">マッピング定義の制御文字</h3>
+	<ul>
+		<li>改行とタブを表現するために一部制御文字(\r, \n, \t)が利用できる <span class="freecomment">@since 0.9.7.5</span></li>
+		<li>制御文字をエスケープして、制御文字自体を表現できる <span class="freecomment">e.g. "\\r", "\\n", "\\t"</span> <span class="freecomment">@since 0.9.7.5</span></li>
+		<li>エスケープ文字のエスケープはエスケープ文字でエスケープ <span class="freecomment">e.g. "\\"</span> <span class="freecomment">@since 0.9.7.5</span></li>
+	</ul>
+	<h3 id="mappingnullempty">マッピング定義のワイルドカード</h3>
+	<ul>
+		<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="freecomment">@since 0.9.7.5</span></li>
+		<li>カラム名に $$LINE$$ と指定すると分解する前の一行の文字列に対して置換(後述) <span class="freecomment">@since 0.9.8.2</span></li>
+	</ul>
+	<h3 id="mappingnullempty">マッピング定義のNullや空文字</h3>
+	<ul>
+		<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="freecomment">@since 0.9.8.2</span></li>
+		<li>TSVやCSVファイルの空っぽのデータは $$empty$$ でヒットさせることができる</li>
+		<li>エクセルの空っぽセルのデータは $$null$$ でヒットさせることができる</li>
+	</ul>
+	<h3 id="mappingvariousoption">マッピング定義のその他オプション</h3>
+	<ul>
+		<li>変換前の値に $$timestamp$$ と指定するとTimestamp型特有の変換が可能(後述) <span class="freecomment">@since 0.9.9.0A</span></li>
+	</ul>
 	<h3 id="linereplace">分解前の行文字列を変換対象に</h3>
 	<p>
 		これはTSVやCSVなどのでデリミタデータのみの機能です。カラム名に $$LINE$$
