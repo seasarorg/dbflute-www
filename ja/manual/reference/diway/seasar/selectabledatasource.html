@@ -42,7 +42,9 @@
 		<li><a href="#overview">冗長化複数DB</a></li>
 		<li><a href="#howto">SelectableDataSourceの使い方</a>
 			<ul>
-				<li><a href="#diconimage">SelectableDataSourceのDicon構造</a></li>
+				<li><a href="#diconimage">Dicon構造</a></li>
+				<li><a href="#betaimpl">ベタな実装方法</a></li>
+				<li><a href="#realisticimpl">現実的な実装方法</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -56,12 +58,84 @@
 	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/multipledb/index.html#redundant">冗長化複数DB</a></div>
 
 	<h2 id="howto">SelectableDataSourceの使い方</h2>
-	<h3 id="diconimage">SelectableDataSourceのDicon構造</h3>
-	<p class="imgbox">図 : SelectableDataSourceのDicon構造
-		<span class="working"><!-- <a href="../../../../data/model/friends/friends-Seasar-SelectableDataSource-view.png" title="SelectableDataSourceのDicon構造"> --><img src="../../../../data/model/friends/friends-Seasar-SelectableDSDicon-view.png" alt="SelectableDataSourceのDicon構造" width="550" height="350" /><!-- </a> --></span>
+	<h3 id="diconimage">Dicon構造</h3>
+	<p>
+		jdbc.dicon で定義している dataSource コンポーネントの実体を、SelectableDataSourceProxy
+		クラスに変更し、二つ(もしくは三つ以上)の DB に対する jdbc-xxx.dicon を作成して include します。
 	</p>
 	<p>
-		TODO jflute
+		jdbc.dicon には、SelectableDataSourceProxy の dataSource コンポーネントだけを定義し、それぞれの jdbc-xxx.dicon
+		では、それぞれの DB に対応した "もともとの jdbc.dicon の構成" を定義します。
+	</p>
+	<p class="imgbox">図 : SelectableDataSourceのDicon構造
+		<a href="../../../../data/model/friends/friends-Seasar-SelectableDSDicon-view.png" title="SelectableDataSourceのDicon構造"><img src="../../../../data/model/friends/friends-Seasar-SelectableDSDicon-view.png" alt="SelectableDataSourceのDicon構造" width="550" height="350" /></a>
+	</p>
+	<h3 id="betaimpl">ベタな実装方法</h3>
+	<p>
+		非常に単純でベタな実装方法は以下のようになります。MasterDB を fooDataSource、SlaveDB を barDataSource
+		という名前で定義すると仮定します(以降、全ての例において同様)。
+	</p>
+<pre><span class="codetitle">e.g. SelectableDataSource のベタな実装方法 @Java</span><code>
+<span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
+<span class="keyword">protected</span> DataSourceFactory <span class="attribute">dataSourceFactory</span>; <span class="comment">// injected</span>
+
+<span class="keyword">public void</span> fooAndBar() {
+    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"foo"</span>);
+    Member member = <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span> 
+    <span class="attribute">memberBhv</span>.update(member); <span class="comment">// foo の会員を更新</span>
+
+    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"bar"</span>);
+    MemberCB cb = <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span> = <span class="attribute">memberBhv</span>.select(cb); <span class="comment">// bar の会員を検索</span>
+}
+</code></pre>
+	<p>
+		dataSourceFactory は、デフォルトでは何の DataSource とも関連付いていないため、DBアクセスする前は必ず何かしらの
+		DB を指定する必要があります。
+	</p>
+	<p>
+		通常、このように利用することはあり得ません。
+		仕組みをわかりやすく理解するための Example です。
+	</p>
+	<h3 id="realisticimpl">現実的な実装方法</h3>
+	<p>
+		現実的には、DBアクセスのたびに指定するのはあり得ない感じなので、Interceptor
+		などの共通処理において切り替えます。デフォルトのDBの設定と切り替えのロジックを実装します。
+	</p>
+<pre><span class="codetitle">e.g. SelectableDataSource の現実的な実装方法 (Interceptor) @Java</span><code>
+<span class="keyword">protected</span> DataSourceFactory <span class="attribute">dataSourceFactory</span>; <span class="comment">// injected</span>
+
+<span class="keyword">public</span> Object invoke(MethodInvocation invocation) <span class="keyword">throws</span> Throwable {
+    String current = <span class="attribute">dataSourceFactory</span>.getSelectableDataSourceName();
+    <span class="keyword">try</span> {
+        String selectableName = getSelectableDataSourceName();
+        <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(selectableName);
+        <span class="keyword">return</span> invocation.proceed();
+    } <span class="keyword">finally</span> {
+        <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(current);
+    }
+}
+
+<span class="keyword">protected</span> String getSelectableDataSourceName(MethodInvocation invocation) {
+    <span class="keyword">if</span> (hasSlaveAnnotation(invocation)) {
+        <span class="keyword">return</span> <span class="literal">"bar"</span>;
+    } <span class="keyword">else</span> {
+        <span class="keyword">return</span> <span class="literal">"foo"</span>; <span class="comment">// MasterDB as default</span>
+    }
+}
+
+<span class="keyword">protected</span> <span class="keyword">boolean</span> hasSlaveAnnotation(MethodInvocation invocation) {
+    <span class="comment">// メソッドに SlaveDB を示すアノテーションが付いていたら true</span>
+    <span class="comment">// (そのアノテーションは自作)</span>
+    <span class="keyword">return</span> <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		この Interceptor は、DBアクセスをする可能性のあるプロセスの入り口となるコンポーネント、
+		および、DBアクセス先を切り替える可能性のあるコンポーネントに関連付けます。例えば、Page, Action, Service, Logicクラスなどです。
+		バリデーションやバリデーションエラーなどの処理の中でDBアクセスをする場合は、それらメソッドにも関連付ける必要があります。
 	</p>
 
 </div>
