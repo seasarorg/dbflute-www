@@ -67,6 +67,7 @@
 				<li><a href="#reflectionregistry">SqlLogRegistryの利用は全てリフレクション</a></li>
 			</ul>
 		</li>
+		<li><a href="#selectableds">SelectableDataSource</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
 
@@ -86,7 +87,7 @@
 		することで、アプリケーションのコンポーネントからDBFluteのコンポーネント(主にBehavior)が利用できるようになります。
 	</p>
 	<div class="relatedpage"><a href="../../../../environment/setup/injection.html#seasar">セットアップ - DI環境の調整</a></div>
-	<pre><span class="codetitle">e.g. app.dicon にて dbfluteBeans.xml をインクルード @app.dicon</span><code>
+	<pre><span class="codetitle">e.g. app.dicon にて dbflute.dicon をインクルード @app.dicon</span><code>
 &lt;components&gt;
     &lt;include path="convention.dicon"/&gt;
     &lt;include path="aop.dicon"/&gt;
@@ -199,12 +200,12 @@
 		ルートパッケージ(HotDeploy対象となるパッケージ)配下にDBFluteの自動生成クラスが配置されている場合は、(ほんの時折ですが)
 		LinkageError が発生する可能性があります。(CoolDeployモードだと発生しない、ということを確認の上)その場合は、
 		convention.dicon にて NamingConventionImpl の addRootPackageName
-		にDBFluteのクラスの基底パッケージ(packageBase)を設定すると解決します(する可能性が高い)。
+		にDBFluteのクラスの基底パッケージ(packageBase)を設定すると解決します(解決する可能性があります)。
 	</p>
 <pre><span class="codetitle">e.g. convention.dicon で DBFluteのクラス を明示的にHotDeploy対象から外す @convention.dicon</span><code>
 &lt;component class="org.seasar.framework.convention.impl.NamingConventionImpl"&gt;
-    &lt;initMethod name="addRootPackageName"&gt;
-        <span class="point">&lt;arg&gt;"com.example.dbflute.basic"&lt;/arg&gt;</span>
+    &lt;initMethod name="addIgnorePackageName"&gt;
+        <span class="point">&lt;arg&gt;"com.example.dbflute.basic.dbflute"&lt;/arg&gt;</span>
     &lt;/initMethod&gt;
 &lt;/component&gt;
 </code></pre>
@@ -234,12 +235,17 @@
 		実質的には、下位互換のためにSqlLogRegistryサポートしている、と言っても過言ではありません。(基本的には SqlLogHandler の利用をお奨めしています)
 	</p>
 
+	<h2 id="selectableds">SelectableDataSource</h2>
+	<p>
+		冗長化複数DBに対応するための機能が Seasar には備わっています。
+	</p>
+	<div class="detailpage"><a href="./selectabledatasource.html">SelectableDataSource</a></div>
+
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
 		Seasar(S2Container) を使ったExample実装 <em class="keyword">dbflute-seasar-example</em> があります。
 	</p>
 	<div class="detailpage"><a href="../../example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
-
 
 </div>
 </div>
