@@ -45,6 +45,7 @@
 				<li><a href="#diconimage">Dicon構造</a></li>
 				<li><a href="#betaimpl">ベタな実装方法</a></li>
 				<li><a href="#realisticimpl">現実的な実装方法</a></li>
+				<li><a href="#selectonly">更新処理の混在に注意</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -58,6 +59,10 @@
 	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/multipledb/index.html#redundant">冗長化複数DB</a></div>
 
 	<h2 id="howto">SelectableDataSourceの使い方</h2>
+	<p>
+		MasterDB を fooDataSource、SlaveDB を barDataSource
+		という名前で定義すると仮定します(以降、全ての例において同様)。
+	</p>
 	<h3 id="diconimage">Dicon構造</h3>
 	<p>
 		jdbc.dicon で定義している dataSource コンポーネントの実体を、SelectableDataSourceProxy
@@ -67,13 +72,29 @@
 		jdbc.dicon には、SelectableDataSourceProxy の dataSource コンポーネントだけを定義し、それぞれの jdbc-xxx.dicon
 		では、それぞれの DB に対応した "もともとの jdbc.dicon の構成" を定義します。
 	</p>
+	<dl class="textlist">
+		<dt>jdbc.dicon</dt>
+		<dd>SelectableDataSourceProxy の dataSource コンポーネント</dd>
+		<dd>jdbc-master.dicon, jdbc-slave.dicon への include</dd>
+		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
+		<dt>jdbc-master.dicon</dt>
+		<dd>MasterDB のための xaDataSource, connectionPool</dd>
+		<dd>DataSourceImpl の fooDataSource コンポーネント</dd>
+		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
+		<dt>jdbc-slave.dicon</dt>
+		<dd>SlaveDB のための xaDataSource, connectionPool</dd>
+		<dd>DataSourceImpl の barDataSource コンポーネント</dd>
+		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
+	</dl>
+	<p>
+		xxxDataSource の xxx 部分が切り替え先DBを識別する DataSourceName となります。
+	</p>
 	<p class="imgbox">図 : SelectableDataSourceのDicon構造
 		<a href="../../../../data/model/friends/friends-Seasar-SelectableDSDicon-view.png" title="SelectableDataSourceのDicon構造"><img src="../../../../data/model/friends/friends-Seasar-SelectableDSDicon-view.png" alt="SelectableDataSourceのDicon構造" width="550" height="350" /></a>
 	</p>
 	<h3 id="betaimpl">ベタな実装方法</h3>
 	<p>
-		非常に単純でベタな実装方法は以下のようになります。MasterDB を fooDataSource、SlaveDB を barDataSource
-		という名前で定義すると仮定します(以降、全ての例において同様)。
+		非常に単純でベタな実装方法は以下のようになります。
 	</p>
 <pre><span class="codetitle">e.g. SelectableDataSource のベタな実装方法 @Java</span><code>
 <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
@@ -92,8 +113,8 @@
 }
 </code></pre>
 	<p>
-		dataSourceFactory は、デフォルトでは何の DataSource とも関連付いていないため、DBアクセスする前は必ず何かしらの
-		DB を指定する必要があります。
+		DataSourceFactory は、Seasar に組み込まれている jdbc-extension.dicon にて定義されています。
+		デフォルトでは何の DataSource とも関連付いていないため、DBアクセスする前は必ず何かしらの DB を指定する必要があります。
 	</p>
 	<p>
 		通常、このように利用することはあり得ません。
@@ -102,7 +123,12 @@
 	<h3 id="realisticimpl">現実的な実装方法</h3>
 	<p>
 		現実的には、DBアクセスのたびに指定するのはあり得ない感じなので、Interceptor
-		などの共通処理において切り替えます。デフォルトのDBの設定と切り替えのロジックを実装します。
+		などの共通処理で切り替えます。デフォルトのDBの設定と切り替えのロジックを実装します。
+	</p>
+	<p>
+		例えば、通常は MasterDB の方にDBアクセスし、SlaveDB
+		を示すアノテーションがメソッドに定義されていたら、そのメソッド内だけ SlaveDB
+		にDBアクセスするというやり方が考えられます。
 	</p>
 <pre><span class="codetitle">e.g. SelectableDataSource の現実的な実装方法 (Interceptor) @Java</span><code>
 <span class="keyword">protected</span> DataSourceFactory <span class="attribute">dataSourceFactory</span>; <span class="comment">// injected</span>
@@ -132,10 +158,38 @@
     <span class="keyword">return</span> <span class="abbreviation">...</span>
 }
 </code></pre>
+<pre><span class="codetitle">e.g. SelectableDataSource の現実的な実装方法 (Logic) @Java</span><code>
+<span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
+<span class="keyword">protected</span> PurchaseBhv <span class="attribute">purchaseBhv</span>;
+
+<span class="point">@SlaveDB</span>
+<span class="keyword">public</span> void selectHeavy() { <span class="comment">// このメソッド内のDBアクセスは全て SlaveDB へ</span>
+    MemberCB cb = <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span> = <span class="attribute">memberBhv</span>.selectList(cb);
+    PurchaseCB cb = <span class="abbreviation">...</span>
+    <span class="abbreviation">...</span> = <span class="attribute">purchaseBhv</span>.selectList(cb);
+}
+</code></pre>
 	<p>
 		この Interceptor は、DBアクセスをする可能性のあるプロセスの入り口となるコンポーネント、
 		および、DBアクセス先を切り替える可能性のあるコンポーネントに関連付けます。例えば、Page, Action, Service, Logicクラスなどです。
 		バリデーションやバリデーションエラーなどの処理の中でDBアクセスをする場合は、それらメソッドにも関連付ける必要があります。
+	</p>
+	<p>
+		この(独自の) Interceptor は、例えば S2ClassBuilder で aop.dicon にコンポーネントを追加できる aop++.dicon
+		に定義し、customizer.dicon にてどのコンポーネントに定義するか関連付けます。
+	</p>
+	<div class="relatedpage"><a href="../../../topic/friends/s2classbuilder.html">S2ClassBuilder</a></div>
+	<p>
+		また、Interceptor は通常 public メソッドにのみ動作しますので、間違えて protected
+		メソッドに付けないようにディベロッパーに通知しておく必要があります。
+	</p>
+	<h3 id="selectonly">更新処理の混在に注意</h3>
+	<p>
+		Master と Slave のようなミラーリング構成の場合は、Slave
+		の方で更新処理が走らないように注意する必要があります。ここでの例で言えば、SlaveDB
+		アノテーションが付与されているメソッド内で insert() や upadte() を呼び出してはいけません。
+		また、トランザクションはそれぞれ独立したものになります。
 	</p>
 
 </div>
