@@ -57,6 +57,14 @@
 		には備わっています。DBFluteで冗長化複数DBを実現する場合も、その機能を活用すると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/multipledb/index.html#redundant">冗長化複数DB</a></div>
+	<p>
+		典型的な例として、MasterDB と SlaveDB と二つ以上のDBを用意し、更新処理は全て MasterDB
+		で行い、検索処理の一部を(更新内容が同期された) SlaveDB で行うというパターンがあります。
+		MasterDB に障害が発生した場合は SlaveDB が MasterDB となってサービスが継続できます。
+	</p>
+	<p>
+		ここでは、Master, Slave を想定した構成を前提に説明を行いますが、他のパターンでも応用できます。
+	</p>
 
 	<h2 id="howto">SelectableDataSourceの使い方</h2>
 	<p>
@@ -190,6 +198,31 @@
 		の方で更新処理が走らないように注意する必要があります。ここでの例で言えば、SlaveDB
 		アノテーションが付与されているメソッド内で insert() や upadte() を呼び出してはいけません。
 		また、トランザクションはそれぞれ独立したものになります。
+	</p>
+	<p>
+		もし、アノテーション方式だとちょっと更新処理の紛れが怖いというのであれば、先ほどの Interceptor
+		に加えて、コールバック処理でピンポイントで指定できるようにするのも一つの選択肢です。
+		このとき、Interceptor でアノテーション方式を有効にするか否かは実際に利用するかどうかと相談で良いでしょう。
+		(ちなみに、その場合でもデフォルトのDBを設定するために Interceptor 自体は必要です)
+	</p>
+<pre><span class="codetitle">e.g. SlaveDBへアクセスするユーテリィティの導入 @Java</span><code>
+@Resource
+<span class="keyword">protected</span> SlaveDBAccessor <span class="attribute">slaveDBAccessor</span>;
+
+<span class="keyword">public void</span> foo() {
+    <span class="keyword">final</span> MemberCB cb = <span class="keyword">new</span> MemberCB();
+    cb.setupSelect<span class="abbreviation">...</span>
+    cb.query().set<span class="abbreviation">...</span>
+    List&lt;Member&gt; memberList = <span class="attribute">slaveDBAccessor</span>.access(<span class="keyword">new</span> SlaveDBCallback() {
+        <span class="keyword">public</span> List&lt;Member&gt; callback() {
+            <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectList(cb);
+        }
+    });
+}
+</code></pre>
+	<p>
+		この例では、SlaveDBAccessor を jdbc.dicon で slaveDBAccessor という名前でコンポーネントとして登録し、access()
+		メソッドの中で dataSourceFactory に対して SlaveDB に設定をする実装を想定しています。(コールバックが終わったら元のDBへ戻します)
 	</p>
 
 </div>

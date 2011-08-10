@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>ハンズオン セクション 12 | DBFlute</title>
+	<title>ハンズオン セクション 13 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-tutorial">
@@ -37,12 +37,12 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 12</h1>
+	<h1>ハンズオン セクション 13</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#pagingselect">ページング検索とは？</a></li>
-		<li><a href="#cbpaging">ConditionBeanでのページング</a>
+		<li><a href="#likesearch">LikeSearch条件とは？</a></li>
+		<li><a href="#cblikesearch">ConditionBeanでのLikeSearch条件</a>
 			<ul>
 				<li><a href="#firstplay">基本中の基本の実装</a></li>
 				<li><a href="#secondplay">ページング実装の実践</a></li>
@@ -56,49 +56,43 @@
 	<p>
 		さて、ハンズオンの続きです。
 	</p>
-	<div class="relatedpage"><a href="./hands-on11.html">ハンズオン セクション 11</a></div>
+	<div class="relatedpage"><a href="./hands-on12.html">ハンズオン セクション 12</a></div>
 	<p>
-		"ページング検索 (PagingSelect)" を学んでいきましょう。
+		"LikeSearch条件 (曖昧検索)" を学んでいきましょう。
 	</p>
 
 	<h2 id="ready">事前準備</h2>
 	<p>
-		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.phase2.HandsOn12Logic
+		<em class="keyword">src/main/java</em> 配下に com.example.dbflute.handson.logic.phase2.HandsOn13Logic
 		クラスを作成してください。この時点では空っぽで構いません。
 	</p>
 
-	<h2 id="pagingselect">ページング検索とは？</h2>
+	<h2 id="likesearch">LikeSearch条件とは？</h2>
 	<p>
-		まずは、ページング検索という概念を学びましょう。<span class="freecomment">(講師による講習あり)</span>
+		まずは、LikeSearch検索という概念を学びましょう。<span class="freecomment">(講師による講習あり)</span>
 	</p>
-	<div class="detailpage"><a href="../../../manual/topic/programming/dbaccess/pagingselect.html">ページング検索</a></div>
+	<div class="detailpage"><a href="../../../manual/topic/programming/dbaccess/likesearch.html">曖昧検索</a></div>
 
-	<h2 id="cbpaging">ConditionBeanでのページング</h2>
+	<h2 id="cblikesearch">ConditionBeanでのLikeSearch条件</h2>
 	<h3 id="firstplay">基本中の基本の実装</h3>
 	<p>
 		以下のロジックを講師と一緒に作成してみましょう。<span class="freecomment">(講師による実演)</span>
 	</p>
 	<dl class="textlist">
 		<dt>ロジックのメソッド</dt>
-		<dd>PagingResultBean&lt;Member&gt; selectAllMemberPage(int pageSize, int pageNumber)</dd>
+		<dd>List&lt;Member&gt; selectBasicMemberList(String keyword)</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>全会員をページング検索する</li>
-				<li>会員ステータス名称も取得</li>
+				<li>指定されたキーワードが含まれる会員を検索する</li>
 				<li>会員IDの昇順で並べる</li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_selectAllMemberPage_ページング検索されていること()</dd>
+		<dd>test_selectContainList_曖昧検索されていること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>ページサイズは 4、ページ番号は 1 で検索すること</li>
-				<li>検索結果が指定したページサイズ、ページ番号であることをアサート</li>
-				<li>検索結果が指定されたページのデータだけであることをアサート</li>
-				<li>PageRangeを 2 にして PageNumberList を取得し、想定通りであることをアサート</li>
-				<li>前のページが存在しないことをアサート</li>
-				<li>次のページが存在することをアサート</li>
-				<li>会員ID、会員名称、会員ステータス名称をログに出力</li>
+				<li>キーワードは v (小文字のゔい)</li>
+				<li>検索結果の会員が v が含まれる会員であることをアサート</li>
 			</ul>
 		</dd>
 	</dl>
@@ -108,54 +102,49 @@
 	</p>
 	<dl class="textlist">
 		<dt>ロジックのメソッド</dt>
-		<dd>PagingResultBean&lt;Member&gt; selectMemberPurchasePage(int pageSize, int pageNumber)</dd>
+		<dd>List&lt;Member&gt; selectProductMemberList(String keyword)</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>会員ステータスと購入も取得する</li>
-				<li>何かしらの商品を購入したことのある会員を検索</li>
-				<li>サービスポイントカウントの多い順で並べる</li>
-				<li>サービスポイントカウントが同じ場合は会員IDの昇順で並べる</li>
+				<li>指定されたキーワードを含む商品を支払済みで購入したことのある会員を検索する</li>
+				<li>指定されたキーワードが無効な値であれば商品の条件は無しで検索</li>
+				<li>購入商品種類数も取得する</li>
+				<li>会員ステータスの表示順、会員IDの昇順で並べる</li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_selectMemberPurchasePage_ページング検索されていること()</dd>
+		<dd>test_selectProductMemberList_曖昧検索されていること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>ページサイズは 3、ページ番号は 2 で検索すること</li>
-				<li>検索結果が指定したページサイズ、ページ番号であることをアサート</li>
-				<li>検索された会員が全て購入が存在することをアサート</li>
-				<li>PageRangeを 2, fillLimit=true にして PageNumberList を取得し、想定通りであることをアサート</li>
-				<li>前のページが存在することをアサート</li>
-				<li>次のページが存在することをアサート</li>
-				<li>会員と購入をいい感じに綺麗にログに出力すること</li>
+				<li>キーワードは of</li>
+				<li>検索結果の会員がそのキーワードを含む商品を買ったことあるかどうかをアサート</li>
+				<li>検索結果が会員ステータスごとに固まって並んでいることをアサート</li>
+				<li>目視でもアサートできるような良い感じのログを出力すること</li>
 			</ul>
 		</dd>
-		<dd>test_selectMemberPurchasePage_最初と最後のページが検索されること()</dd>
+		<dd>test_selectProductMemberList_キーワード無しなら全件検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>ページサイズは 3 で最初のページと最後のページを検索すること</li>
-				<li>最後のページの検索ではカウント検索が実行されていないことをログで目視確認</li>
-				<li>それでも最後のページの検索結果の総レコード数と総ページ数、次のページがあるか否かの判定が正しいことをアサート</li>
+				<li>検索結果が全件であることをアサート</li>
+				<li>キーワードは null、空文字両方で確認すること</li>
 			</ul>
 		</dd>
 	</dl>
 
 	<h2 id="outsidesqlpaging">外だしSQLのページング</h2>
 	<p>
-		外だしSQLでも、ConditionBean と同じようにページング検索できます。
+		外だしSQLでも、ConditionBean と同じようにLikeSearch条件が指定できます。
 	</p>
-	<div class="detailpage"><a href="../../../manual/function/ormapper/outsidesql/select/selectpagemanual.html">manualPaging().selectPage()</a></div>
+	<div class="detailpage"><a href="../../../manual/function/ormapper/outsidesql/select/likesearch.html">(外だしSQL)LikeSearch</a></div>
 	<p>
 		先ほど ConditionBean の実装で作ったロジックと同じロジックを外だしSQLで実装してみましょう。
 		ロジックのメソッド名の後ろに BySql と付けて実装します。アサートのロジックは全く同じです。
-		また、ManualPaging で実装します。
 	</p>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>
 		さて、次のセクションへ
 	</p>
-	<div class="detailpage"><a href="./hands-on12.html">ハンズオン セクション 12</a></div>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on14.html"> -->ハンズオン セクション 14<!-- </a> --></span></div>
 
 </div>
 </div>
