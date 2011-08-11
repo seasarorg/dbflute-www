@@ -46,6 +46,7 @@
 				<li><a href="#betaimpl">ベタな実装方法</a></li>
 				<li><a href="#realisticimpl">現実的な実装方法</a></li>
 				<li><a href="#selectonly">更新処理の混在に注意</a></li>
+				<li><a href="#defaultdb">デフォルトのDBの設定</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -224,6 +225,30 @@
 		この例では、SlaveDBAccessor を jdbc.dicon で slaveDBAccessor という名前でコンポーネントとして登録し、access()
 		メソッドの中で dataSourceFactory に対して SlaveDB に設定をする実装を想定しています。(コールバックが終わったら元のDBへ戻します)
 	</p>
+	<h3 id="defaultdb">デフォルトのDBの設定</h3>
+	<p>
+		先ほどの SlaveDBAccessor を利用してアノテーション方式を採用しない場合でも、デフォルトのDBを指定するために
+		Interceptor は必要です。ただそれだけのための Interceptor を作成して定義するのに少々ためらうのであれば、SelectableDataSourceProxy
+		を継承してデフォルトのDB(通常は MasterDB)を指定すれば、その Interceptor なしで実現できます。
+	</p>
+	<p>
+		SelectableDataSourceProxy の getDataSource() をオーバーライドし、dataSourceFactory から DataSourceName
+		が取得できなかったときに、デフォルトの DataSourceName を利用して DataSource
+		を戻すように修正します。このクラスを jdbc.dicon に代わりに定義します。
+	</p>
+<pre><span class="codetitle">e.g. SelectableDataSourceProxy を継承してデフォルトのDBを設定 @Java</span><code>
+<span class="keyword">public class</span> AppSelectableDataSourceProxy <span class="keyword">extends</span> SelectableDataSourceProxy {
+
+    @Override
+    <span class="keyword">public</span> DataSource getDataSource() {
+        String dataSourceName = <span class="attribute">dataSourceFactory</span>.getSelectableDataSourceName();
+        <span class="keyword">if</span> (dataSourceName == <span class="keyword">null</span>) {
+            dataSourceName = <span class="literal">"fooDataSource"</span>; <span class="comment">// as default</span>
+        }
+        <span class="keyword">return</span> <span class="attribute">dataSourceFactory</span>.getDataSource(dataSourceName);
+    }
+}
+</code></pre>
 
 </div>
 </div>

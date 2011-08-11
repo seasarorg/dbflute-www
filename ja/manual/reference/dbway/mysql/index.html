@@ -210,26 +210,17 @@
 	<h4>ConditionBean で found_rows()</h4>
 	<p>
 		ConditionBeanでは、Union を利用しない検索で CountLater オプションを指定した場合に、found_rows()
-		が利用されます。<span class="freecomment">@since 0.9.8.8</span>
+		が利用されます<span class="freecomment">(@since 0.9.8.8)</span>。ただ、CountLater
+		オプションはデフォルトで有効になっていますので<span class="freecomment">(@since 0.9.9.0A)</span>、MySQL利用時はデフォルトで found_rows()
+		が利用されます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/conditionbean/sidebar/paging.html#countlater">ConditionBean - カウント検索を後に</a></div>
-<pre><span class="codetitle">e.g. カウント検索をページング実データ検索の後に実行 @Java</span><code>
-MemberCB() cb = <span class="keyword">new</span> MemberCB();
-cb.setupSelect_MemberStatus();
-cb.query().addOrderBy_Birthdate_Desc();
-cb.paging(<span class="literal">20</span>, currentPageNumber);
-cb.<span class="point">enablePagingCountLater()</span>;
-<span class="abbreviation">...</span>
-</code></pre>
 	<h4>外だしSQL で found_rows()</h4>
 	<p>
-		外だしSQLでは、CountLaterオプションをした上で、IFコメントを使って切り替えます。
+		外だしSQLでは、CountLater オプションをした上で、IFコメントを使って切り替えます。
+		CountLater オプションはデフォルトで有効になっています<span class="freecomment">(@since 0.9.9.0A)</span>。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/select/selectpagemanual.html#countlater">外だしSQL - カウント検索を後に</a></div>
-<pre><span class="codetitle">e.g. found_rows() を利用したページング検索 {81-100} @Java</span><code>
-FooPmb pmb = <span class="keyword">new</span> FooPmb(); <span class="comment">// extends Paging</span>
-pmb.<span class="point">enablePagingCountLater()</span>;
-</code></pre>
 <pre><span class="codetitle">e.g. found_rows() を利用したページング検索 {81-100} @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
 <span class="keyword">select</span> <span class="point">sql_calc_found_rows</span>
@@ -252,9 +243,9 @@ pmb.<span class="point">enablePagingCountLater()</span>;
 	<h4>トランザクション外での found_rows()</h4>
 	<p>
 		トランザクションの有無に関わらず found_rows()
-		は利用できますが、利用するデータソース(DataSource)次第では、トランザクションを利用しない場合に一定のコネクションが提供されない可能性があるため、
-		その場合、マルチスレッドな環境だと厳密には found_rows() が動作しません。
-		カウント検索と実データ検索とで同じコネクションが提供される状況(同一トランザクションなど)での利用が前提となります。
+		は利用できます。通常、利用するデータソース(DataSource)次第で、トランザクションを利用しない場合に一定のコネクションが提供されない可能性があるため、
+		マルチスレッドな環境だと厳密には found_rows() が動作しない可能性があるのですが、DBFlute
+		がカウント検索とページング実データ検索で利用するコネクションを独自に必ず同じものが利用されるようにしています。
 	</p>
 
 	<h2 id="updatelock">更新ロックの取得</h2>
