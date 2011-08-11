@@ -45,10 +45,11 @@
 		<li><a href="#cblikesearch">ConditionBeanでのLikeSearch条件</a>
 			<ul>
 				<li><a href="#firstplay">基本中の基本の実装</a></li>
-				<li><a href="#secondplay">ページング実装の実践</a></li>
+				<li><a href="#secondplay">LikeSearch条件実装の実践</a></li>
 			</ul>
 		</li>
-		<li><a href="#outsidesqlpaging">外だしSQLのページング</a></li>
+		<li><a href="#outsidesqllikesearch">外だしSQLのページング</a></li>
+		<li><a href="#splitby">SplitBy を使った LikeSearch条件</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -96,7 +97,7 @@
 			</ul>
 		</dd>
 	</dl>
-	<h3 id="secondplay">ページング実装の実践</h3>
+	<h3 id="secondplay">LikeSearch条件実装の実践</h3>
 	<p>
 		それでは以下のロジックを作成して、ページング実装を実践してみましょう。
 	</p>
@@ -128,9 +129,16 @@
 				<li>キーワードは null、空文字両方で確認すること</li>
 			</ul>
 		</dd>
+		<dd>test_selectProductMemberList_ワイルドカードやエスケープ文字がエスケープされること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>ワイルドカード(%)やエスケープ文字(|)を含んだデータを一時的に作成</li>
+				<li>それぞれの(エスケープされるべき)文字で検索をして、会員が検索されることをアサート</li>
+			</ul>
+		</dd>
 	</dl>
 
-	<h2 id="outsidesqlpaging">外だしSQLのページング</h2>
+	<h2 id="outsidesqllikesearch">外だしSQLのページング</h2>
 	<p>
 		外だしSQLでも、ConditionBean と同じようにLikeSearch条件が指定できます。
 	</p>
@@ -139,6 +147,41 @@
 		先ほど ConditionBean の実装で作ったロジックと同じロジックを外だしSQLで実装してみましょう。
 		ロジックのメソッド名の後ろに BySql と付けて実装します。アサートのロジックは全く同じです。
 	</p>
+
+	<h2 id="splitby">SplitBy を使った LikeSearch条件</h2>
+	<p>
+		例えば、空白区切りの複数の条件を含んだ文字列をそのまま ConditionBean と同じようにLikeSearch条件が指定できます。
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/ormapper/conditionbean/query/likesearch.html#split">CB - LikeSearch - Split</a></div>
+	<p>
+		それでは以下のロジックを作成してみましょう。
+	</p>
+	<dl class="textlist">
+		<dt>ロジックのメソッド</dt>
+		<dd>List&lt;Member&gt; selectSplitMemberList(String keywords, boolean asOr)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定されたキーワードは空白区切りの複数条件として Contain の LikeSearch条件で検索</li>
+				<li>asOr が true なら or 条件で連結する</li>
+				<li>会員IDの昇順で並べる</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_selectSplitMemberList_SplitByでAndで検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>キーワードは "vi a t"、And連結で検索</li>
+				<li>検索結果の会員がそれぞれのキーワードを全て含んでいることをアサート</li>
+			</ul>
+		</dd>
+		<dd>test_selectSplitMemberList_SplitByでOrで検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>キーワードは "vi a t"、Or連結で検索</li>
+				<li>検索結果の会員がそれぞれのキーワードのいずれかを含んでいることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>
