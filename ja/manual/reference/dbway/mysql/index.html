@@ -79,6 +79,7 @@
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
 				<li><a href="#lowercase">MySQLの小文字管理のススメ</a></li>
 				<li><a href="#sqlmode">SQLモードのススメ</a></li>
+				<li><a href="#functiontype">Sql2Entityで関数値のデータ型</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
@@ -413,6 +414,24 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		特に、間違ったカラムを指定した group by がしっかりとエラーになるように設定すると良いでしょう。 
 	</p>
 	<div class="detailpage"><a href="./supplement.html#sqlmode">MySQL補足資料 - SQLモード</a></div>
+	<h3 id="functiontype">Sql2Entityで関数値のデータ型</h3>
+	<p>
+		Sql2Entityで CustomizeEntity を自動生成する際に、例えば max() や sum()
+		のような関数を利用した項目に対応するプログラム型が想定しない型になる場合があります。
+	</p>
+	<p>
+		通常、Sql2EntityではSQLを実行して得られるメタ情報から、項目のデータ型や小数点などの情報から対応するプログラム型を判別しますが、
+		MySQLではその情報が少なく判別し切れない場合があります。例えば、本来 Long 型になって欲しいところが BigDecimal
+		型になってしまったりなど。その場合は、プログラム型の強制指定を利用して微調整すると良いでしょう。
+	</p>
+	<div class="detailpage"><a href="../../../function/generator/task/sql2entity/customizeentity.html#forcedtype">CustomizeEntity - プログラム型の強制指定</a></div>
+	<p>
+		また、複数の関数を利用した場合に、その処理の順序でデータ型が変わることがあります。
+		例えば、min(date(FORMALIZED_DATETIME)) と date(min(FORMALIZED_DATETIME))
+		で違う型にマッピングされるとフィードバックを受けています(ただし、MySQLのバージョンなどに依存する可能性あり)。
+		この場合、後者だと java.util.Date にマッピングされます。
+		バッドノウハウと言えますが、このように(結果を変わらないことを前提に)関数の処理順序を調整することで、想定するプログラム型にマッピングさせることができる場合もあります。
+	</p>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
