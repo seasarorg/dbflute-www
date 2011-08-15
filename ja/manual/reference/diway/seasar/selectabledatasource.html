@@ -45,10 +45,14 @@
 				<li><a href="#diconimage">Dicon構造</a></li>
 				<li><a href="#betaimpl">ベタな実装方法</a></li>
 				<li><a href="#realisticimpl">現実的な実装方法</a></li>
+				<li><a href="#transaction">トランザクションは独立</a></li>
 				<li><a href="#selectonly">更新処理の混在に注意</a></li>
-				<li><a href="#defaultdb">デフォルトのDBの設定</a></li>
 			</ul>
 		</li>
+		<li><a href="#callback">よりシンプルにコールバックで</a></li>
+		<li><a href="#defaultdb">デフォルトのDBの設定</a></li>
+		<li><a href="#updatehook">更新処理フックでMasterDBに</a></li>
+		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
 
 	<h2 id="overview">冗長化複数DB</h2>
@@ -193,9 +197,28 @@
 		また、Interceptor は通常 public メソッドにのみ動作しますので、間違えて protected
 		メソッドに付けないようにディベロッパーに通知しておく必要があります。
 	</p>
+	<h3 id="transaction">トランザクションは独立</h3>
+	<p>
+		Master と Slave のようなレプリケーション構成の場合は、そもそも更新処理を Master
+		に集中させないといけないためあまり気にする必要はありませんが、トランザクションはそれぞれのDBごとに独立したものになります。
+		そのことだけはしっかり理解しておいた方が良いでしょう。
+	</p>
 	<h3 id="selectonly">更新処理の混在に注意</h3>
 	<p>
-		Master と Slave のようなミラーリング構成の場合は、Slave
+		Master と Slave のようなレプリケーション構成の場合は、Slave
+		の方で更新処理が走らないように注意する必要があります。ここでの例で言えば、SlaveDB
+		アノテーションが付与されているメソッド内で insert() や upadte() を呼び出してはいけません。
+	</p>
+	<p>
+		Slave への接続を ReadOnly にしておけばエラーで検知することができますが、
+		できるだけ更新処理の混在が発生しないようにしたい場合は、シンプルなコールバック方式や更新処理フックなどを利用すると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#callback">this - よりシンプルにコールバックで</a></div>
+	<div class="relatedpage"><a href="#updatehook">this - 更新処理フックでMasterDBに</a></div>
+
+	<h2 id="callback">よりシンプルにコールバックで</h2>
+	<p>
+		Master と Slave のようなレプリケーション構成の場合は、Slave
 		の方で更新処理が走らないように注意する必要があります。ここでの例で言えば、SlaveDB
 		アノテーションが付与されているメソッド内で insert() や upadte() を呼び出してはいけません。
 		また、トランザクションはそれぞれ独立したものになります。
@@ -203,7 +226,8 @@
 	<p>
 		もし、アノテーション方式だとちょっと更新処理の紛れが怖いというのであれば、先ほどの Interceptor
 		に加えて、コールバック処理でピンポイントで指定できるようにするのも一つの選択肢です。
-		このとき、Interceptor でアノテーション方式を有効にするか否かは実際に利用するかどうかと相談で良いでしょう。
+		このとき、Interceptor でアノテーション方式を有効にするか否かは実際に利用するかどうかと相談ですが、
+		やり方が何通りもあると混乱しがちなので、この場合はアノテーション方式は適用しない方が良いでしょう。
 		(ちなみに、その場合でもデフォルトのDBを設定するために Interceptor 自体は必要です)
 	</p>
 <pre><span class="codetitle">e.g. SlaveDBへアクセスするユーテリィティの導入 @Java</span><code>
@@ -214,7 +238,7 @@
     <span class="keyword">final</span> MemberCB cb = <span class="keyword">new</span> MemberCB();
     cb.setupSelect<span class="abbreviation">...</span>
     cb.query().set<span class="abbreviation">...</span>
-    List&lt;Member&gt; memberList = <span class="attribute">slaveDBAccessor</span>.access(<span class="keyword">new</span> SlaveDBCallback() {
+    List&lt;Member&gt; memberList = <span class="attribute">slaveDBAccessor</span>.accessFixedly(<span class="keyword">new</span> SlaveDBCallback() {
         <span class="keyword">public</span> List&lt;Member&gt; callback() {
             <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectList(cb);
         }
@@ -225,9 +249,10 @@
 		この例では、SlaveDBAccessor を jdbc.dicon で slaveDBAccessor という名前でコンポーネントとして登録し、access()
 		メソッドの中で dataSourceFactory に対して SlaveDB に設定をする実装を想定しています。(コールバックが終わったら元のDBへ戻します)
 	</p>
-	<h3 id="defaultdb">デフォルトのDBの設定</h3>
+
+	<h2 id="defaultdb">デフォルトのDBの設定</h2>
 	<p>
-		先ほどの SlaveDBAccessor を利用してアノテーション方式を採用しない場合でも、デフォルトのDBを指定するために
+		先ほどの SlaveDBAccessor を利用してアノテーション方式を適用しない場合でも、デフォルトのDBを指定するために
 		Interceptor は必要です。ただそれだけのための Interceptor を作成して定義するのに少々ためらうのであれば、SelectableDataSourceProxy
 		を継承してデフォルトのDB(通常は MasterDB)を指定すれば、その Interceptor なしで実現できます。
 	</p>
@@ -249,6 +274,59 @@
     }
 }
 </code></pre>
+
+	<h2 id="updatehook">更新処理フックでMasterDBに</h2>
+	<p>
+		アノテーション方式、コールバック方式に限らず、とにかく紛れた更新処理が万が一でも SlaveDB
+		に向かないような "すべり止め" 的な仕組みを施すと良いでしょう。
+	</p>
+	<p>
+		CallbackContext の BehaviorCommandHook
+		を利用することで、DBFluteの更新処理に対して強制的に MasterDB に変更する処理をフックさせることができます。
+	</p>
+<pre><span class="codetitle">e.g. BehaviorCommandHook を使って更新処理を強制的に MasterDB に @Java</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// BehaviorCommandHook を設定</span>
+CallbackContext.setBehaviorCommandHookOnThread(<span class="keyword">new</span> SqlLogHandler() {
+    <span class="keyword">protected</span> String <span class="attribute">currentName</span>;
+    <span class="keyword">protected boolean</span> forcedSet;
+
+    <span class="keyword">public void</span> hookBefore(BehaviorCommandMeta meta) {
+        <span class="keyword">if</span> (needsForcedMasterCommand(meta)) {
+            <span class="keyword">final</span> String masterDB = <span class="literal">"foo"</span>;
+            <span class="attribute">currentName</span> = <span class="attribute">dataSourceFactory</span>.getSelectableDataSourceName();
+            if (!masterDB.equals(currentName)) {
+                if (<span class="attribute">_log</span>.isDebugEnabled()) {
+                    <span class="attribute">_log</span>.debug(<span class="literal">"...Accessing to MasterDB forcedly: "</span> + masterDB);
+                }
+                <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(masterDB);
+                <span class="attribute">forcedSet</span> = <span class="keyword">true</span>;
+            }
+        }
+    }
+
+    <span class="keyword">protected boolean</span> needsForcedMasterCommand(BehaviorCommandMeta meta) {
+        return !meta.isSelect();
+    }
+
+    <span class="keyword">public void</span> hookFinally(BehaviorCommandMeta meta, RuntimeException cause) {
+        <span class="keyword">if</span> (<span class="attribute">forcedSet</span>) {
+            <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(currentName);
+        }
+    }
+});
+
+<span class="abbreviation">...</span>
+
+<span class="comment">// 最後は必ずどこかでクリアすること</span>
+CallbackContext.clearBehaviorCommandHookOnThread
+</code></pre>
+
+	<h2 id="example">Exampleのススメ</h2>
+	<p>
+		dbflute-sastruts-example にて、SelectableDataSource
+		を利用しています。Example のための無理矢理なレリプケーションですが、実装は参考にできるでしょう。
+	</p>
 
 </div>
 </div>
