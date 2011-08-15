@@ -284,6 +284,7 @@
 		CallbackContext の BehaviorCommandHook
 		を利用することで、DBFluteの更新処理に対して強制的に MasterDB に変更する処理をフックさせることができます。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/genbafit/runtimefit/behaviorcommandhook/index.html"> -->Behavior実行のフック<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. BehaviorCommandHook を使って更新処理を強制的に MasterDB に @Java</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// BehaviorCommandHook を設定</span>
@@ -321,6 +322,13 @@ CallbackContext.setBehaviorCommandHookOnThread(<span class="keyword">new</span> 
 <span class="comment">// 最後は必ずどこかでクリアすること</span>
 CallbackContext.clearBehaviorCommandHookOnThread
 </code></pre>
+	<p>
+		BehaviorCommandMeta の meta.isSelect() は、全てのプロシージャコールにおいて false
+		と判定されます。つまり、検索だけで別に SlaveDB に実行してもよいプロシージャも MasterDB
+		に向いてしまいます。あくまで更新処理が SlaveDB に向かないようにするための "すべり止め"
+		であることが前提です。その辺、どこまで厳密に判定するかはプロジェクトの要件と BehaviorCommandMeta
+		の仕様(JavaDocコメント)と相談して実装すると良いでしょう。
+	</p>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
