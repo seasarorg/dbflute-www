@@ -73,7 +73,7 @@
 
 	<h2 id="howto">SelectableDataSourceの使い方</h2>
 	<p>
-		MasterDB を fooDataSource、SlaveDB を barDataSource
+		MasterDB を masterDataSource、SlaveDB を slaveDataSource
 		という名前で定義すると仮定します(以降、全ての例において同様)。
 	</p>
 	<h3 id="diconimage">Dicon構造</h3>
@@ -92,11 +92,11 @@
 		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
 		<dt>jdbc-master.dicon</dt>
 		<dd>MasterDB のための xaDataSource, connectionPool</dd>
-		<dd>DataSourceImpl の fooDataSource コンポーネント</dd>
+		<dd>DataSourceImpl の masterDataSource コンポーネント</dd>
 		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
 		<dt>jdbc-slave.dicon</dt>
 		<dd>SlaveDB のための xaDataSource, connectionPool</dd>
-		<dd>DataSourceImpl の barDataSource コンポーネント</dd>
+		<dd>DataSourceImpl の slaveDataSource コンポーネント</dd>
 		<dd>jta.dicon, jdbc-extension.dicon への include</dd>
 	</dl>
 	<p>
@@ -114,15 +114,15 @@
 <span class="keyword">protected</span> DataSourceFactory <span class="attribute">dataSourceFactory</span>; <span class="comment">// injected</span>
 
 <span class="keyword">public void</span> fooAndBar() {
-    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"foo"</span>);
+    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"master"</span>);
     Member member = <span class="abbreviation">...</span>
     <span class="abbreviation">...</span> 
-    <span class="attribute">memberBhv</span>.update(member); <span class="comment">// foo の会員を更新</span>
+    <span class="attribute">memberBhv</span>.update(member); <span class="comment">// master の会員を更新</span>
 
-    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"bar"</span>);
+    <span class="attribute">dataSourceFactory</span>.setSelectableDataSourceName(<span class="literal">"slave"</span>);
     MemberCB cb = <span class="abbreviation">...</span>
     <span class="abbreviation">...</span>
-    <span class="abbreviation">...</span> = <span class="attribute">memberBhv</span>.select(cb); <span class="comment">// bar の会員を検索</span>
+    <span class="abbreviation">...</span> = <span class="attribute">memberBhv</span>.select(cb); <span class="comment">// slave の会員を検索</span>
 }
 </code></pre>
 	<p>
@@ -159,9 +159,9 @@
 
 <span class="keyword">protected</span> String getSelectableDataSourceName(MethodInvocation invocation) {
     <span class="keyword">if</span> (hasSlaveAnnotation(invocation)) {
-        <span class="keyword">return</span> <span class="literal">"bar"</span>;
+        <span class="keyword">return</span> <span class="literal">"slave"</span>;
     } <span class="keyword">else</span> {
-        <span class="keyword">return</span> <span class="literal">"foo"</span>; <span class="comment">// MasterDB as default</span>
+        <span class="keyword">return</span> <span class="literal">"master"</span>; <span class="comment">// MasterDB as default</span>
     }
 }
 
@@ -268,7 +268,7 @@
     <span class="keyword">public</span> DataSource getDataSource() {
         String dataSourceName = <span class="attribute">dataSourceFactory</span>.getSelectableDataSourceName();
         <span class="keyword">if</span> (dataSourceName == <span class="keyword">null</span>) {
-            dataSourceName = <span class="literal">"fooDataSource"</span>; <span class="comment">// as default</span>
+            dataSourceName = <span class="literal">"masterDataSource"</span>; <span class="comment">// as default</span>
         }
         <span class="keyword">return</span> <span class="attribute">dataSourceFactory</span>.getDataSource(dataSourceName);
     }
@@ -288,13 +288,13 @@
 <pre><span class="codetitle">e.g. BehaviorCommandHook を使って更新処理を強制的に MasterDB に @Java</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// BehaviorCommandHook を設定</span>
-CallbackContext.setBehaviorCommandHookOnThread(<span class="keyword">new</span> SqlLogHandler() {
+CallbackContext.setBehaviorCommandHookOnThread(<span class="keyword">new</span> BehaviorCommandHook() {
     <span class="keyword">protected</span> String <span class="attribute">currentName</span>;
     <span class="keyword">protected boolean</span> forcedSet;
 
     <span class="keyword">public void</span> hookBefore(BehaviorCommandMeta meta) {
         <span class="keyword">if</span> (needsForcedMasterCommand(meta)) {
-            <span class="keyword">final</span> String masterDB = <span class="literal">"foo"</span>;
+            <span class="keyword">final</span> String masterDB = <span class="literal">"master"</span>;
             <span class="attribute">currentName</span> = <span class="attribute">dataSourceFactory</span>.getSelectableDataSourceName();
             if (!masterDB.equals(currentName)) {
                 if (<span class="attribute">_log</span>.isDebugEnabled()) {
@@ -335,6 +335,7 @@ CallbackContext.clearBehaviorCommandHookOnThread
 		dbflute-sastruts-example にて、SelectableDataSource
 		を利用しています。Example のための無理矢理なレリプケーションですが、実装は参考にできるでしょう。
 	</p>
+	<div class="detailpage"><a href="../../example/index.html#friends">DBFlute Example - 他のフレームワークとの組み合わせ</a></div>
 
 </div>
 </div>
