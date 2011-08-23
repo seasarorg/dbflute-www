@@ -86,12 +86,29 @@
 </code></pre>
 	<p>
 		String、Number、Date の 3 種類の型に対して、それぞれ生成するメソッドを指定することができます。
-		このプロパティに定義した内容は、次のルールでConditionBeanに反映されます。
+		このプロパティに定義した内容は、次のルールで ConditionBean に反映されます。
 	</p>
-	<ul>
-		<li>指定されていないメソッドは、全テーブルの該当カラムに生成します。</li>
-		<li>指定されているメソッドは、指定されたテーブルの指定されたカラムにのみ生成します。</li>
-	</ul>
+	<dl class="textlist">
+		<dt>A. ConditionKey 自体が指定されていない</dt>
+		<dd>
+			全てのテーブルのカラムにおいて、その ConditionKey のメソッドは生成される。
+			生成設定がされていない(デフォルトの挙動の)状態と言える。
+		</dd>
+		<dt>B. ConditionKey にテーブルとカラムが指定されている</dt>
+		<dd>
+			該当カラムに対してのみ、その ConditionKey のメソッドが生成される。
+		</dd>
+		<dt>C. ConditionKey に何のテーブルも指定されていない</dt>
+		<dd>
+			全てカラムにおいて、その ConditionKey のメソッドは生成されない。
+		</dd>
+		<dt>D. 除外指定の ConditionKey にテーブルとカラムが指定されている</dt>
+		<dd>
+			"A" の場合でも該当カラムのその ConditionKey のメソッドは生成されない。ただし、"B" や "C"
+			のように生成設定が明示的に指定されている場合は、該当カラムのおいてはこの除外指定は影響しない。
+			("D" は、"A, B, C" に対する追加事象)
+		</dd>
+	</dl>
 	<p>
 		以下、(*)の付いたプロパティは必須です。
 	</p>
@@ -106,31 +123,29 @@
 	</dl>
 	<h3 id="conditionkey">condition-key (*)</h3>
 	<p>
-		生成する演算子を指定します。
+		生成対象の ConditionKey を指定します。"!" を付けると除外指定になります。
 	</p>
 	<dl class="textlist">
 		<dt>値候補</dt>
 		<dd>
-			NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual
-			, PrefixSearch, InScope, NotInScope, LikeSearch, NotLikeSearch, EmptyString
-			, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>
+			NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual,
+			InScope, NotInScope, PrefixSearch, LikeSearch, NotLikeSearch,
+			EmptyString, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>
 		</dd>
 		<dd>
-			※PrefixSearch, LikeSearch, NotLikeSearch, EmptyString は String 型専用。
-		</dd>
-		<dd>
-			※FromTo, DateFromTo は Date 型専用。
+			※除外指定する場合は、先頭に "!" を付ける e.g. !GreaterThan <span class="freecomment">(@since 0.9.9.0C)</span>
 		</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 		<dt>補足</dt>
 		<dd>
 			<ul class="supplementlist">
 				<li>Equalは指定不可 (必ず生成される)</li>
+				<li>PrefixSearch, LikeSearch, NotLikeSearch, EmptyString は String 型専用</li>
+				<li>FromTo, DateFromTo は Date 型専用</li>
 				<li>EmptyStringは、別プロパティにて空文字条件が有効になっていることが前提。Equal、NotEqual
 					が対象となり、それらメソッドの定義とは独立した設定となる。
 					(例えば、NotEqual自体が無効になっていても、EmptyStringが有効であれば、EmptyStringのNotEqualメソッドは生成される)
 				</li>
-				<li>型によって元々存在しないConditionKeyを指定しないこと (例えば、DateのLikeSearchとか)</li>
 			</ul>
 		</dd>
 	</dl>
@@ -156,23 +171,62 @@
 		対象とするカラム名を指定します。
 	</p>
 	<dl class="textlist">
-		<dt>値候補</dt><dd>カラムの名前</dd>
+		<dt>値候補</dt><dd>カラムの名前 or $$CommonColumn$$ or $$VersionNo$$</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>$$CommonColumn$$ の場合は、共通カラム全てを指定したことになる</li>
+				<li>$$VersionNo$$ の場合は、バージョン番号カラムを指定したことになる</li>
+			</ul>
+		</dd>
 	</dl>
 
 	<h2 id="example">Example</h2>
-<pre><span class="codetitle">e.g. 特定のテーブルのカラムに対して生成する設定例 @includeQueryMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 文字列型カラムの大なり小なり比較を生成しない設定例 @includeQueryMap.dfprop</span><code>
 <span class="keyword">map:</span>{
-    ; String = map:{
-        ; GreaterThan = <span class="keyword">map:</span>{ MEMBER = list:{ MEMBER_ACCOUNT } }
-        ; LessThan = <span class="keyword">map:</span>{ PRODUCT = list:{ PRODUCT_NAME ; PRODUCT_HANDLE_CODE } }
+    ; String = <span class="keyword">map:</span>{
+        ; GreaterThan = <span class="keyword">map:</span>{}
+        ; LessThan = <span class="keyword">map:</span>{}
+        ; GreaterEqual = <span class="keyword">map:</span>{}
+        ; LessEqual = <span class="keyword">map:</span>{}
     }
 }
 </code></pre>
-<pre><span class="codetitle">e.g. すべてのDate型のカラムにNotEqualを生成しない設定例 @includeQueryMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 特定のテーブルのカラムに対してのみ生成する設定例 @includeQueryMap.dfprop</span><code>
 <span class="keyword">map:</span>{
-    ; Date = map:{
-        ; NotEqual = <span class="keyword">map:</span>{}
+    ; String = <span class="keyword">map:</span>{
+        ; GreaterThan = <span class="keyword">map:</span>{ MEMBER = <span class="keyword">list:</span>{ MEMBER_ACCOUNT } }
+        ; LessThan = <span class="keyword">map:</span>{
+            ; PRODUCT = <span class="keyword">list:</span>{ PRODUCT_NAME ; PRODUCT_HANDLE_CODE }
+        }
+    }
+}
+</code></pre>
+<pre><span class="codetitle">e.g. 文字列型の共通カラムの多くのメソッドを生成しない設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; String = <span class="keyword">map:</span>{
+        ; !NotEqual = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !GreaterThan = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !LessThan = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !GreaterEqual = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !LessEqual = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !InScope = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !NotInScope = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !PrefixSearch = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !LikeSearch = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+        ; !NotLikeSearch = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$CommonColumn$$</span> } }
+    }
+}
+</code></pre>
+<pre><span class="codetitle">e.g. VERSION_NO の多くのメソッドを生成しない設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; Number = map:{
+        ; !GreaterThan = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
+        ; !LessThan = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
+        ; !GreaterEqual = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
+        ; !LessEqual = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
+        ; !InScope = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
+        ; !NotInScope = <span class="keyword">map:</span>{ <span class="attribute">$$ALL$$</span> = <span class="keyword">list:</span>{ <span class="attribute">$$VersionNo$$</span> } }
     }
 }
 </code></pre>
