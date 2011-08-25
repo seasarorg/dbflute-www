@@ -261,8 +261,23 @@
 	<h3 id="embeddedtestvalue">テスト値の扱い</h3>
 	<p>
 		基本仕様は、バインド変数コメントと同じです。
-		ただ、埋め込み変数コメント特有のSQLの一部分を展開させる用途に関しては、テスト値を省略した利用が想定されます。
+		ただ、埋め込み変数コメント特有のSQLの一部分を展開させる用途に関しては、テスト値を省略した利用が想定されるため、テスト値の取扱いを調整するオプションが用意されています。
 	</p>
+	<dl class="textlist">
+		<dt>/*$$pmb.foo*/</dt>
+		<dd>テスト値がSQL上にそのまま展開される <span class="freecomment">@since 0.9.9.0C</span></dd>
+		<dd>
+			"from /*$$pmb.foo*/OASIS.MEMBER mb" なら "from [fooの値]OASIS.MEMBER mb"
+			と展開されます。つまり、埋め込み変数コメントだけが単に置換されるだけとなります。
+			(通常の埋め込み変数コメントであれば、"from [fooの値] mb" となる)
+		</dd>
+		<dt>/*$.pmb.foo*/</dt>
+		<dd>テスト値はドット "." (の前の文字列)までと認識 <span class="freecomment">@since 0.9.9.0C</span></dd>
+		<dd>
+			"from /*$$pmb.foo*/OASIS.MEMBER mb" なら "from [fooの値].MEMBER mb"
+			と展開されます。テーブル名に付与するスキーマ名を切り替えるような場合に有効です。
+		</dd>
+	</dl>
 	<h3 id="embeddednull">null値の扱い</h3>
 	<p>
 		基本仕様は、バインド変数コメントと同じです。null を許容する状況で、(InScopeでない場合に)実際に値が null
