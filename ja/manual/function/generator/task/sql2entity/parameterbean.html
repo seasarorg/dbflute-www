@@ -51,7 +51,13 @@
 				<li><a href="#deleteold">古いクラスは削除される</a></li>
 			</ul>
 		</li>
-		<li><a href="#parameterbeanmark">ParameterBeanマーク</a></li>
+		<li><a href="#parameterbeanmark">ParameterBeanマーク</a>
+			<ul>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#propertycomment">プロパティのコメント</a></li>
+				<li><a href="#otherspec">その他補足仕様</a></li>
+			</ul>
+		</li>
 		<li><a href="#option">ParameterBeanのオプション</a>
 			<ul>
 				<li><a href="#pagingselect">ページング検索のオプション</a></li>
@@ -77,6 +83,7 @@
 				<li><a href="#optionderiving">オプションの導出</a></li>
 				<li><a href="#optionset">明示的オプション指定</a></li>
 				<li><a href="#typeadjustment">参照カラムのオプションによる型調整</a></li>
+				<li><a href="#commentoption">プロパティのコメントは？</a></li>
 				<li><a href="#supplement">補助機能である</a></li>
 			</ul>
 		</li>
@@ -149,6 +156,7 @@
 	</p>
 
 	<h2 id="parameterbeanmark">ParameterBeanマーク</h2>
+	<h3 id="basicspec">基本仕様</h3>
 	<p>
 		ParameterBeanの生成を示すマークは、SQLの行コメントで、"!df:pmb!"
 		という形で記述します。これを "<em class="keyword">ParameterBeanマーク</em>"
@@ -163,7 +171,7 @@
 	</p>
 <pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する ParameterBean を生成 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberId!!</span>
+<span class="comment">-- !!Integer memberId!!</span>
 <span class="comment">-- !!Date fromBirthdate!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
@@ -173,6 +181,21 @@
 		など)においてはパッケージ名は自動解決され、それらクラスに関してはパッケージ名を省略することができます。
 	</p>
 	<div class="relatedpage"><a href="#packageresolve">this - プログラム型のパッケージ解決</a></div>
+	<h3 id="propertycomment">プロパティのコメント</h3>
+	<p>
+		それぞのプロパティにコメントを付与することができます。プロパティ宣言の(同じ行の)後に、"// [コメント]"
+		という形式でコメントを記述します。記述されたコメントは、自動生成された ParameterBean
+		のプロパティのJavaDocコメントに転記され、プログラム上で参照できます<span class="freecomment">(@since 0.9.8.4)</span>。
+		特に利用方法が特殊なものには、積極的にコメントを書いていくと他の人が見たときにわかりやすくなります。
+	</p>
+<pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する ParameterBean を生成 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!Integer memberId!! </span> <span class="point">// 指定すると一件検索になる</span>
+<span class="comment">-- !!Date fromBirthdate!!</span> <span class="point">// 生年月日に対する大なり条件</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="otherspec">その他補足仕様</h3>
 	<p>
 		一つの外だしSQLに CustomizeEntityマーク と同時に記述することができます。逆に CustomizeEntityマーク
 		がなくても利用できます(その場合は、ParameterBean だけを自動生成することになりますが、TypedParameterBean としての利用はできません)。
@@ -728,6 +751,22 @@ select <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCodeList:ref(MEMBER)*/</span>(<span class="literal">'FML'</span>)
 </code></pre>
+	<h3 id="commentoption">プロパティのコメントは？</h3>
+	<p>
+		自動判別にするとプロパティのコメントを書く場所がなくなってしまいます。
+		代わりに、バインド変数コメントにコメントのオプションを付与することができます。
+	</p>
+<pre><span class="codetitle">e.g. 区分値カラムのリスト型には参照カラムのオプションを指定して CDef のリストに @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId:<span class="point">comment(指定すると一件検索になる)</span>*/</span><span class="literal">3</span>
+</code></pre>
+	<p>
+		ただし、ここはSQL文の中なので、あまり書き過ぎると見づらいでしょう。この方法で大量のコメントを書くのはあまりお奨めではありません。
+		コメントを重視するようであれば、自動判別は利用せず明示的に指定した方が可読性は良いでしょう。
+	</p>
 	<h3 id="supplement">補助機能である</h3>
 	<p>
 		多くのケースにてこの自動判別機能が利用できると想定されます。ただし、ご覧の通りある程度の曖昧さを許容する仕様となっており、
