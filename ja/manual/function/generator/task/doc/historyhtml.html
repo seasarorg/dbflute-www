@@ -42,8 +42,9 @@
 		<li><a href="#about">HistoryHTMLとは？</a></li>
 		<li><a href="#schemahtml">SchemaHTMLとの連携</a></li>
 		<li><a href="#comment">コメントの付与</a></li>
-		<li><a href="#columnorder">カラム定義順序の違いは除外</a></li>
+		<li><a href="#columnorder">カラム定義順序の違い</a></li>
 		<li><a href="#constraintname">制約名の変更は対象外</a></li>
+		<li><a href="#splithistory">頃合いをみて分割</a></li>
 	</ul>
 
 	<h2 id="about">HistoryHTMLとは？</h2>
@@ -70,17 +71,48 @@
 		ある時点のDB変更が、(業務的に)どういうものだったのかをコメントすることができます。<span class="freecomment">@since 0.9.7.2</span>
 	</p>
 	<p>
-		TODO jflute
+		DBFluteクライアント/schema/project-history-exampledb.diffmap
+		を直接編集し、"comment" という項目にコメントを書くと、HistoryHTML でそれが表示されるようになります。
 	</p>
+<pre><span class="codetitle">e.g. DB変更にコメントを付与 @project-history-exampledb.diffmap</span><code>
+<span class="abbreviation">...</span>
+    ; 2010/11/26 19:52:15 = <span class="keyword">map:</span>{
+        ; diffDate = 2010/11/26 19:52:15
+        ; <span class="point">comment = 会員検索画面追加によるDB変更</span>
+        ; tableCount = <span class="keyword">map:</span>{
+            ; next = 16
+            ; previous = 13
+        }
+<span class="abbreviation">...</span>
+</code></pre>
 
-	<h2 id="columnorder">カラム定義順序の違いは除外</h2>
+	<h2 id="columnorder">カラム定義順序の違い</h2>
 	<p>
-		テーブル内のカラム定義の順序の違いは差として認識されません。
+		デフォルトでは、テーブル内のカラム定義の順序の違いは差分として認識されません。
+		アプリケーションの動作に影響する可能性が低い要素であり、単なる順序調整も一つのDB変更と認識されてしまうとノイズになってしまうからです。
 	</p>
+	<p>
+		ただ、カラム定義順序を重視するアプリケーションである場合は、documentDefinitionMap.dfprop の isCheckColumnDefOrderDiff
+		を true にすることで、カラム定義順序も差分として認識されるようになります。<span class="freecomment">@since 0.9.9.0D</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#ischeckcolumndeforderdiff">dfprop - isCheckColumnDefOrderDiff</a></div>
+
 	<h2 id="constraintname">制約名の変更は対象外</h2>
 	<p>
 		制約名の変更、例えば、PKの制約名の変更、FKの制約名の変更(カラム構成で判断)、これらはドキュメントには記載されません。
 		制約の増減があるわけではないので、あまりディベロッパーにとっても重要度は高い情報ではなく、対象にすると内部的な実現でややこしい問題があるため割り切っています。
+	</p>
+
+	<h2 id="splithistory">頃合いをみて分割</h2>
+	<p>
+		HistoryHTMLはDB変更があればあるほどどんどん追記されていきます。
+		長い期間の運用であまりに大きくなり過ぎてしまった場合は、HistoryHTML
+		を日付をつけてファイル名変更し、DBFluteクライアント/schema/project-history-exampledb.diffmap
+		を削除(もしくはこれもファイル名変更で保存)することで、HistoryHTMLを分割することができます。
+		(単に手動でバックアップしているだけです)
+	</p>
+	<p>
+		開発中のDB変更、運用が始まってからのDB変更、二次開発のDB変更というように、フェーズの変わり目で分割していくのも良いでしょう。
 	</p>
 
 </div>
