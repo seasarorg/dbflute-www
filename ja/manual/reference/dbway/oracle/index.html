@@ -58,7 +58,7 @@
 		<li><a href="#procedure">プロシージャ</a>
 			<ul>
 				<li><a href="#parametertype">プロシージャパラメータの型</a></li>
-				<li><a href="#packagesynonym">パッケージプロシージャ</a></li>
+				<li><a href="#packageprocedure">パッケージプロシージャ</a></li>
 				<li><a href="#proceduresynonym">プロシージャシノニム</a></li>
 				<li><a href="#nextprocedure">別スキーマのプロシージャ</a></li>
 				<li><a href="#targetprocedure">自動生成対象プロパティの有効項目</a></li>
@@ -75,6 +75,7 @@
 				<li><a href="#materializedview">マテリアライズドビューの利用</a></li>
 				<li><a href="#synonym">シノニムの利用</a></li>
 				<li><a href="#additionalschema">別スキーマの利用</a></li>
+				<li><a href="#dblinkprocedure">データベースリンク先のプロシージャ</a></li>
 				<li><a href="#recyclebin">Recyclebin の一掃</a></li>
 				<li><a href="#dateliteral">日付リテラル</a></li>
 				<li><a href="#oracledate">Oracleの日付型の最適化</a></li>
@@ -247,8 +248,8 @@
 		<dt>ResultSetパラメータ</dt><dd>サポート</dd>
 		<dt>ResultSetリターン</dt><dd>DBMSにて未サポート</dd>
 		<dt>NotParamResult</dt><dd>DBMSにて未サポート</dd>
-		<dt>パッケージプロシージャ</dt><dd>サポート</dd>
-		<dt>プロシージャシノニム</dt><dd>サポート</dd>
+		<dt>パッケージプロシージャ</dt><dd>サポート <span class="freecomment">※一部例外あり</span></dd>
+		<dt>プロシージャシノニム</dt><dd>サポート <span class="freecomment">※一部例外あり</span></dd>
 	</dl>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wp.html#procedurereturn">プロシージャリターン</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wr.html#resultsetparameter">ResultSetパラメータ</a></div>
@@ -260,11 +261,16 @@
 	</p>
 	<div class="detailpage"><a href="./oraclearraystruct.html">Oracleの配列・構造体パラメータ</a></div>
 	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/procedurepmb.html#supportedtype">ProcedurePmb - サポートされる型</a></div>
-	<h3 id="packagesynonym">パッケージプロシージャ</h3>
+	<h3 id="packageprocedure">パッケージプロシージャ</h3>
 	<p>
 		パッケージプロシージャのParameterBeanのクラス名にはパッケージ名が付与されます。
 	</p>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wp.html#packageprocedure">パッケージプロシージャ</a></div>
+	<p>
+		パッケージプロシージャで利用できるオーバーロードプロシージャに対して、厳密なサポートはされていません。
+		オーバーロードは全て一つの ProcedurePmb として自動生成され、最小公倍数のプロパティ項目が定義されます。
+		そのままでは実行できないため、独自にサブクラスを定義してプロパティ項目を絞ることで実行が可能です。
+	</p>
 	<h3 id="proceduresynonym">プロシージャシノニム</h3>
 	<p>
 		プロシージャシノニムの自動生成はオプションです。
@@ -366,15 +372,31 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		<li>シノニムのメタデータ(PK、FK、UQなど)を完全サポート <span class="freecomment">(参照先テーブルから取得)</span></li>
 		<li>シノニムの参照先テーブル自体は(直接利用しないなら)自動生成対象から除外してもよい</li>
 		<li>FK先テーブルにシノニムがある場合はそのシノニムの方に対して(のみ)関連が作成される</li>
-		<li>データリンクのシノニムもサポート。但し、一部メタデータ(FKとIndex情報)は未サポート</li>
+		<li>データベースリンクのシノニムもサポート。但し、一部メタデータ(FKとIndex情報)は未サポート</li>
 	</ul>
-	<div class="relatedword"><a href="../../dictionary/alphabet/wd.html#datalink">データリンク(DataLink)</a></div>
+	<div class="relatedword"><a href="../../dictionary/alphabet/wd.html#dblink">データベースリンク(DB Link)</a></div>
 	<h4>プロシージャ参照のシノニム</h4>
 	<p>
+		プロシージャ参照のシノニム(プロシージャシノニム)に対する ProcedurePmb を自動生成するには、
 		テーブル参照のシノニムの設定に追加して、outsideSqlDefinitionMap.dfprop の
 		procedureSynonymHandlingType を設定することで自動生成できるようになります。
 	</p>
 	<div class="detailpage"><a href="../../dfprop/outsidesqldefinition/index.html#proceduresynonymhandlingtype">dfprop - procedureSynonymHandlingType</a></div>
+	<p>
+		データベースリンク先のプロシージャシノニムの場合は、データベースリンク先のプロシージャと同じく、
+		一部の機能が利用できない可能性があります。
+	</p>
+	<div class="relatedpage"><a href="#dblinkprocedure">データベースリンク先のプロシージャ</a></div>
+	<p>
+		パッケージプロシージャのパッケージ部分を参照したシノニム(パッケージシノニム)に関しては、未サポートです。
+		パッケージプロシージャ自体はシノニム経由ではない直接呼び出しでサポートされています。
+		DBリンク先のパッケージプロシージャは、DBFluteプロパティの直接定義においてサポートされています。
+		シノニムの利用が必須でないならば、これらで代替できます。
+		ただ、どうしてもシノニムの利用が必須の場合は、自動生成だけは直接パッケージプロシージャを参照して、
+		実行時は ProcedurePmb の Exクラスにて、プロシージャ名をオーバーライドしてシノニムに修正すると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#packageprocedure">パッケージプロシージャ</a></div>
+	<div class="relatedpage"><a href="#dblinkprocedure">データベースリンク先のプロシージャ</a></div>
 	<h4>その他オブジェクト参照のシノニム</h4>
 	<p>
 		テーブル(として扱えるオブジェクト)とプロシージャ以外を参照するシノニムは特に自動生成という形式でのサポートはありません。
@@ -394,6 +416,21 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 		シノニムであれば、外だしSQL(OutsideSql)でもSQL上のテーブルのスキーマ修飾を意識する必要がありません。
 	</p>
 	<div class="relatedpage"><a href="#synonym">this - シノニムの利用</a></div>
+	<h3 id="dblinkprocedure">データベースリンク先のプロシージャ</h3>
+	<p>
+		outsideSqlDefinitionMap.dfprop の targetProcedureNameList にて、"プロシージャ名@データベースリンク名"
+		という形式で指定すると、そのプロシージャの ProcedurePmb が自動生成されます。ただし、一部の機能が利用できない可能性があります。
+	</p>
+	<div class="relatedpage"><a href="../../dfprop/outsidesqldefinition/index.html#targetprocedurenamelist">dfprop - targetProcedureNameList</a></div>
+	<p>
+		この場合、本来のこのプロパティの自動生成対象の絞り込みには影響しません。
+		データベースリンク先のどのプロシージャを自動生成対象にするかを、このプロパティを間借りして指定しているだけです。
+	</p>
+	<p>
+		パッケージシノニムはサポートされていないので、データベースリンク先のパッケージプロシージャを呼び出す場合は、
+		この機能を使って代替します。
+	</p>
+	<div class="relatedpage"><a href="#packageprocedure">パッケージプロシージャ</a></div>
 	<h3 id="recyclebin">Recyclebin の一掃</h3>
 	<p>
 		OracleでReplaceSchemaを繰り返し実行すると、Oracle内部の Recyclebin

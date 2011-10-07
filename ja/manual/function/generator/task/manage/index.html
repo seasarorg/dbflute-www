@@ -45,6 +45,7 @@
 		<li><a href="#renewal">Renewalタスク</a></li>
 		<li><a href="#regenerate">Regenerateタスク</a></li>
 		<li><a href="#refresh">Refreshタスク</a></li>
+		<li><a href="#takeassert">TakeAssertタスク</a></li>
 	</ul>
 
 	<h2 id="about">Manageタスクとは？</h2>
@@ -130,6 +131,30 @@
 <pre><span class="codetitle">e.g. Refreshタスクを実行するManageタスク @Command</span><code>
 <span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">refresh</span> <span class="literal">foo-prj/bar-prj</span>
 </code></pre>
+
+	<h2 id="takeassert">TakeAssertタスク</h2>
+	<p>
+		ReplaceSchema の 最終チェック(TakeFinally)でのデータ整合性チェックのSQLだけを実行するタスクです。
+		<span class="freecomment">@since 0.9.9.1A</span>
+	</p>
+	<div class="relatedpage"><a href="../../../generator/task/replaceschema/takefinally.html">ReplaceSchema - 最終チェック</a></div>
+<pre><span class="codetitle">e.g. TakeAssertタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">take-assert</span>
+</code></pre>
+	<p>
+		TakeFinally で実行対象のSQLの中のうち、データ整合性チェックのSQLだけが実行されます。
+		結合環境のデータや本番環境のデータなどの不整合なデータをチェックしたいような場合に有効です。
+	</p>
+	<p>
+		このタスクでDBに対して更新がかかることはありません。仮に update文にassertコメント
+		が付与したとしてもトランザクションはロールバックされますし、assertコメントが付与されているものは、JDBCドライバの select
+		専用のメソッド経由で実行されるため、DBMSによってはエラーで防ぐことができます。
+	</p>
+	<p>
+		アサート処理の仕様は、TakeFinallyと同じです。不整合なデータが見つかった場合は、DBFluteクライアント/log
+		配下に take-assert.log という名前で例外メッセージが出力されます。このファイルは実行のたびに上書きされます。
+		このタスクの細かい実行ログは、通常のタスクと同じくコンソールと dbflute.log に出力されます。
+	</p>
 
 </div>
 </div>

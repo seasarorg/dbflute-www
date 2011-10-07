@@ -54,7 +54,6 @@
 		<li><a href="#parameterbeanmark">ParameterBeanマーク</a>
 			<ul>
 				<li><a href="#basicspec">基本仕様</a></li>
-				<li><a href="#propertycomment">プロパティのコメント</a></li>
 				<li><a href="#otherspec">その他補足仕様</a></li>
 			</ul>
 		</li>
@@ -182,20 +181,6 @@
 		など)においてはパッケージ名は自動解決され、それらクラスに関してはパッケージ名を省略することができます。
 	</p>
 	<div class="relatedpage"><a href="#packageresolve">this - プログラム型のパッケージ解決</a></div>
-	<h3 id="propertycomment">プロパティのコメント</h3>
-	<p>
-		それぞのプロパティにコメントを付与することができます。プロパティ宣言の(同じ行の)後に、"// [コメント]"
-		という形式でコメントを記述します。記述されたコメントは、自動生成された ParameterBean
-		のプロパティのJavaDocコメントに転記され、プログラム上で参照できます<span class="freecomment">(@since 0.9.8.4)</span>。
-		特に利用方法が特殊なものには、積極的にコメントを書いていくと他の人が見たときにわかりやすくなります。
-	</p>
-<pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する ParameterBean を生成 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Integer memberId!! </span> <span class="point">// 指定すると一件検索になる</span>
-<span class="comment">-- !!Date fromBirthdate!!</span> <span class="point">// 生年月日に対する大なり条件</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
-</code></pre>
 	<h3 id="otherspec">その他補足仕様</h3>
 	<p>
 		一つの外だしSQLに CustomizeEntityマーク と同時に記述することができます。逆に CustomizeEntityマーク
@@ -508,13 +493,14 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
 		決まった形式でコメントを書くことで、単に外だしSQL上で業務的な意味がわかりやすくなるというだけでなく、
 		自動生成された ParameterBean のプロパティのメソッドの JavaDoc
 		コメントにそのコメントに転記され、実装しながらそのコメントを読むことができます。
+		特に利用方法が特殊なものには、積極的にコメントを書いていくと他の人が見たときにわかりやすくなります。
 		<span class="freecomment">@since 0.9.8.4</span>
 	</p>
 	<p>
 		プロパティ項目の宣言の後に、"//" というマークの後に一行コメントを書きます。
 	</p>
 <pre><span class="codetitle">e.g. プロパティにコメントを書く @OutsideSql</span><code>
-<span class="comment">-- !df:pmb<span class="comment">!</span>
+<span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!String memberId!!</span>   <span class="point">// それぞれのプロパティの説明や補足などを書く</span>
 <span class="comment">-- !!String memberName!!</span> <span class="point">// このように書いておけば JavaDoc で読める</span>
 <span class="comment">-- !!Date birthdate!!</span>    <span class="point">// なのでJavaDocで利用できない文字は使えない</span>
@@ -529,12 +515,16 @@ select <span class="abbreviation">...</span>
 	</p>
 	<div class="relatedpage"><a href="#autodetect">プロパティの自動判別</a></div>
 <pre><span class="codetitle">e.g. 自動判別されるプロパティにコメントを書く @OutsideSql</span><code>
-<span class="comment">-- !df:pmb<span class="comment">!</span>
-<span class="comment">-- !!String AutoDetect!!</span>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
 select <span class="abbreviation">...</span>
   from <span class="abbreviation">...</span>
  where MEMBER_ID = <span class="comment">/*pmb.memberId:comment(ここにコメントを書く)*/3</span>
 </code></pre>
+	<p>
+		CustomizeEntityの検索カラムでも同じようなことができます。合わせて利用すると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="./customizeentity.html#columncomment">CustomizeEntity - 検索カラムのコメント</a></div>
 
 	<h2 id="packageresolve">プログラム型のパッケージ解決</h2>
 	<p>

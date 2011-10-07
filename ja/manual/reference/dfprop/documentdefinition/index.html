@@ -262,13 +262,14 @@
 	<p>
 		map の中の recordList を指定すると LoadDataReverse が有効になります。
 		値がマイナスの場合は無制限でデータが出力されます。出力データに共通カラムを含める場合は isContainsCommonColumn を true
-		に、ReplaceSchema でそのまま利用することを前提賭する場合は、isOutputToPlaySql を true に。
+		に、ReplaceSchema でそのまま利用するのであれば、isOutputToPlaySql を true に。
 	</p>
 <pre><span class="codetitle">e.g. loadDataReverseMapの仕様 @documentDefinitionMap.dfprop</span><code>
 ; loadDataReverseMap = <span class="keyword">map:</span>{
     ; recordLimit = [limit size] <span class="comment"># デフォルト: 設定なし</span>
     ; isContainsCommonColumn = [true or false] <span class="comment"># デフォルト: false</span>
     ; isOutputToPlaySql = [true or false] <span class="comment"># デフォルト: false</span>
+    ; xlsLimit = [limit size] <span class="comment"># デフォルト: 65000</span>
 }
 </code></pre>
 	<dl class="textlist">
@@ -278,11 +279,16 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>recordLimit がマイナスの場合は、無制限でデータが出力される</li>
-				<li>エクセルの最大行数(65000を決め打ち) を超えるデータはTSV形式で出力される</li>
 				<li>isOutputToPlaySql が true の場合は playsql 配下に直接出力される</li>
+				<li>xlsLimit を超える行数(エクセルの限界)のデータはTSV形式で出力される</li>
 			</ul>
 		</dd>
 	</dl>
+	<p>
+		TSV出力にスイッチする基準のレコード件数は、xlsLimit
+		にて指定できる<span class="freecomment">(@since 0.9.9.1A)</span>。
+		もし、全てをTSV出力にしたい場合は、この値を 0 にすることで実現できる。
+	</p>
 	<h3 id="schemasynccheckmap">schemaSyncCheckMap</h3>
 	<p>
 		SchemaSyncCheck の生成に関するプロパティを指定します。

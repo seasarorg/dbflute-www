@@ -56,6 +56,12 @@
 				<li><a href="#forcedtype">プログラム型の強制指定</a></li>
 			</ul>
 		</li>
+		<li><a href="#columncomment">検索カラムのコメント</a>
+			<ul>
+				<li><a href="#commoncolumnway">検索カラムのコメントの定義の仕方</a></li>
+				<li><a href="#commoncolumnspec">検索カラムのコメントの細かい仕様</a></li>
+			</ul>
+		</li>
 		<li><a href="#structure">CustomizeEntityの構造</a>
 			<ul>
 				<li><a href="#commoncolumn">共通カラム(CommonColumn)の認識</a></li>
@@ -246,6 +252,71 @@ select ...
 select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
   from ...
 </code></pre>
+
+	<h2 id="columncomment">検索カラムのコメント</h2>
+	<p>
+		検索カラム(select句に列挙するカラム)にコメントを付与して、CustomizeEntityのJavaDocコメントに追記することができます。
+		<span class="freecomment">@since 0.9.9.1A</span>
+	</p>
+	<p>
+		もともとDBFluteがその検索カラムがどのテーブルのどのカラムなのかを探してJavaDocコメントにしますが、
+		それができるかはJDBCドライバの実装に依存しますし、副問い合わせによる導出カラムなどではメタデータは取得できない可能性ありますし、
+		そもそも外だしSQLならではの補足や説明が書きたいでしょう。
+	</p>
+	<h3 id="commoncolumnway">検索カラムのコメントの定義の仕方</h3>
+	<p>
+		select句のカラム定義のすぐ後ろに行コメントマーク "--" に続いて "//"
+		と入れた後にコメントを書くと、それがJavaDocコメントに付与されます。
+		JavaDoc上では、もともとのメタデータによるコメントに続いて "改行 + //" が付与されて、その後にコメントが追記されます。
+	</p>
+<pre><span class="codetitle">e.g. 検索カラムにコメントを付与する @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+
+<span class="keyword">select</span> MEMBER_ID <span class="comment">-- // 検索結果のユニーク性を表現する項目</span>
+     , MEMBER_NAME <span class="comment">-- // スラスラ(//)ってなんか Java っぽい</span>
+     , (<span class="keyword">select</span> max(PURCHASE_PRICE)
+          <span class="keyword">from</span> 
+         <span class="keyword">where</span> <span class="abbreviation">...</span>
+       ) as MAX_PURCHASE_PRICE <span class="comment">-- // 最大購入価格: 未払いは含めない</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		このようにしておくことで、外だしSQL上でわかりやすいだけでなく、
+		プログラム上で実装しながら、検索カラムの特性が補完時に表示されるJavaDocコメントで確認できます。
+	</p>
+	<p>
+		ParameterBeanのプロパティ宣言でも同じようなことができます。合わせて利用すると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="./parameterbean.html#propertycomment">ParameterBean - プロパティのコメント</a></div>
+	<h3 id="commoncolumnspec">検索カラムのコメントの細かい仕様</h3>
+	<p>
+		JavaDocには追記したくないけど、外だしSQL上ではコメントとして書きたいというような内容のものがある場合は、
+		行コメントマーク "--" と "//" の間にそのコメントを書くことができます。つまり、"--" と "//"
+		は同じ行であれば離して書くことができます。
+	</p>
+<pre><span class="codetitle">e.g. JavaDocに追記しないコメントも書く @SQL-File</span><code>
+<span class="comment">-- #df:entity#</span>
+
+<span class="keyword">select</span> MEMBER_ID <span class="comment">-- これはJavaDocに追記しない // これはJavaDocへ</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		内部的には文字列パースによって実現しているため、書き方によってはJavaDocに追記されないことがあります。
+		"as" や "." や "," などがポイントとなっていて、基本的には "as" が付いていれば正常に抽出される可能性が高いです。
+		以下のような基本的な書き方がされていればほとんどの場合において問題はありません。
+	</p>
+	<ul>
+		<li>... as [カラム名]</li>
+		<li>, [テーブル別名].[カラム名]</li>
+		<li>[テーブル別名].[カラム名],</li>
+		<li>, [カラム名]</li>
+		<li>[カラム名],</li>
+		<li>select [カラム名]</li>
+	</ul>
+	<p>
+		一つの行に二つの検索カラムを定義していたり、カラム定義と行コメントの間に何かしらの記述があったりした場合は、
+		正常にパースすることができない可能性があります。また、ダブルクォーテーションなどで囲ったカラム名はサポート対象外です。
+	</p>
 
 	<h2 id="structure">CustomizeEntityの構造</h2>
 	<p>
