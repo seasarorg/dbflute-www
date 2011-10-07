@@ -74,13 +74,35 @@
 </code></pre>
 	<h3 id="extsearchcopy">拡張子検索コピー</h3>
 	<p>
-		src にて "*.ddl" というように指定すると、そのディレクトリの中にある唯一の指定された拡張子を持つファイルをコピーします。
+		src にて "*.ddl" というように指定することができます。この場合、dest の指定によって挙動が変わります。
+		
+		と、そのディレクトリの中にある唯一の指定された拡張子を持つファイルをコピーします。
 		ファイル名が定まらない場合に有効です。ただし、二つ以上その拡張子を持つファイルがある場合はエラーとなります。
 	</p>
+	<dl class="textlist">
+		<dt>dest がファイル</dt>
+		<dd>
+			dest の指定がファイルをさす場合(ドット "." を含む)、src
+			のディレクトリの中にある唯一の指定された拡張子を持つファイルをコピーします。
+		</dd>
+		<dt>dest がディレクトリ</dt>
+		<dd>
+			dest の指定がディレクトリをさす場合(ドット "." を含まない)、src
+			のディレクトリの中にある指定された拡張子を持つ全てのファイルをコピーします。
+			<span class="freecomment">@since 0.9.9.1A</span>
+		</dd>
+	</dl>
 <pre><span class="codetitle">e.g. foo.ddl を replace-schema-10-basic.sql にコピー @replaceSchemaDefinitionMap.dfprop</span><code>
 ; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
     ; copy = <span class="keyword">map:</span>{
         ; ../erd/*.ddl = ./playsql/replace-schema-10-basic.sql
+    }
+}
+</code></pre>
+<pre><span class="codetitle">e.g. playsql の .sql ファイルを全て ../tmp 配下にコピー @replaceSchemaDefinitionMap.dfprop</span><code>
+; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
+    ; copy = <span class="keyword">map:</span>{
+        ; ./playsql/*.sql = ../tmp
     }
 }
 </code></pre>
