@@ -50,6 +50,9 @@
 				<li><a href="#classificationname">classification-name (*)</a></li>
 				<li><a href="#topcomment">topComment (*)</a></li>
 				<li><a href="#codetype">codeType</a></li>
+				<li><a href="#ischeckimplicitset">isCheckImplicitSet</a></li>
+				<li><a href="#isusedocumentonly">isUseDocumentOnly</a></li>
+				<li><a href="#issuppressautodeploy">isSuppressAutoDeploy</a></li>
 				<li><a href="#table">table</a></li>
 				<li><a href="#code">code (*)</a></li>
 				<li><a href="#name">name (*)</a></li>
@@ -110,7 +113,12 @@
 <pre><span class="codetitle">classificationDefinitionMapの仕様 @classificationDefinitionMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     [classification-name] = <span class="keyword">list:</span>{
-        ; <span class="keyword">map:</span>{topComment=[comment]; dataType=[String(default) or Number]}
+        ; <span class="keyword">map:</span>{
+            ; topComment=[comment]; dataType=[String(default) or Number]
+            ; isCheckImplicitSet=[true or false(default)]
+            ; isUseDocumentOnly=[true or false(default)]
+            ; isSuppressAutoDeploy=[true or false(default)]
+        }
         ; <span class="keyword">map:</span>{code=[code]; name=[name]; alias=[alias]; comment=[comment]}
         ; <span class="keyword">map:</span>{
             ; table=[table-name]
@@ -118,7 +126,6 @@
             ; alias=[column-name for alias]; comment=[column-name for comment]}
             ; where=[condition for select]; orderBy=[column-name for ordering]
             ; exceptCodeList=[the list of except code]
-            ; suppressAutoDeploy=[true or false(default)]
         }
     }
     ; ...
@@ -132,7 +139,12 @@
 	</p>
 	<h3 id="topcomment">topComment (*)</h3>
 	<p>
-		区分値についての説明を定義します。
+		区分値についての説明を定義します。区分値自体の名前や、わかりやすい説明があると良いでしょう。
+	</p>
+	<p>
+		このプロパティは必ず定義されている必要があります。
+		(厳密には定義しなくても動作することもありますが、幾つかのプロパティなどでは topComment
+		が存在していることが前提となるため、仕様としては必須項目です)
 	</p>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>どのような区分値であるかの説明文</dd>
@@ -164,6 +176,45 @@
 		区分値の基本的な機能(ConditionBeanやEntityにおける区分値メソッドなど)は利用できますが、
 		習慣的に指定しておくことをお奨めします。
 	</p>
+	<h3 id="ischeckimplicitset">isCheckImplicitSet</h3>
+	<p>
+		暗黙の区分値の場合に、ReplaceSchemaのデータ登録やEntityへの区分値設定において、
+		定義されている区分値要素以外のコードが指定されたかどうかチェックします。定義されていないコードの場合は例外になります。
+		<span class="freecomment">@since 0.9.9.1B</span>
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>true or false</dd>
+		<dt>デフォルト</dt><dd>false</dd>
+	</dl>
+	<p>
+		ConditionBean での条件設定ではチェックされません。
+		あくまで、データ登録という面でのチェックなので、(自動生成されるクラスとしては)Entityの Setter
+		メソッドのみにおいてチェックされます。
+	</p>
+	<h3 id="isusedocumentonly">isUseDocumentOnly</h3>
+	<p>
+		その区分値を、自動生成されたクラスでは利用せず、SchemaHTMLなどのドキュメントのみでの利用をする場合に設定します。
+		プログラムのロジックとしては区分値を意識しないような場合に有効です(不要なメソッドが生成されない)。
+		<span class="freecomment">@since 0.9.9.1B</span>
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>true or false</dd>
+		<dt>デフォルト</dt><dd>false</dd>
+	</dl>
+	<p>
+		実装としては、Docタスク、ReplaceSchemaタスクにおいてのみ認識される区分値、という単純なロジックになっています。
+		よって、細かい挙動において、それに依存することがあります。
+	</p>
+	<h3 id="issuppressautodeploy">isSuppressAutoDeploy</h3>
+	<p>
+		テーブル区分値において、DBFluteが自動でカラムに関連付けるのを抑制します。
+		通常の利用では、このプロパティはまず必要ありません。
+		<span class="freecomment">@since 0.9.9.1B</span>
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>true or false</dd>
+		<dt>デフォルト</dt><dd>false</dd>
+	</dl>
 	<h3 id="table">table</h3>
 	<p>
 		テーブル区分値を利用するときの該当するテーブル名を指定します。同時に該当区分値がテーブル区分値であることを示します。

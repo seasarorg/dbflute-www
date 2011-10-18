@@ -250,9 +250,44 @@ VALID_FLG &lt;= <span class="comment">/*$cls(Flg.True)*/</span>null
 <pre><span class="codetitle">e.g. 実行されたときのSQL上の埋め込まれた条件 @ExecutedSql</span><code>
 VALID_FLG &lt;= 1
 </code></pre>
-	<h4>改行は保たれない</h4>
+	<h4>改行をうまく活用 <span class="freecomment">@since 0.9.9.1B</span></h4>
 	<p>
-		fixedCondition で指定した値の中の改行は、SQL上には反映されません。よって、プロパティ記述上の都合で(見やすいように)改行しても構いません。
+		fixedCondition で指定した値の中の改行は、SQL上で反映されます<span class="freecomment">(@since 0.9.9.1B)</span>。
+		SQL上でいい感じにフォーマットされるように調整して書くと良いでしょう。
+	</p>
+	<p>
+		例えば、二つ目以降の条件がある場合は、and の前に 9 個の半角空白を入れると良いでしょう。
+		この場合、一つ目の条件は、先頭の空白はトリムされるので(fixedConditionプロパティの値自体はトリムされるため)、
+		どこに定義してもSQL上は変わりませんので、二つ目以降の条件に合わせてみやすく定義しておくと良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+             <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+         <span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+    ; fixedSuffix = AsValid
+}
+</code></pre>
+	<p>
+		サブクエリがある場合などは、一行目を一番左まで詰めて、それに合わせて二行目以降のインデントを調節すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. 会員から直近の会員ログイン情報へのFK @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGIN_LATEST = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="keyword">select</span> max(LOGIN_DATETIME)
+                                     <span class="keyword">from</span> MEMBER_LOGIN
+                                    <span class="keyword">where</span> MEMBER_ID = <span class="attribute">$$localAlias$$</span>.MEMBER_ID
+                                  )
+    ; fixedSuffix = AsLatest
+}
+</code></pre>
+	<h4>改行は保たれない <span class="freecomment">@until 0.9.9.1A</span></h4>
+	<p>
+		fixedCondition で指定した値の中の改行は、SQL上には反映されません<span class="freecomment">(@until 0.9.9.1A)</span>。よって、プロパティ記述上の都合で(見やすいように)改行しても構いません。
 		(二行目以降は、空白インデントを一つ入れることで、前の行の最後との間に空白が入るようになります)
 	</p>
 	<h3 id="fixedsuffix">fixedSuffix</h3>

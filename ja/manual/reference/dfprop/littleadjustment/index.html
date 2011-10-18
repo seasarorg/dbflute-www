@@ -66,6 +66,7 @@
 				<li><a href="#shortcharhandlingmode">shortCharHandlingMode</a></li>
 				<li><a href="#quotetablenamelist">quoteTableNameList</a></li>
 				<li><a href="#quotecolumnnamelist">quoteColumnNameList</a></li>
+				<li><a href="#relationalnullobjectmap">relationalNullObjectMap</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -574,6 +575,46 @@ cb.query().setMemberName_Equal_EmptyString();
 		このプロパティは TwoEdgedSword 認定のされた機能です。
 	</p>
 	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
+	<h3 id="relationalnullobjectmap">relationalNullObjectMap</h3>
+	<p>
+		Entity で親テーブル(many-to-one, one-to-one)のデータを取得する際に、そのデータが存在しなかったときに戻す NullObject
+		を定義します。通常は、データが存在しない場合は戻るのは null ですが、独自のインスタンスを戻すことができます。<span class="freecomment">@since 0.9.9.1B</span>
+	</p>
+	<p>
+		例えば、ConditionBean で会員ステータスを SetupSelect
+		しないで検索した会員において、Member.getMemberStatus()
+		を呼び出したときに、独自のインスタンスを戻すことができます。
+		この仕組みを利用すれば、テーブル区分値のキャッシュなどに活用できます。
+	</p>
+<pre><span class="codetitle">e.g. relationalNullObjectMapの仕様 @littleAdjustmentMap.dfprop</span><code>
+; relationalNullObjectMap = <span class="keyword">map:</span>{
+    ; providerPackage = [package] <span class="comment"># デフォルト: 設定なし</span>
+    ; foreignMap = <span class="keyword">map:</span>{
+        ; [table-name] = [provider-expression]
+    }
+}
+</code></pre>
+<pre><span class="codetitle">e.g. 会員ステータスに NullObject を設定 @littleAdjustmentMap.dfprop</span><code>
+; relationalNullObjectMap = <span class="keyword">map:</span>{
+    ; providerPackage = <span class="attribute">$$packageBase$$</span>.nogen.cache
+    ; foreignMap = <span class="keyword">map:</span>{
+        ; MEMBER_STATUS = CachedMemberStatus.get(<span class="attribute">$$PrimaryKey$$</span>)
+    }
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>providerPackage で指定されたパッケージが Entity で import される</li>
+				<li>providerPackage で $$packageBase$$ と指定すると、DBFluteの自動生成パッケージ(packageBase)に</li>
+				<li>table-name には、NullObject にしたい関連テーブルを指定 (例えば、MEMBER_STATUS)</li>
+				<li>provider-expression にて $$PrimaryKey$$ と指定すると、関連テーブルの主キーに対応する Getter 表現に</li>
+			</ul>
+		</dd>
+	</dl>
 
 </div>
 </div>

@@ -270,6 +270,13 @@
 <pre><span class="codetitle">e.g. databaseInfoMap.dfprop の値を利用してフィルタ @SQL</span><code>
 <span class="keyword">create database</span> <span class="comment">/*$dfprop.mainCatalog*/</span>;
 </code></pre>
+	<p>
+		埋め込み変数コメント形式ではなく、ダイレクトな文字列置換としても利用できます。置換前の文字に "direct:"
+		を付与すると、その文字に対する単純な文字列置換となります。<span class="freecomment">@since 0.9.9.1B</span>
+	</p>
+<pre><span class="codetitle">e.g. ダイレクトな文字列置換を利用したい場合 (フィルタ設定) @replaceSchemaDefinitionMap.dfprop</span><code>
+; filterVariablesMap = <span class="keyword">map</span>:{ <span class="attribute">direct:</span>foo = bar }
+</code></pre>
 	<h3 id="additionalusermap">additionalUserMap</h3>
 	<p>
 		SQLの一部を別のユーザで実行したい場合に、そのユーザを指定します。
@@ -382,6 +389,9 @@ additionalUserMap = <span class="keyword">map</span>:{
 	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/arrangebeforereps.html">ReplaceSchema実行前の調整</a></div>
 <pre><span class="codetitle">e.g. arrangeBeforeRepsMapの仕様 @replaceSchemaDefinitionMap.dfprop</span><code>
 ; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
+    ; define = <span class="keyword">map:</span>{
+        ; [from-string] = [to-string]
+    }
     ; copy = <span class="keyword">map:</span>{
         <span class="comment"># DBFluteクライアントからの相対パス or 絶対パス</span>
         ; [src-path] = [dest-path]
@@ -395,6 +405,7 @@ additionalUserMap = <span class="keyword">map</span>:{
 		<dd>
 			<ul class="supplementlist">
 				<li>アレンジ操作は copy のみ利用可能</li>
+				<li>define でパス表現で有効なの定数定義が利用可能 <span class="freecomment">@since 0.9.9.1B</span></li>
 				<li>"/" で始まれば絶対パス、それ以外はDBFluteクライアントからの相対パス</li>
 				<li>ディレクトリのコピーは指定できない</li>
 				<li>src が "foo/*.bar" と指定された場合、dest が固定ファイルであれば、foo 配下の唯一の bar ファイルが src となる (複数存在した場合は例外となる)</li>
@@ -405,6 +416,19 @@ additionalUserMap = <span class="keyword">map</span>:{
 			</ul>
 		</dd>
 	</dl>
+<pre><span class="codetitle">e.g. dbflute-spring-exampleのplaysqlからSQLなどをコピーしてくる @replaceSchemaDefinitionMap.dfprop</span><code>
+; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
+    ; define = <span class="keyword">map:</span>{
+        ; <span class="attribute">$$SrcDir$$</span> = ../../dbflute-spring-example/dbflute_exampledb/playsql
+        ; <span class="attribute">$$DestDir$$</span> = ./playsql
+    }
+    ; copy = <span class="keyword">map:</span>{
+        ; <span class="attribute">$$SrcDir$$</span>/*.sql = <span class="attribute">$$DestDir$$</span>
+        ; <span class="attribute">$$SrcDir$$</span>/data/common/xls/*.xls = <span class="attribute">$$DestDir$$</span>/data/common/xls
+        ; <span class="attribute">$$SrcDir$$</span>/data/ut/xls/*.xls = <span class="attribute">$$DestDir$$</span>/data/ut/xls
+    }
+}
+</code></pre>
 	<h3 id="issuppresstruncatetable">isSuppressTruncateTable</h3>
 	<p>
 		テーブル削除の前の truncate 処理を抑制するか否かを指定します。
