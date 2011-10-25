@@ -50,7 +50,13 @@
 				<li><a href="#againstheadache">最初から LinkageError 対策を</a></li>
 			</ul>
 		</li>
-		<li><a href="#diway">DIの方法 (Behavior)</a></li>
+		<li><a href="#diway">DIの方法 (Behavior)</a>
+			<ul>
+				<li><a href="#diproperty">プロパティ名について</a></li>
+				<li><a href="#setterdi">セッタインジェクション</a></li>
+				<li><a href="#fielddi">フィールドインジェクション</a></li>
+			</ul>
+		</li>
 		<li><a href="#hotdeploy">HotDeployの取扱い</a>
 			<ul>
 				<li><a href="#hotsql">外だしSQLファイルはHotDeployされる</a></li>
@@ -135,30 +141,56 @@
 
 	<h2 id="diway">DIの方法 (Behavior)</h2>
 	<p>
-		DI管理されているコンポーネントクラスにおいて、Behavior のプロパティを定義すると、Behavior
-		がインジェクトされます。他にも方法はありますのでアプリケーションで統一的な実装をするようにして下さい。
+		DI管理されているコンポーネントクラスにおいて Behavior のプロパティを定義するとインジェクトされます。
+		方法が幾つかありますのでアプリケーションで統一的な実装をすると良いでしょう。
 	</p>
+	<h3 id="diproperty">プロパティ名について</h3>
 	<p>
 		プロパティ名は、<em class="keyword">Behaviorのクラス名の先頭を小文字(dbflute.dicon上のコンポーネント名)</em>
 		にしたものになります。例えば、MemberBhv クラスなら、memberBhv となります。
 	</p>
+	<p>
+		Behaviorは、個別個別のインターフェースを持たないコンポーネントのため、Seasar
+		においては、型による自動バインディングは利用できませんので、プロパティ名を間違えないように注意して下さい。
+		(必ずプロパティ名での自動バインディングになります)
+	</p>
+	<h3 id="setterdi">セッタインジェクション</h3>
+	<p>
+		memberBhv であれば、setMemberBhv() という名前の Setter を作成することで、Setter 経由のDI (セッタインジェクション) が行われます。
+		Eclipse であれば、インスタンス変数を先に宣言したあと、右クリックメニュー(Refactor)から Setter を自動生成できます。
+		(Getter はなくてもDIされます。ほとんどの場合において Setter だけ作成するで良いでしょう)
+	</p>
+	<p>
+		この場合は、インスタンス変数の名前は任意です。
+		例えば、変数名の先頭にアンダースコアを付けても、DIは正常行われます。
+		Eclipse での自動生成のときは、Eclipseで設定をしておけば、アンダースコアを除去して Setter を作ることもできます。
+	</p>
 <pre><span class="codetitle">e.g. プロパティ経由 {Pageクラス} @Java</span><code>
 <span class="keyword">public class</span> XxxPage {
+
     <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
 
     ...
 
-    <span class="keyword">public</span> MemberBhv getMemberBhv() {
-        <span class="keyword">return</span> <span class="attribute">memberBhv</span>;
-    }
-
+    @Binding(bindingType = BindingType.<span class="attribute">MUST</span>)
     <span class="keyword">public void</span> setMemberBhv(MemberBhv memberBhv) {
         <span class="keyword">this</span>.<span class="attribute">memberBhv</span> = memberBhv;
     }
 }
 </code></pre>
-<pre><span class="codetitle">e.g. フィールド経由(Bindingアノテーション利用) {Pageクラス} @Java</span><code>
+	<p>
+		Binding アノテーションは必須ではありませんが、細かくDIの挙動を調整するのに便利です。この場合、そのアノテーションを付けるところは Setter
+		です。bindingType で MUST を付けると、なんらかの原因でDIできなかったときに明示的な例外として検知できます。習慣的に付けるようにすると良いでしょう。
+	</p>
+	<h3 id="fielddi">フィールドインジェクション</h3>
+	<p>
+		Getter/Setterを作らず、インスタンス変数(フィールド)に対して直接DI(フィールドインジェクション)することもできます。
+		その場合、インスタンス変数名がそのままコンポーネント名として扱われ、その名前でコンポーネントが識別されます。
+		よって、先頭にアンダースコアを付けるとDIされませんのでご注意ください。
+	</p>
+<pre><span class="codetitle">e.g. フィールドダイレクト(Bindingアノテーション利用) {Pageクラス} @Java</span><code>
 <span class="keyword">public class</span> XxxPage {
+
     @Binding(bindingType = BindingType.<span class="attribute">MUST</span>)
     <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
 
@@ -166,9 +198,9 @@
 }
 </code></pre>
 	<p>
-		Behaviorは、個別個別のインターフェースを持たないコンポーネントのため、Seasar
-		においては、型による自動バインディングは利用できませんので、プロパティ名を間違えないように注意して下さい。
-		(必ずプロパティ名での自動バインディングになります)
+		Binding アノテーションは、protected の場合は必須で、public の場合は必須ではありません。
+		通常、Behavior を public にする必要性はないので、フィールドダイレクトであれば、Binding アノテーションをしっかり付けて、
+		protected にする方が良いでしょう。
 	</p>
 
 	<h2 id="hotdeploy">HotDeployの取扱い</h2>
