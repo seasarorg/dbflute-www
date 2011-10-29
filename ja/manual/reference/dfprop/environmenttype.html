@@ -39,7 +39,7 @@
 <div id="content">
 	<h1>環境タイプごとの dfprop</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">環境タイプによってプロパティを切り替える</a></li>
+		<li><a href="#overview">環境タイプによってプロパティ切り替え</a></li>
 		<li><a href="#envvar">環境タイプの設定(環境変数)</a></li>
 		<li><a href="#envprop">環境タイプごとにプロパティを配置</a></li>
 		<li><a href="#propmerge">プロパティのマージ</a>
@@ -62,12 +62,16 @@
 		</li>
 	</ul>
 
-	<h2 id="overview">環境タイプによってプロパティを切り替える</h2>
+	<h2 id="overview">環境タイプによってプロパティ切り替え</h2>
 	<p>
 		例えば、開発環境、結合テスト環境など、環境ごとにDBFluteプロパティの内容を変えて Generate や ReplaceSchema
 		なりを実行したい場合に、<em class="keyword">環境変数でDBFluteの環境タイプ</em>
 		を指定することでDBFluteプロパティを切り替えることができます。
 	</p>
+	<p>
+		また、DBFluteの環境タイプは、同時に ReplaceSchema のデータ登録の切り替えでも利用されます。
+	</p>
+	<div class="relatedpage"><a href="#dataloading">this - ReplaceSchemaでのデータ登録</a></div>
 
 	<h2 id="envvar">環境タイプの設定(環境変数)</h2>
 	<p>
@@ -212,11 +216,15 @@ dfprop
 	<h2 id="envtarget">環境タイプのターゲット</h2>
 	<h3 id="dataloading">ReplaceSchemaでのデータ登録</h3>
 	<p>
-		主には、ReplaceSchemaタスクの dataLoadingType を切り替えるために利用することが多いでしょう。
+		主には、ReplaceSchemaタスクの repsEnvType を切り替えるために利用することが多いでしょう。DBFLUTE_ENVIRONMENT_TYPE
+		が指定されている場合は、repsEnvType のデフォルト値がその環境タイプの値になります。例えば、DBFLUTE_ENVIRONMENT_TYPE で test
+		という値を設定すると、データ登録対象のディレクトリが ut ではなく test になります。(common は常に対象となります)
+	</p>
+	<p>
 		Generate系のタスクにおいて環境ごとにプロパティを切り替える必要性はあまり多くないと考えられますが、
 		ナイトリーサーバで自動生成処理を行うなど自動生成する環境ごとにDBの接続先が変わるような場合はこの環境タイプを利用すると良いでしょう。
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../function/generator/task/replaceschema/loaddata.html#dataloadingtype"> -->ReplaceSchema - データ登録(dataLoadingType)<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../function/generator/task/replaceschema/loaddata.html#repsenvtype">ReplaceSchema - データ登録(repsEnvType)</a></div>
 	<h3 id="bhvap">アプリごとのBehaviorの利用</h3>
 	<p>
 		アプリごとのBehavior、ApplicationBehavior
