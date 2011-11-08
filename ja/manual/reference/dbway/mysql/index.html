@@ -70,6 +70,7 @@
 		<li><a href="#originaluse">DBMS独自の利用方法</a>
 			<ul>
 				<li><a href="#additionalschema">別カタログ(別データベース)の利用</a></li>
+				<li><a href="#utf8unicodeci">LikeSearch で utf8_unicode_ci</a></li>
 			</ul>
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
@@ -351,6 +352,26 @@ cb.query().<span class="point">match</span>(textColumnList, <span class="literal
 	<div class="relatedword"><a href="../../dictionary/alphabet/wa.html#additionalschema">追加スキーマ(AdditionalSchema)</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wo.html#othercatalog">別カタログ(OtherCatalog)</a></div>
 	<div class="relatedword"><a href="../../dictionary/alphabet/wo.html#otherdatabase">別データベース(OtherDatabase)</a></div>
+	<h3 id="utf8unicodeci">LikeSearch で utf8_unicode_ci</h3>
+	<p>
+		LikeSearch検索で utf8_unicode_ci を利用したい場合は、LikeSearchOption の
+		getQueryClauseArranger() をオーバーライドして、CollateUTF8UnicodeArranger を戻すように実装することで実現できます。
+		<span class="freecomment">@since 0.9.9.1C</span>
+	</p>
+<pre><span class="codetitle">e.g. LikeSearch検索で utf8_unicode_ci を利用するLikeSearchOption @Java</span><code>
+LikeSearchOption option = <span class="keyword">new</span> LikeSearchOption() {
+    <span class="keyword">private static final long</span> serialVersionUID = 1L;
+
+    @Override
+    <span class="keyword">public</span> QueryClauseArranger getWhereClauseArranger() {
+        <span class="keyword">return new</span> CollateUTF8UnicodeArranger();
+    }
+};
+</code></pre>
+	<p>
+		複数箇所で利用する場合は、例えばこのオーバーライドを実装した CollateLikeSearchOption
+		などという独自のクラスを作って、プロジェクトで再利用すると良いでしょう。
+	</p>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
 	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>

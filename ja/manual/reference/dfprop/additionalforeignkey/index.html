@@ -250,6 +250,26 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 <pre><span class="codetitle">e.g. 実行されたときのSQL上の埋め込まれた条件 @ExecutedSql</span><code>
 <span class="attribute">$$foreignAlias$$</span>.VALID_FLG &lt;= 1
 </code></pre>
+	<h4>IFコメント <span class="freecomment">(@since 0.9.9.1C)</span></h4>
+	<p>
+		バインド変数の値に対してIFコメントを付与して、例えばバインド変数の有無によって条件を有効にしたり無効にしたりできます<span class="freecomment">(@since 0.9.9.1C)</span>。
+		業務的one-to-oneを実現する上で必須でない固定条件がある場合に有効です。
+	</p>
+	<p>
+		例えば、targetDate というバインド変数を定義していた場合、外だしSQLと同じ形式のIFコメントの中ででは、"$$parameterBase$$.targetDate"
+		という記述でそのバインド変数を参照することができます。$$parameterBase$$
+		という変数がそのバインド変数を保持するオブジェクトまでのパスに置き換わります。
+	</p>
+<pre><span class="codetitle">e.g. targetDate というバインド変数に対するIFコメント @additionalForeignKeyMap.dfprop</span><code>
+<span class="comment">/*IF $$parameterBase$$.targetDate != null*/</span>
+<span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+<span class="comment">/*END*/</span>
+</code></pre>
+	<p>
+		バインド変数を利用していない場合は $$parameterBase$$
+		は利用できません。一つでもバインド変数があれば利用できます。
+		(埋め込み区分値はここで言うバインド変数には含まれません)
+	</p>
 	<h4>改行をうまく活用 <span class="freecomment">@since 0.9.9.1B</span></h4>
 	<p>
 		fixedCondition で指定した値の中の改行は、SQL上で反映されます<span class="freecomment">(@since 0.9.9.1B)</span>。
@@ -285,6 +305,9 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
     ; fixedSuffix = AsLatest
 }
 </code></pre>
+	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/pmcomment.html#embeddedvariable">パラメータコメント - 埋め込み変数コメント</a></div>
+	<div class="relatedpage"><a href="../classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
+
 	<h4>改行は保たれない <span class="freecomment">@until 0.9.9.1A</span></h4>
 	<p>
 		fixedCondition で指定した値の中の改行は、SQL上には反映されません<span class="freecomment">(@until 0.9.9.1A)</span>。よって、プロパティ記述上の都合で(見やすいように)改行しても構いません。
