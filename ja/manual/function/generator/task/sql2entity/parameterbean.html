@@ -347,12 +347,18 @@ pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">
 	<div class="detailpage"><a href="../../../genbafit/implfit/datefromto/index.html">現場フィット - 日付範囲の条件指定を定型化(安全に)</a></div>
 	<p>
 		プロパティ定義のプロパティ名の後ろに ":[from-to-option]"
-		と追加することで、ParameterBeanにてDateFromTo条件を指定することができます。(from-to オプションと呼びます)
+		と追加することで、ParameterBeanにてFromTo条件を指定することができます。(from-to オプションと呼びます)
 	</p>
 	<dl class="keymainlist">
-		<dt>fromDate</dt><dd>from に対応する日付に対して指定</dd>
-		<dt>toDate</dt><dd>to に対応する日付に対して指定</dd>
+		<dt>fromDate</dt><dd>DateFromTo条件 (from に対応)</dd>
+		<dt>toDate</dt><dd>DateFromTo条件 (to に対応)</dd>
+		<dt>fromDate(option)</dt><dd>FromToOption指定の条件 (from に対応) <span class="freecomment">@since 0.9.9.2C</span></dd>
+		<dt>toDate(option)</dt><dd>FromToOption指定の条件 (to に対応) <span class="freecomment">@since 0.9.9.2C</span></dd>
 	</dl>
+	<p>
+		よく利用される DateFromTo をデフォルトとし、それ以外の範囲条件を指定する場合は (option) を付与して
+		FromToOption で明示的に指定することで柔軟な範囲条件が表現できます。
+	</p>
 <pre><span class="codetitle">e.g. 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!Date fromFormalizedDate:<span class="point">fromDate</span>!!</span>
@@ -371,6 +377,28 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
  <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2009-10-26 00:00:00'</span>
  <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2009-10-30 00:00:00'</span>
 </code></pre>
+	<p>
+		FromToOption の明示的指定の場合は、第二引数に FromToOption が指定できるようになります。
+	</p>
+<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!Date fromFormalizedDate:<span class="point">fromDate(option)</span>!!</span>
+<span class="comment">-- !!Date toFormalizedDate:<span class="point">toDate(option)</span>!!</span>
+<span class="keyword">select</span> ...
+  <span class="keyword">from</span> MEMBER
+ <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*/</span><span class="literal">'...'</span>
+ <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate*/</span><span class="literal">'...'</span>
+</code></pre>
+<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+FromToOption option = <span class="keyword">new</span> FromToOption().<span class="point">compareAsMonth()</span>;
+pmb.<span class="point">setFromFormalizedDate_FromDate</span>(toDate(<span class="literal">"2009-10-03"</span>), option);
+pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="literal">"2009-12-14"</span>), option);
+</code></pre>
+<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @DisplaySQL</span><code>
+ <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2009-10-01 00:00:00'</span>
+ <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2010-01-01 00:00:00'</span>
+</code></pre>
 	<h3 id="classification">区分値条件のオプション</h3>
 	<p>
 		外だしSQLでも "区分値" を利用できます。
@@ -386,7 +414,7 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
 <pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:<span class="point">ref:(MEMBER)</span>!!</span>
+<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
