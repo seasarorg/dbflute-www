@@ -78,7 +78,9 @@
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
 			<ul>
+				<li><a href="#derivedonetoone">導出的one-to-oneのインラインビュー化</a></li>
 				<li><a href="#customizemetadata">CustomizeEntityの対応テーブル</a></li>
+				<li><a href="#extensionhandling">Extension利用時の微調整</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
@@ -325,6 +327,12 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 	</p>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
+	<h3 id="derivedonetoone">導出的one-to-oneのインラインビュー化</h3>
+	<p>
+		PostgreSQL では、join の on 句に相関サブクエリを記述することができないため(Oracle10gで確認)、
+		導出的one-to-oneを利用する場合は、固定条件(fixedCondition)をインラインビューにする必要があります。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../function/genbafit/implfit/bizonetoone/index.html#derivedonetoone"> -->現場フィット - 業務的one-to-one - 導出的one-to-one<!-- </a> --></span></div>
 	<h3 id="customizemetadata">CustomizeEntityの対応テーブル</h3>
 	<p>
 		CustomizeEntityのそれぞれのカラムが、元は何のテーブルの何のカラムから派生したものか、通常はJDBCのメタデータから取得できるため、	Sql2Entity
@@ -333,6 +341,26 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"s"</span>, <span clas
 		では、このことによりPKマークで "元は何のテーブルのカラムだったのか" を明示的に指定する必要があります。 
 	</p>
 	<div class="detailpage"><a href="../../../function/ormapper/behavior/select/loadreferrer.html#outsidesql">Behavior - 外だしSQLでもLoadReferrer</a></div>
+	<h3 id="extensionhandling">Extension利用時の微調整</h3>
+	<p>
+		pg_trgm などの extension を利用する場合に、スキーマ初期化前に extension を事前に drop
+		する必要があります。スキーマ初期化の際に、pg_trgm 独自のプロシージャを drop してしまい、例外になるためです(PostgreSQL-9.1にて確認)。
+	</p>
+	<p>
+		replaceSchemaDefinitionMap.dfprop の initializeFirstSqlList にて、drop文を設定しておくと、ReplaceSchema
+		のスキーマ初期化前にそのSQLが実行されます。<span class="freecomment">@since 0.9.9.4B</span>
+	</p>
+<pre><span class="codetitle">e.g. スキーマ初期化前に extension を drop @replaceSchemaDefinitionMap.dfprop</span><code>
+<span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="comment"># o initializeFirstSqlList: (NotRequired - Default list:{})</span>
+<span class="comment">#  You can execute the SQL statements before initializing schema.</span>
+<span class="comment">#</span>
+; initializeFirstSqlList = <span class="keyword">list:</span>{
+    ; drop extension if exists pg_trgm cascade 
+}
+<span class="comment"># - - - - - - - - - -/</span>
+</code></pre>
+	<div class="detailpage"><a href="../../dfprop/replaceschemadefinition/index.html#initializefirstsqllist">dfprop - initializeFirstSqlList</a></div>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>

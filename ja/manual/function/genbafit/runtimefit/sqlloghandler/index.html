@@ -60,13 +60,16 @@
 	</p>
 <pre><span class="codetitle">e.g. SqlLogHandlerの基本的な使い方 @Java</span><code>
 CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLogHandler() {
-    <span class="keyword">public void</span> handle(String executedSql, String displaySql
-                     , Object[] args, Class&lt;?&gt;[] argTypes) {
+    <span class="keyword">public void</span> handle(SqlLogInfo sqlLogInfo) {
         <span class="comment">// you can handle the SQL here</span>
+        String executedSql = sqlLogInfo.getExecutedSql();
+        Object[] bindArgs = sqlLogInfo.getBindArgs();
+        Class&lt;?&gt;[] bindArgs = sqlLogInfo.getBindArgTypes();
+        String displaySql = sqlLogInfo.getDisplaySql();
     }
 });
 
-<span class="keyword">try</</span>> {
+<span class="keyword">try</span>> {
     memberBhv.selectList(cb); <span class="comment">// called it back (first)</span>
     memberBhv.update(member); <span class="comment">// called it back (second)</span>
 } <span class="keyword">finally</span> {
@@ -74,25 +77,36 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
 }
 </code></pre>
 	<p>
-		0.9.9.0B より前のバージョンでは setSqlLogHandlerOnThread() メソッドがないため、CallbackContext
-		を new して、setCallbackContextOnThread() を利用します。
-	</p>
-	<p>
-		ただ、個別個別のDBアクセス処理に対して SqlLogHandler
+		個別個別のDBアクセス処理に対して SqlLogHandler
 		を設定するというのはあまり想定されません。実務的には、共通部分で SqlLogHandler
 		を設定し、全てのリクエストで実行されるSQLを記録するなどの使い方が想定されます。
 	</p>
 	<div class="relatedpage"><a href="#casestudy">this - ケースごとの使い方</a></div>
-	<h3 id="callbackarg">コールバックメソッドの引数</h3>
+	<h3 id="sqlloginfo">SqlLogInfoの属性</h3>
 	<p>
-		コールバックメソッドの引数は以下の通りです。
+		SqlLogInfoの属性は以下の通りです。
 	</p>
 	<dl class="keymainlist">
 		<dt>executedSql</dt><dd>実行されたSQL。バインド変数部分は "?" はてなに</dd>
-		<dt>displaySql</dt><dd>表示用SQL。デバッグログに出力されているものと同じ</dd>
 		<dt>args</dt><dd>バインド変数の値の配列。</dd>
 		<dt>argTypes</dt><dd>バインド変数の値の型の配列。</dd>
+		<dt>displaySql</dt><dd>表示用SQL。デバッグログに出力されているものと同じ</dd>
 	</dl>
+	<p>
+		displaySql は、getDisplaySql()
+		の最初の呼び出しで生成されます。その後の呼び出しではキャッシュされた文字列が戻ります<span class="freecomment">(@since 0.9.9.4A)</span>。
+		これは、displaySql を利用しない場合に無駄な文字列生成コストを発生させないためです。
+		ログレベルがデバッグだったりなど、別の機能で既に displaySql の文字列が存在する場合は、最初からキャッシュされています。
+	</p>
+	<h3 id="oldversion">旧バージョンにおいて</h3>
+	<p>
+		0.9.9.0B より前のバージョンでは setSqlLogHandlerOnThread() メソッドがないため、CallbackContext
+		を new して、setCallbackContextOnThread() を利用します。
+	</p>
+	<p>
+		0.9.9.4A より前のバージョンではコールバックの引数が SqlLogInfo
+		ではなく、SqlLogInfoの属性がそのまま引数となっています。アップグレード時にはコンパイルエラーとして検知されます。
+	</p>
 
 	<h2 id="casestudy">ケースごとの使い方</h2>
 	<h3 id="allway">リクエストで実行される全てのSQLを記録</h3>
@@ -110,14 +124,13 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
         <span class="keyword">return</span> invocation.proceed();
     }
     CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLogHandler() {
-        <span class="keyword">public void</span> handle(String executedSql, String displaySql
-                         , Object[] args, Class&lt;?&gt;[] argTypes) {
+        <span class="keyword">public void</span> handle(SqlLogInfo sqlLogInfo) {
             <span class="comment">// ログに出力するなり好きなように</span>
             <span class="abbreviation">...</span>
         }
     });
 
-    <span class="keyword">try</</span>> {
+    <span class="keyword">try</span>> {
         <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">finally</span> {
         <span class="comment">// 最後はしっかりクリアすること (必須)</span>
@@ -135,13 +148,12 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
 
     <span class="keyword">final</span> List&lt;String&gt; sqlList = new ArrayList&lt;String&gt;(); 
     CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLogHandler() {
-        <span class="keyword">public void</span> handle(String executedSql, String displaySql
-                         , Object[] args, Class&lt;?&gt;[] argTypes) {
+        <span class="keyword">public void</span> handle(SqlLogInfo sqlLogInfo) {
             sqlList.add(displaySql);
         }
     });
 
-    <span class="keyword">try</</span>> {
+    <span class="keyword">try</span>> {
         <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">finally</span> {
         <span class="comment">// 最後はしっかりクリアすること (必須)</span>
@@ -186,14 +198,13 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
 
     <span class="keyword">final</span> List&lt;String&gt; sqlList = new ArrayList&lt;String&gt;(); 
     CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLogHandler() {
-        <span class="keyword">public void</span> handle(String executedSql, String displaySql
-                         , Object[] args, Class&lt;?&gt;[] argTypes) {
-            sqlList.add(displaySql);
+        <span class="keyword">public void</span> handle(SqlLogInfo sqlLogInfo) {
+            sqlList.add(sqlLogInfo.getDisplaySql());
         }
     });
     CallbackContext.setCallbackContextOnThread(context);
 
-    <span class="keyword">try</</span>> {
+    <span class="keyword">try</span>> {
         <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">catch</span> (Exception e) {
         <span class="keyword">for</span> (String displaySql : sqlList) {
@@ -224,8 +235,7 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
     <span class="abbreviation">...</span> <span class="comment">// 既に設定されていたらのチェック</span>
 
     CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLogHandler() {
-        <span class="keyword">public void</span> handle(String executedSql, String displaySql
-                         , Object[] args, Class&lt;?&gt;[] argTypes) {
+        <span class="keyword">public void</span> handle(SqlLogInfo sqlLogInfo) {
             if (!ResourceContext.behaviorCommand().isSelect()) {
                 <span class="comment">// ログに出力するなり好きなように</span>
                 <span class="abbreviation">...</span>
@@ -233,7 +243,7 @@ CallbackContext.setSqlLogHandlerOnThread(<span class="keyword">new</span> SqlLog
         }
     });
 
-    <span class="keyword">try</</span>> {
+    <span class="keyword">try</span>> {
         <span class="keyword">return</span> invocation.proceed();
     } <span class="keyword">finally</span> {
         <span class="comment">// 最後はしっかりクリアすること (必須)</span>

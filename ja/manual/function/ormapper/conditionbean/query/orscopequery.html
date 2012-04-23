@@ -45,6 +45,7 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#andpart">or 条件の中の and 条件</a></li>
 				<li><a href="#splitby">LikeSearch の SplitBy</a></li>
+				<li><a href="#datefromto">日付のFromTo (DateFromTo)</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -180,7 +181,8 @@ cb.<span class="point">orScopeQuery</span>(<span class="keyword">new</span> SubQ
        )
 </code></pre>
 	<p>
-		OrScopeQuery を経由しない AndPart、および、AndPart 内での OrScopeQuery は無効です。
+		OrScopeQuery を経由しない AndPart、および、AndPart 内での OrScopeQuery の呼び出しは利用できません。
+		(ネストした OrScopeQuery はサポートされていません)
 	</p>
 	<div class="relatedpage"><a href="#invalidcall">this - 無効な呼び出し</a></div>
 	<h3 id="splitby">LikeSearch の SplitBy</h3>
@@ -227,8 +229,12 @@ cb.orScopeQuery(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
        )
 </code></pre>
 	<p>
-		そもそも AsOrSplit は、内部的に OrScopeQuery
-		を利用して実現しています。
+		そもそも AsOrSplit は、内部的に OrScopeQuery を利用して実現しています。
+	</p>
+	<h3 id="datefromto">日付のFromTo (DateFromTo)</h3>
+	<p>
+		OrScopeQuery の中で日付の FromTo (DateFromTo) 条件を利用した場合は、FromTo 条件は and
+		固定で連結されます。(and で利用することに意味がある機能のため) <span class="freecomment">@since 0.9.9.4A</span>
 	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>

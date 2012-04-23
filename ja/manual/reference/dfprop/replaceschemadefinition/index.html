@@ -49,6 +49,7 @@
 				<li><a href="#repsenvtype">repsEnvType <span class="freecomment">@since 0.9.8.5</span></a></li>
 				<li><a href="#dataloadingtype">dataLoadingType <span class="freecomment">@until 0.9.8.4</span></a></li>
 				<li><a href="#islogginginsertsql">isLoggingInsertSql</a></li>
+				<li><a href="#isloggingreplacesql">isLoggingReplaceSql <span class="freecomment">@since 0.9.9.4B</span></a></li>
 				<li><a href="#iserrorsqlcontinue">isErrorSqlContinue <span class="freecomment">@since 0.9.9.2F</span></a></li>
 				<li><a href="#sqlfileencoding">sqlFileEncoding</a></li>
 				<li><a href="#skipsheet">skipSheet</a></li>
@@ -69,6 +70,7 @@
 				<li><a href="#issuppressdropsequence">isSuppressDropSequence</a></li>
 				<li><a href="#issuppressdropprocedure">isSuppressDropProcedure</a></li>
 				<li><a href="#issuppressdropdblink">isSuppressDropDBLink</a></li>
+				<li><a href="#initializefirstsqllist">initializeFirstSqlList <span class="freecomment">@since 0.9.9.4B</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -137,6 +139,20 @@
 		DBへの登録したデータを一レコードずつログに出力するか否か指定します。ReplaceSchema 
 		で大量のデータを取り扱うようになって、少しでもデータ登録の処理が速く終わるようにしたい場合に "false"
 		にします。但し、データ登録でエラーが発生した場合は、一時的にこの設定を戻し、ログに出力されたデータを見てデバッグするようにして下さい。
+	</p>
+	<p>
+		このプロパティは、全部出すか全部出さないかの両極端なものです。
+		先頭の一部のレコードだけを表示するというオプションが別途存在しますので、そちらを利用することが推奨されます。
+	</p>
+	<div class="detailpage"><a href="../../../function/generator/task/replaceschema/loaddata.html#logginginserttype">ReplaceSchema - データ登録 - loggingInsertType</a></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>true or false</dd>
+		<dt>デフォルト</dt><dd>true</dd>
+	</dl>
+	<h3 id="isloggingreplacesql">isLoggingReplaceSql <span class="freecomment">@since 0.9.9.4B</span></h3>
+	<p>
+		スキーマ初期化やスキーマ構築(replace-schema.sqlやtake-finally.sqlなど)のSQLをログに出力するか否かを指定します。 
+		ほんのわずかでも処理が速く終わるようにしたい場合に "false" にします。
 	</p>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>true or false</dd>
@@ -492,6 +508,27 @@ additionalUserMap = <span class="keyword">map</span>:{
 	<dl class="textlist">
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>false (削除する)</dd>
+	</dl>
+	<h3 id="initializefirstsqllist">initializeFirstSqlList <span class="freecomment">@since 0.9.9.4B</span></h3>
+	<p>
+		スキーマ初期化を実行する前に実行するSQLを指定します。
+	</p>
+	<p>
+		DBMSの特性上、どうしてもスキーマ初期化前に独自のSQLを実行する必要があるような場合に有効です。
+		例えば、PostgreSQLにおいて pg_trgm などの extension を利用する場合に、スキーマ初期化前に extension を事前に drop
+		する必要があります。
+	</p>
+	<div class="relatedpage"><a href="../../dbway/postgresql/index.html#extensionhandling">DBMSごとの取扱い - PostgreSQL - Extension利用時の微調整</a></div>
+	<div class="relatedpage"><a href="../../../function/generator/task/replaceschema/initializeschema.html">ReplaceSchema - スキーマ初期化</a></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>SQL文字列のリスト</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された順序で実行される</li>
+			</ul>
+		</dd>
 	</dl>
 
 </div>

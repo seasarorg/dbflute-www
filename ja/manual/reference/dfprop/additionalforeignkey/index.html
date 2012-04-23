@@ -54,6 +54,7 @@
 				<li><a href="#foreigncolumnname">foreignColumnName</a></li>
 				<li><a href="#fixedcondition">fixedCondition</a></li>
 				<li><a href="#fixedsuffix">fixedSuffix</a></li>
+				<li><a href="#fixedinline">fixedInline</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Example</a></li>
@@ -276,39 +277,46 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 		SQL上でいい感じにフォーマットされるように調整して書くと良いでしょう。
 	</p>
 	<p>
-		例えば、二つ目以降の条件がある場合は、and の前に 9 個の半角空白を入れると良いでしょう。
-		この場合、一つ目の条件は、先頭の空白はトリムされるので(fixedConditionプロパティの値自体はトリムされるため)、
+		例えば、二つ目以降の条件がある場合は、一つ目の条件の前は 9 個の半角空白、二つ目以降の条件の前、つまり and の前には 5
+		個の半角空白を入れると良いでしょう。この場合、一つ目の条件は、先頭の空白はトリムされるので(fixedConditionプロパティの値自体はトリムされるため)、
 		どこに定義してもSQL上は変わりませんので、二つ目以降の条件に合わせてみやすく定義しておくと良いでしょう。
 	</p>
 <pre><span class="codetitle">e.g. 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
-             <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
-         <span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
-    ; fixedSuffix = AsValid
+<span class="keyword">map:</span>{
+    ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
+         <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+     <span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+        ; fixedSuffix = AsValid
+    }
 }
 </code></pre>
 	<p>
-		サブクエリがある場合などは、一行目を一番左まで詰めて、それに合わせて二行目以降のインデントを調節すると良いでしょう。
+		サブクエリがある場合などは、サブクエリの開始と終了マーク $$sqbegin$$, $$sqend$$
+		を指定することで、アプリ実行時のSQLにおいてサブクエリのインデントが綺麗に調整されます。
+		<span class="freecomment">@since 0.9.9.4A</span>
 	</p>
 <pre><span class="codetitle">e.g. 会員から直近の会員ログイン情報へのFK @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGIN_LATEST = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
-<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="keyword">select</span> max(LOGIN_DATETIME)
-                                     <span class="keyword">from</span> MEMBER_LOGIN
-                                    <span class="keyword">where</span> MEMBER_ID = <span class="attribute">$$localAlias$$</span>.MEMBER_ID
-                                  )
-    ; fixedSuffix = AsLatest
+<span class="keyword">map:</span>{
+    ; FK_MEMBER_MEMBER_LOGIN_LATEST = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
+<span class="keyword">select</span> max(LOGIN_DATETIME)
+  <span class="keyword">from</span> MEMBER_LOGIN
+ <span class="keyword">where</span> MEMBER_ID = <span class="attribute">$$localAlias$$</span>.MEMBER_ID
+)<span class="attribute">$$sqend$$</span>
+        ; fixedSuffix = AsLatest
+    }
 }
 </code></pre>
 	<div class="relatedpage"><a href="../../../function/ormapper/outsidesql/pmcomment.html#embeddedvariable">パラメータコメント - 埋め込み変数コメント</a></div>
 	<div class="relatedpage"><a href="../classificationdefinition/index.html">classificationDefinitionMap.dfprop</a></div>
 
-	<h4>改行は保たれない <span class="freecomment">@until 0.9.9.1A</span></h4>
+	<h4>旧バージョン：改行は保たれない <span class="freecomment">@until 0.9.9.1A</span></h4>
 	<p>
 		fixedCondition で指定した値の中の改行は、SQL上には反映されません<span class="freecomment">(@until 0.9.9.1A)</span>。よって、プロパティ記述上の都合で(見やすいように)改行しても構いません。
 		(二行目以降は、空白インデントを一つ入れることで、前の行の最後との間に空白が入るようになります)
@@ -330,6 +338,19 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 				<li>基本的には大文字始まりのキャメルケース</li>
 			</ul>
 		</dd>
+	</dl>
+	<h3 id="fixedinline">fixedInline</h3>
+	<p>
+		固定条件(fixedCondition)をインラインビューに展開するか否かを指定します。
+		通常は、on 句に展開されますが、この設定を true にするとインラインビュー(from句のサブクエリ)に展開されます。
+	</p>
+	<p>
+		主に、導出レコードに対するリレーション(導出的one-to-one)で、DBMSの文法上の制約回避に利用します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/genbafit/implfit/bizonetoone/index.html#derivedonetoone"> -->導出的one-to-one<!-- </a> --></span></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>true or false</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
 	</dl>
 
 	<h2 id="example">Example</h2>
@@ -367,6 +388,19 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
      <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
  and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
     ; fixedSuffix = AsValid
+}
+</code></pre>
+<pre><span class="codetitle">e.g. 最終ログインのレコードに対する業務的one-to-one @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
+<span class="keyword">select</span> max(login.LOGIN_DATETIME)
+  <span class="keyword">from</span> MEMBER_LOGIN login
+ <span class="keyword">where</span> login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
+)<span class="attribute">$$sqend$$</span>
+    ; fixedSuffix = AsLatest
 }
 </code></pre>
 	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>

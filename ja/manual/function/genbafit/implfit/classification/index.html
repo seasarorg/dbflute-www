@@ -56,6 +56,7 @@
 		<li><a href="#cdef">ENUMクラス(CDef)の利用</a></li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
 		<li><a href="#forcedcls">ネイティブ型メソッドの削除</a></li>
+		<li><a href="#sistercode">姉妹コードの利用</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 		<li><a href="#meritforall">面倒でも全体の利益のために</a></li>
 	</ul>
@@ -271,6 +272,39 @@
 		にすることで、ネイティブ型の設定メソッドを不可視(protected)にすることが可能です。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+
+	<h2 id="sistercode">姉妹コードの利用</h2>
+	<p>
+		指定されたコード値とは別のコード値を取り扱いたいときがあります。例えば、フラグ系の区分値において、1/0 だけでなく、true/false
+		でも扱えるようになど。その場合、CDef の codeOf() で true や false でも識別できるようになります。<span class="freecomment">@since 0.9.9.4B</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/classificationdefinition/index.html#sistercode">dfprop - sisterCode</a></div>
+<pre><span class="codetitle">e.g. 暗黙の区分値で姉妹コードを利用する例 {Flg} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; Flg = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=フラグ; codeType=Number}
+        ; <span class="keyword">map:</span>{
+            ; code=1; name=True; alias=Checked; comment=フラグが立っている
+            ; <span class="point">sisterCode</span>=true
+        }
+        ; <span class="keyword">map:</span>{
+            code=0; name=False; alias=Unchecked; comment=フラグが立っていない
+            ; <span class="point">sisterCode</span>=false
+        }
+    }
+}
+</code></pre>
+	<p>
+		また、フラグ系の区分値(要素が二つ固定)で、姉妹コードに true と false
+		が指定されている場合は、Entity や ConditionBean に Boolean 型で設定できるメソッドが追加されます。
+	</p>
+<pre><span class="codetitle">e.g. 姉妹コードによる Boolean 型設定メソッドの例 {Flg} @Java</span><code>
+MemberLogin login = <span class="keyword">new</span> MemberLogin();
+login.<span class="point">setMobileLoginFlgAsBoolean</span>(isMobileLogin());
+</code></pre>
+	<p>
+		※テーブル区分値では利用できません。
+	</p>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>

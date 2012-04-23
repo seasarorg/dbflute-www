@@ -75,6 +75,7 @@
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
 			<ul>
+				<li><a href="#cursorselect">カーソル検索でのメモリ対策</a></li>
 				<li><a href="#queryupdate">QueryUpdate/Deleteの実現</a></li>
 				<li><a href="#nullsfirstlast">NullsFirst/Lastの実現</a></li>
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
@@ -374,6 +375,23 @@ LikeSearchOption option = <span class="keyword">new</span> LikeSearchOption() {
 	</p>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
+	<h3 id="cursorselect">カーソル検索でのメモリ対策</h3>
+	<p>
+		MySQLのJDBCドライバでは、カーソル検索をしてもメモリ対策になりません。
+		検索結果のResultSetを構築した時点で全てのデータをメモリに持ってしまうからです。
+		(少なくとも Connector/J-5.1.12 においては)
+	</p>
+	<p>
+		JDBCパラメータの FetchSize に Integer.MIN_VALUE を指定することで一件ずつフェッチの動作になるため、StatementConfig
+		を使って FetchSize を指定するか、カーソル検索におけるデフォルトの FetchSize を指定することで、大量件数の検索に対応できます。
+		ただ、この設定をすると今度はカーソル検索のコールバックの中で、
+		カーソル検索と同じトランザクションを利用したDBアクセスができなくなるため(他のDBMSではこういうことは基本的にない)、
+		統一的な適用には注意が必要である(このため、DBFluteもデフォルトにすることができない)。
+		その場合、コールバックの中でDBアクセスをする場合は、別トランザクションにすることで回避することができる。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#cursorselectfetchsize">DBFluteConfig - cursorSelectFetchSize</a></div>
+	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#cursorselectfetchsize">dfprop - cursorSelectFetchSize</a></div>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/statementconfig.html">DBFluteランタイム - StatementConfig</a></div>
 	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>
 	<p>
 		update/delete 文の where 句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、QueryUpdate や QueryDelete

@@ -53,6 +53,7 @@
 				<li><a href="#over">別リレーションのカラム利用</a></li>
 			</ul>
 		</li>
+		<li><a href="#derivedrelation">導出的one-to-one</a></li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
@@ -227,7 +228,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		$localTable、リレーション名は memberWithdrawalAsOne と指定します。
 	</p>
 <pre><span class="codetitle">e.g. 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
@@ -242,7 +243,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		名は、参照先テーブルと同じものになります。
 	</p>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
+; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
@@ -266,7 +267,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		名で指定できるようになります。インラインビューの中では select 句で as を使って alias 名が宣言されます。
 	</p>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを alias 名で扱う @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGIN_AS_VALID = <span class="keyword">map:</span>{
+; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
@@ -297,7 +298,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		(省略記法は、この場合のみ利用可能です)
 	</p>
 <pre><span class="codetitle">e.g. Referrer テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
@@ -306,7 +307,7 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 }
 </code></pre>
 <pre><span class="codetitle">e.g. Referrer の Foreign テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
     ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
     ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
     ; fixedCondition =
@@ -332,6 +333,57 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		というように By[FKカラム] が後ろに付与されます。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/entity/relation.html">Entity間のリレーションのタイプ</a></div>
+
+	<h2 id="derivedrelation">導出的one-to-one</h2>
+	<p>
+		何かしら導出した値に一致するレコード(導出レコード)に対する業務的one-to-one(導出的one-to-one)を利用することもできます。
+		例えば、会員を検索する際、同時に会員の最終ログインの情報も取得したい場合など。(会員IDとログイン日時でユニークであることが前提)
+	</p>
+	<p>
+		最終ログイン日時だけが欲しいなら (Specify)DerivedReferrer で取得できますが、最終ログインのレコードがまるごと欲しい場合は、それでは取得することはできません。
+		"最終ログインのレコード" に対して業務的one-to-oneのリレーションを設定して SetupSelect(Relation) する必要があります。
+		そのリレーションは、固定条件(fixedCondition)で相関サブクエリを利用することで実現できます。
+	</p>
+<pre><span class="codetitle">e.g. 最終ログインのレコードに対する業務的one-to-one(導出的one-to-one) @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
+<span class="keyword">select</span> max(login.LOGIN_DATETIME)
+  <span class="keyword">from</span> MEMBER_LOGIN login
+ <span class="keyword">where</span> login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
+)<span class="attribute">$$sqend$$</span>
+    ; fixedSuffix = AsLatest
+}
+</code></pre>
+	<p>
+		このようにすると、SQLでは left outer join の on 句の条件の中に相関サブクエリが展開され、最終ログインのレコードを取得できます。
+	</p>
+	<p>
+		ただし、このSQLが文法上許されない DBMS も存在します(例えば、Oracle とか PostgreSQL など)。
+		その場合は、この相関サブクエリの固定条件がインラインビューに展開されるように設定することで回避できます。
+		fixedInline を true にすることでインラインビューに展開されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/oracle/index.html#derivedrelation"> -->DBMSごとの取扱い - Oracle - 導出的one-to-one<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/postgresql/index.html#derivedrelation"> -->DBMSごとの取扱い - PostgreSQL - 導出的one-to-one<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. 最終ログインのレコードに対する業務的one-to-one(導出的one-to-one) @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
+<span class="keyword">select</span> max(login.LOGIN_DATETIME)
+  <span class="keyword">from</span> MEMBER_LOGIN login
+ <span class="keyword">where</span> login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
+)<span class="attribute">$$sqend$$</span>
+    ; fixedSuffix = AsLatest
+    ; <span class="point">fixedInline</span> = true
+}
+</code></pre>
+	<p>
+		インラインビューでも文法上許されないDBMSの場合は、この機能は利用できません。
+	</p>
 
 	<h2 id="schemahtml">SchemaHTMLでの表示</h2>
 	<p>
