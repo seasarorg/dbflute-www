@@ -49,6 +49,7 @@
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
 				<li><a href="#relation">関連テーブルのカラム</a></li>
+				<li><a href="#partitionby">パーティション条件の追加</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -170,6 +171,32 @@ cb.query().<span class="point">queryMemberSecurity()</span>.scalar_Equal().max(<
     }
 });
 </code></pre>
+	<h3 id="partitionby">パーティション条件の追加</h3>
+	<p>
+		ScalarCondition を、とあるカラム単位で区切った中での条件にすることができます。
+		例えば、会員全体で一番若い会員ではなく、会員ステータスごとに一番若い会員を検索するなど。
+	</p>
+<pre><span class="codetitle">e.g. 会員ステータスごとに一番若い会員 @Java</span><code>
+cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> query(MemberCB subCB) {
+        subCB.specify().columnBirthdate();
+    }
+}).<span class="point">partitionBy</span>(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
+    <span class="keyword">public void</span> specify(MemberCB cb) {
+        cb.specify().columnMemberStatusCode();
+    }
+});
+</code></pre>
+	<p>
+		この場合、会員ステータスはテーブル区分値として存在しているため、この機能を利用しなくても ColumnQuery と DerivedReferrer
+		を組み合わせて利用すれば同じことが実現できますが、テーブルが存在しない暗黙の区分値においては、こちらの機能でないと実現できません。
+	</p>
+	<p>
+		DerivedReferrer を利用した場合に比べて、こちらは結合なしで実現できるため、よりシンプルなSQLになりますが、
+		DerivedReferrer の方が関数による変換などオプション的な機能が豊富です。
+	</p>
+	<div class="relatedpage"><a href="../query/columnquery.html">ConditionBean - ColumnQuery</a></div>
+	<div class="relatedpage"><a href="../specify/derivedreferrer.html">ConditionBean - (Specify)DerivedReferrer</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>

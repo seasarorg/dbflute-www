@@ -77,6 +77,7 @@
 			<ul>
 				<li><a href="#cursorselect">カーソル検索でのメモリ対策</a></li>
 				<li><a href="#queryupdate">QueryUpdate/Deleteの実現</a></li>
+				<li><a href="#unionboolean">Sql2EntityでunionしたBoolean型</a></li>
 				<li><a href="#nullsfirstlast">NullsFirst/Lastの実現</a></li>
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
 				<li><a href="#lowercase">MySQLの小文字管理のススメ</a></li>
@@ -141,7 +142,7 @@
 		<dt>java.util.Date</dt><dd>DATE, YEAR</dd>
 		<dt>java.sql.Time</dt><dd>TIME</dd>
 		<dt>java.sql.Timestamp</dt><dd>DATETIME, TIMESTAMP</dd>
-		<dt>java.lang.Boolean</dt><dd>BIT</dd>
+		<dt>java.lang.Boolean</dt><dd>BIT, BOOLEAN</dd>
 		<dt>byte[]</dt><dd>BINARY, VARBINARY, BLOB, ...BLOB</dd>
 	</dl>
 	<h3 id="automapping">自動マッピング</h3>
@@ -415,6 +416,19 @@ LikeSearchOption option = <span class="keyword">new</span> LikeSearchOption() {
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchupdatenonstrict.html"> -->Behavior - batchUpdateNonstrict(entityList)<!-- </a> --></span></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchdeletenonstrict.html"> -->Behavior - batchDeleteNonstrict(entityList)<!-- </a> --></span></div>
+	<h3 id="unionboolean">Sql2EntityでunionしたBoolean型</h3>
+	<p>
+		Sql2Entityでは、CustomizeEntityのプロパティ型はJDBCのメタデータから自動判別されます。
+		通常、Boolean型のカラムはBooleanにマッピングされますが、unionしたBoolean型のカラムに関しては Integer 型になってしまいます。
+		その場合は、CustomizeEntityのプログラム型の強制指定を利用してBoolean型にすると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/customizeentity.html#forcedtype">CustomizeEntity - プログラム型の強制指定</a></div>
+	<p>
+		Integer型のまま取り扱うと 1/0 の値が取得されるため、もしそのカラムがコード値 Boolean(true/false) のフラグ系区分値に関連付けていると、値が正常に取り扱えない可能性があります。
+		CDefが絡む処理で区分値を認識できないためです。その場合、姉妹コード(sisterCode)を使って 1/0 でも取り扱えるようにすることで解決できます。
+		この問題の有無にかかわらず、MySQL側が true/false と 1/0 の違いを吸収して取り扱う仕様に対応して、DBFlute側でも吸収できるようにしておいても良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../dfprop/classificationdefinition/index.html#sistercode">dfprop - sisterCode</a></div>
 	<h3 id="nullsfirstlast">NullsFirst/Lastの実現</h3>
 	<p>
 		nulls first/last 構文をサポートしていないため、case when 構文を使って NullsFirst/Last

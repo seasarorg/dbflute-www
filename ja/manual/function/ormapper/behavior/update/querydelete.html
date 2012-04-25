@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,機能,更新,Update" />
+	<meta name="keywords" content="DBFlute,Behavior,queryDelete,CBによる更新,ConditionBeanで更新,ConditionBeanでupdate,条件更新,子テーブル削除" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Behaviorの更新系 | DBFlute</title>
+	<title>queryDelete(entity, cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,35 +37,137 @@
 </div>
 
 <div id="content">
-	<h1>Behaviorの更新系</h1>
-	<p>
-		外だしSQL以外のBehaviorの更新系の機能について
-	</p>
+	<h1>queryDelete(entity, cb)</h1>
 	<ul class="indexlist">
-		<li><a href="#linklist">リンクの一覧</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#basicconcept">基本概念</a></li>
+			</ul>
+		</li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ</a></li>
+			</ul>
+		</li>
+		<li><a href="#methodspec">メソッド仕様</a>
+			<ul>
+				<li><a href="#argument">引数</a></li>
+				<li><a href="#result">戻り値</a></li>
+				<li><a href="#exception">例外</a></li>
+				<li><a href="#dbmsheadache">DBMSによっては制限も</a></li>
+				<li><a href="#compoundpk">複合主キーの場合は制限</a></li>
+			</ul>
+		</li>
+		<li><a href="#exclusive">排他制御処理なし</a></li>
+		<li><a href="#nocascade">カスケードはしません</a></li>
+		<li><a href="#nonquery">条件なしでの更新(全件更新)</a></li>
 	</ul>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<dl class="hierarchylist">
-		<dt><a href="./insert.html">insert(entity)</a></dt><dd>一件登録</dd>
-		<dt><a href="./update.html">update(entity)</a></dt><dd>排他制御あり一件更新</dd>
-		<dt><a href="./updatenonstrict.html">updateNonstrict(entity)</a></dt><dd>排他制御なし一件更新</dd>
-		<dt><a href="./delete.html">delete(entity)</a></dt><dd>排他制御あり一件削除</dd>
-		<dt><a href="./deletenonstrict.html">deleteNonstrict(entity)</a></dt><dd>排他制御なし一件削除</dd>
-		<dt><a href="./deletenonstrictignoredeleted.html">deleteNonstrictIgnoreDeleted(entity)</a></dt><dd>排他制御なし一件削除(なければ無視)</dd>
-		<dt><a href="./insertorupdate.html">insertOrUpdate(entity)</a></dt><dd>排他制御あり一件登録もしくは更新</dd>
-		<dt><a href="./insertorupdatenonstrict.html">insertOrUpdateNonstrict(entity)</a></dt><dd>排他制御なし一件登録もしくは更新</dd>
-		<dt><a href="./batchinsert.html">batchInsert(entityList)</a></dt><dd>バッチ登録</dd>
-		<dt><span class="working"><!-- <a href="./batchupdate.html"> -->batchUpdate(entityList)<!-- </a> --></span></dt><dd>排他制御ありバッチ更新</dd>
-		<dt><span class="working"><!-- <a href="./batchupdatenonstrict.html"> -->batchUpdateNonstrict(entityList)<!-- </a> --></span></dt><dd>排他制御なしバッチ更新</dd>
-		<dt><span class="working"><!-- <a href="./batchdelete.html"> -->batchDelete(entityList)<!-- </a> --></span></dt><dd>排他制御ありバッチ削除</dd>
-		<dt><span class="working"><!-- <a href="./batchdeletenonstrict.html"> -->batchDeleteNonstrict(entityList)<!-- </a> --></span></dt><dd>排他制御なしバッチ削除</dd>
-		<dt><a href="./queryupdate.html">queryUpdate(entity, cb)</a></dt><dd>ConditionBeanによる更新</dd>
-		<dt><a href="./querydelete.html">queryDelete(cb)</a></dt><dd>ConditionBeanによる削除</dd>
-		<dt><span class="working"><!-- <a href="./varyingupdate.html"> -->varyingUpdate(entity, option)<!-- </a> --></span></dt><dd>排他制御あり相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
-		<dt><span class="working"><!-- <a href="./varyingupdatenonstrict.html"> -->varyingUpdateNonstrict(entity, option)<!-- </a> --></span></dt><dd>排他制御なし相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
-		<dt><span class="working"><!-- <a href="./varyingqueryupdate.html"> -->varyingQueryUpdate(entity, cb, option)<!-- </a> --></span></dt><dd>ConditionBeanによる相対値での更新 <span class="freecomment">@since 0.9.7.2</span></dd>
+	<h2 id="overview">概要</h2>
+	<h3 id="basicconcept">基本概念</h3>
+	<p>
+		ConditionBean の絞り込み条件に一致するレコード全てを削除します。
+	</p>
+	<p>
+		例えば、"とある会員のログイン情報を全て削除"、"未払い購入のある会員を全て削除"
+		というような削除ができます。ConditionBean を指定します。
+	</p>
+	<p>
+		排他制御処理はありません。問答無用で削除します。
+	</p>
+	<div class="relatedpage"><a href="#exclusive">this - 排他制御処理なし</a></div>
+	<p>
+		条件なしでの削除(NonQueryDelete)は、デフォルトでは許可されません<span class="freecomment">(@since 0.9.7.8)</span>。
+	</p>
+	<div class="relatedpage"><a href="#nonquery">this - 条件なしでの削除(全件削除)</a></div>
+	<p>
+		会話上では、<em class="keyword">くえりでりーと</em>
+		と表現します。<em class="keyword">ConditionBean のでりーと</em> とも言えます。
+	</p>
+
+	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ</h3>
+	<p>
+		Behaviorの <em class="keyword">queryDelete()</em>
+		を呼び出し、ConditionBean を指定します。
+	</p>
+<pre><span class="codetitle">e.g. queryDelete()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.quD <span class="comment">// .quD と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.<span class="point">queryDelete</span>(cb);
+
+<span class="comment">// .qu と打つと queryDelete() や queryDelete() など</span>
+<span class="comment">// クエリ更新系のメソッドだけが補完候補に列挙される</span>
+</code></pre>
+	<p>
+		Entity には PK の値も不要です。更新値だけを設定します。
+	</p>
+<pre><span class="codetitle">e.g. 未払い購入のある会員を全て削除 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB subCB) {
+        subCB.query().<span class="point">setPaymentCompeleteFlg_Equal_False()</span>;
+    }
+});
+
+<span class="attribute">memberBhv</span>.queryDelete(cb);
+</code></pre>
+	<p>
+		絞り込み条件は、InScope を使ったサブクエリ方式です。
+	</p>
+	<div class="relatedpage"><a href="#dbmsheadache">DBMSによっては制限も</a></div>
+	<div class="relatedpage"><a href="#compoundpk">複合主キーの場合は制限</a></div>
+
+	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="argument">引数</h3>
+	<p>
+		該当のBehaviorに対応するテーブルのConditionBeanになります。
+	</p>
+	<p>
+		nullを指定した場合は例外発生します。
+	</p>
+	<h3 id="result">戻り値</h3>
+	<p>
+		削除したレコードの件数が戻ります。削除対象が存在しなかった場合は 0 が戻ります。
+	</p>
+	<h3 id="exception">例外</h3>
+	<dl class="textlist">
+		<dt>条件なし削除(全件削除)の場合</dt>
+		<dd>org.seasar.dbflute.exception.NonQueryDeleteNotAllowedException</dd>
 	</dl>
+	<h3 id="dbmsheadache">DBMSによっては制限も</h3>
+	<p>
+		DBMSによっては利用できる機能に制限があります。例えば、MySQLは、delete 文の where
+		句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、サブクエリ方式ではなく、where
+		句に直接条件を展開しています。すると、Query(Relation) や ExistsReferrer
+		などの関連テーブルを利用した絞り込み条件が利用できなくなります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
+	<h3 id="compoundpk">複合主キーの場合は制限</h3>
+	<p>
+		複合主キーの場合は制限は、サブクエリ方式が利用できないため、MySQLと同じ制限になります。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dbway/mysql/index.html#queryupdate">MySQL - QueryUpdate/Deleteの実現</a></div>
+	<div class="relatedpage"><a href="../../../../function/genbafit/deprecatedfit/compoundprimarykey/index.html">現場フィット - 複合主キーの対策</a></div>
+
+	<h2 id="exclusive">排他制御処理なし</h2>
+	<p>
+		排他制御処理はありません。
+	</p>
+
+	<h2 id="nocascade">カスケードはしません</h2>
+	<p>
+		delete(entity) と同じ仕様です。
+	</p>
+	<div class="detailpage"><a href="./delete.html#nocascade">delete(entity) - カスケードはしません</a></div>
+
+	<h2 id="nonquery">条件なしでの更新(全件更新)</h2>
+	<p>
+		条件なしでの削除(NonQueryDelete)は、デフォルトでは許可されません<span class="freecomment">(@since 0.9.7.8)</span>。
+		(万が一の)不意の全件更新を防ぐためです。どうしても全件更新をしたい場合は、varyingQueryDelete()
+		を利用し、DeleteOption で許可するオプションを指定することで実現できます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./varyingquerydelete.html"> -->varyingQueryDelete(entity, cb, option)<!-- </a> --></span></div>
 
 </div>
 </div>
