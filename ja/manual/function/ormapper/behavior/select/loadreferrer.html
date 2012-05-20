@@ -51,6 +51,7 @@
 				<li><a href="#referrerorderby">子テーブルのソート条件</a></li>
 				<li><a href="#onetomanytoone">子テーブルの親テーブルの取得</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブルの取得</a></li>
+				<li><a href="#manytoonetomany">親テーブルの子テーブルの取得</a></li>
 				<li><a href="#branchreferrer">枝分かれの子テーブルの取得</a></li>
 				<li><a href="#specifycolumn">子テーブルの取得カラムの指定</a></li>
 				<li><a href="#originalcb">独自のCBインスタンス</a></li>
@@ -274,6 +275,25 @@ loadReferrerOption.<span class="point">setEntityListSetupper</span>(<span class=
         <span class="abbreviation">...</span>
     }
 }
+</code></pre>
+	<h3 id="manytoonetomany">親テーブルの子テーブルの取得</h3>
+	<p>
+		親テーブルの子テーブルを取得する場合は、基点テーブルに紐付いている親テーブルのリストを取得して、
+		その親テーブルの Behavior で子テーブルを LoadReferrer する必要があります。
+	</p>
+	<p>
+		基点テーブルに紐付いている親テーブルのリストは、for文で回せば取得できますが、Behaviorで専用のメソッドも用意されています。
+		pullout[親テーブル名]()というメソッドを使って取得し、そのリストで LoadReferrer を利用できます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../sidebar/pulloutrelation.html"> -->Behavior - PulloutRelation<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. 会員一覧に対して、会員ステータスに紐付くログイン情報を取得 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+List&lt;MemberStatus&gt; statusList = <span class="attribute">memberBhv</span>.<span class="point">pulloutMemberStatus</span>(memberList);
+<span class="attribute">memberStatusBhv</span>.loadMemberLoginList(statusList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
+    <span class="keyword">public void</span> setup(MemberLoginCB cb) {
+    }
+});
 </code></pre>
 	<h3 id="branchreferrer">枝分かれの子テーブルの取得</h3>
 	<p>
