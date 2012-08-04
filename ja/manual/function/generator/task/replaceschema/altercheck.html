@@ -110,10 +110,10 @@
 	<dl class="textlist">
 		<dt>1. PreviousDDL を実行</dt>
 		<dd>PreviousDDL を利用して内部的に ReplaceSchema を実行してスキーマを Previous-DB の状態に</dd>
-		<dt>2. AlterDDL を実行</dt>
-		<dd>Previous-DB に AlterDDL を実行し、メタデータを保持</dd>
-		<dt>3. NextDDL を実行</dt>
+		<dt>2. NextDDL を実行</dt>
 		<dd>NextDDL を使って内部的に ReplaceSchema 処理を実行し、メタデータを取得</dd>
+		<dt>3. AlterDDL を実行</dt>
+		<dd>Previous-DB に AlterDDL を実行し、メタデータを保持</dd>
 		<dt>4. 二つの結果の差分を検証</dt>
 		<dd>
 			二つのメタデータをチェックし、差があれば差分情報を出力してタスクを中断します。
@@ -131,35 +131,34 @@
 		やデータをまるごと保存します。これが PreviousDDL となり、リリースするまでは本番DBと同じ構造を表現するリソースとなります。
 	</p>
 	<p>
-		playsql配下に migration というディレクトリを作成し、その直下に <em class="keyword">save-previous.dfmark</em>
-		という名前の空ファイルを作成して(中身は参照されません)、ReplaceSchema
-		を実行します。 このマークファイルがあると ReplaceSchema が <em class="keyword">SavePrevious</em> を行います。
+		Manageタスクの引数に、<em class="keyword">save-previous</em> を指定して実行します(<span class="freecomment">@since 0.9.9.7B</span)。
 	</p>
-<pre><span class="codetitle">e.g. save-previous.dfmark の作成 @playsql</span><code>
-dbflute_exampledb
- |-playsql
-    |-data
-    |-<span class="point">migration</span>
-    |  |-<span class="point">save-previous.dfmark</span>
+	<div class="relatedpage"><a href="../manage/index.html">Manageタスク</a></div>
+<pre><span class="codetitle">e.g. Manageタスクで SavePrevious の実行 (シェル) @Command</span><code>
+&gt; sh manage.sh <span class="point">save-previous</span>
 </code></pre>
+	<div class="inucolumn">
+		<h4>0.9.9.7B より前ではReplaceSchemaにて</h4>
+		<p>
+			0.9.9.7B より前のバージョンでは、Manageタスクでの実行ではなく、migraton配下に save-previous.dfmark
+			というファイル(中身は空でよい)を作成して、ReplaceSchemaタスクを実行すると SavePrevious が実行されました。
+		</p>
+	</div>
+	<h4>保存されると...</h4>
 	<p>
 		すると、playsql 直下の DDL やデータがまるごと playsql/migration/previous
 		配下にコピー保存されます。その後、妥当性をチェックするために、その保存された PreviousDDL
 		を使って内部的に ReplaceSchema が実行されます。正常に終了した場合は、migration
-		配下に previous-OK.dfmark (単に OK であることを強調するマーク)が作成されます。
+		配下に previous-OK.dfmark (単に OK であることを強調するマーク) が作成されます。
 	</p>
 <pre><span class="codetitle">e.g. PreviousDDL が正常に保存された場合 @playsql</span><code>
 dbflute_exampledb
  |-playsql
     |-data
-    |-<span class="point">migration</span>
-    |  |-<span class="point">previous</span>
-    |     |-data
-    |     |  |-<span class="abbreviation">...</span>
-    |     |-replace-schema-10-basic.sql
-    |     |-replace-schema-20-view.sql
-    |     |-<span class="abbreviation">...</span>
-    |  |-<span class="point">previous-OK.dfmark</span>
+    |-migration
+    |  |-previous
+    |  |  |-<span class="point">previous-20120804-1746.zip</span>
+    |  |-previous-OK.dfmark
 </code></pre>
 	<p>
 		逆に、保存した PreviousDDL がそもそもエラーになってしまうような場合は、previous-NG.dfmark
@@ -167,30 +166,19 @@ dbflute_exampledb
 	</p>
 	<p>
 		万が一、開発前にこの課程を忘れてしまった場合でも、後でバージョン管理システムから直前のバージョンを取得して、
-		この課程をやり直しても AlterCheck は利用できます。また、この仕組みでなくても、要は migration/previous
+		この課程をやり直しても AlterCheck は利用できます。本番環境のDDLダンプでも構いません。要は migration/previous
 		配下に Previous-DB を復元できる DDL が手動でも配置されればOKです。
+		ZIP形式でなくても、previous配下に直接 replace-schema.sql を配置すれば AlterCheck 時に認識されます。
+		(内部的には、ZIPファイルがなければ展開されているファイルをそのまま利用します)
 	</p>
-	<div class="inucolumn">
-		<h4>0.9.8.4 から 0.9.8.6 で保存先バグ</h4>
-		<p>
-			0.9.8.4, 0.9.8.5, 0.9.8.6 において、Windows環境において previous 直下ではなく、previous/playsql
-			配下に保存されてしまうというバグが報告されました。これは 0.9.8.7 以降では修正されています。
-		</p>
-		<p>
-			previous/playsql 配下に配置されてしまっている場合は、この後の AlterCheck
-			が正常に動作しません。該当バージョンを利用している場合は、previous/playsql 配下のファイルを previous
-			直下に移動することで AlterCheck が利用できるようになります。
-		</p>
-	</div>
 	<h3 id="altercheck">AlterCheck の実行</h3>
 	<p>
 		そして、DB変更した後、開発が落ち着いてDB構造も固まって AlterDDL
 		を作成した(する)タイミングにて、現在の最新状態と Previous-DB + AlterDDL の整合性をチェックします。
 	</p>
 	<p>
-		playsql/migration配下に alter というディレクトリを作成し、そこに AlterDDL を配置します。alter-schema で始まる .sql
-		のファイルが AlterDDL として認識されます。このディレクトリに AlterDDL が一つ以上あると ReplaceSchema が
-		AlterCheck を行います。
+		playsql/migration配下に alter というディレクトリを作成し、そこに AlterDDL
+		を配置します。AlterDDL のファイル名は、alter-schema で始まり .sql で終わる名前にします。
 	</p>
 <pre><span class="codetitle">e.g. AlterDDL の配置 @playsql</span><code>
 dbflute_exampledb
@@ -203,12 +191,22 @@ dbflute_exampledb
     |  |-<span class="abbreviation">...</span>
 </code></pre>
 	<p>
-		ちなみに、この alter ディレクトリ配下の AlterDDL はチェックのための一時配置のファイルであり、他の人の ReplaceSchema
-		が AlterCheck になってしまわないように、バージョン管理から無視されるように設定しておくと良いでしょう。
+		そして、Manageタスクの引数に、<em class="keyword">alter-check</em> を指定して実行します(<span class="freecomment">@since 0.9.9.7B</span)。
 	</p>
+<pre><span class="codetitle">e.g. Manageタスクで AlterCheck の実行 (シェル) @Command</span><code>
+&gt; sh manage.sh <span class="point">alter-check</span>
+</code></pre>
+	<div class="inucolumn">
+		<h4>0.9.9.7B より前ではReplaceSchemaにて</h4>
+		<p>
+			0.9.9.7B より前のバージョンでは、Manageタスクでの実行ではなく、alter配下に AlterDDL
+			を配置した状態でReplaceSchemaタスクを実行すると AlterCheck が実行されました。
+		</p>
+	</div>
+	<h4 id="diff">スキーマ差分の確認</h4>
 	<p>
 		まずは、この時点では AlterDDL の中身は空っぽでも構いません。Previous-DB に AlterDDL
-		を実行した結果と、NextDDL で作成した結果に不整合(食い違い)がある場合は ReplaceSchema は中断され、
+		を実行した結果と、NextDDL で作成した結果に不整合(食い違い)がある場合は AlterCheck は中断され、
 		その差分が migration/schema 配下に <em class="keyword">alter-check-result.diffmap</em>
 		(map形式のテキストファイル) に出力されます。それを参考に、AlterDDL をトライアンドエラーで作成しても良いでしょう。
 	</p>
@@ -234,11 +232,30 @@ dbflute_exampledb
 		など、基本的にアプリに影響のない微修正ものに関しては差として認識されません。
 	</p>
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
+	<h4 id="history">結果が一致したら</h4>
 	<p>
 		AlterDDL を修正しながら、結果が一致するまで ReplaceSchema
 		を叩き続けます。一致したら、AlterDDL の妥当性がチェックされたということで、チェック済み AlterDDL
 		として migration/history 配下に保存されます(alter 配下から移動します)。
 	</p>
+<pre><span class="codetitle">e.g. AlterDDLが保存されるHistory @playsql</span><code>
+dbflute_exampledb
+ |-playsql
+    |-data
+    |-migration
+    |  |-alter
+    |  |-previous
+    |  |-history
+    |  |  |-201208
+    |  |     |-20120806_1823
+    |  |        |-<span class="point">checked-alter-to-20120804-1746.zip</span>
+    |  |-schema
+</code></pre>
+	<p>
+		このときのDBは、PreviousDB に AlterDDL を適用させたものとなっています。
+		そのままアプリを起動してテストを行えば、AlterCheckではチェックできないデータ移行などのテストにもなります。
+	</p>
+	<h4 id="error">エラー発生時のログ</h4>
 	<p>
 		タスク実行がエラーになったとき、原因が実行時エラーなのか、不整合なのか、または別のエラーなのか、コンソールやタスクログの
 		<em class="keyword">最後のログメッセージ(Final Message)</em> でそれらを確認することができます。
