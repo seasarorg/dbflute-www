@@ -54,9 +54,12 @@
 				<li><a href="#date">日付による範囲条件 (yyyy/MM/dd)</a></li>
 				<li><a href="#month">月による範囲条件 (yyyy/MM)</a></li>
 				<li><a href="#year">年による範囲条件 (yyyy)</a></li>
+				<li><a href="#beginpoint">始まりの基準を調整</a></li>
+				<li><a href="#moveto">スコープを移動</a></li>
 			</ul>
 		</li>
 		<li><a href="#manual">手動で比較条件を調整</a></li>
+		<li><a href="#orisnull">もしくは null</a></li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#basicspec">基本仕様</a></li>
@@ -174,6 +177,14 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
  <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2007/01/01 00:00:00'</span>
    <span class="keyword">and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2008/01/01 00:00:00'</span>
 </code></pre>
+	<h3 id="beginpoint">始まりの基準を調整</h3>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="moveto">スコープを移動</h3>
+	<p>
+		TODO jflute
+	</p>
 
 	<h2 id="manual">手動で比較条件を調整</h2>
 	<p>
@@ -192,16 +203,12 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 		これらを活用して、業務にフィットする FromTo 条件を作り上げると良いでしょう。
 	</p>
 	<dl class="textlist">
-		<dt>[from/to]PatternDayStart()</dt>
-		<dd>[from/to]Date を、その日の最初の瞬間(時分秒ミリ秒を切り捨て)にして比較</dd>
-		<dt>[from/to]PatternMonthStart()</dt><dd>[from/to]Date を、その月の最初の瞬間(日を 01、時分秒ミリ秒を切り捨て)にして比較</dd>
-		<dt>[from/to]PatternYearStart()</dt><dd>[from/to]Date を、その年の最初の瞬間(月日を 01、時分秒ミリ秒を切り捨て)にして比較</dd>
-		<dt>[from/to]DateWithNoon()</dt>
-		<dd>
-			[from/to]Date を、その日の正午ジャスト(日を 12、時分秒ミリ秒を切り捨て)にして比較 <span class="freecomment">@since 0.9.7.5</span>
-		</dd>
-		<dt>[from/to]DateWithHour(int hourOfDay)</dt>
-		<dd>[from/to]Date を、その日の指定された時間ジャストにして比較 <span class="freecomment">@since 0.9.7.5</span></dd>
+		<dt>fromPattern[Hour/Day/Month/...]Just()</dt>
+		<dd>fromDate を、その時間や日や月などの始まりの瞬間にして比較</dd>
+		<dd>例えば、fromPatternDayJust() であれば fromDate は時分秒ミリ秒が切り捨てられる</dd>
+		<dt>toPatternNext[Hour/Day/Month/...]Just()</dt>
+		<dd>toDate を、その時間や日や月などの次の始まりの瞬間にして比較</dd>
+		<dd>例えば、toPatternNextDayJust() であれば toDate は次の日に移動して時分秒ミリ秒が切り捨てられる</dd>
 	</dl>
 	<p>
 		手動で設定する内容がアプリの複数箇所で利用される場合は、FromToOption 自体を拡張して、業務に合わせたアプリ独自の
@@ -230,6 +237,11 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
     }
 }
 </code></pre>
+
+	<h2 id="orisnull">もしくは null</h2>
+	<p>
+		TODO jflute
+	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>
@@ -265,13 +277,10 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 	<ul>
 		<li>Date 全般 <span class="freecomment">(DateやTimestampなど)</span></li>
 	</ul>
-	<div class="inucolumn">
-		<h3>DATE だけのサポート</h3>
-		<p>
-			数値の FromTo はサポートしていません。数値よりも日付の方が業務上の特殊なパターンが存在すると考えれているためです。
-			数値の場合は素直に GreaterEqual や LessThan を利用して実現しましょう。
-		</p>
-	</div>
+	<p>
+		数値の FromTo は、RangeOf という別の名前で用意されています。
+		ただ、数値の方は日付ほど業務上の特殊なパターンが存在しないため、シンプルなものとなっております。
+	</p>
 
 </div>
 </div>
