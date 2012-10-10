@@ -88,8 +88,9 @@
 	<h3 id="workspace">ワークスペースの作成</h3>
 	<p>
 		新規でハンズオン専用のワークスペースを任意の場所に作成してください。あらかじめディレクトリを作成し、Eclipse
-		を起動して、そのディレクトリ(ワークスペース)を選んでください。起動直後に既に別のワークスペースが開く場合は、"File"
-		- "Switch Workspace" からワークスペースを切り替えてください。
+		を起動して、そのディレクトリ(ワークスペース)を選んでください。起動直後に既に別のワークスペースが開く場合は、メニューの
+		"File" - "Switch Workspace" からワークスペースを切り替えてください。
+		(ワークスペースの設定もハンズオン内で変更するので、独立したワークスペースが推奨されます)
 	</p>
 <pre><span class="codetitle">e.g. DBFlute勉強用のワークスペース @Directory</span><code>
 /xxx/yyy/dbflute/workspace
@@ -100,20 +101,14 @@
 	<h3 id="checkout">プロジェクトのチェックアウト</h3>
 	<dl class="textlist">
 		<dt>SVNリポジトリ</dt><dd>https://www.seasar.org/svn/dbflute</dd>
-		<dt>プロジェクト</dt><dd>trunk/dfhands-on-dblib</dd>
+		<dt>プロジェクト</dt><dd>trunk/dbflute-hands-on-seasar</dd>
 	</dl>
 	<h3 id="mysql">MySQLのセットアップ</h3>
 	<p>
-		以下のリンクから環境に対応する MySQL の zip をダウンロードし、解凍して localdb/mysql に配置、
-		そして、localdb/boot-mysql.bat|sh を実行し、MySQL
-		を起動してください。
+		MySQLのオフィシャルサイトからローカル環境に対応する MySQL のインストーラー無し版(ZIPアーカイブ版など)をダウンロードし、localdb/mysql に配置します。
+		そして、localdb/boot-mysql.bat|sh を実行し、MySQL を起動してください。
 	</p>
-	<dl class="textlist">
-		<dt><a href="http://dbflute.seasar.org/download/misc/mysql-community/mysql-for-macosx.zip">mysql-for-macosx.zip</a></dt>
-		<dd>Mac OS X 用の MySQL Community Server 5.0.51a</dd>
-		<dt><a href="http://dbflute.seasar.org/download/misc/mysql-community/mysql-for-windows.zip">mysql-for-windows.zip</a></dt>
-		<dd>Windows 用の MySQL Community Server 5.0.45</dd>
-	</dl>
+	<div class="detailpage"><a href="http://dev.mysql.com/downloads/mysql/">Official Site - MySQL Download</a></div>
 <pre><span class="codetitle">e.g. MySQLの配置場所 @Directory</span><code>
 PROJECT_ROOT
  |-<span class="abbreviation">...</span>
@@ -163,8 +158,8 @@ PROJECT_ROOT
 	</p>
 	<p>
 		script 配下の maven-eclipse.bat|sh を実行し、コンソールのログを見て正常終了が確認できたらリフレッシュ(F5)し、その後 Eclipse
-		を再起動してしてください。ただし、M2_REPO が既に登録されている環境ではリフレッシュするだけでOKです。すると、dfhands-on-dblib
-		が Maven 管理された Java プロジェクトになり、既に存在している AppContainerTestCase や AppPlainTestCase が正常にコンパイルされます。
+		を再起動してしてください。ただし、M2_REPO が既に登録されている環境ではリフレッシュするだけでOKです。すると、そのプロジェクトが
+		Maven 管理された Java プロジェクトになり、既に存在している AppContainerTestCase や AppPlainTestCase が正常にコンパイルされます。
 	</p>
 	<h3 id="encoding">エンコーディングの調整</h3>
 	<p>
@@ -172,7 +167,7 @@ PROJECT_ROOT
 		すると、プロジェクトの設定画面が開きますので、Resource の "Text file encoding" で UTF-8 を指定。
 	</p>
 	<p>
-		また、参照ライブラリのJavaDocコメントなどがUTF-8であることが多いため、ワークスペースのエンコーディングも
+		また、参照ライブラリのJavaDocコメントなどが UTF-8 であることが多いため、ワークスペースのエンコーディングも
 		UTF-8 にします。メニューの Window の Preferences で同じ要領で設定できます。
 	</p>
 	<h3 id="srcfolder">ソースフォルダの順序調整</h3>
@@ -270,9 +265,10 @@ PROJECT_ROOT
 		アプリユーザとスキーマ(テーブル構造を含む)を作成するために、ReplaceSchemaを利用します。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></div>
+	<h4>DBユーザ自動作成のための設定</h4>
 	<p>
 		DBFluteクライアント/dfprop配下の replaceSchemaDefinitionMap.dfprop
-		additionalUserMap プロパティを以下のように設定してください。
+		の additionalUserMap プロパティを以下のように設定してください。
 		これは、システムユーザによるアプリユーザ、スキーマの作成を自動化するための準備です。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/systemuser.html">システムユーザによる実行</a></div>
@@ -291,11 +287,24 @@ PROJECT_ROOT
         ; system = <span class="keyword">map:</span>{
             ; url = jdbc:mysql://localhost:43376
             ; user = root
-            ; password = 
+            ; password = df:dfprop/system-password.txt|
         }
     }
     <span class="comment"># - - - - - - - - - -/</span>
 </code></pre>
+	<p>
+		password に "df:dfprop/system-password.txt" と "|" を加えることで、
+		rootのパスワードは以下のようなルールで決定されます。
+	</p>
+	<dl class="keymainlist">
+		<dt>パスワードファイルがあれば</dt><dd>パスワードファイルの中のパスワードが有効</dd>
+		<dt>パスワードファイルがなければ</dt><dd>「|」より右側の文字列がパスワード (この場合は「空パスワード」)</dd>
+	</dl>
+	<p>
+		ダウンロードしたての MySQL は、パスワードが空であることが想定され、ここでは特にパスワードファイルを作成する必要はないはずですが、
+		もし違う場合は、パスワードファイルを作成してください。
+	</p>
+	<h4>DBユーザ、テーブル作成DDLの配置</h4>
 	<p>
 		tutorial/material/dbflute/playsql-createschema-ddl-1st.zip の playsql/replace-schema-00-system.sql と
 		replace-schema-10-basic.sql、この二つのファイルをDBFluteクライアントの playsql 配下に配置してください。
@@ -316,6 +325,7 @@ PROJECT_ROOT
 		<span class="freecomment">(後の演習のために、この時点では明らかにおかしいカラム名などERDと若干の違いがあります)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/reference/example/exampledb.html">ExampleDB</a></div>
+	<h4>ReplaceSchema実行！</h4>
 	<p>
 		DBFluteタスクである、ReplaceSchemaタスクを実行してください。Windows であれば、リソースの検索(ctrl + shift + R)で
 		"replace-schema.bat" を検索してそのまま実行すればOKです。
