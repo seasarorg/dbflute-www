@@ -46,10 +46,12 @@
 			<ul>
 				<li><a href="#beta">ベタなやり方</a></li>
 				<li><a href="#functional">機能的なやり方</a></li>
+				<li><a href="#schemahtml">外だしSQLのドキュメント</a></li>
 			</ul>
 		</li>
 		<li><a href="#moreout">さらに外だし</a></li>
 		<li><a href="#commentrequired">外だしSQLのコメントを必須に</a></li>
+		<li><a href="#procedure">ストアドプロシージャも外だしSQL</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -144,6 +146,7 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>EMechaを使ってSQLファイルを作成</li>
+				<li>SQLのタイトルや説明をいい感じに</li>
 				<li>プロパティの自動判別を利用</li>
 				<li>SQLの内容自体は先ほどのとほぼ同じだが一つだけ違いあり</li>
 				<li>会員サービスのサービスポイント数も取得する</li>
@@ -165,6 +168,10 @@
 			</ul>
 		</dd>
 	</dl>
+	<h3 id="schemahtml">外だしSQLのドキュメント</h3>
+	<p>
+		Docタスクを叩いて、SchemaHTMLを作り直して外だしSQLの欄を見てみましょう。
+	</p>
 
 	<h2 id="moreout">さらに外だし</h2>
 	<p>
@@ -182,7 +189,6 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>ページング検索すること</li>
-				<li>ページサイズは 4、ページ番号は 2 で検索すること</li>
 				<li>"会員と購入月" ごとの購入の平均購入価格、合計購入数量を検索する</li>
 				<li>会員ID、会員名称、購入月、平均購入価格、合計購入数量という形で検索</li>
 				<li>支払済みの購入だけでも検索できるようにする</li>
@@ -192,7 +198,7 @@
 			</ul>
 		</dd>
 		<dt>ロジックのメソッド</dt>
-		<dd>List&lt;PurchaseMonthSummary&gt; selectLetsSummary(PurchaseMonthSummaryPmb pmb)</dd>
+		<dd>PagingResultBean&lt;PurchaseMonthSummary&gt; selectLetsSummary(PurchaseMonthSummaryPmb pmb)</dd>
 		<dd>
 			<ul class="supplementlist">
 				<li>指定された ParameterBean で検索して、検索結果を戻す</li>
@@ -204,8 +210,10 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>会員名称に "vi" を含む会員を対象に検索</li>
+				<li>ページサイズは 4、ページ番号は 2 で検索すること</li>
 				<li>期待通りのSQLがログに出力されることを確認する</li>
-				<li>検索結果が指定されたページサイズ分のデータだけであることをアサート</li>
+				<li>検索したカラム全てのデータをログ出力</li>
+				<li>検索結果がページサイズ以下のデータだけであることをアサート</li>
 			</ul>
 		</dd>
 	</dl>
@@ -217,6 +225,24 @@
 	<h2 id="commentrequired">外だしSQLのコメントを必須に</h2>
 	<p>
 		外だしSQLのコメント(タイトルと説明)を必須にして、一括チェックすることができます。
+	</p>
+	<p>
+		プロパティの設定で、OutsideSqlTestタスク実行時にコメントの有無を例外として検知できます。
+		outsideSqlDefinitionMap.dfprop の isRequiredSqlTitle と isRequiredSqlDescription を true
+		にして、OutsideSqlTestタスクを実行してみてください。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/reference/dfprop/outsidesqldefinition/index.html#isrequiredsqltitle">dfprop - isRequiredSqlTitle</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/dbflutefit/outsidesqltitle/index.html"> -->現場フィット - 外だしSQLのタイトル<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. 外だしSQLのコメントを必須に設定 @outsideSqlDefinitionMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; isRequiredSqlTitle = <span class="keyword">true</span>
+    ; isRequiredSqlDescription = <span class="keyword">true</span>
+ <span class="abbreviation">...</span>
+</code></pre>
+
+	<h2 id="procedure">ストアドプロシージャも外だしSQL</h2>
+	<p>
+		TODO jflute
 	</p>
 
 	<h2 id="nextsection">次のセクション</h2>
