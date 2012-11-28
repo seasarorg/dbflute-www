@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Java - Beginner's Pickup (初心者向けピックアップ) | DBFlute</title>
+	<title>Java - Beginner's Hint (初心者向けJavaヒント) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>Java - Beginner's Pickup</h1>
+	<h1>Java - Beginner's Hint</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#objectoriented">オブジェクト指向であること</a>
@@ -51,12 +51,14 @@
 				<li><a href="#stacktracereading">スタックトレースの読み方</a></li>
 				<li><a href="#nestedexception">ネストした例外を見逃さない</a></li>
 				<li><a href="#beforedebugger">デバッガー起動前に読みましょう</a></li>
+				<li><a href="#editorlinenumber">行番号を表示しましょう</a></li>
 			</ul>
 		</li>
 		<li><a href="#nullpointer">NullPointerException</a>
 			<ul>
 				<li><a href="#nullpoiterreading">NullPointerの読み解き方</a></li>
 				<li><a href="#nullpoiterunknown">特定できないNullPointer</a></li>
+				<li><a href="#nullpoiterwrapper">ラッパー型変換NullPointer</a></li>
 			</ul>
 		</li>
 		<li><a href="#equalsequal">equals()と "=="</a>
@@ -66,14 +68,19 @@
 				<li><a href="#howtouse">どういう風に区別していく？</a></li>
 			</ul>
 		</li>
+		<li><a href="#primitivewrapper">プリミティブ型とラッパー型</a>
+			<ul>
+				<li><a href="#primitivecase">プリミティブ型のケース</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
 		Javaの基本的な特徴について補足資料です。DBFluteと直接関係はありませんが、
 		現場ではJava初心者がいきなり開発することもありますので、
-		ここでは現場で重要と思われる、Java初心者向けの心得を幾つかピックアップして補足的に書きたいと思います。
-		<span class="freecomment">(基本的な文法などはJavaの本などで学んでください)</span>
+		ここでは現場で重要と思われる、Java初心者向けのヒント(心得)を幾つかピックアップして補足的に書きたいと思います。
+		<span class="freecomment">(基本的な文法や詳しい挙動などはJavaの本などで学んでください)</span>
 	</p>
 
 	<h2 id="objectoriented">オブジェクト指向であること</h2>
@@ -104,7 +111,9 @@ File file = <span class="keyword">new</span> File(<span class="literal">"/tmp/ja
 	<h3 id="oopoint">これだけですが、これを伝えたい</h3>
 	<p>
 		実はここで説明するのはこれだけです。
-		当然もっともっとオブジェクト指向の特徴を捉えたポイントはありますが、ここではとりあえず上記のポイント、これをしっかり伝えておきたいと考えました。
+		カプセル化やポリモーフィズムなどオブジェクト指向の重要なポイントがもっともっとありますが、
+		ここではとりあえず上記のポイント、これをしっかり伝えておきたいと考えました。
+		<span class="freecomment">(オブジェクト指向の基本は本などで学んでください)</span>
 	</p>
 	<p>
 		ただ、実際のJavaのプログラムでは、必ずしもこのようになっているとは限りません。
@@ -170,7 +179,7 @@ java.lang.IllegalStateException: The statuc code was illegal: abc
 
 <span class="keyword">protected void</span> throwWrapperException() {
     <span class="keyword">try</span> {
-        <span class="keyword">throw new</span> IllegalStateException(<span class="literal">"Inner Exception"</span>);
+        throwInnerException();
     } <span class="keyword">catch</span> (IllegalStateException e) {
         <span class="keyword">throw new</span> IllegalStateException(<span class="literal">"Wrapper Exception"</span>, e);
     }
@@ -222,6 +231,13 @@ Caused by: java.lang.IllegalStateException: Inner Exception
 		それを読まずにいきなり(あてもなく)デバッガーを起動してデバッグし始めるのは時間がもったいないと考えられます。
 	</p>
 	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20090224/1235473382">外部サイト - jfluteの日記 - デバッグ手順(スタックトレース重要)</a></div>
+	<h3 id="editorlinenumber">行番号を表示しましょう</h3>
+	<p>
+		例えば Eclipse のエディターは、デフォルトで行番号が表示されていません。
+		いくら行番号がわかっても、エディター上で行番号がわからなければ意味がありません。
+		ワークスペースの設定 "Window - Preferences" の "General - Editors - Text Editors"
+		にて、行番号を表示するチェックがありますので、行番号が表示されていない場合はぜひ表示しましょう。
+	</p>
 
 	<h2 id="nullpointer">NullPointerException</h2>
 	<p>
@@ -269,6 +285,19 @@ java.lang.NullPointerException
 		ちなみに、getDisplayOrder()の戻り値がnullかどうかは無関係です。
 		check()メソッドの引数にその戻り値を指定しているわけですが、メソッドの引数がnullでも別に問題はありません。
 		check()メソッドがnullを受け付けないにしても、それはそれでcheck()メソッド内でNullPointerExceptionが発生するはずです。
+	</p>
+	<h3 id="nullpoiterwrapper">ラッパー型変換NullPointer</h3>
+	<p>
+		nullの変数に対するメソッド呼び出し以外にも、NullPointerException を発生させる要因があります。
+		nullのInteger型のラッパー型の変数に対して足し算や掛け算を行うと発生します。
+	</p>
+<pre><span class="codetitle">e.g. Wrapper Type Null Pointer @Java</span><code>
+Integer count = null;
+Integer plusOne = count + <span class="literal">1</span>; <span class="comment">// null pointer</span>
+</code></pre>
+	<p>
+		NullPointerExceptionが発生して行番号を確かめてみて変数に "."
+		ドットとしている箇所が見当たらなくても、こういうパターンも想定されるので注意です。
 	</p>
 
 	<h2 id="equalsequal">equals()と "=="</h2>
@@ -335,6 +364,121 @@ File file2 = file1;
 		しかしながら、ENUMだから "==" でOK、他のオブジェクトは equals() という区別を常に意識するよりも、"." (ドット)
 		で補完して equals() が出てこなかったら (つまりプリミティブ型だったら) "==" を使うというような割り切りで全く問題ないでしょう。
 	</p>
+
+	<h2 id="primitivewrapper">プリミティブ型とラッパー型</h2>
+	<p>
+		Javaは完全なオブジェクト指向言語とは言えない要素があります。その一つが、プリミティブ型と言われる型の存在です。
+		int型やlong型など、従来の手続き型のような "値" だけを表す型です。
+		これらプリミティブ型には、振舞い(メソッド)がありません。単なる値でしかないのです。
+		equals()メソッドもありませんし、toString()もありません。Object型を継承しているわけではありません。
+		オブジェクトではないので null も入りません。
+	</p>
+<pre><span class="codetitle">e.g. Primitive Type @Java</span><code>
+<span class="keyword">int</span> count = <span class="literal">0</span>;
+++count;
+<span class="keyword">if</span> (count == <span class="literal">1</span>) {
+}
+count<span class="point">.xxx</span> <span class="comment">// you cannot call its method</span>
+count<span class="point"> = null</span>; <span class="comment">// you cannot set null</span>
+</code></pre>
+	<p>
+		それではオブジェクト指向のようなメリットを得られないので、その "値" をラップしたクラスがそれぞれ用意されています。
+		例えば、int型であれば java.lang.Integer です。
+	</p>
+	<dl class="keymainlist">
+		<dt>byte</dt><dd>java.lang.Byte</dd>
+		<dt>short</dt><dd>java.lang.Short</dd>
+		<dt>int</dt><dd>java.lang.Integer</dd>
+		<dt>long</dt><dd>java.lang.Long</dd>
+		<dt>float</dt><dd>java.lang.Float</dd>
+		<dt>double</dt><dd>java.lang.Double</dd>
+		<dt>boolean</dt><dd>java.lang.Boolean</dd>
+		<dt>char</dt><dd>java.lang.Character</dd>
+	</dl>
+<pre><span class="codetitle">e.g. Wrapper Type @Java</span><code>
+<span class="keyword">Integer</span> count = Integer.valueOf(<span class="literal">0</span>);
+++count;
+<span class="keyword">if</span> (count.equals(<span class="literal">1</span>)) {
+}
+String countStr = count.toString() <span class="comment">// you can call</span>
+count = <span class="keyword">null</span>; <span class="comment">// you can set null</span>
+count.toString(); <span class="comment">// you can get NullPointerException</span>
+</code></pre>
+	<p>
+		Java5からオートボクシングが導入され、プリミティブ型とラッパー型の変換は自動で行われるようになり、
+		あまり意識せずに実装できるようにはなりました。
+	</p>
+<pre><span class="codetitle">e.g. Wrapper Type @Java</span><code>
+<span class="keyword">Integer</span> count = 0; <span class="comment">// you can set int value</span>
+<span class="keyword">if</span> (count == 1) { <span class="comment">// you can use "=="</span>
+}
+</code></pre>
+	<p>
+		ただ、これも単に変換がやりやすくなったというだけで、プログラム上にプリミティブ型とラッパー型が混在していることには変わりはありません。
+		Javaのプログラミングにおいては、どうしてもこの区別をつけた上で実装する必要があります。
+	</p>
+	<h3 id="primitivecase">プリミティブ型のケース</h3>
+	<p>
+		オブジェクト指向言語としてのメリットを享受するなら、もうプリミティブ型を使わなくてもいいのでは？と思われるかもしれません。
+		確かに一理ありますが、実際の現場ではなかなかそうなっていないのが現状です。自分が実装する時も、ソースを読む時もそれを踏まえておく必要があります。
+	</p>
+	<h4 id="notnulltype">nullを防ぐ型として</h3>
+	<p>
+		プリミティブ型でもラッパー型でもどっちでもいいような場合、かつ、nullが絶対に入らない、nullが入って欲しくないような場合に、
+		プリミティブ型を使うことがあります。for文のカウンターとしてのint型が主な例です。0から数えていくので、nullが入る必要がありません。
+	</p>
+	<p>
+		ただ、他のオブジェクトは全て null が入る可能性があるのに、数値や判定だけそこに対して神経質になるのもちょっとバランスが悪いとも考えられます。
+		なので、どこまで厳密にこのきっかけでプリミティブ型を使っていくかは曖昧です。
+	</p>
+	<p>
+		ただ、その中でもboolean型だけは厳密に近いものと言えます。どちらかというと、boolean型はプリミティブ型の方が多く利用されます。
+		trueかfalseかの二択を表現するものであることから "nullはどっち!?" という紛れが入るととても紛らわしくなります。
+		逆にBoolean型が利用されていると、"これは null が入るからあえてラッパー型を使っているのかな!?"
+		と読み手では想像してしまうくらいです。
+	</p>
+	<h4 id="memoryeco">メモリ節約として</h4>
+	<p>
+		利用されるメモリ領域は、当然のことながらプリミティブ型の方が少ないです。ほとんどのプログラムにおいて、そこまで神経質になる必要はないでしょう。
+		ただ、高負荷が想定されるフレームワークの内部処理などにおいて、局所的にこのきっかけでプリミティブ型の利用を検討することがあります。
+	</p>
+	<p>
+		例えば、String型のsubstring()の引数や、indexOf()の戻り値などは全てint型です。
+		String型のような基本的なAPIは、まるで息を吸うかのごとく数多くの場所で利用されることが想定されます。
+		substring()は、nullを受け付ける意味がないのでintという面もありますが、indexOf()は見つからなかった時は -1
+		が戻ってきます。NotFound は nullで表現しても構わないとも考えられますが、
+		仮にIntegerを使った場合に比べれば、int型を使うことによって無駄なインスタンスの生成は抑制されているでしょう
+	</p>
+	<div class="relatedpage"><a href="./string.html#substring">Java - String - substring()</a></div>
+	<div class="relatedpage"><a href="./string.html#indexof">Java - String - indexOf()</a></div>
+	<p>
+		これは、"配列を使うのか？リスト型を使うのか？" という話にも関連します。
+	</p>
+	<h4 id="apidriven">APIの都合次第で</h4>
+	<p>
+		プリミティブ型を使うきっかけがなくても、利用するAPIの受け取る型がプリミティブ型である場合は、
+		こちらの処理の中でも最初からプリミティブ型で取り扱うことがあります。
+		無駄な変換が発生させないようにする、という面もありますが、そこまで深く考えずAPIに合わせるという面もあります。
+		APIの方では、nullを防ぐとか、メモリ節約とか、色々ときっかけがあったのかも知れません。
+	</p>
+	<h4 id="magicnumber">マジックナンバー注意</h4>
+	<p>
+		逆にプリミティブ型である必要がないのにプリミティブ型になっている場合に注意です。
+		値が存在しない、処理ができなかった、数値を判断できなかった場合など、素直に null で表現してもいいのでは!?
+		と思うような場面で、"-1" や "999999999" などのあり得ない値を null 代わりに利用してしまうと、
+		思わぬ誤動作を生む可能性もあります。
+	</p>
+	<p>
+		例えば、その数値が別の数値と計算されるような場合、そのあり得ない値も含めて計算されてしまい、
+		エラーで落ちずにあたかも正常に動作したかのように間違った結果を生んでしまいます。何が一番怖いかって、その間違いに気付かないことが怖いです。
+		null の Integer に対する足し算や掛け算であれば NullPointerException が発生するので間違いに気付くことができます。
+	</p>
+	<p>
+		StringのindexOf()の戻り値は -1 で見つからなかったことを表現していますが、
+		作った人に聞いたわけではないので確かにではありませんが、
+		計算に利用されるような値ではないという想定と、メモリ節約の考慮を優先してint型になっていると想像できます。
+	</p>
+	<div class="relatedpage"><a href="./string.html#indexof">Java - String - indexOf()</a></div>
 
 </div>
 </div>
