@@ -53,6 +53,7 @@
 				<li><a href="#ischeckimplicitset">isCheckImplicitSet</a></li>
 				<li><a href="#isusedocumentonly">isUseDocumentOnly</a></li>
 				<li><a href="#issuppressautodeploy">isSuppressAutoDeploy</a></li>
+				<li><a href="#groupingmap">groupingMap</a></li>
 				<li><a href="#table">table</a></li>
 				<li><a href="#code">code (*)</a></li>
 				<li><a href="#name">name (*)</a></li>
@@ -69,6 +70,8 @@
 			<ul>
 				<li><a href="#tableexample">テーブル区分値</a></li>
 				<li><a href="#implicitexample">暗黙の区分値</a></li>
+				<li><a href="#groupingexample">グルーピング定義</a></li>
+				<li><a href="#sisterexample">姉妹コード</a></li>
 				<li><a href="#sqlexpexample">テーブル区分値のSQL表現</a></li>
 			</ul>
 		</li>
@@ -119,6 +122,12 @@
             ; isCheckImplicitSet=[true or false(default)]
             ; isUseDocumentOnly=[true or false(default)]
             ; isSuppressAutoDeploy=[true or false(default)]
+            ; groupingMap = ; <span class="keyword">map:</span>{
+                ; [group-name] = ; <span class="keyword">map:</span>{
+                    ; groupComment = [group-comment]
+                    ; elementList = <span class="keyword">list:</span>{[element-name] ; <span class="abbreviation">...</span>}
+                }
+            }
         }
         ; <span class="keyword">map:</span>{code=[code]; name=[name]; alias=[alias]; comment=[comment]}
         ; <span class="keyword">map:</span>{
@@ -216,6 +225,25 @@
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>false</dd>
 	</dl>
+	<h3 id="groupingmap">groupingMap</h3>
+	<p>
+		とある複数の区分値が業務的な意味を持つような場合のグルーピング定義を指定します。
+		<span class="freecomment">@since 0.9.9.7A</span>
+	</p>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/classification/index.html#grouping">グルーピング判定</a></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>グルーピング定義のmap (グループ名と区分値要素の指定)</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>暗黙の区分値でもテーブル区分値でも利用可能</li>
+				<li>区分値要素は、区分値要素の名前を指定 (コードではない)</li>
+				<li>存在しない区分値を指定した場合は自動生成時にコンパイルエラー</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="#groupingexample">this - Example - グルーピング定義</a></div>
 	<h3 id="table">table</h3>
 	<p>
 		テーブル区分値を利用するときの該当するテーブル名を指定します。同時に該当区分値がテーブル区分値であることを示します。
@@ -334,7 +362,7 @@
 		code で指定されたコード値とは別に、コード値として扱うことのできる姉妹コードを指定します。(暗黙の区分値の場合)
 		<span class="freecomment">@since 0.9.9.4B</span>
 	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/genbafit/implfit/classification/index.html#姉妹コードの利用"> -->現場フィット - 区分値 - 姉妹コードの利用<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html#sistercode">現場フィット - 区分値 - 姉妹コードの利用</a></div>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>コード値、もしくは、コード値のリスト</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
@@ -345,6 +373,7 @@
 			</ul>
 		</dd>
 	</dl>
+	<div class="relatedpage"><a href="#sisterexample">this - Example - 姉妹コード</a></div>
 	<p>
 		※テーブル区分値では利用できません。
 	</p>
@@ -429,6 +458,7 @@
             ; suppressAutoDeploy = false
         }
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<h3 id="implicitexample">暗黙の区分値</h3>
@@ -440,6 +470,7 @@
         ; <span class="keyword">map:</span>{code=FML;name=Formalized ;alias=正式会員;comment=正式な会員としてサイトサービスが利用可能}
         ; <span class="keyword">map:</span>{code=WDL;name=Withdrawal ;alias=退会会員;comment=退会が確定した会員でサイトサービスはダメ}
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 <pre><span class="codetitle">e.g. 暗黙の区分値を利用する例 {フラグ} @classificationDefinitionMap.dfprop</span><code>
@@ -449,10 +480,49 @@
         ; <span class="keyword">map:</span>{code=1; name=True ; alias=はい  ; comment=有効を示す}
         ; <span class="keyword">map:</span>{code=0; name=False; alias=いいえ; comment=無効を示す}
     }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="groupingexample">グルーピング定義</h3>
+<pre><span class="codetitle">e.g. サービスが利用可能なステータスのグルーピング定義 @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{
+            ; topComment=会員ステータス; codeType=String
+            ; groupingMap = <span class="keyword">map:</span>{
+                ; serviceAvailable = <span class="keyword">map:</span>{
+                    ; groupComment = サービスが利用できる会員
+                    ; elementList = <span class="keyword">list:</span>{正式会員;仮会員}
+                }
+                <span class="abbreviation">...</span>
+            }
+        }
+        ; <span class="keyword">map:</span>{ <span class="abbreviation">...</span> }
+        <span class="abbreviation">...</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="sisterexample">姉妹コード</h3>
+<pre><span class="codetitle">e.g. 暗黙の区分値で姉妹コードを利用する例 {Flg} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; Flg = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=フラグ; codeType=Number}
+        ; <span class="keyword">map:</span>{
+            ; code=1; name=True; alias=Checked; comment=フラグが立っている
+            ; sisterCode=true
+        }
+        ; <span class="keyword">map:</span>{
+            code=0; name=False; alias=Unchecked; comment=フラグが立っていない
+            ; sisterCode=false
+        }
+    }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<h3 id="sqlexpexample">テーブル区分値のSQL表現</h3>
-<pre><span class="codetitle">e.g. 暗黙の区分値を利用する例 {フラグ} @classificationDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. テーブル区分値のSQL表現の例 (階層型) @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
     ; Genre = <span class="keyword">list:</span>{
         ; <span class="keyword">map:</span>{topComment=Genre of Music; codeType=Number}
         ; <span class="keyword">map:</span>{
@@ -462,6 +532,8 @@
             ; orderBy=loc.PARENT_ID <span class="keyword">is not null</span>, loc.GENRE_ID
         }
     }
+    <span class="abbreviation">...</span>
+}
 </code></pre>
 
 </div>

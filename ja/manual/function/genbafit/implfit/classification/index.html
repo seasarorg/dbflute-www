@@ -56,6 +56,7 @@
 		<li><a href="#cdef">ENUMクラス(CDef)の利用</a></li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
 		<li><a href="#forcedcls">ネイティブ型メソッドの削除</a></li>
+		<li><a href="#grouping">グルーピング判定</a></li>
 		<li><a href="#sistercode">姉妹コードの利用</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 		<li><a href="#meritforall">面倒でも全体の利益のために</a></li>
@@ -186,6 +187,7 @@
             ; orderBy=DISPLAY_ORDER
         }
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<p>
@@ -229,6 +231,7 @@
         ; <span class="keyword">map:</span>{code=FML;name=Formalized ;alias=正式会員;comment=正式な会員としてサイトサービスが利用可能}
         ; <span class="keyword">map:</span>{code=WDL;name=Withdrawal ;alias=退会会員;comment=退会が確定した会員でサイトサービスはダメ}
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<p>
@@ -273,6 +276,57 @@
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
 
+	<h2 id="grouping">グルーピング判定</h2>
+	<p>
+		例えば、正式会員と仮会員とで "サービスが利用可能なステータス"
+		というように複数のステータスに対して業務的な意味付けがある場合、プログラム上ではその複数のステータスを使った判定処理が想定されます。
+		その意味付けをあらかじめ定義(グルーピング)しておいて、その複数のステータスを使った判定メソッドを生成することができます。
+		<span class="freecomment">@since 0.9.9.7A</span>
+	</p>
+	<p>
+		topComment の map の中の groupingMap プロパティにて、グループ名とそれに属するステータスを列挙すると、Entity
+		や ConditionBean, CDef にてグループ化されたメソッドが生成されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/classificationdefinition/index.html#groupingmap">dfprop - groupingMap</a></div>
+<pre><span class="codetitle">e.g. サービスが利用可能なステータスのグルーピング定義 @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{
+            ; topComment=会員ステータス; codeType=String
+            ; groupingMap = <span class="keyword">map:</span>{
+                ; <span class="point">serviceAvailable</span> = <span class="keyword">map:</span>{
+                    ; groupComment = サービスが利用できる会員
+                    ; elementList = <span class="keyword">list:</span>{正式会員;仮会員}
+                }
+                <span class="abbreviation">...</span>
+            }
+        }
+        ; <span class="keyword">map:</span>{ <span class="abbreviation">...</span> }
+        <span class="abbreviation">...</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">e.g. サービスが利用可能なステータスのグルーピング判定 @classificationDefinitionMap.dfprop</span><code>
+Member member = <span class="abbreviation">...</span>
+<span class="keyword">if</span> (member.<span class="point">isMemberStatusCode_ServiceAvailable()</span>) {
+}
+
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().<span class="point">setMemberStatusCode_InScope_ServiceAvailable()</span>;
+</code></pre>
+	<p>
+		このようにあらかじめグルーピング定義をして再利用化しておくことで、いざサービス利用できるステータスが増えたときも、
+		グルーピング定義に追加して再自動生成するだけで修正が済みます。
+		また、そのような変更がないにしても、区分値自体に業務的に意味付けを持たせておくことが価値の高いドキュメントとなります。
+		(SchemaHTMLの区分値一覧の中でグルーピング定義の情報をみることができます)
+	</p>
+	<p>
+		暗黙の区分値でもテーブル区分値でもどちらでも利用可能です。
+		ただ、テーブル区分値の場合は、そもそもテーブル自体にフラグカラムとしてグルーピング情報を保持させておくこともできるので、
+		主には暗黙の区分値で活躍する機能と言えるでしょう。
+	</p>
+
 	<h2 id="sistercode">姉妹コードの利用</h2>
 	<p>
 		指定されたコード値とは別のコード値を取り扱いたいときがあります。例えば、フラグ系の区分値において、1/0 だけでなく、true/false
@@ -292,6 +346,7 @@
             ; <span class="point">sisterCode</span>=false
         }
     }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 	<p>
