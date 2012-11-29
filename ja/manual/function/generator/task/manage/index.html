@@ -40,7 +40,12 @@
 	<h1>Manageタスク</h1>
 	<ul class="indexlist">
 		<li><a href="#about">Manageタスクとは？</a></li>
-		<li><a href="#command">実行コマンド</a></li>
+		<li><a href="#command">実行コマンド</a>
+			<ul>
+				<li><a href="#subtaskarg">サブタスクを引数に指定</a></li>
+				<li><a href="#subtasknumber">番号選択でサブタスクを指定も</a></li>
+			</ul>
+		</li>
 		<li><a href="#environment">環境構築</a></li>
 		<li><a href="#renewal">Renewalタスク</a></li>
 		<li><a href="#regenerate">Regenerateタスク</a></li>
@@ -59,17 +64,50 @@
 	</p>
 
 	<h2 id="command">実行コマンド</h2>
+	<h3 id="subtaskarg">サブタスクを引数に指定</h3>
 	<p>
 		DBFluteクライアント配下の <em class="keyword">manage.(bat|sh)</em>
-		をコマンドから実行します。その際、どのサブタスクを実行するかを第一引数で必ず指定します。
+		をコマンドから実行します。その際、どのサブタスクを実行するかを第一引数で必ず指定します。(第二引数の有無は、それぞれのタスクに依存します)
 	</p>
-	<dl class="keymainlist">
-		<dt>renewal</dt><dd>"Renewalタスク" を実行</dd>
-		<dt>regenerate</dt><dd>"Regenerateタスク" を実行</dd>
-		<dt>refresh</dt><dd>"Refreshタスク" を実行</dd>
-	</dl>
+<pre><span class="codetitle">e.g. Renewalタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh <span class="literal">renewal</span>
+</code></pre>
+	<h3 id="subtasknumber">番号選択でサブタスクを指定も</h3>
 	<p>
-		第二引数は、それぞれのタスクに依存します。
+		第一引数を省略して実行して、番号選択でサブタスクを実行することもできます<span class="freecomment">(@since 0.9.9.8)</span>。
+	</p>
+	<p>
+		第一引数を省略して実行すると、番号に関連付いたサブタスクの一覧が表示されるので、番号を入力して Enter
+		を押すと対応するサブタスクが実行されます。
+	</p>
+<pre><span class="codetitle">e.g. 番号選択でサブタスクを実行するManageタスク @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh
+
+ 1 : renewal (ReplaceSchema, JDBC, Doc, Generate, OutsideSqlTest, Sql2Entity)
+ 2 : regenerate (JDBC, Doc, Generate, Sql2Entity)
+
+ 4 : load-data-reverse
+ 5 : schema-sync-check
+
+ 7 : save-previous
+ 8 : alter-check
+ 9 : take-assert
+
+ 11 : refresh
+ 12 : freegen
+
+(input on your console)
+What is your favorite task? (number):
+</code></pre>
+	<p>
+		スクリプトの中から固定的に呼び出すとかでなければ、このやり方で呼び出す方が手軽です。
+	</p>
+	<p>
+		第二引数が必須のサブタスクを指定した場合は、番号選択の後に第二引数の入力待ちになります。
+		例えば、refreshタスクであれば、refresh対象のプロジェクト名の入力待ちになります。
+	</p>
+	<p>
+		キャンセルしたい場合は、適当な文字を入力して Enter すれば終了します。
 	</p>
 
 	<h2 id="environment">環境構築</h2>
