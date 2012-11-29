@@ -195,9 +195,11 @@
 		<dt>デフォルト</dt><dd>false</dd>
 	</dl>
 	<p>
-		DB上の値と、DBFluteプロパティで定義された区分値が必ず同期することが業務的な仕様である場合に(DB上に密かに隠れ区分値が存在するというわけではなければ)、
-		データバグを発見するのに有効です。多くのプロジェクトで活用できると想定されます。
+		DB上の値がDBFluteプロパティで定義された区分値の中に必ず存在するなら(隠れ区分値がなければ)、
+		データバグを発見するのに有効です。通常は隠れ区分値があってはいけないと想定されるので、多くのプロジェクトで活用できると想定されます。
+		isForceClassificationSetting プロパティと併用すると良いでしょう。
 	</p>
+	<div class="relatedpage"><a href="#isforceclassificationsetting">this - isForceClassificationSetting</a></div>
 	<h3 id="isforceclassificationsetting">isForceClassificationSetting</h3>
 	<p>
 		EntityやCBにおいて、区分値の関連付いたカラムのネイティブ型での設定メソッドの可視性を protected にするプロパティ。
@@ -209,12 +211,20 @@
 		<dt>デフォルト</dt><dd>false</dd>
 	</dl>
 	<p>
-		但し、DBFluteとは無関係のツールなどでEntityに対して設定処理を行う場合や、
+		ただし、DBFluteとは無関係のツールなどでEntityに対して設定処理を行う場合や、
 		既に区分値であることが保証されたパラメータの直接設定などにおいて注意が必要です。
 		そのような場合も必ず CDef (ENUM)経由での設定を行う必要があります。
 	</p>
 	<p>
-		一時的に有効にして、コンパイルエラー経由でネイティブ型での設定メソッドの利用箇所を特定するのにも利用できます。
+		また、もしDB上に区分値定義にない値が存在していてその値を検索した場合、
+		DBFluteも区分値メソッドを使って Entity にセットするため、該当する区分値がないという判断で Entity には null
+		がセットされます。よって、もし隠れ区分値などがある場合は、このプロパティは利用できません。
+		逆に、そのような隠れ区分値はデータ不備であると言い切れるなら(通常は言い切れる)、このプロパティを有効にした上で
+		isCheckSelectedClassification プロパティを有効にすると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="#ischeckselectedclassification">this - isCheckSelectedClassification</a></div>
+	<p>
+		ちなみに、このプロパティを一時的に有効にして、コンパイルエラー経由でネイティブ型での設定メソッドの利用箇所を特定するというツール的な使い方もできます。
 		(区分値をハードコードしている箇所を探すために)
 	</p>
 	<h3 id="isMakeEntityChaseRelation">isMakeEntityChaseRelation</h3>
