@@ -164,6 +164,9 @@ java.lang.IllegalStateException: The status code was illegal: abc
 		変なテストデータがあるのでしょうか？違う値をステータスコードとして扱ってしまってはいないでしょうか？
 		そのように追っていくことで、原因を突き止めていけるでしょう。
 	</p>
+	<p>
+		逆に、自分が例外を発生させる場合に、例外メッセージにどんな情報を入れておけば原因を追求しやすいのか、これがわかれば心温まる優しいメッセージを作ることができるでしょう。
+	</p>
 	<h3 id="nestedexception">ネストした例外を見逃さない</h3>
 	<p>
 		例外はネストしている可能性があります。例えば、以下のコードでは例外(Inner)が別の例外(Wrapper)にラップされています。
@@ -172,7 +175,7 @@ java.lang.IllegalStateException: The status code was illegal: abc
 <span class="keyword">public void</span> check() <span class="keyword">throws</span> Exception {
     <span class="keyword">try</span> {
         throwWrapperException();
-    } <span class="keyword">catch</span> (IllegalStateException e) {
+    } <span class="keyword">catch</span> (ExampleWrapperException e) {
         log(e);
     }
 }
@@ -180,13 +183,13 @@ java.lang.IllegalStateException: The status code was illegal: abc
 <span class="keyword">protected void</span> throwWrapperException() {
     <span class="keyword">try</span> {
         throwInnerException();
-    } <span class="keyword">catch</span> (IllegalStateException e) {
-        <span class="keyword">throw new</span> IllegalStateException(<span class="literal">"Wrapper Exception"</span>, e);
+    } <span class="keyword">catch</span> (ExampleInnerException e) {
+        <span class="keyword">throw new</span> ExampleWrapperException(<span class="literal">"Wrapper Exception"</span>, e);
     }
 }
 
 <span class="keyword">protected void</span> throwInnerException() {
-    <span class="keyword">throw new</span> IllegalStateException("Inner Exception");
+    <span class="keyword">throw new</span> ExampleInnerException(<span class="literal">"Inner Exception"</span>);
 }
 </code></pre>
 	<p>
@@ -292,7 +295,7 @@ java.lang.NullPointerException
 		nullのInteger型のラッパー型の変数に対して足し算や掛け算を行うと発生します。
 	</p>
 <pre><span class="codetitle">e.g. Wrapper Type Null Pointer @Java</span><code>
-Integer count = null;
+Integer count = <span class="keyword">null</span>;
 Integer plusOne = count + <span class="literal">1</span>; <span class="comment">// null pointer</span>
 </code></pre>
 	<p>

@@ -60,6 +60,7 @@
 				<li><a href="#alias">alias</a></li>
 				<li><a href="#comment">comment</a></li>
 				<li><a href="#sistercode">sisterCode</a></li>
+				<li><a href="#subitemmap">subItemMap</a></li>
 				<li><a href="#where">where</a></li>
 				<li><a href="#orderby">orderBy</a></li>
 				<li><a href="#exceptCodeList">exceptCodeList</a></li>
@@ -70,8 +71,9 @@
 			<ul>
 				<li><a href="#tableexample">テーブル区分値</a></li>
 				<li><a href="#implicitexample">暗黙の区分値</a></li>
-				<li><a href="#groupingexample">グルーピング定義</a></li>
+				<li><a href="#groupingmapexample">グルーピング定義</a></li>
 				<li><a href="#sisterexample">姉妹コード</a></li>
+				<li><a href="#subitemmapexample">独自の属性</a></li>
 				<li><a href="#sqlexpexample">テーブル区分値のSQL表現</a></li>
 			</ul>
 		</li>
@@ -230,7 +232,7 @@
 		とある複数の区分値が業務的な意味を持つような場合のグルーピング定義を指定します。
 		<span class="freecomment">@since 0.9.9.7A</span>
 	</p>
-	<div class="detailpage"><a href="../../../function/genbafit/implfit/classification/index.html#grouping">グルーピング判定</a></div>
+	<div class="detailpage"><a href="../../../function/genbafit/implfit/classification/index.html#groupingmap">グルーピング判定</a></div>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>グルーピング定義のmap (グループ名と区分値要素の指定)</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
@@ -243,7 +245,7 @@
 			</ul>
 		</dd>
 	</dl>
-	<div class="relatedpage"><a href="#groupingexample">this - Example - グルーピング定義</a></div>
+	<div class="relatedpage"><a href="#groupingmapexample">this - Example - グルーピング定義</a></div>
 	<h3 id="table">table</h3>
 	<p>
 		テーブル区分値を利用するときの該当するテーブル名を指定します。同時に該当区分値がテーブル区分値であることを示します。
@@ -377,6 +379,27 @@
 	<p>
 		※テーブル区分値では利用できません。
 	</p>
+	<h3 id="subitemmap">subItemMap</h3>
+	<p>
+		区分値に追加する独自の属性を指定します(暗黙の区分値のみ)。
+		<span class="freecomment">@since 0.9.9.3C</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html#subitemmap">現場フィット - 区分値 - 独自の属性</a></div>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>キー値と実際の値のマップ</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>全ての区分値要素に同じキーの属性が設定されている場合、CDefにそのキー名のメソッドが追加される</li>
+				<li>値としてmapやlist形式を利用しても、単なる文字列となるためパースが必要</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><a href="#subitemmapexample">this - Example - 独自の属性</a></div>
+	<p>
+		※テーブル区分値では利用できません。
+	</p>
 	<h3 id="where">where</h3>
 	<p>
 		テーブルから区分値を取得する際の絞り込み条件を指定します。(テーブル区分値専用)
@@ -483,7 +506,7 @@
     <span class="abbreviation">...</span>
 }
 </code></pre>
-	<h3 id="groupingexample">グルーピング定義</h3>
+	<h3 id="groupingmapexample">グルーピング定義</h3>
 <pre><span class="codetitle">e.g. サービスが利用可能なステータスのグルーピング定義 @classificationDefinitionMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     ; MemberStatus = <span class="keyword">list:</span>{
@@ -515,6 +538,27 @@
         ; <span class="keyword">map:</span>{
             code=0; name=False; alias=Unchecked; comment=フラグが立っていない
             ; sisterCode=false
+        }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="subitemmapexample">独自の属性</h3>
+<pre><span class="codetitle">e.g. 暗黙の区分値で姉妹コードを利用する例 {Flg} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; FooBar = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=独自の属性のExample; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; code=FOO; name=Foo; alias=Who; comment=Fooさん
+            ; subItemMap=map:{
+                ; priceType=ABC ; rank=2
+            }
+        }
+        ; <span class="keyword">map:</span>{
+            ; code=BAR; name=Bar; alias=Ver; comment=Barさん
+            ; subItemMap=map:{
+                ; priceType=XYZ ; rank=5
+            }
         }
     }
     <span class="abbreviation">...</span>
