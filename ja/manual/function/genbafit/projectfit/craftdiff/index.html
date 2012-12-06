@@ -46,14 +46,51 @@
 
 	<h2 id="overview">概要</h2>
 	<p>
+		HistoryHTMLやSchemaSyncCheck, AlterCheckなどの差分ロジックにおいて、独自の差分チェックを手作りすることができます。
 		<span class="freecomment">@since 1.0.0</span>
+	</p>
+	<p>
+		DBFluteの差分ロジックは、テーブルやカラム、プロシージャ(オプションにて)などを対象にしますが、トリガーや権限などはチェック対象ではありません。
+		そういったDBFluteのチェック対象外の要素を自由に追加することができます。また、マスタテーブルなどのデータもチェックできます。
+	</p>
+	<p>
+		"差分チェック対象を検索するSQL" を書いて所定の位置に配置しておくと、差分チェック時に実行され、
+		双方のスキーマの結果が比べられます。内部的には、検索結果がTSVファイルに出力され、そのTSVファイル同士が比較されます。
 	</p>
 
 	<h2 id="howto">手作りのやり方</h2>
 	<p>
+		craft-diff で始まり .sql で終わるファイルを、[DBFluteクライアント]/schema/craftdiff 配下に作成します。
+		まずは、単に craft-diff.sql という名前のファイルでOKです。多くなってきたら分割していきます。
+	</p>
+	<p>
+		そのSQLファイルの中で、差分チェック対象を検索するSQLを以下のルールに従って書きます。
+	</p>
+	<dl class="valuemainlist">
+		<dt>SQLの種類</dt><dd>select文であること (結果セットを戻すSQL)</dd>
+		<dt>ユニークキー</dt><dd>select句の最初のカラムはユニークな値のものを</dd>
+		<dt>差分対象データ</dt><dd>select句の二番目以降に差分対象のカラムを</dd>
+		<dt>おまじない</dt><dd>SQLの前に #df:assertEquals([差分タイトル名])# を</dd>
+	</dl>
+<pre><span class="codetitle">e.g. 会員ステータスのデータの差分をチェックするSQL @classificationDefinitionMap.dfprop</span><code>
+<span class="comment">-- #df:assertEquals(MemberStatus)#</span>
+<span class="keyword">select</span> MEMBER_STATUS_CODE, MEMBER_STATUS_NAME, DISPLAY_ORDER
+  <span class="keyword">from</span> MEMBER_STATUS
+;
+</code></pre>
+	<p>
+		上記の例では、会員ステータスという区分値系のテーブルの変更を監視するようにしています。
+		会員ステータスが追加されたり削除されたり、もしくはステータス名や表示順が変わったら差分として検知されます。
+		ただ、DESCRIPTIONカラムは含まれていないので、説明の内容が変わっても検知はされません。
+		あまり重要でないものを含めると差分ノイズになるので、バランス良くカラムを列挙しましょう。
+	</p>
+	<p>
+		検知された差分は、HistoryHTMLなどの差分HTMLの中で、通常の差分と同じように表示されます。
+	</p>
+	<p>
 		TODO jflute
 	</p>
-	
+
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
 		dbflute-guice-example では、実際に CraftDiff を使って独自の差分をチェックしています。
