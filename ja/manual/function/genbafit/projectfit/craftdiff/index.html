@@ -44,6 +44,8 @@
 			<ul>
 				<li><a href="#preparesql">SQLファイルの用意</a></li>
 				<li><a href="#dispdiff">差分結果の表示</a></li>
+				<li><a href="#detaildiff">細かい差分の確認</a></li>
+				<li><a href="#commonlogic">差分ロジックは共通</a></li>
 			</ul>
 		</li>
 		<li><a href="#immediatelyafter">SQLの追加や変更した直後</a></li>
@@ -75,8 +77,17 @@
 	<h3 id="preparesql">SQLファイルの用意</h3>
 	<p>
 		craft-diff で始まり .sql で終わるファイルを、[DBFluteクライアント]/schema/craftdiff 配下に作成します。
-		まずは、単に craft-diff.sql という名前のファイルでOKです。多くなってきたら分割していきます。
+		まずは、単に craft-schema.sql という名前のファイルでOKです。多くなってきたら分割していきます。
 	</p>
+<pre><span class="codetitle">e.g. craft-schema.sqlの配置 @Directory</span><code>
+[DBFluteClient]
+ |-dfprop
+ |-<span class="abbreviation">...</span>
+ |-schema
+ |  |-craftdiff
+ |     |-<span class="point">craft-schema.sql</span>
+ |-<span class="abbreviation">...</span>
+</code></pre>
 	<p>
 		そのSQLファイルの中で、差分チェック対象を検索するSQLを以下のルールに従って書きます。
 	</p>
@@ -84,12 +95,14 @@
 		<dt>SQLの種類</dt><dd>select文であること (結果セットを戻すSQL)</dd>
 		<dt>ユニークキー</dt><dd>select句の最初のカラムはユニークな値のものを</dd>
 		<dt>差分対象データ</dt><dd>select句の二番目以降に差分対象のカラムを</dd>
+		<dt>ソート順</dt><dd>指定なしでもいいが、ユニークキーがお奨め</dd>
 		<dt>おまじない</dt><dd>SQLの前に #df:assertEquals([差分タイトル名])# を</dd>
 	</dl>
 <pre><span class="codetitle">e.g. 会員ステータスのデータの差分をチェックするSQL @classificationDefinitionMap.dfprop</span><code>
 <span class="comment">-- #df:assertEquals(MemberStatus)#</span>
-<span class="keyword">select</span> MEMBER_STATUS_CODE, MEMBER_STATUS_NAME, DISPLAY_ORDER
+<span class="keyword">select</span> MEMBER_STATUS_CODE <span class="keyword">as</span> KEY, MEMBER_STATUS_NAME, DISPLAY_ORDER
   <span class="keyword">from</span> MEMBER_STATUS
+ <span class="keyword">order by</span> KEY
 ;
 </code></pre>
 	<p>
@@ -122,8 +135,43 @@
 	<p>
 		また、チェック対象データに改行が含まれている場合は、プロシージャの差分チェックのときと同じように、ハッシュ値として比較され表示されます。
 		これもまた、"何かが変わった" ということさえわかれば、あとはエクセルデータを見るなりDBを覗くなりいくらでも確認する方法があるという割り切りです。
+		また、この後の説明で述べますが、DBFluteが出力するTSVファイルで確認もすることができます。
 	</p>
 	<div class="relatedpage"><a href="../../../generator/task/doc/historyhtml.html#procedure">HistoryHTML - ストアドプロシージャの違い</a></div>
+	<h3 id="detaildiff">細かい差分の確認</h3>
+	<p>
+		改行が含まれるデータの表示はハッシュ値で割り切っていますが、細かく差分を見たい場合は、
+		DBFluteが差分チェックを実現するために出力しているTSVファイルを比べると良いでしょう。
+	</p>
+	<p>
+		差分チェックが行われると、DBFluteクライアントの schema/craftdiff 配下に、craft-meta-[title-name]-[next-or-previous].tsv
+		という形式でTSVファイルが出力されます。このTSVファイルには、差分チェックのSQLで検索された全てのデータが入っています。
+		DBFluteはこのTSVファイルを読み込んで差分をチェックしているのです。
+	</p>
+<pre><span class="codetitle">e.g. craft-schema.sqlの配置 @Directory</span><code>
+[DBFluteClient]
+ |-dfprop
+ |-<span class="abbreviation">...</span>
+ |-schema
+ |  |-craftdiff
+ |     |-<span class="point">craft-meta-MemberStatus-next.tsv</span>
+ |     |-<span class="point">craft-meta-MemberStatus-previous.tsv</span>
+ |     |-craft-schema.sql
+ |-<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		差分チェックのSQLの仕様でソート順が任意なのにユニークキーを推奨としているのは、このファイルを参照するときに見やすくなるからです。
+		(差分チェックではキー同士でマッピングするためソート順は関係ないですが)
+	</p>
+	<p>
+		ただし、HistoryHTMLの場合は直近のTSVファイルしか残っていないため、過去の細かい差分を確認するときは、
+		バージョン管理システムからこのTSVファイルを探すことになります。
+	</p>
+	<p>
+		また、こうやって細かく差分が確認できるため、ストアドプロシージャの差分も CraftDiff
+		でやってしまうという選択肢もあります。(DBFluteのプロシージャ差分の機能をOFFにして)
+	</p>
+	<h3 id="commonlogic">差分ロジックは共通</h3>
 	<p>
 		これらの差分チェックは、HistoryHTML, SchemaSyncCheck, AlterCheck
 		などの差分ロジック全てに反映されます。SQLを書いて配置するだけで共通の差分ロジックとなります。
@@ -147,17 +195,19 @@
 		を指定することで、その環境タイプだけで実行されるSQLファイルとなります。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/environmenttype.html#envvar">環境タイプごとの dfprop - 環境タイプの設定(環境変数)</a></div>
-<pre><span class="codetitle">e.g. diffworldという環境タイプのときのみ差分をチェックするSQL @craft-diff.sql</span><code>
+<pre><span class="codetitle">e.g. diffworldという環境タイプのときのみ差分をチェックするSQL @craft-schema.sql</span><code>
 <span class="comment">-- #df:checkEnv(diffworld)#</span>
 
 <span class="comment">-- #df:assertEquals(MemberStatus)#</span>
-<span class="keyword">select</span> MEMBER_STATUS_CODE, MEMBER_STATUS_NAME, DISPLAY_ORDER
+<span class="keyword">select</span> MEMBER_STATUS_CODE <span class="keyword">as</span> KEY, MEMBER_STATUS_NAME, DISPLAY_ORDER
   <span class="keyword">from</span> MEMBER_STATUS
+ <span class="keyword">order by</span> KEY
 ;
 
 <span class="comment">-- #df:assertEquals(<span class="abbreviation">...</span>)#</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">order by</span> <span class="abbreviation">...</span>
 ;
 <span class="abbreviation">...</span>
 </code></pre>
@@ -168,7 +218,7 @@
 		システムのテーブル(Oracleならデータディクショナリ)を検索することができれば、スキーマ内の "権限"
 		も差分チェックすることができます。
 	</p>
-<pre><span class="codetitle">e.g. 権限を差分チェックするSQL (Oracle) @craft-diff.sql</span><code>
+<pre><span class="codetitle">e.g. 権限を差分チェックするSQL (Oracle) @craft-schema.sql</span><code>
 <span class="comment">-- #df:assertEquals(Dic_SystemPrivilege)#</span>
 <span class="keyword">select</span> USERNAME || '.' || PRIVILEGE <span class="keyword">as</span> KEY, ADMIN_OPTION
   <span class="keyword">from</span> USER_SYS_PRIVS
@@ -176,7 +226,7 @@
 ;
 
 <span class="comment">-- #df:assertEquals(Dic_TablePrivilege)#</span>
-<span class="keyword">select</span> OWNER || '.' || TABLE_NAME || '(' || PRIVILEGE || ')' <span class="keyword">as</span> KEY, GRANTABLE, HIERARCHY
+<span class="keyword">select</span> OWNER || '.' || TABLE_NAME || '.' || PRIVILEGE <span class="keyword">as</span> KEY, GRANTABLE, HIERARCHY
   <span class="keyword">from</span> USER_TAB_PRIVS
  <span class="keyword">order by</span> KEY
 ;
@@ -191,7 +241,7 @@
 		改行が含まれていること必至なので、差分結果はハッシュ値ですが、とにかく変わったということがわかれば、
 		あとは、ReplaceSchemaのDDLを比べるとか、バージョン管理システムの差分を調べるとか、何かしらのアプローチで違いを把握することはできるはずです。
 	</p>
-<pre><span class="codetitle">e.g. VIEWのSQLを差分チェックするSQL (Oracle) @craft-diff.sql</span><code>
+<pre><span class="codetitle">e.g. VIEWのSQLを差分チェックするSQL (Oracle) @craft-schema.sql</span><code>
 <span class="comment">-- #df:assertEquals(Dic_ViewSql)#</span>
 <span class="keyword">select</span> VIEW_NAME <span class="keyword">as</span> KEY, TEXT_LENGTH, TEXT
   <span class="keyword">from</span> USER_VIEWS
