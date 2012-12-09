@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>日時の汎用的なFromTo条件 | DBFlute</title>
+	<title>日時の汎用的なFromTo条件 (FromTo) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -240,8 +240,22 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 
 	<h2 id="orisnull">もしくは null</h2>
 	<p>
-		TODO jflute
+		例えば、"1969年までに生まれた、もしくは null" というような条件を設定できます。
+		不明な値(null)を業務的に小さい方に含めたり、はたまた大きい方に含めたりする場合に有効です。
 	</p>
+<pre><span class="codetitle">e.g. fromDate を LessThan に変更して FromTo {BIRTHDATE} @Java</span><code>
+Date toDate = <span class="abbreviation">...</span> <span class="comment">// 1969/01/01</span>
+cb.query().setBirthdate_FromTo(<span class="keyword">null</span>, toDate
+        , <span class="keyword">new</span> FromToOption().compareAsYear().<span class="point">orIsNull()</span>);
+
+<span class="comment">// e.g. (BIRTHDATE < '1970-01-01' or BIRTHDATE is null)</span>
+</code></pre>
+	<p>
+		OrScopeQuery を使っても同じことは実現できますが、こちらの方がすっきり書けます。また、OrScopeQuery
+		は、AndPart の中でさらに OrScopeQuery
+		をネストさせることができないため、AndPart 内でこういった or 条件を利用する必要がある場合に有効です。
+	</p>
+	<div class="relatedpage"><a href="./orscopequery.html">OrScopeQuery</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>
