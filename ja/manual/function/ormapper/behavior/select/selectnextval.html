@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Behavior,selectEntity,一件検索,nullあり,ConditionBean" />
+	<meta name="keywords" content="DBFlute,Behavior,selectNextVal,シーケンス検索,nextval(),ConditionBean" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>selectEntity(cb) (一件検索) | DBFlute</title>
+	<title>selectNextVal(cb) (シーケンス検索) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>selectEntity(cb)</h1>
+	<h1>selectNextVal(cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -53,90 +53,64 @@
 			<ul>
 				<li><a href="#argument">引数</a></li>
 				<li><a href="#result">戻り値</a></li>
-				<li><a href="#exception">例外</a></li>
 				<li><a href="#override">オーバーライド</a></li>
 			</ul>
 		</li>
+		<li><a href="#sequencecache">シーケンスキャッシュなら</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		<em class="keyword">ConditionBean で null を戻す可能性のある一件検索</em>
-		をします。検索結果が存在する場合としない場合で業務的な処理を分岐させる必要があるような場合に利用します。
+		<em class="keyword">シーケンスの次の番号を検索</em> をします。
 	</p>
 	<p>
-		検索結果が存在しなかったら例外になってもいい(条件付与のバグ、データ不整合、すれ違いによる削除など)、という場合は、このメソッドではなく
-		selectEntityWithDeletedCheck() を利用して下さい。 
+		シーケンスに関連付いたテーブルにのみ生成されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/sequencedefinition/index.html">sequenceDefinitionMap.dfprop</a></div>
+	<p>
+		ただ、insert時は、EntityのPKの値が空っぽであれば自動的にシーケンスが取得されて、Entityにセットされてinsertされるので、
+		このメソッドを直接利用する場面は多くはありません。insert前にシーケンスの値を取得して何かしらの処理を行う場合に有効です。
 	</p>
 	<p>
-		会話上では、<em class="keyword">せれくとえんてぃてぃ</em> と表現します。
+		会話上では、<em class="keyword">せれくとねくすとばる</em> と表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		Behaviorの <em class="keyword">selectEntity()</em>
-		を呼び出し、ConditionBeanを指定します。
+		Behaviorの <em class="keyword">selectNextVal()</em> を呼び出します。
 	</p>
-<pre><span class="codetitle">e.g. selectEntity()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
-<span class="attribute">memberBhv</span>.selE <span class="comment">// .selE と打って enter</span>
+<pre><span class="codetitle">e.g. selectNextVal()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selNV <span class="comment">// .selNV と打って enter</span>
 --
 <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectEntity(cb)</span>;
+<span class="attribute">memberBhv</span>.<span class="point">selectNextVal()</span>;
 --
-Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
-<span class="keyword">if</span> (member != null) { 
-    <span class="abbreviation">...</span> <span class="comment">// 存在した場合の処理</span>
-} <span class="keyword">else</span> {
-    <span class="abbreviation">...</span> <span class="comment">// 存在しなかった場合の処理</span>
-}
+<span class="keyword">Integer</span> count = <span class="attribute">memberBhv</span>.selectNextVal();
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの ConditionBean となります。
-	</p>
-	<p>
-		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
-		検索条件がない検索をする場合でも、必ずConditionBeanのインスタンスが必要です。
+		なし
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの Entity となります。
+		そのテーブルの(単一の)PKカラムの型と同じ(IntegerやLongなど)。
 	</p>
-	<p>
-		検索結果が一件もない場合は、null となります。
-	</p>
-	<h3 id="exception">例外</h3>
-	<dl class="textlist">
-		<dt>絞り込み条件が存在しなかった場合</dt>
-		<dd>org.seasar.dbflute.exception.SelectEntityConditionNotFoundException</dd>
-		<dd>
-			この例外は、指定された ConditionBean に絞り込み条件が存在しない場合に例外となります。Query
-			で絞り込み条件が設定されている(cb.hasWhereClause() が true になる)、もしくは FetchFirst
-			で 1 が設定されている必要があります。
-			<div class="relatedpage"><span class="working"><!-- <a href="../../conditionbean/sidebar/haswhereorderby.html"> -->ConditionBean - HasWhereOrderBy<!-- </a> --></span></div>
-			<div class="relatedpage"><a href="../../conditionbean/sidebar/fetchfirst.html">ConditionBean - FirstFirst</a></div>
-		</dd>
-		<dd>
-			"条件忘れ" や "外部から渡されたデータが予期せぬ null" の場合に、全件検索を未然に防ぎます。
-			たとえテスト環境だとしても、例えば100万件以上のテーブルに全件検索してしまうと処理がなかなか戻ってきませんので、
-			事前のチェックで比較的早い段階で例外になり検知することができます。
-		</dd>
-		<dt>検索結果が複数件の場合</dt>
-		<dd>org.seasar.dbflute.exception.EntityDuplicatedException</dd>
-		<dd>
-			この例外は、複数件(二件以上)の場合に発生します。一件検索は、必ず結果が一件になる絞り込み条件を前提としています。
-			その際、全てのデータを取得はせず、二件目がフェッチされた瞬間に例外になるため、比較的早い段階で例外になり検知することができます。
-		</dd>
-	</dl>
 	<h3 id="override">オーバーライド</h3>
 	<p>
 		selectList() と同じような要領となります。
 	</p>
 	<div class="detailpage"><a href="./selectlist.html#override">selectList(cb) - オーバーライド</a></div>
+
+	<h2 id="sequencecache">シーケンスキャッシュなら</h2>
+	<p>
+		関連付いているシーケンスがキャッシュされているならば(シーケンスキャッシュの設定がされていれば)、
+		このメソッドは、そのシーケンスキャッシュから値を取得します。キャッシュがなければその場でキャッシングしますし、キャッシュがあればその値が戻ります。
+	</p>
+	<div class="relatedpage"><a href="../../../genbafit/runtimefit/sequencecache/index.html">現場フィット - シーケンスキャッシュ</a></div>
 
 </div>
 </div>
