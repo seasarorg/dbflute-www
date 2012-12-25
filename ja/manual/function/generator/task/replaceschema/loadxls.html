@@ -47,8 +47,10 @@
 				<li><a href="#xlscelltypechar">全てのセルの形式を "文字列" に</a></li>
 				<li><a href="#xlsdatatemplate">エクセルデータのテンプレートを活用</a></li>
 				<li><a href="#xlsfilegrain">エクセルファイルの粒度は？</a></li>
+				<li><a href="#xlsdataresult">エクセルデータの登録結果 (XlsDataResult)</a></li>
 			</ul>
 		</li>
+		<li><a href="#relativedate">日付を相対値で登録 (RelativeDate)</a></li>
 		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a></li>
 		<li><a href="#tablenamemap">エクセルシート名制限回避の設定(dataprop)</a></li>
 		<li><a href="#nottrimcolumnmap">トリムしないカラムの指定(dataprop)</a></li>
@@ -118,6 +120,7 @@ playsql
 				<li>空文字(トリムされて空文字も含む)のセルは "null" として扱われる {<a href="#emptystringcolumnmap">オプションあり</a>}</li>
 				<li>Boolean型のカラムは、"1"・"t"・"true"をtrue、"0"・"f"・"false"をfalseとして扱う</li>
 				<li>バイナリデータはバイナリファイルへのパスを指定する {<a href="./loaddata.html#binary">バイナリデータの登録</a>}</li>
+				<li>日付カラムで $sysdate.addDay(7) という風に書いて <a href="#relativedate">現在日時の相対値</a> の指定も可 <span class="freecomment">@since 1.0.1</span></li>
 			</ul>
 		</dd>
 		<dt>その他補足</dt>
@@ -166,6 +169,61 @@ playsql
 		ただ、シートが多くなり過ぎると管理がしづらくなりますので、適度にファイルを分割して管理すると良いでしょう。
 		(例えば、業務上のカテゴリで分割：会員系、購入系、商品系など)
 	</p>
+	<h3 id="xlsdataresult">エクセルデータの登録結果 (XlsDataResult)</h3>
+	<p>
+		ReplaceSchema実行後に、エクセルデータの登録結果のファイルが出力されます<span class="freecomment">(@since 1.0.1)</span>。
+		エクセルファイルと同じディレクトリに <em class="keyword">xls-data-result.dfmark</em> という名前で出力されます。
+	</p>
+	<p>
+		このファイルを開くと、<em class="keyword">どのエクセルファイルにどのテーブルのデータが定義されているか</em>、どのテーブルが何レコード定義されているかを確認することができます。
+	</p>
+<pre><span class="codetitle">e.g. 20-member.xlsと30-product.xlsのテーブルデータの内訳 @xls-data-result.dfmark</span><code>
+
+* * * * * * * * * *
+*                 *
+* Xls Data Result *
+*                 *
+* * * * * * * * * *
+data-directory: playsql/data/ut/xls
+
+[20-member.xls]
+  MEMBER (20)
+  MEMBER_ADDRESS (20)
+  MEMBER_LOGIN (56)
+  MEMBER_SECURITY (20)
+  MEMBER_SERVICE (20)
+  MEMBER_WITHDRAWAL (4)
+
+[30-product.xls]
+  PRODUCT (20)
+  PURCHASE (60)
+</code></pre>
+
+	<h2 id="relativedate">日付を相対値で登録 (RelativeDate)</h2>
+	<p>
+		セルに書かれた固定の日付ではなく、ReplaceSchemaが実行時の現在日時から計算された相対的な日付(RelativeDate)の値を登録することができます。
+		<span class="freecomment">@since 1.0.1</span>
+	</p>
+	<p>
+		エクセルのセルに <em class="keyword">$sysdate</em> と書くと現在日時が登録され、<em class="keyword">$sysdate.addDay(7)</em>
+		と書くと現在日時から7日後が登録されます。<em class="keyword">$sysdate.addDay(7).moveToDayTerminal()</em>
+		と書くと現在日時から7日後の最初の瞬間(時分秒が00:00:00)が登録されます。このような形で、様々な日付操作ができます。
+	</p>
+	<dl class="keymainlist">
+		<dt>addDay(int)</dt><dd>日を進める (マイナス値なら戻る)</dd>
+		<dt>addMonth(int)</dt><dd>月を進める (マイナス値なら戻る)</dd>
+		<dt>addYear(int)</dt><dd>年を進める (マイナス値なら戻る)</dd>
+		<dt>add...(int)</dt><dd>...</dd>
+		<dt>moveToDayJust()</dt><dd>その日の最初の瞬間 (時分秒が00:00:00)</dd>
+		<dt>moveToDayTerminal()</dt><dd>その日の最後の瞬間 (時分秒が23:59:59)</dd>
+		<dt>moveToMonthJust()</dt><dd>その月の最初の瞬間 (1日の時分秒が00:00:00)</dd>
+		<dt>moveToMonthTerminal()</dt><dd>その月の最後の瞬間 (28, 29, 30, 31日の時分秒が23:59:59)</dd>
+		<dt>moveTo...()</dt><dd>...</dd>
+	</dl>
+	<p>
+		ここで利用できるメソッドは、DBFluteランタイムの HandyDate のメソッドです。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/runtime/helper/handydate.html"> -->DBFluteランタイム - HandyDate<!-- </a> --></span></div>
 
 	<h2 id="convertvaluemap">値のコンバート設定(dataprop)</h2>
 	<p>
