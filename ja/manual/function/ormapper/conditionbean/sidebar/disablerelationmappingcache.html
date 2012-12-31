@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,ConditionBean,allowInnerJoinAutoDetect,内部結合" />
+	<meta name="keywords" content="DBFlute,ConditionBean,disableRelationMappingCache" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>InnerJoinAutoDetect | DBFlute</title>
+	<title>DisableRelationMappingCache | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,14 +37,13 @@
 </div>
 
 <div id="content">
-	<h1>InnerJoinAutoDetect</h1>
+	<h1>DisableRelationMappingCache</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
-				<li><a href="#detectlogic">判別ロジック</a></li>
-				<li><a href="#dbfluteconfig">一律の設定</a></li>
-				<li><a href="#frombeginning">リリース前なら一律</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
+				<li><a href="#alreadyfixed">この機能が必要になった問題は既に直った</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -54,93 +53,82 @@
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
-				<li><a href="#unionsubquery">Union や SubQuery では</a></li>
-				<li><a href="#nestedrelation">ネストしたリレーションでは</a></li>
+				<li><a href="#basicspec">基本仕様</a></li>
+				<li><a href="#deprecated">非推奨メソッド</a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
 	<p>
-		<em class="keyword">状況依存</em> のスポット対応の機能です。普段は意識する必要はありません。
+		アーキテクト向けの機能です。
 	</p>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		手動で内部結合を指定する (Manual)InnerJoin とは別に、InnerJoin
-		可能な結合、つまり外部結合である必要のない外部結合を自動判別する機能があります<span class="freecomment">(@since 0.9.8.8)</span>。
-		ただし、その自動判別のロジックは完全に全ての InnerJoin 可能な結合を判別するわけではなく、比較的判別が簡易で安全なものだけを対象とします。
-		それゆえ、利用する場合は一度テスト実行でログを確認して要件を満たしているかどうかを確認する必要があります。
-		チューニングのためにピンポイントで内部結合を利用するのであれば、固定的な指定となる (Manual)InnerJoin の方がお奨めです。
-	</p>
-	<div class="relatedpage"><a href="../query/manualinnerjoin.html">(Manual)InnerJoin</a></div>
-	<h3 id="detectlogic">判別ロジック</h3>
-	<p>
-		判別ロジックは、そのリレーションを使って where 句での絞り込み条件が指定されているかどうかを基本としています。
-		ただし、IsNull や OrScopeQuery
-		で指定された条件に関しては、外部結合を前提とする絞り込み条件となる可能性があるため判別要素に含まれません。
+		関連テーブルのEntityのインスタンスの(一回のDBアクセス内における)キャッシュを利用せずに、同じPK値だとしても別々のインスタンスを生成してパフォーマンスを落としてしまう機能です<span class="freecomment">(@since 1.0.1)</span>。
+		ちなみに、ここでいうキャッシュは一回のDBアクセス内における短い期間の一時的なキャッシュであり、他のスレッドや他のDBアクセスで共有されるキャッシュではありません。
 	</p>
 	<p>
-		また、FKカラムの NotNull 制約など依存型リレーションシップなのか非依存型リレーションシップなのかなどの要素は確実性を保証するのがとても難しいため考慮していません。
-		そして、判別ロジックはバージョンごとに変わる可能性があるので、厳密な仕様はドキュメント化しません。
+		setupSelect(Relation)を使って取得されるmany-to-oneの関連テーブル、例えば、会員に対する会員ステータスは、
+		複数の会員Entityから同じステータスの会員ステータスEntityを参照します。
+		そのとき、同じステータスであれば、会員ステータスEntityのインスタンスは全て同じインスタンスとなります。
+		これは、DBFluteのマッピング処理にて関連テーブルのEntityがキャッシュされているからです。
 	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
-	<h3 id="dbfluteconfig">一律の設定</h3>
 	<p>
-		この機能を利用せず一律の設定で自動判別したい場合は、littleAdjustmentMap.dfprop の isInnerJoinAutoDetect
-		を true にすることで、全ての ConditionBean において反映されます。
+		このキャッシュを利用せずに、同じ会員ステータスであってもインスタンスをそれぞれ別にさせることができる、というのか DisableRelationMappingCache です。
+		他の機能と相性が悪い可能性があります。例えば、LoadReferrerで親テーブルの子テーブル(会員ステータスの会員ログイン)を取得しようとしたとき、
+		同じ会員ステータスでもインスタンスが違うことが原因で、全ての会員ステータスEntityに会員ログインが紐付くとは限りません。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isinnerjoinautodetect">dfprop - isInnerJoinAutoDetect</a></div>
+	<p>
+		万が一でも、使いたくない機能ですが、万が一キャッシュをすることがアプリにとって都合が悪い、もしくは、キャッシュがあることで
+		DBFlute 内部のマッピングのロジックに不都合がある場合に、取り急ぎの回避的な用途で利用できます。
+	</p>
+	<p>
+		ディベロッパー向けに思えますが、アーキテクトへの相談無しに利用してはいけません。そういう意味で、"アーキテクト向けの機能" と謳っています。
+	</p>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。自分を斬りつけて最も痛い思いをする可能性のある機能です。
+		意味もなくこのメソッドを呼んではいけません。
+	</p>
 	<div class="inucolumn">
-		<h3 id="frombeginning">リリース前なら一律</h3>
+		<h3 id="alreadyfixed">この機能が必要になった問題は既に直った</h3>
 		<p>
-			DBMSによっては left outer join がパフォーマンスのネックになることがあります。
-			DB側で自動判別してくれればとは思ってしまいますが、なかなかそうなってくれないこともあります。
+			この機能が必要になった問題は、この機能が反映された同じバージョンで既に直っています。
+			よって、この機能は本当に不要と言えるかもしれませんが、念のため残しました。
 		</p>
 		<p>
-			そのアプリケーションがリリース前、つまり、運用開始前なのであれば、一律の設定で InnerJoin を自動判別させるようにすると良いでしょう。
-			幾つかのパフォーマンス問題が未然に防げればそれに越したことはありません。
+			業務的many-to-oneで、基点テーブル側のFKカラムが複合PKの関連テーブルに対して足りてなくて(A, BというPKカラムがあって、基点テーブルがAに対するカラムしか持っていない)、
+			別の関連テーブルのカラム(Bに対応するカラム)と複合的に合わせて初めて参照することができるパターン。
+			fixedConditionに別の関連テーブルのカラムを使った結合条件を足して many-to-one とするわけですが、
+			localColumnNameのカラム(ここではAカラム)だけではキャッシュのキーにならないため、マッピングがずれる問題がありました。
+			言葉で説明しても「ピン」と来ないかもしれません。そのくらいレアなケースです。
 		</p>
 		<p>
-			未然に防がれてしまうと、DBFluteとしては InnerJoinAutoDetect という機能がうれしいのかどうか、
-			どれほど効果がある機能なのか、ツールとしての価値がわかりにくくはなってしまい、プロモーションがやりづらいのですがそれは仕方のないことでしょう。
-		</p>
-		<p>
-			また、この機能がどれほど正確に作られているのか!?
-			それが利用側としては不安に思うところでしょう。概要でも述べていますが、ちょっとでも不安要素がある場合は inner join
-			にはしていません。「100% inner join でOK」という確証がある場合のみ、と安全側に寄せたロジックにしています。
-			この機能に関するテストケースも、他の機能よりもかなり多めに用意して確認をしています。
-			また、この機能を一律の設定で有効にした、テーブルの数が200以上規模の開発で利用されていて運用できているのを少なくともjfluteは知っています。
+			この問題は、既に解決されました。キャッシュのキーハンドリングのロジックを変更したことで、
+			キャッシュを有効にしたままでも、このレアケースに対応できるようにしました。
+			当然、通常パターンを含むそれ以外のパターンに影響がないことを前提での修正です(テストケースもさらに増やしました)。
 		</p>
 	</div>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
-		絞り込み条件などを設定する前に、ConditionBean の allowInnerJoinAutoDetect() を呼び出します。
+		disableRelationMappingCache() を呼び出します。
 	</p>
-<pre><span class="codetitle">e.g. ConditionBeanに絞り込み条件が設定されているかどうか (Eclipseでコード補完) @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.allInJ <span class="comment">// .allInJ と打って enter</span>
---
-cb.<span class="point">allowInnerJoinAutoDetect()</span>
-cb.setupSelect_MemberStatus();
-cb.query.queryMemberStatus()<span class="abbreviation">...</span>
-</code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>
+	<h3 id="basicspec">基本仕様</h3>
+	<dl class="textlist">
+		<dt>引数の指定</dt>
+		<dd>
+			なし
+		</dd>
+	</dl>
+	<h3 id="deprecated">非推奨メソッド</h3>
 	<p>
-		メソッドを呼び出した後の Query 呼び出しのみ設定が有効になります。
-	</p>
-	<h3 id="unionsubquery">Union や SubQuery では</h3>
-	<p>
-		Union や SubQuery などの ConditionBean にも設定は継承されます。
-		ただし、リレーションの判別処理はそれぞれ独立しているため、例えばメインのSQL上で inner join
-		になったリレーションも、UnionのSQL上ではそのようになるとは限りません。
-	</p>
-	<h3 id="nestedrelation">ネストしたリレーションでは</h3>
-	<p>
-		ネストしたリレーションが内部結合対象となった場合、そのリレーションを辿る途中のリレーションも内部結合となります。
-		(SQLの文法的にそのように判断しても問題ないため)
+		deprecated になっています。将来的に削除されるわけではありませんが、"安易に使ってくれるな" ということを示します。
 	</p>
 
 </div>
