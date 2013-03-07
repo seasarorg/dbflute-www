@@ -112,15 +112,26 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 	</p>
 	<div class="detailpage"><a href="../../../../reference/dfprop/additionalforeignkey/index.html#fixedcondition">additionalForeignKeyMap.dfprop - fixedCondition</a></div>
 <pre><span class="codetitle">e.g. 会員から会員住所情報への有効期間条件付きのFK @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
-     <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
-    ; fixedSuffix = AsValid
-}
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
+         <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+     <span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+        ; fixedSuffix = AsValid
+        ; comment = <span class="comment">relation of valid address for the specified target date</span> 
+    }
+<span class="abbreviation">...</span>
 </code></pre>
+	<p>
+		fixedConditionのインデントがそのままSQLに反映されます。
+		二つ目の条件の and を上記のExampleコードの位置で書けば(半角空白が5つ)、SQL上で綺麗に並びます。
+	</p>
+	<p>
+		commentの内容は、JavaDocに反映されます。
+		必須ではありませんが、業務的な一行コメントを入れておくとディベロッパーの迷いも消えるでしょう。
+	</p>
 	<h3 id="referrer">一方通行のリレーション</h3>
 	<p>
 		この業務的one-to-oneは、一方通行のリレーションであり、ここで設定した one-to-one
@@ -134,12 +145,15 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		のリレーション関連のメソッドにおいて、メソッドの引数にて条件値を指定できるようになります(指定する必要があります)。
 	</p>
 <pre><span class="codetitle">e.g. バインド変数コメントを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
-    <span class="abbreviation">...</span>
-    ; fixedCondition =
-     <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
- and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
-}
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+        <span class="abbreviation">...</span>
+        ; fixedCondition =
+         <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+     <span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+        <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. バインド変数を指定する SetupSelect {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 Date targetDate = <span class="abbreviation">...</span>;
@@ -229,13 +243,16 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		$localTable、リレーション名は memberWithdrawalAsOne と指定します。
 	</p>
 <pre><span class="codetitle">e.g. 参照元テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="abbreviation">...</span> &gt;= <span class="point">$$over($localTable.memberWithdrawalAsOne)$$</span>.WITHDRAWAL_DATETIME
-    ; fixedSuffix = AsValid
-}
+        ; fixedSuffix = AsValid
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		例えば、会員と会員ログイン情報との関係で、会員ログイン情報経由の会員ステータスの表示順が 2
@@ -244,13 +261,16 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		名は、参照先テーブルと同じものになります。
 	</p>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを利用 @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="point">$$over($foreignTable.memberStatus)$$</span>.DISPLAY_ORDER = 2
-    ; fixedSuffix = AsValid
-}
+        ; fixedSuffix = AsValid
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを利用する時のSQL @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
@@ -268,13 +288,16 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		名で指定できるようになります。インラインビューの中では select 句で as を使って alias 名が宣言されます。
 	</p>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを alias 名で扱う @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_LOGIN_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="point">$$over($foreignTable.memberStatus, DISPLAY_ORDER)$$</span>.STATUS_ORDER = 2
-    ; fixedSuffix = AsValid
-}
+        ; fixedSuffix = AsValid
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 参照先テーブルの Foreign テーブルのカラムを alias 名で扱うときのSQL @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
@@ -299,22 +322,28 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		(省略記法は、この場合のみ利用可能です)
 	</p>
 <pre><span class="codetitle">e.g. Referrer テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="abbreviation">...</span>_END_DATE &gt;= <span class="point">$$over(PURCHASE)$$</span>.PURCHASE_DATETIME
-    ; fixedSuffix = AsValid
-}
+        ; fixedSuffix = AsValid
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. Referrer の Foreign テーブルのカラムを利用 (基点は PURCHASE 前提)  @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="abbreviation">...</span>_END_DATE &gt;= <span class="point">$$over(PURCHASE.product.productStatus)$$</span>.UPDATE_DATETIME
-    ; fixedSuffix = AsValid
-}
+        ; fixedSuffix = AsValid
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		一つの業務的one-to-oneに対して、(OverRelationでない)バインド変数利用と基点テーブル限定パターンを両方使う必要がある場合は、fixedSuffix
@@ -346,17 +375,20 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		そのリレーションは、固定条件(fixedCondition)で相関サブクエリを利用することで実現できます。
 	</p>
 <pre><span class="codetitle">e.g. 最終ログインのレコードに対する業務的one-to-one(導出的one-to-one) @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
 <span class="keyword">select</span> max(login.LOGIN_DATETIME)
   <span class="keyword">from</span> MEMBER_LOGIN login
  <span class="keyword">where</span> login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
 )<span class="attribute">$$sqend$$</span>
-    ; fixedSuffix = AsLatest
-}
+        ; fixedSuffix = AsLatest
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		このようにすると、SQLでは left outer join の on 句の条件の中に相関サブクエリが展開され、最終ログインのレコードを取得できます。
@@ -369,18 +401,21 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/oracle/index.html#derivedrelation"> -->DBMSごとの取扱い - Oracle - 導出的one-to-one<!-- </a> --></span></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/postgresql/index.html#derivedrelation"> -->DBMSごとの取扱い - PostgreSQL - 導出的one-to-one<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. 最終ログインのレコードに対する業務的one-to-one(導出的one-to-one) @additionalForeignKeyMap.dfprop</span><code>
-; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
-    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-    ; fixedCondition =
+<span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_LOGING_LATEST = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
 <span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
 <span class="keyword">select</span> max(login.LOGIN_DATETIME)
   <span class="keyword">from</span> MEMBER_LOGIN login
  <span class="keyword">where</span> login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
 )<span class="attribute">$$sqend$$</span>
-    ; fixedSuffix = AsLatest
-    ; <span class="point">fixedInline</span> = <span class="keyword">true</span>
-}
+        ; fixedSuffix = AsLatest
+        ; <span class="point">fixedInline</span> = <span class="keyword">true</span>
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		インラインビューでも文法上許されないDBMSの場合は、この機能は利用できません。
@@ -397,12 +432,15 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 		<span class="freecomment">(ExampleDBで合致するテーブルがないので、FOOとBARを例にします)</span>
 	</p>
 <pre><span class="codetitle">e.g. 自テーブルの種別を固定にして業務的many-to-one @additionalForeignKeyMap.dfprop</span><code>
-; FK_FOO_BAR = <span class="keyword">map:</span>{
-    ; localTableName  = FOO    ; foreignTableName  = BAR
-    ; localColumnName = GENERAL_ID ; foreignColumnName = BAR_ID
-    ; fixedCondition = <span class="attribute">$$localAlias$$</span>.FOO_TYPE = <span class="comment">/*$cls(FooType.Bar)*/</span>null
-    ; fixedSuffix = AsBar
-}
+<span class="abbreviation">...</span>
+    ; FK_FOO_BAR = <span class="keyword">map:</span>{
+        ; localTableName  = FOO    ; foreignTableName  = BAR
+        ; localColumnName = GENERAL_ID ; foreignColumnName = BAR_ID
+        ; fixedCondition = <span class="attribute">$$localAlias$$</span>.FOO_TYPE = <span class="comment">/*$cls(FooType.Bar)*/</span>null
+        ; fixedSuffix = AsBar
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		ただしこの場合、FOOからBARへの関連は作成されますが、BARからFOOへの逆参照は作成されません。
@@ -412,13 +450,16 @@ cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnAddr
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/behavior/select/loadreferrer.html">Behavior - LoadReferrer</a></div>
 <pre><span class="codetitle">e.g. 関連テーブルの種別を固定にして業務的many-to-one @additionalForeignKeyMap.dfprop</span><code>
-; FK_FOO_BAR = <span class="keyword">map:</span>{
-    ; localTableName  = FOO    ; foreignTableName  = BAR
-    ; localColumnName = BAR_ID ; foreignColumnName = BAR_ID
-    ; fixedCondition = <span class="attribute">$$foreignAlias$$</span>.BAR_TYPE = <span class="comment">/*$cls(BarType.Foo)*/</span>null
-    ; fixedSuffix = AsBar
-    ; <span class="point">fixedReferrer</span> = <span class="keyword">true</span>
-}
+<span class="abbreviation">...</span>
+    ; FK_FOO_BAR = <span class="keyword">map:</span>{
+        ; localTableName  = FOO    ; foreignTableName  = BAR
+        ; localColumnName = BAR_ID ; foreignColumnName = BAR_ID
+        ; fixedCondition = <span class="attribute">$$foreignAlias$$</span>.BAR_TYPE = <span class="comment">/*$cls(BarType.Foo)*/</span>null
+        ; fixedSuffix = AsBar
+        ; <span class="point">fixedReferrer</span> = <span class="keyword">true</span>
+        ; comment = <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		このようにすることで、BAR側で ExistsReferrer や LoadReferrer などが利用できます。
