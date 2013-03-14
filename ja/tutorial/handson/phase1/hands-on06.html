@@ -104,7 +104,8 @@
 	</p>
 	<h3 id="makelogic">ロジックの作成</h3>
 	<p>
-		そして、以下のロジックを作成してテストしてみてください。実装しながら、それぞれのカラムに対応するメソッドの
+		それでは唐突ですが、JavaDoc上にDBコメントがあるかどうかを確認するために実装してみましょう。
+		以下のロジックを作成してテストしてみてください。実装しながら、それぞれのカラムに対応するメソッドの
 		JavaDoc コメントを確認してみてください。特に別名は表示されていないはずです。
 	</p>
 	<dl class="textlist">
@@ -115,7 +116,7 @@
 				<li>指定された suffix で会員名称を後方一致検索</li>
 				<li>会員名称の昇順で並べる</li>
 				<li>suffixが無効な値なら例外: IllegalArgumentException</li>
-				<li>会員名称、生年月日、正式会員日時をログに出す <span class="freecomment">(Log4j)</span></li>
+				<li>会員名称、生年月日、正式会員日時をログに出す <span class="freecomment">(Commons Logging)</span></li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
@@ -146,6 +147,7 @@
 	<p>
 		ロジッククラスでの Behavior の宣言は、以下のようにします。<span class="freecomment">(講師によるフォローあり)</span>
 	</p>
+	<div class="relatedpage"><a href="../../../manual/reference/diway/seasar/index.html">Seasarの取扱い</a></div>
 <pre><span class="codetitle">e.g. ロジッククラスでの Behavior の宣言 @Java</span><code>
 <span class="comment">/**
  * @author jflute
@@ -155,6 +157,20 @@
     @Resource
     <span class="keyword">protected</span> MemberBhv <span class="atrribute">memberBhv</span>;
 
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		テストクラスでのロジックの利用方法は、以下のようにします。<span class="freecomment">(講師によるフォローあり)</span>
+	</p>
+<pre><span class="codetitle">e.g. テストクラスでロジッククラスを生成して利用 @Java</span><code>
+<span class="keyword">public void</span> test_<span class="abbreviation">...</span>() {
+    <span class="comment">// ## Arrange ##</span>
+    HandsOn06Logic logic = <span class="keyword">new</span> HandsOn06Logic();
+    inject(logic);
+    
+    <span class="comment">// ## Act ##</span>
+    <span class="abbreviation">...</span> = logic.select<span class="abbreviation">...</span>();
     <span class="abbreviation">...</span>
 }
 </code></pre>
@@ -195,10 +211,18 @@
 <pre><span class="codetitle">e.g. DBFlute管理上ではテーブル名を大文字に @littleAdjustmentMap.dfprop</span><code>
 ; isTableDispNameUpperCase = <span class="keyword">true</span>
 </code></pre>
+<pre><span class="codetitle">e.g. DBFluteで発行するSQLのテーブル名やカラム名を大文字に @littleAdjustmentMap.dfprop</span><code>
+; isTableSqlNameUpperCase = <span class="keyword">true</span>
+; isColumnSqlNameUpperCase = <span class="keyword">true</span>
+</code></pre>
 	<p>
 		そもそもテーブル名やカラム名を大文字とするか小文字とするかは、文化や組織によって異なるものです。
 		どちらが良いという話ではなく、ERDなどのドキュメントと合わせるための地味機能と捉えてください。
 		<span class="freecomment">(とはいえ、小文字にするプロパティは用意されてないのですが...)</span>
+	</p>
+	<p>
+		ハンズオンでは、これらプロパティを true
+		に設定して、再自動生成してそれぞれ大文字になっていることを確認してみましょう。
 	</p>
 	<h2 id="nextsection">次のセクション</h2>
 	<p>
