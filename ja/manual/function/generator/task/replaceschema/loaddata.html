@@ -58,6 +58,8 @@
 			<ul>
 				<li><a href="#logginginserttype">loggingInsertType</a></li>
 				<li><a href="#issuppressbatchupdate">isSuppressBatchUpdate</a></li>
+				<li><a href="#issuppresscolumndefcheck">isSuppressColumnDefCheck</a></li>
+				<li><a href="#dateadjustmentmap">dateAdjustmentMap</a></li>
 			</ul>
 		</li>
 		<li><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></li>
@@ -232,7 +234,7 @@ repsEnvType = it
 		例えば、共通カラムのようなカラムの場合、ReplaceSchemaで登録するときは固定の値を登録しても特に問題が無い場合があります。
 		そのようなときにデータファイルにそれらカラムのデータを律儀に登録するのではなく、"あるカラムは一律のある値を登録する" ということが可能です。
 	</p>
-	<div class="detailpage"><a href="./defaultvalue.html">デフォルト値の設定 (convertValueMap.dataprop)</a></div>
+	<div class="detailpage"><a href="./defaultvalue.html">デフォルト値の設定 (defautValueMap.dataprop)</a></div>
 
 	<h2 id="loadingcontrolmap">データ登録制御(dataprop)</h2>
 	<p>
@@ -240,63 +242,27 @@ repsEnvType = it
 		<em class="keyword">loadingControlMap.dataprop</em> という名前のテキストファイルを配置して、
 		それぞれのプロパティを定義します。<span class="freecomment">@since 0.9.8.4</span>
 	</p>
-<pre><span class="codetitle">e.g. 共通的なカラムに固定の値を定義 @loadingControlMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    <span class="comment"># ALL, NONE, PART</span>
-    ; loggingInsertType = <span class="literal">PART</span>
-
-    <span class="comment"># true or false</span>
-    ; isSuppressBatchUpdate = <span class="literal">false</span>
-}
-</code></pre>
-	<dl class="textlist">
-		<dt>設定ファイル</dt>
-		<dd>loadingControlMap.dataprop (UTF-8)</dd>
-		<dt>プロパティ</dt>
-		<dd>個別個別のプロパティ</dd>
-	</dl>
-	<p>
-		幾つかのプロパティは、DBFluteプロパティの設定をディレクトリ単位で上書きできるプロパティと言えます。
-		データの特徴に合わせて設定したり、一時的に利用したりと様々な場面での調整が想定されます。
-	</p>
+	<div class="detailpage"><a href="./loadingcontrol.html">データ登録制御 (loadingControlMap.dataprop)</a></div>
 	<h3 id="logginginserttype">loggingInsertType</h3>
 	<p>
-		登録データのログ出力のタイプを指定します。
+		登録データのログ出力のタイプを指定することができます。
 	</p>
-	<dl class="keymainlist">
-		<dt>ALL</dt><dd>全てのデータを出力する</dd>
-		<dt>NONE</dt><dd>全てのデータを出力しない</dd>
-		<dt>PART</dt><dd>一部のデータを出力する (最初の 10 件)</dd>
-	</dl>
-	<p>
-		大量のデータを登録する場合は、ReplaceSchema
-		が少しでも早く終わるようにするために、ログ出力されるデータを少なくするか、全くなくすかを検討すると良いでしょう。
-	</p>
-	<p>
-		ただし、エラー発生したときは、エラー発生箇所の特定にログは欠かせません。
-		エラーが発生したときに登録されたデータのログを見たい場合は、
-		このプロパティを(一時的に)元に戻してから再度実行してログを確認することをお奨めします。
-	</p>
-	<p>
-		デフォルトの値は、replaceSchemaDefinitionMap.dfprop の isLoggingInsertSql
-		の値に依存します。そのプロパティのデフォルト(セットアップデフォルトも含む)は true
-		なので、DBFluteをセットアップしてから何も変更していなければ ALL と同じ挙動になっています。
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#islogginginsertsql">dfprop - isLoggingInsertSql</a></div>
+	<div class="detailpage"><a href="./loadingcontrol.html#logginginserttype">データ登録制御 - loggingInsertType</a></div>
 	<h3 id="issuppressbatchupdate">isSuppressBatchUpdate</h3>
 	<p>
-		バッチ更新をせず都度登録をするか否かを指定します。
+		バッチ更新をせず都度登録をするか否かを指定することができます。
 	</p>
+	<div class="detailpage"><a href="./loadingcontrol.html#issuppressbatchupdate">データ登録制御 - isSuppressBatchUpdate</a></div>
+	<h3 id="issuppresscolumndefcheck">isSuppressColumnDefCheck</h3>
 	<p>
-		データ登録エラーが発生したときにエラー発生レコードを特定するために、利用するとよいでしょう。
-		ただし、エクセルデータであれば、このプロパティを利用しなくても自動リトライ処理によってエラー発生レコードは特定はしやすいはずです。
+		データファイルのカラム定義の、DB上存在チェックを抑制するか否かを指定することができます。
 	</p>
-	<div class="relatedpage"><a href="#nonbatchretry">バッチ更新なしの自動リトライ</a></div>
+	<div class="detailpage"><a href="./loadingcontrol.html#issuppresscolumndefcheck">データ登録制御 - isSuppressColumnDefCheck</a></div>
+	<h3 id="dateadjustmentmap">dateAdjustmentMap</h3>
 	<p>
-		デフォルトの値は、replaceSchemaDefinitionMap.dfprop の isSuppressBatchUpdate
-		の値に依存します。そのプロパティのデフォルト(セットアップデフォルトも含む)は false
-		なので、DBFluteをセットアップしてから何も変更していなければバッチ更新されます。
+		エクセルやTSV上の日付データに対する相対的な日付調整を指定することができます。
 	</p>
+	<div class="detailpage"><a href="./loadingcontrol.html#dateadjustmentmap">データ登録制御 - dateAdjustmentMap</a></div>
 
 	<h2 id="isincrementsequencetodatamax">シーケンス値の調整</h2>
 	<p>

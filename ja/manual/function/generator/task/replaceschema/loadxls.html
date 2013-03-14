@@ -50,7 +50,12 @@
 				<li><a href="#xlsdataresult">エクセルデータの登録結果 (XlsDataResult)</a></li>
 			</ul>
 		</li>
-		<li><a href="#relativedate">日付を相対値で登録 (RelativeDate)</a></li>
+		<li><a href="#relativedate">日付を相対値で登録 (RelativeDate)</a>
+			<ul>
+				<li><a href="#cellrelative">セル上にて相対値の指定</a></li>
+				<li><a href="#dateadjustment">datapropにて相対値の指定</a></li>
+			</ul>
+		</li>
 		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a></li>
 		<li><a href="#tablenamemap">エクセルシート名制限回避の設定(dataprop)</a></li>
 		<li><a href="#nottrimcolumnmap">トリムしないカラムの指定(dataprop)</a></li>
@@ -200,6 +205,7 @@ data-directory: playsql/data/ut/xls
 </code></pre>
 
 	<h2 id="relativedate">日付を相対値で登録 (RelativeDate)</h2>
+	<h3 id="cellrelative">セル上にて相対値の指定</h3>
 	<p>
 		セルに書かれた固定の日付ではなく、ReplaceSchemaが実行時の現在日時から計算された相対的な日付(RelativeDate)の値を登録することができます。
 		<span class="freecomment">@since 1.0.1</span>
@@ -224,6 +230,18 @@ data-directory: playsql/data/ut/xls
 		ここで利用できるメソッドは、DBFluteランタイムの HandyDate のメソッドです。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/runtime/helper/handydate.html"> -->DBFluteランタイム - HandyDate<!-- </a> --></span></div>
+	<p>
+		当然のことですが、DBには調整後のデータが登録されます。
+		つまり、LoadDataReverseなどでデータを抽出した場合は、調整後のデータが出力されるため、調整前の情報は残っていません。
+	</p>
+	<div class="relatedpage"><a href="../doc/loaddatareverse.html">LoadDataReverse</a></div>
+	<h3 id="dateadjustment">datapropにて相対値の指定</h3>
+	<p>
+		また、セルに書かれた固定日付に対して、相対的な調整を入れることもできます。
+		その場合は、loadingControlMap.dataprop にてテーブル名やカラム名を指定して相対値を指定します。
+		統一的な設定ができ、エクセル上に特殊な構文が入り込まないため、(要件が満たせるならば)こちらの方が使いやすいでしょう。
+	</p>
+	<div class="detailpage"><a href="./loadingcontrol.html#dateadjustmentmap">データ登録制御 (loadingControlMap.dataprop) - dateAdjustmentMap</a></div>
 
 	<h2 id="convertvaluemap">値のコンバート設定(dataprop)</h2>
 	<p>
