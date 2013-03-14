@@ -52,16 +52,7 @@
 		<li><a href="#csv">CSVデータの登録</a></li>
 		<li><a href="#xls">エクセルデータの登録</a></li>
 		<li><a href="#repsenvtype">環境ごとの切り替え</a></li>
-		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a>
-			<ul>
-				<li><a href="#mappingspec">マッピング定義の基本仕様</a></li>
-				<li><a href="#mappingcontrolchar">マッピング定義の制御文字</a></li>
-				<li><a href="#mappingnullempty">マッピング定義のワイルドカード</a></li>
-				<li><a href="#mappingnullempty">マッピング定義のNullや空文字</a></li>
-				<li><a href="#linereplace">分解前の行文字列を変換対象に</a></li>
-				<li><a href="#timestampfilter">Timestamp型文字列の微調整</a></li>
-			</ul>
-		</li>
+		<li><a href="#convertvaluemap">値のコンバート設定(dataprop)</a></li>
 		<li><a href="#defaultvaluemap">デフォルト値の設定(dataprop)</a></li>
 		<li><a href="#loadingcontrolmap">データ登録制御(dataprop)</a>
 			<ul>
@@ -234,172 +225,14 @@ repsEnvType = it
 		データファイルに定義されている値をそのまま登録するのではなく、ある値にマッピングしたり変換をかけたりすることが可能です。
 		もともとはTSVやCSVでの利用を想定していた機能でしたが、エクセルデータでも利用することができます<span class="freecomment">(@since 0.9.9.0A)</span>。
 	</p>
-	<p>
-		データファイルと同じディレクトリに "convertValueMap.dataprop" という名前のテキストファイルを配置して、
-		カラム名とマッピングする値を定義します。すると、insert処理するときにマッピングした値で登録します。
-	</p>
-<pre><span class="codetitle">e.g. TSVで定義されている一文字のコードを三文字のコードへ変換して登録 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    MEMBER_STATUS_CODE = <span class="keyword">map:</span>{ F = FML ; P = PRV ; W = WDL }
-    ; [column-name] = <span class="keyword">map:</span>{[mapping-definition]}
-    ; ...
-}
-</code></pre>
-	<dl class="textlist">
-		<dt>設定ファイル</dt>
-		<dd>convertValueMap.dataprop (UTF-8)</dd>
-		<dt>プロパティ</dt>
-		<dd>カラム名とマッピングする値</dd>
-	</dl>
-	<h3 id="mappingspec">マッピング定義の基本仕様</h3>
-	<ul>
-		<li>カラム名は大文字小文字区別なし</li>
-		<li>値のマッピングは大文字小文字区別あり</li>
-		<li>定義された上から順番通りに変換処理が実行される</li>
-		<li>変換処理に複数該当する場合は該当した全ての変換処理が実行される</li>
-		<li>複数処理されるとき、次の変換処理の判定は前の変換処理が施された値に対して行われる</li>
-		<li>変換処理された場合は defaultValueMap.dataprop の処理対象外となる <span class="freecomment">@since 0.9.8.2</span></li>
-		<li>変換処理された場合は 空文字を null として扱うデフォルトの挙動は無効になる <span class="freecomment">@since 0.9.8.2</span></li>
-		<li>変換前の値の前に "contain:" を付けると、値に含まれているその文字が置換される <span class="freecomment">@since 0.9.7.5</span></li>
-	</ul>
-	<h3 id="mappingcontrolchar">マッピング定義の制御文字</h3>
-	<ul>
-		<li>改行とタブを表現するために一部制御文字(\r, \n, \t)が利用できる <span class="freecomment">@since 0.9.7.5</span></li>
-		<li>制御文字をエスケープして、制御文字自体を表現できる <span class="freecomment">e.g. "\\r", "\\n", "\\t"</span> <span class="freecomment">@since 0.9.7.5</span></li>
-		<li>エスケープ文字のエスケープはエスケープ文字でエスケープ <span class="freecomment">e.g. "\\"</span> <span class="freecomment">@since 0.9.7.5</span></li>
-	</ul>
-<pre><span class="codetitle">e.g. "\n" という文字を本物の改行に変換する @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; CONVERTED_COLUMN = <span class="keyword">map:</span>{
-        ; <span class="attribute">contain:</span>\\n = \n
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-	<h3 id="mappingnullempty">マッピング定義のワイルドカード</h3>
-	<ul>
-		<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="freecomment">@since 0.9.7.5</span></li>
-		<li>カラム名に $$LINE$$ と指定すると分解する前の一行の文字列に対して置換(後述) <span class="freecomment">@since 0.9.8.2</span></li>
-	</ul>
-<pre><span class="codetitle">e.g. 全てのカラムにおいて "\n" という文字を本物の改行に変換する @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">contain:</span>\\n = \n
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-	<h3 id="mappingnullempty">マッピング定義のNullや空文字</h3>
-	<ul>
-		<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="freecomment">@since 0.9.8.2</span></li>
-		<li>TSVやCSVファイルの空っぽのデータは $$empty$$ でヒットさせることができる</li>
-		<li>エクセルの空っぽセルのデータは $$null$$ でヒットさせることができる</li>
-	</ul>
-<pre><span class="codetitle">e.g. TSVデータにおいて、空っぽの値を空文字として登録 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">$$empty$$</span> = <span class="attribute">$$empty$$</span>
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-<pre><span class="codetitle">e.g. エクセルデータにおいて、空っぽの値(セル)を空文字として登録 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">$$null$$</span> = <span class="attribute">$$empty$$</span>
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-	<h3 id="linereplace">分解前の行文字列を変換対象に</h3>
-	<p>
-		これはTSVやCSVなどのでデリミタデータのみの機能です。カラム名に $$LINE$$
-		と指定すると、一行の文字列をカラムに分解する前に変換処理を行います。
-		暗黙に "contains:" 指定がされているものとして処理されます。 
-		どうしてもデータ仕様が合わないなど分解処理自体でエラーになってしまう場合に有効です。
-	</p>
-	<p>
-		例えば、データの中に、"ダブルクォーテーション(一つ) + タブ"
-		という文字列があると、そのダブルクォーテーションは値の終端で、その次のタブは区切り文字、と判断され、正常に登録されません。
-		本来、値としてのダブルクォーテーションはもう一つダブルクォーテーションを並べてエスケープする必要がありますが、
-		どうしてもそのようなデータ形式にできない場合に、この機能を使って強制的にエスケープさせることでそのデータを正常に登録することができます。
-		MySQLの機能で取得したデリミタデータではダブルクォーテーションのエスケープがバックスラッシュで行われるため、その次の値にたまたまタブがあったりするとこの状況に当てはまります。
-		(最終手段と考えてください)
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../../reference/dbway/mysql/index.html#delimiterdata"> -->MySQLの取扱い - デリミタデータの取得<!-- </a> --></span></div>
-<pre><span class="codetitle">e.g. バックスラッシュによるエスケープをダブルクォーテーションに置換 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$LINE$$</span> = <span class="keyword">map:</span>{
-        ; \\\\ = \\
-        ; \\" = ""
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-	<h3 id="timestampfilter">Timestamp型文字列の微調整</h3>
-	<p>
-		Timestamp特有の微調整変換処理を施すことができます。<span class="freecomment">@since 0.9.9.0A</span>
-	</p>
-	<p>
-		例えば、"2011-07-29 12:34:56.8" という値がデータファイルに指定されていた場合、デフォルトでは
-		"2011-07-29 12:34:56.008" として認識されます。"." 以降はミリ秒(SSS)を指定する領域となっているので、この場合つまりは
-		8 ミリ秒が指定されたとみなされます。
-	</p>
-	<p>
-		これを、プロジェクトの特性上、"2011-07-29 12:34:56.800" と認識したいという場合は、変換前の値に $$timestamp$$
-		を指定し、変換後の値として $$ZeroSuffixMillis$$ を指定すると、Timestamp型のカラムの挙動がそのように変更されます。
-	</p>
-<pre><span class="codetitle">e.g. 全ての Timestamp 型のカラムにおいて、不足桁のミリ秒の後ろに 0 を埋める @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{ <span class="attribute">$$timestamp$$</span> = <span class="attribute">$$ZeroSuffixMillis$$</span> }
-    ; ...
-}
-</code></pre>
+	<div class="detailpage"><a href="./convertvalue.html">値のコンバート設定 (convertValueMap.dataprop)</a></div>
 
 	<h2 id="defaultvaluemap">デフォルト値の設定(dataprop)</h2>
 	<p>
 		例えば、共通カラムのようなカラムの場合、ReplaceSchemaで登録するときは固定の値を登録しても特に問題が無い場合があります。
 		そのようなときにデータファイルにそれらカラムのデータを律儀に登録するのではなく、"あるカラムは一律のある値を登録する" ということが可能です。
 	</p>
-	<p>
-		データファイルと同じディレクトリに <em class="keyword">defaultValueMap.dataprop</em> という名前のテキストファイルを配置して、
-		カラム名と固定の値を定義します。そして、データファイルのヘッダ行において対象カラムのカラム定義(列自体)を省略(削除)することで、
-		データ登録処理でそのカラムに対して指定された固定の値を登録するようになります。
-	</p>
-<pre><span class="codetitle">e.g. 共通的なカラムに固定の値を定義 @defaultValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; REGISTER_DATETIME = <span class="keyword">sysdate</span>
-    ; REGISTER_USER     = <span class="literal">foo</span>
-    ; REGISTER_PROCESS  = <span class="literal">bar</span>
-    ; UPDATE_DATETIME   = <span class="keyword">sysdate</span>
-    ; UPDATE_USER       = <span class="literal">foo</span>
-    ; UPDATE_PROCESS    = <span class="literal">bar</span>
-    ; VERSION_NO        = <span class="literal">0</span>
-}
-</code></pre>
-	<dl class="textlist">
-		<dt>設定ファイル</dt>
-		<dd>defaultValueMap.dataprop (UTF-8)</dd>
-		<dt>プロパティ</dt>
-		<dd>カラム名と固定値の定義</dd>
-		<dt>補足</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>"sysdate" が指定されている場合は、登録時の現在日時を登録</li>
-				<li>カラム名は大文字小文字区別なし</li>
-				<li>全てのデータファイル形式で有効</li>
-			</ul>
-		</dd>
-	</dl>
-	<p>
-		定義されたカラムの一部のカラムしか定義されていないテーブルでも、
-		その一部のカラムに対して固定の値が登録されます(Behaviorでの共通カラムの自動設定とは挙動が異なります)。
-		ここでは "共通カラムの自動設定" というよりも、"共通カラム対する疑似のデフォルト制約" という感じになります。
-	</p>
-	<p>
-		convertValueMap.dataprop と併用する場合、変換対象となった値に対しては、デフォルト値は適用されません。
-		つまり、変換結果として null になったものは、デフォルト値が設定されていてもそのまま null として登録されます。 
-	</p>
+	<div class="detailpage"><a href="./defaultvalue.html">デフォルト値の設定 (convertValueMap.dataprop)</a></div>
 
 	<h2 id="loadingcontrolmap">データ登録制御(dataprop)</h2>
 	<p>
