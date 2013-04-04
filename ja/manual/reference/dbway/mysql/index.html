@@ -71,6 +71,7 @@
 			<ul>
 				<li><a href="#additionalschema">別カタログ(別データベース)の利用</a></li>
 				<li><a href="#utf8unicodeci">LikeSearch で utf8_unicode_ci</a></li>
+				<li><a href="#betacursor">カーソル検索をべたページング方式で</a></li>
 			</ul>
 		</li>
 		<li><a href="#attention">DBMS独自の注意点</a>
@@ -374,6 +375,45 @@ LikeSearchOption option = <span class="keyword">new</span> LikeSearchOption() {
 		複数箇所で利用する場合は、例えばこのオーバーライドを実装した CollateLikeSearchOption
 		などという独自のクラスを作って、プロジェクトで再利用すると良いでしょう。
 	</p>
+	<h3 id="betacursor">カーソル検索をべたページング方式で</h3>
+	<p>
+		MySQLのJDBCドライバでは、カーソル検索は色々と問題を抱えています。
+	</p>
+	<div class="detailpage"><a href="#cursorselect">this - カーソル検索でのメモリ対策</a></div>
+	<p>
+		Integer.MIN_VALUEを利用した場合のパフォーマンス劣化対策として、
+		カーソル検索の内部動作を "べたなページング" 方式にするオプションがあります。
+		単に 1000 件ずつページング検索して、カーソル検索っぽく振る舞うやり方です。<span class="freecomment">@since 1.0.3</span>
+	</p>
+	<p>
+		littleAdjustmentMap.dfprop の cursorSelectFetchSize に
+		Integer.MIN_VALUE が指定されていて、かつ、MySQLの場合は、ConditionBeanに customizeCursorSelect()
+		というメソッドが生成され、CursorSelectOption が指定できるようになります。そのオプションで、byPagingOrderByPK()
+		もしくは byPagingSimply() を指定すると、べたページングになります。
+	</p>
+	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#cursorselectfetchsize">dfprop - cursorSelectFetchSize</a></div>
+<pre><span class="codetitle">e.g. べたページング、IDソート @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.customizeCursorSelect(<span class="keyword">new</span> CursorSelectOption().byPagingOrderByPK(<span class="literal">1000</span>));
+cb.query().addOrderBy_MemberId_Asc();
+</code></pre>
+	<p>
+		厳密には、通常のカーソル検索と結果が同じになるとは限りません。
+		内部的に検索を繰り返しているため、他のプロセスによる更新の影響を後の方の検索が受ける可能性があるためです。
+		ただ、MySQLのトランザクション分離レベルが RepeatableRead
+		(デフォルト)であれば、その心配はないかもしれませんが、業務的にそれを許容できるかどうかは <em class="keyword">必ず</em>
+		確認してください。
+	</p>
+	<p>
+		byPagingOrderByPK()は、PKでソートされていることが前提となり、PKソートでない場合は例外が発生します。
+		安全性が "比較的" 高いため、べたページングで一番推奨されているやり方です。
+		(他のプロセスの更新で順序が入れ替わる可能性は "比較的" 低いため)
+	</p>
+	<p>
+		byPagingSimply() は、PK以外のソートで利用できますがページングの最中で順序がバラバラになり、
+		同じレコードがもう一度処理されてしまう可能性と処理されるはずのレコードが処理されない可能性が否定できないため非推奨です。
+		RepeatableReadであれば大丈夫である可能性がありますが、利用する場合は利用する側で厳密な確認を <em class="keyword">必ず</em> してください。
+	</p>
 
 	<h2 id="attention">DBMS独自の注意点</h2>
 	<h3 id="cursorselect">カーソル検索でのメモリ対策</h3>
@@ -385,14 +425,21 @@ LikeSearchOption option = <span class="keyword">new</span> LikeSearchOption() {
 	<p>
 		JDBCパラメータの FetchSize に Integer.MIN_VALUE を指定することで一件ずつフェッチの動作になるため、StatementConfig
 		を使って FetchSize を指定するか、カーソル検索におけるデフォルトの FetchSize を指定することで、大量件数の検索に対応できます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#cursorselectfetchsize">DBFluteConfig - cursorSelectFetchSize</a></div>
+	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#cursorselectfetchsize">dfprop - cursorSelectFetchSize</a></div>
+	<div class="relatedpage"><a href="../../../function/ormapper/runtime/statementconfig.html">DBFluteランタイム - StatementConfig</a></div>
+	<p>
 		ただ、この設定をすると今度はカーソル検索のコールバックの中で、
 		カーソル検索と同じトランザクションを利用したDBアクセスができなくなるため(他のDBMSではこういうことは基本的にない)、
 		統一的な適用には注意が必要である(このため、DBFluteもデフォルトにすることができない)。
 		その場合、コールバックの中でDBアクセスをする場合は、別トランザクションにすることで回避することができる。
 	</p>
-	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#cursorselectfetchsize">DBFluteConfig - cursorSelectFetchSize</a></div>
-	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#cursorselectfetchsize">dfprop - cursorSelectFetchSize</a></div>
-	<div class="relatedpage"><a href="../../../function/ormapper/runtime/statementconfig.html">DBFluteランタイム - StatementConfig</a></div>
+	<p>
+		また、この設定により、フェッチ処理が(キャッシュなしで)一件ずつになるため、逆にパフォーマンスが劣化する可能性を否定できません。
+		一応、DBFluteではそのパフォーマンス問題に悩む場合の回避機能があります。
+	</p>
+	<div class="detailpage"><a href="#betacursor">this - カーソル検索をべたページング方式で</a></div>
 	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>
 	<p>
 		update/delete 文の where 句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、QueryUpdate や QueryDelete

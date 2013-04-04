@@ -139,15 +139,79 @@ B   ; CCC =    DD D  }
 }
 <span class="comment"># 要素数は二つ</span>
 </code></pre>
-	<h3>特殊記号のエスケープ</h3>
+	<h3>制御文字のエスケープ</h3>
 	<p>
-		残念ながらありません。なので定義値に "=" や ";" などを含めることは基本的にできません。
+		制御文字 "{ } ; =" を、バックスラッシュでエスケープすることができます。<span class="freecomment">@since 1.0.4B</span>
 	</p>
+<pre><span class="codetitle">e.g. "ba;r" というvalue値を定義 @mapprop</span><code>
+<span class="keyword">map:</span>{
+    foo = ba\;r
+}
+</code></pre>
 	<p>
-		但し、一部DBFluteプロパティでは工夫して指定できるようにしている箇所もあります。
-		例えば、databaseInfoMap.dfprop では、接続URLの接続プロパティのデリミタとして ";"
-		を指定できるようにしています。
+		エスケープ文字 "バックスラッシュ" 自体は、そのまま値として利用できます。
+		つまり、エスケープ文字をエスケープする必要はありません。(制御文字の直前のバックスラッシュは必ずエスケープ文字として認識されます)
 	</p>
+<pre><span class="codetitle">e.g. "ba\r" というvalue値を定義 @mapprop</span><code>
+<span class="keyword">map:</span>{
+    foo = ba\r
+}
+</code></pre>
+<pre><span class="codetitle">e.g. "ba\}r" というvalue値を定義 @mapprop</span><code>
+<span class="keyword">map:</span>{
+    foo = ba\\}r
+}
+</code></pre>
+	<p>
+		ただし、この仕様だと完璧なエスケープができません。例えば、制御文字としての括弧閉じ "}"
+		の直前に、値としてのバックスラッシュを定義してしまった場合、そのバックスラッシュはエスケープ文字と判定されてしまって、
+		括弧閉じが制御文字ではなく単なる値になってしまいます。その場合は、文字の間に空白を一つ空けて定義することで回避できます。
+	</p>
+<pre><span class="codetitle">e.g. "qux\" というvalue値を定義 @mapprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="comment"># qux\} -&gt; qux\ }</span>
+    foo = <span class="keyword">map:</span>{ bar = qux\ }
+}
+</code></pre>
+	<div class="inucolumn">
+		<h4>互換性と利便性のためのエスケープ仕様</h4>
+		<p>
+			通常は、エスケープ文字はエスケープ文字を重ねてエスケープさせるものです。
+			ですが、ここでは単品のエスケープ文字は単なる値として定義できるようにしています。
+			それがゆえに、完璧なエスケープにはならないケースがあります。
+		</p>
+		<p>
+			完璧なエスケープの仕様にすると、互換性を失ってしまう可能性があります。
+			バックスラッシュを値として普通に使っている場合です。それが大きな理由の一つ。
+			もう一つは、めったにありえない状況を想定して、バックスラッシュを簡易に記述するやり方を捨てるのは、
+			費用対効果があまりないと考えたからです。
+		</p>
+		<p>
+			制御文字の前で空白を一つあければいいだけですし、Exampleでは空白を空けているパターンがほとんどですし、
+			HistoryHTMLのdiffmapは空白をあけて生成していますので、実質的な問題にはならないと思われます。
+			それゆえ、このような仕様となっています。
+		</p>
+		<p>
+			ちなみに、HistoryHTMLのdiffmapでは、エスケープされたものが出力されます。
+			差分データの値に制御文字が含まれていても特に問題なく動作します。<span class="freecomment">@since 1.0.4B</span>
+		</p>
+		<div class="relatedpage"><a href="../../function/generator/task/doc/historyhtml.html">HistoryHTML</a></div>
+	</div>
+	<div class="inucolumn">
+		<h4>1.0.4Bより前では</h4>
+		<p>
+			残念ながらできません。
+			なので定義値に "=" や ";" などを含めることは基本的にできません。
+		</p>
+		<p>
+			ただし、一部DBFluteプロパティでは工夫して指定できるようにしている箇所もあります。
+			例えば、databaseInfoMap.dfprop では、接続URLの接続プロパティのデリミタとして ";"
+			を指定できるようにしています。
+		</p>
+		<p>
+			また、mapのvalue値では、"="は指定できます。e.g. map:{ foo = bar=qux }
+		</p>
+	</div>
 
 	<h2>読み込みライブラリ</h2>
 	<p>
