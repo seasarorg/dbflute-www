@@ -52,7 +52,8 @@
 				<li><a href="#historyhtmlfilename">historyHtmlFileName</a></li>
 				<li><a href="#ischeckcolumndeforderdiff">isCheckColumnDefOrderDiff</a></li>
 				<li><a href="#ischeckdbcommentdiff">isCheckDbCommentDiff</a></li>
-				<li><a href="#loaddatareversemap">loadDataReverseMap</a></li>
+				<li><a href="#loaddatareversemap">loadDataReverseMap <span class="freecomment">@since 1.0.4B</span></a></li>
+				<li><a href="#oldloaddatareversemap">loadDataReverseMap <span class="freecomment">@until 1.0.4A</span></a></li>
 				<li><a href="#schemasynccheckmap">schemaSyncCheckMap</a></li>
 				<li><a href="#propertieshtmlmap">propertiesHtmlMap <span class="freecomment">@since 1.0.1</span></a></li>
 				<li><a href="#dataxlstemplatemap">dataXlsTemplateMap <span class="freecomment">@until 0.9.8.3</span></a></li>
@@ -258,7 +259,7 @@
 	<p>
 		コメント文字列の両端にトリムされる値がある場合は、HistoryHTMLではクォートされて表示されます。<span class="freecomment">@since 0.9.9.1C</span>
 	</p>
-	<h3 id="loaddatareversemap">loadDataReverseMap</h3>
+	<h3 id="loaddatareversemap">loadDataReverseMap <span class="freecomment">@since 1.0.4B</span></h3>
 	<p>
 		LoadDataReverse の生成に関するプロパティを指定します。
 		<span class="freecomment">@since 0.9.8.4</span>
@@ -266,8 +267,50 @@
 	<div class="relatedpage"><a href="../../../function/generator/task/doc/loaddatareverse.html">Docタスク - LoadDataReverse</a></div>
 	<p>
 		map の中の recordList を指定すると LoadDataReverse が有効になります。
-		値がマイナスの場合は無制限でデータが出力されます。出力データに共通カラムを含める場合は isContainsCommonColumn を true
-		に、ReplaceSchema でそのまま利用するのであれば、isOutputToPlaySql を true に。
+		値がマイナスの場合は無制限でデータが出力されます。その他、微調整するプロパティがあります。
+	</p>
+	<dl class="longkeymainlist">
+		<dt>isReplaceSchemaDirectUse</dt><dd>ReplaceSchemaで直接利用 (playsqlへ直接出力)</dd>
+		<dt>isOverrideExistingDataFile</dt><dd>既存のエクセルファイルに上書き出力</dd>
+		<dt>isSynchronizeOriginDate</dt><dd>DateAdjustmentの基準日を同期</dd>
+		<dt>xlsLimit <span class="freecomment">(@since 0.9.9.1A)</span></dt><dd>エクセル出力のリミット、超えるとTSV出力</dd>
+	</dl>
+<pre><span class="codetitle">e.g. loadDataReverseMapの仕様 @documentDefinitionMap.dfprop</span><code>
+; loadDataReverseMap = <span class="keyword">map:</span>{
+    ; recordLimit = [limit size] <span class="comment"># デフォルト: 設定なし</span>
+    ; isReplaceSchemaDirectUse = [true or false] <span class="comment"># デフォルト: false</span>
+    ; isOverrideExistingDataFile = [true or false] <span class="comment"># デフォルト: false</span>
+    ; isSynchronizeOriginDate = [true or false] <span class="comment"># デフォルト: false</span>
+    ; xlsLimit = [limit size] <span class="comment"># デフォルト: 65000</span>
+}
+</code></pre>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>list型プロパティの中に、map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>recordLimit がマイナスの場合は、無制限でデータが出力される</li>
+				<li>isReplaceSchemaDirectUse が true の場合は playsql 配下に直接出力される</li>
+				<li>全てをTSV出力にしたい場合は、xlsLimitを 0 にすることで実現できる</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="oldloaddatareversemap">loadDataReverseMap <span class="freecomment">@until 1.0.4A</span></h3>
+	<p>
+		※こちらは、1.0.4A以前の loadDataReverseMap についてのドキュメントです。
+	</p>
+	<p>
+		LoadDataReverse の生成に関するプロパティを指定します。<span class="freecomment">@since 0.9.8.4</span>
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/loaddatareverse.html">Docタスク - LoadDataReverse</a></div>
+	<p>
+		map の中の recordList を指定すると LoadDataReverse が有効になります。
+		値がマイナスの場合は無制限でデータが出力されます。
+	</p>
+	<p>
+		出力データに共通カラムを含める場合は isContainsCommonColumn <span class="freecomment">(@until 1.0.4A)</span> を true
+		に、ReplaceSchema でそのまま利用するのであれば、isOutputToPlaySql <span class="freecomment">(@until 1.0.4A)</span> を true に。
 	</p>
 <pre><span class="codetitle">e.g. loadDataReverseMapの仕様 @documentDefinitionMap.dfprop</span><code>
 ; loadDataReverseMap = <span class="keyword">map:</span>{

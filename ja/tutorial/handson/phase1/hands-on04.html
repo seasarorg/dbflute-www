@@ -96,19 +96,12 @@
 			</ul>
 		</dd>
 		<!-- Determination as Non Classification, SetupSelect as NotRequired  -->
-		<!-- 
-			レベル1：仮に全員が退会会員だったらテストが落ちて欲しい
-			レベル2：退会会員でない会員が一人も存在しないのであればテストにならない
-			レベル3：退会会員でない会員のアサートが実行されなければテストにならない
-			レベル4：退会会員でない会員のアサートが一回でも実行されたならOK
-			レベル5：assertNull(member...) が一回でも実行されたならOK
-			レベル6：退会会員でない会員を判定するif文の中を一度でも通ればOK
-		 -->
 		<dt>会員退会情報も取得して会員を検索</dt>
 		<dd>
 			<ul class="supplementlist">
 				<li>退会会員でない会員は、会員退会情報を持っていないことをアサート</li>
 				<li>退会会員のステータスコードは "WDL"。ひとまずベタで</li>
+				<li>不意のバグや不意のデータ不備でもテストが(できるだけ)成り立つこと</li>
 			</ul>
 		</dd>
 	</dl>
@@ -125,7 +118,7 @@
 		に、以下の定義を設定してください。現場フィットの区分値のページを参考にすると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/reference/dfprop/index.html">DBFluteプロパティ</a></div>
-<pre><span class="codetitle">ex) フラグと会員ステータスの区分値を定義 @classificationDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. フラグと会員ステータスの区分値を定義 @classificationDefinitionMap.dfprop</span><code>
  <span class="abbreviation">...</span>
     ; Flg = <span class="keyword">list:</span>{
         ; <span class="keyword">map:</span>{topComment=フラグを示す; codeType=Number}
@@ -146,7 +139,7 @@
 		暗黙の区分値であるフラグ(Flg)は、どのテーブルのどのカラムに関連付けるのかを定義する必要があります。
 		同じくDBFluteプロパティである classificationDeploymentMap.dfprop に、以下の定義を設定してください。
 	</p>
-<pre><span class="codetitle">ex) フラグ(Flg)を "_FLG" で終わるカラム全てに関連付け @classificationDeploymentMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. フラグ(Flg)を "_FLG" で終わるカラム全てに関連付け @classificationDeploymentMap.dfprop</span><code>
  <span class="abbreviation">...</span>
     ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{<span class="attribute">suffix:</span>_FLG=Flg}
  <span class="abbreviation">...</span>
@@ -236,7 +229,7 @@
 				※できれば、テストメソッド内の検索回数は一回で...
 			</span>
 		</dd>
-		<!-- Equal as Classification for Flg, ScalarCondition  -->
+		<!-- Equal as Classification for Flg, ScalarCondition, ExistsReferrer  -->
 		<dt>支払済みの購入の中で一番若い正式会員のものだけ検索</dt>
 		<dd>
 			<ul class="supplementlist">
@@ -313,27 +306,70 @@
 	<p>
 		その理由を割り切って、区分値メソッドでの設定の強制力を高めたい場合は、
 		DBFluteプロパティでネイティブ型の設定メソッドを不可視(protected)にすることが可能です。
-		プロパティの設定をして再自動生成し、ネイティブ型の設定メソッドがいなくなったことを確認してみてください。
+		プロパティを設定して再自動生成し、ネイティブ型の設定メソッドがいなくなったことを確認してみてください。
 	</p>
 	<div class="detailpage"><a href="../../../manual/reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+	<p>
+		また、隠れ区分値を検索したときに明示的な例外になるような設定もしておきましょう。
+	</p>
+	<div class="detailpage"><a href="../../../manual/reference/dfprop/littleadjustment/index.html#ischeckselectedclassification">dfprop - isCheckSelectedClassification</a></div>
 
 	<h2 id="grouping">グルーピング判定</h2>
 	<p>
-		<span class="freecomment">(講師による説明あり)</span>
+		正式会員と仮会員で "サービスが利用できる会員"
+		というグルーピングを設定をして再自動生成し、以下のエクササイズをやってみましょう。<span class="freecomment">(講師による説明あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/classification/index.html#groupingmap">現場フィット - 区分値 - グルーピング判定</a></div>
+	<dl class="textlist">
+		<!-- GroupingClassification -->
+		<dt>サービスが利用できる会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>グルーピングの設定によって生成されたメソッドを利用</li>
+				<li>会員ステータスの表示順で並べる</li>
+				<li>会員が "サービスが利用できる会員" であることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		※SchemaHTMLの区分値の欄もぜひ確認してみてください。
+	</p>
 
 	<h2 id="sistercode">姉妹コードの利用</h2>
 	<p>
-		<span class="freecomment">(講師による説明あり)</span>
+		フラグ区分値に true と false の姉妹コードを設定して再自動生成し、以下のエクササイズをやってみましょう。<span class="freecomment">(講師による説明あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/classification/index.html#sistercode">現場フィット - 区分値 - 姉妹コードの利用</a></div>
+	<dl class="textlist">
+		<!-- SisterCode, ExistsReferrer, LoadReferrer -->
+		<dt>未払い購入のある会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>姉妹コードの設定によって生成されたメソッドを利用</li>
+				<li>正式会員日時の降順(nullを後に並べる)、会員IDの昇順で並べる</li>
+				<li>会員が未払いの購入を持っていることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
 
 	<h2 id="subitemmap">独自の属性を追加</h2>
 	<p>
-		<span class="freecomment">(講師による説明あり)</span>
+		会員ステータス区分値に、displayOrderという独自の属性(SubItem)を追加して再自動生成して、以下のエクササイズをやってみましょう。<span class="freecomment">(講師による説明あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/classification/index.html#subitemmap">現場フィット - 区分値 - 独自の属性を追加</a></div>
+	<dl class="textlist">
+		<!-- SubItemMap -->
+		<dt>会員ステータスの表示順カラムで会員を並べて検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員ステータスの "表示順" カラムの昇順で並べる</li>
+				<li>会員ステータスのデータ自体は要らない</li>
+				<li>その次には、会員の会員IDの降順で並べる</li>
+				<li>会員ステータスのデータが取れていないことをアサート</li>
+				<li>会員が会員ステータスの表示順ごとに並んでいることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>

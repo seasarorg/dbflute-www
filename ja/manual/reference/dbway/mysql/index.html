@@ -78,6 +78,7 @@
 			<ul>
 				<li><a href="#cursorselect">カーソル検索でのメモリ対策</a></li>
 				<li><a href="#queryupdate">QueryUpdate/Deleteの実現</a></li>
+				<li><a href="#fakebatch">バッチ更新はバッチじゃない!?</a></li>
 				<li><a href="#unionboolean">Sql2EntityでunionしたBoolean型</a></li>
 				<li><a href="#nullsfirstlast">NullsFirst/Lastの実現</a></li>
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
@@ -443,26 +444,63 @@ cb.query().addOrderBy_MemberId_Asc();
 	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>
 	<p>
 		update/delete 文の where 句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、QueryUpdate や QueryDelete
-		において、サブクエリ方式ではなく update 文の where 句に条件を埋め込む方式を採用しています。すると、Query(Relation) や ExistsReferrer
-		などの関連テーブルを利用した絞り込み条件が利用できなくなります。
+		において、サブクエリ方式ではなく update 文の where 句に条件を埋め込む方式を採用しています。
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/behavior/update/queryupdate.html">Behavior - queryUpdate(entity, cb)</a></div>
-<pre><span class="codetitle">e.g. サブクエリ方式でなく where 句埋め込み方式 (複雑な条件が利用できない) @DisplaySql</span><code>
-<span class="keyword">update</span> member
+<pre><span class="codetitle">e.g. サブクエリ方式でなく where 句埋め込み方式 (複雑な条件がやりづらい) @DisplaySql</span><code>
+<span class="keyword">update</span> MEMBER
    <span class="keyword">set</span> MEMBER_STATUS_CODE = <span class="literal">'PRV'</span>
      , FORMALIZED_DATETIME = <span class="keyword">null</span>
      , UPDATE_DATETIME = <span class="abbreviation">...</span>
      , UPDATE_USER = <span class="abbreviation">...</span>
-     , UPDATE_PROCESS = <span class="abbreviation">...</span>
      , VERSION_NO = VERSION_NO + 1
  <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
 </code></pre>
 	<p>
-		複雑な条件が必要になったときは、同じ条件の ConditionBean でリスト検索し、Entity
+		関連テーブルを利用した絞り込み条件は、MySQL特有のupdate文に対する結合を利用して実現しています。QueryUpdate
+		では、update文のテーブルの後でset句の前にjoin句を入れることで実現しています<span class="freecomment">(@since 0.9.9.5B)</span>。QueryDelete
+		では、delete文のテーブルの後でwhere句の前にjoin句を入れて、削除対象のテーブルのAlias名をdeleteの直後に指定することで実現しています<span class="freecomment">(@since 1.0.4C)</span>。
+	</p>
+<pre><span class="codetitle">e.g. リマインダ質問に2が含まれている会員を仮会員に一括更新 @DisplaySql</span><code>
+<span class="keyword">update</span> MEMBER mb
+    <span class="keyword">inner join</span> MEMBER_SECURITY scu
+      <span class="keyword">on</span> mb.MEMBER_ID = scu.MEMBER_ID
+   <span class="keyword">set</span> MEMBER_STATUS_CODE = <span class="literal">'PRV'</span>
+     , UPDATE_DATETIME = <span class="abbreviation">...</span>
+     , UPDATE_USER = <span class="abbreviation">...</span>
+     , VERSION_NO = VERSION_NO + 1
+ <span class="keyword">where</span> scu.REMINDER_QUESTION <span class="keyword">like</span> <span class="literal">'%2%'</span> <span class="keyword">escape</span> '|'
+</code></pre>
+<pre><span class="codetitle">e.g. 会員ステータスの表示順が2以上の会員を一括削除 @DisplaySql</span><code>
+<span class="keyword">delete</span> mb MEMBER mb
+    <span class="keyword">inner join</span> MEMBER_STATUS stat
+      <span class="keyword">on</span> mb.MEMBER_STATUS_CODE = stat.MEMBER_STATUS_CODE
+ <span class="keyword">where</span> stat.DISPLAY_ORDER >= 2
+</code></pre>
+	<p>
+		ただ、複雑な条件になるとSQL表現の限界を超えてしまう可能性があるため、そのときは同じ条件の ConditionBean でリスト検索し、Entity
 		の値を変更してからバッチ更新(batchUpdateNonstrict(), batchDeleteNonstrict())を利用するようにして下さい。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchupdatenonstrict.html"> -->Behavior - batchUpdateNonstrict(entityList)<!-- </a> --></span></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../function/ormapper/behavior/update/batchdeletenonstrict.html"> -->Behavior - batchDeleteNonstrict(entityList)<!-- </a> --></span></div>
+	<h3 id="fakebatch">バッチ更新はバッチじゃない!?</h3>
+	<p>
+		batchInsert() や batchUpdate() などのバッチ更新ですが、MySQLのJDBCドライバの制限で実際にはバッチ更新されず、JDBCドライバの中でループでそれぞれ一件ずつ処理されます。
+		よって、他のDBMSに比べてバッチ更新のメリットは極端に少ないです。(DBFlute内の処理が一括で行われる、ログが一まとまりで見やすい、それぐらい)
+	</p>
+	<p>
+		一方で MySQL は、一つのinsert文で values 部分をカンマ区切り(複数values方式)でつなげて複数レコードを登録することができます。
+		外だしSQLのFORコメントを利用してそのinsert文を構築することで、一括での登録ができます。
+		(ただ、パフォーマンス的な優位性はどの程度あるのかは実際に試してみないとわかりません)
+	</p>
+	<p>
+		また、Connectionのプロパティで、rewriteBatchedStatements を true
+		に設定すると、MySQLがバッチ登録時に内部的に "複数values方式"
+		に変換して登録を行ってくれます。ReplaceSchemaもバッチ登録を利用しているため、このプロパティを true
+		にすることで、実行スピードを速めることができるかもしれません。
+		ただ、アプリ実行時にこのプロパティを利用する場合は、このプロパティの挙動がどのくらい信頼性のあるものなのか、しっかり確認をする方が良いでしょう。
+		<span class="freecomment">(jfluteが、アプリ実行時に利用している現場をあまり見たことがないため)</span>
+	</p>
 	<h3 id="unionboolean">Sql2EntityでunionしたBoolean型</h3>
 	<p>
 		Sql2Entityでは、CustomizeEntityのプロパティ型はJDBCのメタデータから自動判別されます。

@@ -95,18 +95,13 @@
 <span class="attribute">memberBhv</span>.<span class="point">update</span>(member);
 </code></pre>
 	<p>
-		排他制御処理を利用するために、事前に検索されたEntityに対して更新値を設定、もしくは、事前に検索されたPKと排他制御カラムの値を設定して更新します。
+		排他制御処理を利用するために、事前に検索されたPKと排他制御カラムの値を設定して更新します。
 		(排他制御対象テーブルの場合)
 	</p>
-<pre><span class="codetitle">e.g. 事前に検索されたEntityに対して更新値を設定して更新 {MEMBER, memberId=3} @Java</span><code>
-Member <span class="point">member</span> = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
-member.setMemberName(<span class="literal">"Stojkovic"</span>);
-<span class="attribute">memberBhv</span>.update(member);
-</code></pre>
 <pre><span class="codetitle">e.g. 事前に検索されたPKと排他制御カラムの値を設定して更新 {MEMBER} @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
 member.<span class="point">setMemberId</span>(memberId); <span class="comment">// 事前に検索されたPK</span>
-member.setMemberName(<span class="literal">"Stojkovic"</span>);
+member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 業務的な更新値の設定</span>
 member.<span class="point">setVersionNo</span>(versionNo); <span class="comment">// 事前に検索されたバージョン番号</span>
 <span class="attribute">memberBhv</span>.update(member);
 </code></pre>
@@ -163,7 +158,8 @@ member.<span class="point">setVersionNo</span>(versionNo); <span class="comment"
 		のカラムがあっても、そのカラムが null で更新されることはありません(明示的に null で設定されれば、null で更新されます)。 
 	</p>
 	<p>
-		これを <em class="keyword">ModifedOnlyUpdate</em> と呼びます。
+		これを <em class="keyword">ModifedOnlyUpdate</em>
+		と呼び、DBFluteでは基本的には更新都合の事前検索は不要です。
 	</p>
 <pre><span class="codetitle">e.g. update()は設定された値だけ更新される {MEMBER,memberId=3} @Java</span><code>
 Member member = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);

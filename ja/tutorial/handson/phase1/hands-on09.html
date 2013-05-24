@@ -51,8 +51,13 @@
 		</li>
 		<li><a href="#moreout">さらに外だし</a></li>
 		<li><a href="#commentrequired">外だしSQLのコメントを必須に</a></li>
-		<li><a href="#procedure">ストアドプロシージャも外だしSQL</a></li>
-		<li><a href="#cursor">カーソル検索ってみよる</a></li>
+		<li><a href="#cursor">外だしSQLでカーソル検索ってみる</a></li>
+		<li><a href="#procedure">ストアドプロシージャも外だしSQL</a>
+			<ul>
+				<li><a href="#inoutproc">IN, OUTパラメータのプロシージャ</a></li>
+				<li><a href="#inoutproc">結果セットを戻すプロシージャ</a></li>
+			</ul>
+		</li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -208,7 +213,7 @@
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
-		<dd>test_selectPurchaseSummary_集計が検索されること()</dd>
+		<dd>test_selectLetsSummary_集計が検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
 				<li>会員名称に "vi" を含む会員を対象に検索</li>
@@ -238,20 +243,128 @@
 <pre><span class="codetitle">e.g. 外だしSQLのコメントを必須に設定 @outsideSqlDefinitionMap.dfprop</span><code>
  <span class="abbreviation">...</span>
     ; isRequiredSqlTitle = <span class="keyword">true</span>
+
+ <span class="abbreviation">...</span>
     ; isRequiredSqlDescription = <span class="keyword">true</span>
+
  <span class="abbreviation">...</span>
 </code></pre>
 
-	<h2 id="procedure">ストアドプロシージャも外だしSQL</h2>
+	<h2 id="cursor">外だしSQLでカーソル検索ってみる</h2>
 	<p>
-		TODO jflute
-	</p>
-
-	<h2 id="cursor">カーソル検索ってみよる</h2>
-	<p>
-		カーソル検索という概念とDBFluteにおける機能を学びましょう。<span class="freecomment">(講師による講習あり)</span>
+		そして、"さらに外だし" で作成した外だしSQLと同じ仕様(ページングは不要)で、新たにカーソル検索のエクササイズをやってみましょう。
+		ConditionBeanでのカーソル検索を思い出して、比較しながら実装してみましょう。<span class="freecomment">(講師による講習あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/topic/programming/dbaccess/cursorselect.html">カーソル検索</a></div>
+	<dl class="textlist">
+		<dt>外だしSQLのファイル</dt>
+		<dd>PurchaseBhv_selectPurchaseMonthCursor.sql</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>"さらに外だし" と同じ仕様(ページングは不要)</li>
+				<li>カーソル検索として作成すること</li>
+			</ul>
+		</dd>
+		<dt>ロジックのメソッド</dt>
+		<dd>void selectLetsCursor(PurchaseMonthCursorPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean でカーソル検索する</li>
+				<li>平均購入価格の分、その会員のサービスポイント数を足す(更新)</li>
+				<li>引数の値で null は許されない</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_selectLetsCursor_集計が検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員名称に "vi" を含む会員を対象に検索</li>
+				<li>期待通りのSQLがログに出力されることを確認する</li>
+				<li>誰か一人でもサービスポイント数が増えていることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="procedure">ストアドプロシージャも外だしSQL</h2>
+	<p>
+		ちょっとだけストアドプロシージャも作って呼んでみましょう。<span class="freecomment">(講師による講習あり)</span>
+	</p>
+	<h3 id="inoutproc">IN, OUTパラメータのプロシージャ</h3>
+	<p>
+		outsideSqlDefinitionMap.dfprop のプロシージャ対応の ParameterBean を自動生成するプロパティを true
+		にし、playsql に replace-schema-50-procedure.sql を新たに作成し、その中に以下プロシージャを記述し、 Sql2Entity
+		を実行してください。そして、自動生成されたクラスを使ってエクササイズをやってみましょう。
+	</p>
+<pre><span class="codetitle">e.g. IN, OUTパラメーター混在のプロシージャ @replace-schema-50-procedure.sql</span><code>
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create procedure</span> SP_IN_OUT_PARAMETER(
+      <span class="keyword">in</span> v_in_varchar <span class="dbtype">varchar(32)</span>
+    , <span class="keyword">out</span> v_out_varchar <span class="dbtype">varchar(32)</span>
+    , <span class="keyword">inout</span> v_inout_varchar <span class="dbtype">varchar(32)</span>
+)
+<span class="keyword">begin</span>
+  <span class="keyword">set</span> v_out_varchar = v_inout_varchar;
+  <span class="keyword">set</span> v_inout_varchar = v_in_varchar;
+<span class="keyword">end</span>;
+<span class="comment">-- #df:end#</span>
+</code></pre>
+	<dl class="textlist">
+		<dt>ロジックのメソッド</dt>
+		<dd>void callInOutProcedure(SpInOutParameterPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean で SP_IN_OUT_PARAMETER を call</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_callInOutProcedure_値がへんてこりんになっていること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>v_in_varchar に "foo" を、v_inout_varchar に "bar" を設定</li>
+				<li>プロシージャを呼び出した後、ParameterBeanの値が入れ替わってること</li>
+			</ul>
+		</dd>
+	</dl>
+	<h3 id="inoutproc">結果セットを戻すプロシージャ</h3>
+	<p>
+		さらには、検索セットを戻すプロシージャを試してみましょう。
+	</p>
+	<p>
+		outsideSqlDefinitionMap.dfprop にて、プロシージャの CustomizeEntity を自動生成するプロパティを true
+		にして、以下のプロシージャを先ほどのSQLファイルに追加して、同じようにエクササイズをしてみてください。
+	</p>
+<pre><span class="codetitle">e.g. 複数の検索を実行するプロシージャ @replace-schema-50-procedure.sql</span><code>
+<span class="comment">-- #df:begin#</span>
+<span class="keyword">create procedure</span> SP_RETURN_RESULT_SET(<span class="keyword">in</span> birthdate <span class="dbtype">DATE</span>)
+<span class="keyword">begin</span>
+  <span class="keyword">select</span> MEMBER_NAME, BIRTHDATE, MEMBER_STATUS_CODE
+    <span class="keyword">from</span> MEMBER
+   <span class="keyword">where</span> BIRTHDATE >= birthdate;
+   <span class="keyword">order by</span> BIRTHDATE <span class="keyword">desc</span>, MEMBER_ID <span class="keyword">asc</span>;
+  <span class="keyword">select</span> MEMBER_STATUS_CODE, MEMBER_STATUS_NAME
+    <span class="keyword">from</span> MEMBER_STATUS
+   <span class="keyword">order by</span> DISPLAY_ORDER;
+<span class="keyword">end</span>;
+<span class="comment">-- #df:end#</span>
+</code></pre>
+	<dl class="textlist">
+		<dt>ロジックのメソッド</dt>
+		<dd>void callResultSetProcedure(SpReturnResultSetPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean で SP_RETURN_RESULT_SET を call</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_callResultSetProcedure_検索結果が取得できてること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>birthdate に1968年1月1日を設定</li>
+				<li>生年月日が1968年以降であることをアサート</li>
+				<li>会員名称と会員ステータス名称を一行のログで出力すること</li>
+			</ul>
+		</dd>
+	</dl>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>

@@ -44,6 +44,7 @@
 		<li><a href="#about">業務的one-to-oneとは？</a></li>
 		<li><a href="#setting">業務的one-to-oneの関連付け</a></li>
 		<li><a href="#impl">業務的one-to-oneを利用した実装</a></li>
+		<li><a href="#impl">導出的one-to-oneを利用した実装</a></li>
 		<li><a href="#checkbiz">テストデータの登録時チェック</a>
 			<ul>
 				<li><a href="#morecheck">さらにチェック</a></li>
@@ -92,11 +93,7 @@
 		additionalForeignKeyMap.dfprop に、以下の定義を設定してください。
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
-	<p>
-		そして、再自動生成(DocとGenerate)をし、SchemaHTMLにて関連付いていることを確認してください。
-		AdditionalForeignKeyの場合は、普通のFKとはちょっとだけ表示が異なっています。
-	</p>
-<pre><span class="codetitle">ex) 会員と会員住所情報に業務的one-to-oneを定義 @additionalForeignKeyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 会員と会員住所情報に業務的one-to-oneを定義 @additionalForeignKeyMap.dfprop</span><code>
  <span class="abbreviation">...</span>
     ; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
         ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
@@ -109,6 +106,10 @@
     }
  <span class="abbreviation">...</span>
 </code></pre>
+	<p>
+		そして、再自動生成(DocとGenerate)をし、SchemaHTMLにて関連付いていることを確認してください。
+		AdditionalForeignKeyの場合は、普通のFKとはちょっとだけ表示が異なっています。
+	</p>
 
 	<h2 id="impl">業務的one-to-oneを利用した実装</h2>
 	<p>
@@ -137,6 +138,38 @@
 	<p>
 		<span class="freecomment">(講師による現在日時取得についてのフォローあり)</span>
 	</p>
+
+	<h2 id="impl">導出的one-to-oneを利用した実装</h2>
+	<p>
+		それでは、以下の導出的one-to-oneの関連を設定して、エクササイズをやってみましょう。
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/bizonetoone/index.html#derivedrelation">現場フィット - 導出的one-to-one</a></div>
+<pre><span class="codetitle">e.g. 会員と会員住所情報に業務的one-to-oneを定義 @additionalForeignKeyMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; FK_MEMBER_MEMBER_LOGIN_LATEST  = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition  = 
+<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
+select max(login.LOGIN_DATETIME)
+  from MEMBER_LOGIN login
+ where login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
+)<span class="attribute">$$sqend$$</span>
+        ; fixedSuffix = AsLatest
+    }
+ <span class="abbreviation">...</span>
+</code></pre>
+	<dl class="textlist">
+		<!-- DerivedOneToOne -->
+		<dt>最終ログイン時の会員ステータスを取得して会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>SetupSelectのJavaDocにcommentがあることを確認すること</li>
+				<li>会員名称と最終ログイン日時と最終ログイン時の会員ステータス名称をログに出す</li>
+				<li>最終ログイン日時が取得できてることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
 
 	<h2 id="checkbiz">テストデータの登録時チェック</h2>
 	<p>
