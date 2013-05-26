@@ -39,74 +39,143 @@
 <div id="content">
 	<h1>ディベロッパーのためのチュートリアル</h1>
 	<p>
-		ディベロッパーがDBFluteを使って開発する上で必要な情報をまとめたページです。
-		ディベロッパーは真っ先にこのページを読み、開発中も調べものをするときもこのページがエントリとなります。
+		ディベロッパーに必要な情報のまとめページです。
 	</p>
 	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wd.html#developer">Developer (ディベロッパー)</a></div>
 	<ul class="indexlist">
-		<li><a href="#exampledb">ExampleDB (前提)</a></li>
 		<li><a href="#about">DBFluteとは？</a></li>
-		<li><a href="#style">DBアクセスのスタイル</a></li>
-		<li><a href="#object">ディベロッパーが意識するクラス</a></li>
-		<li><a href="#task">ディベロッパーが意識するタスク</a></li>
+		<li><a href="#style">実装スタイル</a>
+			<ul>
+				<li><a href="#twoweapon">二つのやり方</a></li>
+				<li><a href="#threeclass">三つのクラス</a></li>
+				<li><a href="#task">二つの支援タスク</a></li>
+			</ul>
+		</li>
+		<li><a href="#policy">ディベロッパーの十か条</a></li>
+		<li><a href="#faq">ディベロッパーのFAQ</a>
+			<ul>
+				<li><a href="#queryrelation">親テーブルのカラムで絞り込みしたいときは？</a></li>
+				<li><a href="#loadreferrer">one-to-manyのテーブルのデータも検索したいときは？</a></li>
+				<li><a href="#existsreferrer">one-to-manyのテーブルのカラムで絞り込みしたいときは？</a></li>
+				<li><a href="#columnquery">カラムとカラムの比較で絞り込みしたいときは？</a></li>
+			</ul>
+		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
-		<li><a href="#offer">アーキテクトへの相談</a></li>
 	</ul>
 
-	<h2 id="exampledb">ExampleDB (前提)</h2>
-	<p>
-		DBFluteの(至る所の)説明において ExampleDB
-		が利用されます。基本的な構造をあらかじめ理解しておくとドキュメントの理解が深まりますので、まず最初に一度は目を通しておきましょう。
-	</p>
-	<div class="detailpage"><a href="../manual/reference/example/exampledb.html">ExampleDB</a></div>
-
 	<h2 id="about">DBFluteとは？</h2>
-	<p>
-		DBFluteは、(アプリケーション)プログラム上から <em class="keyword">データベースを検索したり更新したりするためのフレームワーク</em>
-		です。ディベロッパーが利用する Entity クラスなど、<em class="keyword">DBアクセスのためのクラスはDBFluteが自動生成</em> します。
-	</p>
+	<ul>
+		<li>プログラム上から DB を検索したり更新したりするためのフレームワーク</li>
+		<li>Entity クラスなど必要なクラスは DBFlute が自動生成</li>
+	</ul>
 	<div class="detailpage"><a href="../introduction/index.html">DBFluteの紹介</a></div>
 
-	<h2 id="style">DBアクセスのスタイル</h2>
-	<p>
-		ディベロッパーが実装する上で、必ず押さえるべきポイントです。
-	</p>
+	<h2 id="style">実装スタイル</h2>
+	<h3 id="twoweapon">二つのやり方</h3>
 	<dl class="valuemainlist">
-		<dt>簡単(定型的)なSQL</dt><dd><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></dd>
-		<dt>複雑(非定型)なSQL</dt><dd><a href="../manual/function/ormapper/outsidesql/index.html">外だしSQL(OutsideSql)</a> <span class="freecomment">*2Way-SQL</span></dd>
+		<dt>よくあるSQL</dt><dd><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBean</a> <span class="freecomment">*タイプセーフ＆目的指向</span></dd>
+		<dt>ちょいムズSQL</dt><dd><a href="../manual/function/ormapper/outsidesql/index.html">外だしSQL(OutsideSql)</a> <span class="freecomment">*2Way-SQL</span></dd>
 	</dl>
-	<p>
-		実装中にどちらを利用すれば良いのか迷う場合は <em class="keyword">ConditionBeanのスコープ</em> を参考にします。
-	</p>
-	<div class="detailpage"><a href="../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
-
-	<h2 id="object">ディベロッパーが意識するクラス</h2>
-	<p>
-		ディベロッパーが(主に)意識するクラスとして、以下のものがあります。
-	</p>
+	<h3 id="threeclass">三つのクラス</h3>
 	<dl class="keymainlist">
 		<dt><a href="../manual/function/ormapper/entity/index.html">Entity</a></dt>
-		<dd>データ(レコード)を格納するクラス</dd>
+		<dd>データ(レコード)を格納</dd>
 		<dt><a href="../manual/function/ormapper/behavior/index.html">Behavior</a></dt>
-		<dd>全てのDBアクセスの処理を司るクラス (DIコンポーネント)</dd>
+		<dd>DBアクセスの入り口 <span class="freecomment">(DIコンポーネント)</span></dd>
 		<dt><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></dt>
-		<dd>検索条件を組み立てるクラス</dd>
+		<dd>検索条件の組み立て</dd>
 	</dl>
-	<div class="relatedpage"><a href="../manual/function/ormapper/index.html">O/RマッパとしてのDBFlute</a></div>
-
-	<h2 id="task">ディベロッパーが意識するタスク</h2>
-	<p>
-		ディベロッパーが(主に)意識するタスクとしては以下のものがあります。
-	</p>
+	<h3 id="task">二つの支援タスク</h3>
 	<dl class="keymainlist">
 		<dt><a href="../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></dt>
-		<dd>ローカル環境のDBの初回作成・DB変更時都度作成</dd>
+		<dd>初めての環境構築時やDB変更時に実行 (DB環境構築の自動化)</dd>
 		<dt><a href="../manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></dt>
-		<dd>外だしSQL(OutsideSql)実装時に実行 (Entityの生成)</dd>
-		<dt><a href="../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTest</a></dt>
-		<dd>外だしSQL(OutsideSql)実装時に実行 (SQLのチェック)</dd>
+		<dd>外だしSQL(OutsideSql)を書いたら実行 (Entityの自動生成)</dd>
 	</dl>
-	<div class="relatedpage"><a href="../manual/function/generator/task/index.html">DBFluteのタスク</a></div>
+	<div class="relatedpage"><a href="../manual/function/generator/task/index.html">DBFluteタスク</a></div>
+
+	<h2 id="policy">ディベロッパーの十か条</h2>
+	<p>
+		DBFluteを使った開発における十か条です。
+		<span class="freecomment">(もし、この十か条が機能しないのであれば、DBFluteの設定や前提条件などが足りてない可能性がありますので、アーキテクトに相談すると良いでしょう)</span>
+	</p>
+	<dl class="keymainlist">
+		<dt><a href="../manual/function/ormapper/conditionbean/index.html">検索 (select)</a></dt>
+		<dd>集計系以外のほとんどの検索は ConditionBean で実装する<span class="freecomment">(できる)</span></dd>
+		<dt><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBeanで迷ったら</a></dt>
+		<dd>ConditionBean のトップページに行って目的に合うものを探す</dd>
+		<dt><a href="../manual/function/ormapper/conditionbean/howto.html#completion">ConditionBeanの手つき</a></dt>
+		<dd>コード補完やショートカットを利用して文字をあまり打たずに書く</dd>
+		<dt><a href="../manual/function/genbafit/implfit/commoncolumn/index.html">共通カラム</a></dt>
+		<dd>自動で値が設定されるので、自分で設定する必要なし</dd>
+		<dt><a href="../manual/function/genbafit/implfit/classification/index.html">区分値</a></dt>
+		<dd>自動生成される区分値の設定・判定メソッドを利用する</dd>
+		<dt><a href="../manual/function/genbafit/implfit/classification/index.html">業務的one-to-one</a></dt>
+		<dd>固定条件が解決されたメソッドを呼び出すだけ</dd>
+		<dt><a href="../manual/function/genbafit/implfit/exclusivecontrol/index.html">排他制御</a></dt>
+		<dd>更新処理に組み込まれているので、それを利用するだけ</dd>
+		<dt><a href="../manual/function/ormapper/outsidesql/index.html">外だしSQL</a></dt>
+		<dd>SQLに対応するEntity(結果受け取りDTO)は自動生成する</dd>
+		<dt><a href="../manual/function/generator/task/replaceschema/index.html">DB環境構築 <span class="freecomment">(ReplaceSchema)</span></a></dt>
+		<dd>バッチ一発叩くだけで、テーブル作成してテストデータ登録する</dd>
+		<dt><a href="../manual/function/generator/task/doc/schemahtml.html">テーブル定義 <span class="freecomment">(SchemaHTML)</span></a></dt>
+		<dd>テーブル定義のHTMLが自動生成されるので、調べたい時はそれを見る</dd>
+	</dl>
+
+	<h2 id="faq">ディベロッパーのFAQ</h2>
+	<h3>ConditionBeanの機能を探したいときはどうする？</h3>
+	<p>
+		真っ先に、"ConditionBeanのトップページ" に飛んでください。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/ormapper/conditionbean/index.html">ConditionBeanのトップページ</a></div>
+	<p>
+		そして、やりたいことはなんでしょうか？
+	</p>
+	<ul>
+		<li><a href="../manual/function/ormapper/conditionbean/index.html#select">データの取得？</a> <span class="freecomment">(関連テーブルのデータも画面に表示するとか)</span></li>
+		<li><a href="../manual/function/ormapper/conditionbean/index.html#query">データの絞り込み？</a> <span class="freecomment">(比較条件で検索対象レコードを限定するとか)</span></li>
+		<li><a href="../manual/function/ormapper/conditionbean/index.html#orderby">データの並び替え？</a> <span class="freecomment">(検索対象レコードをどう並べるかとか)</span></li>
+		<li><a href="../manual/function/ormapper/conditionbean/index.html#selectstyle">検索のスタイル？</a> <span class="freecomment">(一件検索とかページング検索とか)</span></li>
+	</ul>
+	<p>
+		例えば、会員の検索において "未払いの購入を持っている会員を検索したい" のであれば、やりたいことは "データの絞り込み"
+		です。子テーブルのカラムで基点テーブルを絞り込みたいと考えられます。
+	</p>
+	<p>
+		トップページの "ConditionBeanの機能"
+		のデータの絞り込みのリンクをクリックし、"利用できるカラム" の欄を見てみると、"子テーブルのカラム (one-to-many)"
+		の隣には ExistsReferrer へのリンクがあります。あとは、そのページの実装手順にならって実装していきます。
+	</p>
+	<ol>
+		<li>ConditionBeanのトップページへ行く</li>
+		<li>ConditionBeanの機能の "データの絞り込み" のリンクをクリック</li>
+		<li>"利用できるカラム" を見てみて、子テーブルのカラム (one-to-many) を探す</li>
+		<li>"ExistsReferrer" が見つかり、そのページの "実装手順" を読む</li>
+	</ol>
+	<p>
+		やりたいこと(目的)が明確になってさえいれば、その目的から辿っていけるようなドキュメントになっています。
+		目的ドリブンのAPIであり、目的ドリブンのドキュメントとなっています。
+	</p>
+	<h3 id="queryrelation">親テーブルのカラムで絞り込みしたいときは？</h3>
+	<p>
+		ConditionBeanの機能の "データの絞り込み" をクリックし、"利用できるカラム" を欄を見て、many-to-one
+		に該当する機能をクリックすると、親テーブルのカラムで絞り込み方法がわかります。
+	</p>
+	<h3 id="loadreferrer">one-to-manyのテーブルのデータも検索したいときは？</h3>
+	<p>
+		ConditionBeanの機能の "データの取得" をクリックし、"取得できるカラム" を欄を見て、one-to-many
+		のカラムに該当する機能をクリックすると、子テーブルの取得方法がわかります。
+	</p>
+	<h3 id="existsreferrer">one-to-manyのテーブルのカラムで絞り込みしたいときは？</h3>
+	<p>
+		ConditionBeanの機能の "データの絞り込み" をクリックし、"利用できるカラム" を欄を見て、one-to-many
+		のカラムに該当する機能をクリックすると、子テーブルのカラムでの絞り込み方法がわかります。
+	</p>
+	<h3 id="columnquery">カラムとカラムの比較で絞り込みしたいときは？</h3>
+	<p>
+		ConditionBeanの機能の "データの絞り込み" をクリックし、"絞り込み条件" を欄を見てずっと眺めていくと、"カラム同士の比較で絞り込み"
+		という条件が見つかります。
+	</p>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
@@ -126,26 +195,6 @@
 		<em class="keyword">ConditionBeanBasicTest</em> です。開発中もすぐに参照できるようにしておくことを強くお奨めします。
 	</p>
 	<div class="relatedpage"><a href="../manual/reference/example/index.html">DBFlute Example</a></div>
-
-	<h2 id="offer">アーキテクトへの相談</h2>
-	<p>
-		DBFluteでは、ディベロッパーの実装を安全なものに導く様々な全体最適な機能が備わっています。
-		例えば、DBFluteでは、登録日時や更新ユーザなどのどのテーブルにでも定義されている <em class="keyword">共通カラム</em>
-		に対して、登録・更新時に都度都度ディベロッパーがそれらの値を準備して(Entityに)設定するようなことはありません。
-		また、(ExampleDBでいう)会員ステータスなどの <em class="keyword">区分値</em>
-		を設定したり判定したりするときに、コード値をハードコードするようなことはありません(手動で定数を定義することもありません)。
-		これらはDBFluteが提供する <em class="keyword">現場フィットな機能</em> で解決されます。
-	</p>
-	<div class="relatedpage"><a href="../manual/function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
-	<div class="relatedpage"><a href="../manual/function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
-	<div class="relatedpage"><a href="../manual/function/genbafit/index.html#function">現場フィットな機能</a></div>
-	<p>
-		但し、これら機能を利用するためには、多くの場合は事前にDBFluteでの設定が必要です。
-		もし、実装しているときにこれらの機能が利用できないようであれば(共通カラムの自動設定が行われない、区分値のメソッドが存在しないなど)、
-		設定漏れがあるかもしれません。そのときは、ぜひアーキテクトに相談してみて下さい。
-		そもそもその機能を認識していないようであれば、"こういう機能があるのでぜひ使いましょう"
-		と提案するのも良いでしょう。それはディベロッパー自身の実装の助けになるのです。
-	</p>
 
 </div>
 </div>
