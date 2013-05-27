@@ -39,15 +39,19 @@
 <div id="content">
 	<h1>アーキテクトのためのチュートリアル</h1>
 	<p>
-		アーキテクトが DBFlute を扱う上での必要な知識や開発時にやるべきことをまとめたページです。
+		アーキテクトが DBFlute を扱う上での必要なノウハウや開発時にやるべきことをまとめたページです。
 	</p>
 	<div class="relatedword"><a href="../manual/reference/dictionary/alphabet/wa.html#architect">Architect (アーキテクト)</a></div>
 	<ul class="indexlist">
-		<li><a href="#knowledge">必要な知識</a>
+		<li><a href="#knowledge">必要なノウハウ</a>
 			<ul>
+				<li><a href="#concept">DBFluteの概念・役割</a></li>
 				<li><a href="#infra">DBFluteのインフラ情報</a></li>
 				<li><a href="#generator">自動生成ツールとしてのDBFlute</a></li>
 				<li><a href="#ormapper">O/RマッパーとしてのDBFlute</a></li>
+				<li><a href="#dbway">DBMSごとの取扱い</a></li>
+				<li><a href="#dfprop">DBFluteプロパティ</a></li>
+				<li><a href="#almosttrue">デフォルトfalseだが、ほとんどtrueでOKのプロパティ</a></li>
 			</ul>
 		</li>
 		<li><a href="#action">開発時にやるべきこと</a>
@@ -63,18 +67,20 @@
 		</li>
 	</ul>
 
-	<h2 id="knowledge">必要な知識</h2>
+	<h2 id="knowledge">必要なノウハウ</h2>
 	<p>
 		アーキテクトは、実装部分だけでなくDBFluteの環境周りや設定周りなど全体を把握する必要があります。
 		DBFluteを探っている人、これから使う人、問わずに必要な知識を得るためのエントリです。
 	</p>
 	<ul>
-		<li>DBFluteの概念・役割</li>
-		<li>DBFluteのインフラ情報</li>
-		<li>ツールとしてのDBFlute</li>
-		<li>O/RマッパーとしてのDBFlute</li>
+		<li><a href="#concept">DBFluteの概念・役割</a></li>
+		<li><a href="#infra">DBFluteのインフラ情報</a></li>
+		<li><span class="working"><!-- <a href="#generate"> -->自動生成ツールとしてのDBFlute<!-- </a> --></span></li>
+		<li><a href="#ormapper">O/RマッパーとしてのDBFlute</a></li>
+		<li><a href="#dbway">DBMSごとの取扱い</a></li>
+		<li><a href="#dfprop">DBFluteプロパティ</a></li>
 	</ul>
-	<h3>DBFluteの概念・役割</h3>
+	<h3 id="concept">DBFluteの概念・役割</h3>
 	<p>
 		開発の効率化のためにDBFlute利用を推進する、提案されてきたDBFlute利用の許可判断をするなどの場合、
 		直接は利用(実装)しないとしてもある程度の "概念と役割" を理解しておく必要があります。
@@ -103,6 +109,69 @@
 		を知ることの近道でもあります。(ディベロッパーのための)チュートリアルに必ず目を通しておきましょう。
 	</p>
 	<div class="detailpage"><a href="./developer.html">ディベロッパーのためのチュートリアル</a></div>
+	<h3 id="dbway">DBMSごとの取扱い</h3>
+	<p>
+		DBMSによって扱いに若干の違いが生まれます。利用するDBMSのページに目を通しておきましょう。
+	</p>
+	<div class="detailpage"><a href="../manual/reference/dbway/index.html">DBMSごとの取扱い</a></div>
+	<h3 id="dfprop">DBFluteプロパティ</h3>
+	<p>
+		最適なDBFluteプロパティを設定することで、その現場にフィットしたDBFluteにすることができます。
+		また、環境ごとに dfprop を差し替えることもできます(結合環境用の ReplaceSchema など)。
+	</p>
+	<div class="detailpage"><a href="../manual/reference/dfprop/index.html">DBFluteプロパティ</a></div>
+	<div class="inucolumn">
+		<h3 id="almosttrue">デフォルトfalseだが、ほとんどtrueでOKのプロパティ</h3>
+		<p>
+			DBFluteとしては、どうしてもデフォルトで true
+			にしづらいプロパティがあります。万が一のケースでトラブりやすいと考えられるものです。
+			レアケースはいえ true にできないもの。
+		</p>
+		<p>
+			例えば、区分値において、区分値解決メソッドとCDef型の引数のメソッドがあれば、ネイティヴ型のメソッドは既に不要なものです。
+			ですが、DBFluteの区分値定義に存在していなくてDB上にだけ存在する "隠れ区分値"
+			のようなものがあった場合(別システムで利用されるとか)、そして、そのアプリでもその値が検索したり設定したりするようなことがある場合、ネイティヴ型のメソッドがないと扱うことができません。
+			そんなことまずあり得ないと思われますが、万が一そういう現場があるかもしれないと考えると true にできないのです。
+		</p>
+		<p>
+			感覚値ですが9割以上の現場で問答無用でネイティヴ型のメソッドは削除して良いでしょう。
+			そういった感じのプロパティをここで幾つか特集したいと思います。(本当にOKか確認はしましょう)
+		</p>
+		<dl class="textlist">
+			<dt>区分値のネイティヴ型のメソッドの削除と例外検知</dt>
+			<dd>
+				隠れ区分値がなければ。<span class="freecomment">(そもそもそんな区分値があるとややこしい)</span>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">littleAdjustmentMap.dfprop - isForceClassificationSetting</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/littleadjustment/index.html#ischeckselectedclassification">littleAdjustmentMap.dfprop - isCheckSelectedClassification</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/classificationdefinition/index.html#ischeckimplicitset">littleAdjustmentMap.dfprop - isCheckImplicitSet</a></div>
+			</dd>
+			<dt>空文字は null に変換して登録・更新</dt>
+			<dd>
+				空文字に意味を持たせないで良いのであれば。<span class="freecomment">(そもそも持たせるとややこしい)</span>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/littleadjustment/index.html#isentityconvertemptystringtonull">littleAdjustmentMap.dfprop - isEntityConvertEmptyStringToNull</a></div>
+			</dd>
+			<dt>別名(和名)の設定やDBコメントの扱い</dt>
+			<dd>
+				DBコメントの別名(和名)活用の仕様に合わせて設定しましょう。<span class="freecomment">(ぜひDBコメントは活用したい)</span>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/documentdefinition/index.html#aliasdelimiterindbcomment">documentDefinitionMap.dfprop - aliasDelimiterInDbComment</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/documentdefinition/index.html#isdbcommentonaliasbasis">documentDefinitionMap.dfprop - isDbCommentOnAliasBasis</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/documentdefinition/index.html#isentityjavadocdbcommentvalid">documentDefinitionMap.dfprop - isEntityJavaDocDbCommentValid</a></div>
+			</dd>
+			<dt>外だしSQLのコメントは必須に</dt>
+			<dd>
+				OutsideSqlTestタスクで、外だしSQLのコメントの有無をチェックできます。<span class="freecomment">(コメント必須)</span>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/outsidesqldefinition/index.html#isrequiredsqltitle">outsideSqlDefinitionMap.dfprop - isRequiredSqlTitle</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/outsidesqldefinition/index.html#isrequiredsqldescription">outsideSqlDefinitionMap.dfprop - isRequiredSqlDescription</a></div>
+			</dd>
+			<dt>ストアドプロシージャを使うのであれば</dt>
+			<dd>
+				プロシージャ使うならとりあえず設定するでOK。<span class="freecomment">(実際に使ってみて何かあれば微調整で良い)</span>
+				<div class="relatedpage"><span class="working"><!-- <a href="../manual/reference/dfprop/documentdefinition/index.html#ischeckprocedurediff"> -->documentDefinitionMap.dfprop - isCheckProcedureDiff<!-- </a> --></span></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/outsidesqldefinition/index.html#isgenerateprocedureparameterbean">outsideSqlDefinitionMap.dfprop - isGenerateProcedureParameterBean</a></div>
+				<div class="relatedpage"><a href="../manual/reference/dfprop/outsidesqldefinition/index.html#isgenerateprocedurecustomizeentity">outsideSqlDefinitionMap.dfprop - isGenerateProcedureCustomizeEntity</a></div>
+			</dd>
+		</dl>
+	</div>
 
 	<h2 id="action">開発時にやるべきこと</h2>
 	<p>
@@ -167,7 +236,7 @@
 		というページを用意していますので、ディベロッパーには必ず(一度は)このページを読んでもらうようにして下さい。
 		調べ物をするときのエントリページにもなりますので、ブラウザのブックマークに登録してもらうと良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="./developer.html">ディベロッパーのためのチュートリアル</a></div>
+	<div class="detailpage"><a href="./developer.html">ディベロッパーのためのチュートリアル</a></div>
 	<h3 id="dbchange">DB変更時の再自動生成</h3>
 	<p>
 		DB変更が発生したら、もろもろ再自動生成します。
