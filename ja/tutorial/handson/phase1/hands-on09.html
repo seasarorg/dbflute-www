@@ -49,7 +49,12 @@
 				<li><a href="#schemahtml">外だしSQLのドキュメント</a></li>
 			</ul>
 		</li>
-		<li><a href="#moreout">さらに外だし</a></li>
+		<li><a href="#paging">外だしSQLでページングってみる</a></li>
+		<li><a href="#moreout">さらに外だし</a>
+			<ul>
+				<li><a href="#bonus">ボーナスステージ</a></li>
+			</ul>
+		</li>
 		<li><a href="#commentrequired">外だしSQLのコメントを必須に</a></li>
 		<li><a href="#columncomment">プロパティとカラムのコメントを付与</a></li>
 		<li><a href="#cursor">外だしSQLでカーソル検索ってみる</a></li>
@@ -181,14 +186,48 @@
 		Docタスクを叩いて、SchemaHTMLを作り直して外だしSQLの欄を見てみましょう。
 	</p>
 
+	<h2 id="paging">外だしSQLでページングってみる</h2>
+	<p>
+		外だしSQLでのページング検索です。
+	</p>
+	<p>
+		ConditionBeanでのページング検索を思い出して、比較しながら実装してみましょう。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/dbaccess/pagingselect.html">DBアクセス - ページング検索</a></div>
+	<dl class="textlist">
+		<dt>外だしSQLのファイル</dt>
+		<dd>PurchaseBhv_selectPartOfMember.sql</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>ページング検索すること</li>
+				<li>あとは、"機能的なやり方" のSQLと全く同じ</li>
+			</ul>
+		</dd>
+		<dt>ロジックのメソッド</dt>
+		<dd>PagingResultBean&lt;PartOfMember&gt; selectPartOfMember(PartOfMemberPmb pmb)</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定された ParameterBean で検索して、検索結果を戻す</li>
+				<li>引数の値で null は許されない</li>
+			</ul>
+		</dd>
+		<dt>対応テストメソッド</dt>
+		<dd>test_selectPartOfMember_ページング検索されること()</dd>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員名称に "vi" を含む会員を対象に検索</li>
+				<li>ページサイズは 4、ページ番号は 2 で検索すること</li>
+				<li>期待通りのSQLがログに出力されることを確認する</li>
+				<li>検索したカラム全てのデータをログ出力</li>
+				<li>検索結果がページサイズ以下のデータだけであることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+
 	<h2 id="moreout">さらに外だし</h2>
 	<p>
 		それではさらに外だしSQLのエクササイズです。せっかくなので機能的なやり方でやりましょう。
 		以下は、ConditionBeanでは実現できないレベルのSQLです。頑張ってください。
-	</p>
-	<p>
-		また、外だしSQLでのページング検索です。
-		ConditionBeanでのページング検索を思い出して、比較しながら実装してみましょう。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/topic/programming/dbaccess/pagingselect.html">ページング検索</a></div>
 	<dl class="textlist">
@@ -196,7 +235,6 @@
 		<dd>PurchaseBhv_selectPurchaseMonthSummary.sql</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>ページング検索すること</li>
 				<li>"会員と購入月" ごとの購入の平均購入価格、合計購入数量を検索する</li>
 				<li>会員ID、会員名称、購入月、平均購入価格、合計購入数量という形で検索</li>
 				<li>支払済みの購入だけでも検索できるようにする</li>
@@ -218,10 +256,8 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>会員名称に "vi" を含む会員を対象に検索</li>
-				<li>ページサイズは 4、ページ番号は 2 で検索すること</li>
 				<li>期待通りのSQLがログに出力されることを確認する</li>
 				<li>検索したカラム全てのデータをログ出力</li>
-				<li>検索結果がページサイズ以下のデータだけであることをアサート</li>
 			</ul>
 		</dd>
 	</dl>
@@ -229,6 +265,10 @@
 		<span class="freecomment">(最後にConditionBeanのスコープについて講師による説明あり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
+	<h3 id="bonus">ボーナスステージ</h3>
+	<p>
+		もし、ものすごい頑張れるのであれば、この集計のSQLをページング検索に修正してみてください。
+	</p>
 
 	<h2 id="commentrequired">外だしSQLのコメントを必須に</h2>
 	<p>
