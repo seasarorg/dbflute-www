@@ -79,6 +79,7 @@
 				<li><a href="#cursorselect">カーソル検索でのメモリ対策</a></li>
 				<li><a href="#queryupdate">QueryUpdate/Deleteの実現</a></li>
 				<li><a href="#fakebatch">バッチ更新はバッチじゃない!?</a></li>
+				<li><a href="#easydeadlock">空振りdeleteでお手軽デッドロック</a></li>
 				<li><a href="#unionboolean">Sql2EntityでunionしたBoolean型</a></li>
 				<li><a href="#nullsfirstlast">NullsFirst/Lastの実現</a></li>
 				<li><a href="#engine">MySQLのストレージエンジンに注意</a></li>
@@ -500,6 +501,21 @@ cb.query().addOrderBy_MemberId_Asc();
 		にすることで、実行スピードを速めることができるかもしれません。
 		ただ、アプリ実行時にこのプロパティを利用する場合は、このプロパティの挙動がどのくらい信頼性のあるものなのか、しっかり確認をする方が良いでしょう。
 		<span class="freecomment">(jfluteが、アプリ実行時に利用している現場をあまり見たことがないため)</span>
+	</p>
+	<h3 id="easydeadlock">空振りdeleteでお手軽デッドロック</h3>
+	<p>
+		詳しくは、ブログ記事をご覧ください。
+	</p>
+	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20120831/1346393321">外部サイト - MySQLでお手軽デッドロック</a></div>
+	<p>
+		DBFluteプロパティで、全ての queryUpdate(), queryDelete()
+		の実処理の直前に select count(*) して0件だったら更新処理しない、というチェックが入れることができます<span class="freecomment">(@since 0.9.9.7F)</span>。
+		littleAdjustmentMap.dfprop の isCheckCountBeforeQueryUpdate を true に設定して再自動生成するとそのようになります。
+		ただ、デッドロックとは縁のない queryUpdate() や queryDelete() でも、select count(*) のチェックが入ってしまいます。
+	</p>
+	<p>
+		DBFluteプロパティを設定せず、その場その場の実装で対応するのであれば、ConditionBean で enableCheckCountBeforeQueryUpdate()
+		を呼び出すと、その時の queryUpdate(), queryDelete() だけに select count(*) のチェックを入れることができます<span class="freecomment">(@since 1.0.4D)</span>。
 	</p>
 	<h3 id="unionboolean">Sql2EntityでunionしたBoolean型</h3>
 	<p>
