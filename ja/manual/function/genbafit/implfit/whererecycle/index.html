@@ -46,17 +46,18 @@
 		することが重要です。
 	</p>
 	<ul class="indexlist">
-		<li><a href="#solution">where句の再利用</a>
+		<li><a href="#solution">where句を再利用しよう</a></li>
+		<li><a href="#arrange">再利用メソッド (ArrangeQuery)</a>
 			<ul>
-				<li><a href="#arrange">再利用メソッドの定義 (ArrangeQuery)</a></li>
 				<li><a href="#use">再利用メソッドの利用</a></li>
 				<li><a href="#orderby">order by 句も再利用</a></li>
+				<li><a href="#orscopecolumnquery">OrScoprQuery や ColumnQuery は？</a></li>
 			</ul>
 		</li>
 		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
 
-	<h2 id="solution">where句の再利用</h2>
+	<h2 id="solution">where句を再利用しよう</h2>
 	<p>
 		例えば、<em class="keyword">ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員をサービス会員</em>
 		として扱うというような業務仕様があったとして、その会員をアプリケーション上で複数の箇所で検索することがある場合に、
@@ -84,7 +85,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		しかし、業務仕様はなかなかそういうものではなく、プロセス毎に "サービス会員"
 		のソートの仕方が違ったり、一緒に取得したい関連テーブルが違ったり、そもそも検索の基点テーブルが違ったり(例えば、"サービス会員"
 		の購入リストを検索するとか)と、"サービス会員"
-		という検索条件は様々な場面で様々な利用のされ方をすることが多くあります。つまり、<em class="keyword">再利用したいポイントはwhere句の一部条件</em>
+		という検索条件は様々な場面で様々な利用方法が考えられます。つまり、<em class="keyword">再利用したいポイントはwhere句の一部条件</em>
 		なのです。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wp.html#process">Process (プロセス)</a></div>
@@ -94,7 +95,8 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/conditionbean/about.html#conditionquery">ConditionQueryとは？</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
-	<h3 id="arrange">再利用メソッドの定義 (ArrangeQuery)</h3>
+
+	<h2 id="arrange">再利用メソッド (ArrangeQuery)</h2>
 	<p>
 		メソッド名は arrange で始まるのが習慣としてお奨めです。この再利用メソッドを定義する方法、もしくは、そのメソッド自体を
 		<em class="keyword">ArrangeQuery</em> と呼んでいます。
@@ -131,6 +133,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	<h3 id="use">再利用メソッドの利用</h3>
 	<p>
 		再利用メソッドが定義されていれば、後はディベロッパーはConditionBean実装時にそのメソッドを呼び出すだけです。
+		プログラム上は業務的な目的の指定だけとなり、業務仕様への依存性が減ります。
 	</p>
 <pre><span class="codetitle">e.g. サービス会員を検索 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -139,7 +142,7 @@ cb.query().addOrderBy_...();
 ... = <span class="attribute">memberBhv</span>.selectList(cb);
 </code></pre>
 	<p>
-		(ConditionBeanでなく)ConditionQueryのExクラスに定義することで関連テーブルでも利用可能になっています。
+		(ConditionBeanでなく)ConditionQueryのExクラスに定義することで関連テーブルでも利用可能です。
 	</p>
 <pre><span class="codetitle">e.g. サービス会員の購入リストを検索 @Java</span><code>
 PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
@@ -150,6 +153,11 @@ cb.query().addOrderBy_...();
 	<h3 id="orderby">order by 句も再利用</h3>
 	<p>
 		同じ仕組みで order by 句も利用することは可能です。
+	</p>
+	<h3 id="orscopecolumnquery">OrScoprQuery や ColumnQuery は？</h3>
+	<p>
+		OrScoprQuery や ColumnQuery は、ConditionBeanドリブンのメソッドであり、ConditionQuery
+		からは利用できません。なので、ConditionQueryではなく ConditionBean のExクラスで再利用メソッドを定義する必要があります。
 	</p>
 
 	<h2 id="example">Exampleのススメ</h2>

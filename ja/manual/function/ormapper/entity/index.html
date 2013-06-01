@@ -45,7 +45,13 @@
 				<li><a href="#classname">Entityのクラス名</a></li>
 			</ul>
 		</li>
-		<li><a href="#howto">Entityの使い方</a></li>
+		<li><a href="#howto">Entityの使い方</a>
+			<ul>
+				<li><a href="#newinstance">インスタンス生成</a></li>
+				<li><a href="#getset">カラム対応プロパティの取得、設定</a></li>
+				<li><a href="#relation">リレーション対応プロパティの取得、設定</a></li>
+			</ul>
+		</li>
 		<li><a href="#classification">区分値 (Classification)</a>
 			<ul>
 				<li><a href="#classify">区分値の設定</a></li>
@@ -116,7 +122,7 @@
 	<div class="relatedpage"><a href="../behavior/update/update.html">Behavior - update()</a></div>
 
 	<h2 id="howto">Entityの使い方</h2>
-	<h3>インスタンス生成</h3>
+	<h3 id="newinstance">インスタンス生成</h3>
 	<p>
 		検索時は、DBFlute内部でインスタンスが生成されます。 
 	</p>
@@ -139,31 +145,33 @@ memberBhv.update(member);
 		の付いたジェネレーションギャップのための(スーパー)クラスをインスタンス生成してはいけません。
 	</p>
 	<div class="relatedword"><a href="../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
-	<h3>カラム対応プロパティの設定、取得</h3>
+	<h3 id="getset">カラム対応プロパティの取得、設定</h3>
 	<p>
-		<em class="keyword">set[プロパティ名](...)</em>
-		メソッドにて設定、<em class="keyword">get[プロパティ名]()</em> メソッドにて取得します。
+		<em class="keyword">get[プロパティ名](...)</em>
+		メソッドにて取得、<em class="keyword">set[プロパティ名]()</em> メソッドにて設定します。
 	</p>
 <pre><span class="codetitle">e.g. カラム対応プロパティの設定、取得 {Member} @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
 member.setMemberName(<span class="literal">"foo"</span>); <span class="comment">// 会員名称を "foo" に設定</span>
 String memberName = member.getMemberName(); <span class="comment">// 会員名称を取得 ("foo")</span>
 </code></pre>
-	<h4>検索は get、更新は set</h4>
+	<dl class="textlist">
+		<dt>検索は get、更新は set</dt>
+		<dd>
+			アプリケーションは、<em class="keyword">検索時は主に get</em> を利用し(検索結果の取得)、<em class="keyword">登録、更新、削除時は主に set</em>
+			を利用する(更新内容の設定)、という形になります(例外的に、登録や更新後に自動設定された値を取得するのに get を利用することもあります)。
+		</dd>
+		<dt>キャメルケースコード補完の活用</dt>
+		<dd>
+			キャメルケースコード補完で、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberName()</em>
+			メソッドであれば、<em class="keyword">getMN</em> と打ち込めばかなり候補から選びやすくなるでしょう。
+			<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+		</dd>
+	</dl>
+	<h3 id="relation">リレーション対応プロパティの取得、設定</h3>
 	<p>
-		アプリケーションは、<em class="keyword">検索時は主に get</em> を利用し(検索結果の取得)、<em class="keyword">登録、更新、削除時は主に set</em>
-		を利用する(更新内容の設定)、という形になります(例外的に、登録や更新後に自動設定された値を取得するのに get を利用することもあります)。
-	</p>
-	<h4>キャメルケースコード補完の活用</h4>
-	<p>
-		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberName()</em>
-		メソッドであれば、<em class="keyword">getMN</em> と打ち込めばかなり候補から選びやすくなるでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
-	<h3>リレーション対応プロパティの設定、取得</h3>
-	<p>
-		<em class="keyword">set[プロパティ名](...)</em>
-		メソッドにて設定、<em class="keyword">get[プロパティ名]()</em> メソッドにて取得します。
+		<em class="keyword">get[プロパティ名](...)</em>
+		メソッドにて取得、<em class="keyword">set[プロパティ名]()</em> メソッドにて設定します。
 	</p>
 	<div class="relatedpage"><a href="./relation.html">Entity間のリレーション</a></div>
 <pre><span class="codetitle">e.g. many-to-one プロパティの設定、取得 {MEMBER_STATUS} @Java</span><code>
@@ -176,19 +184,21 @@ Member member = <span class="keyword">new</span> Member();
 member.setPurchaseList(<span class="keyword">new</span> ArrayList&lt;Purchase&gt;()); <span class="comment">// 購入リストを設定</span>
 List&lt;Purchase&gt; purchaseList = member.getPurchaseList(); <span class="comment">// 購入リストを取得</span>
 </code></pre>
-	<h4>set はあまり利用しない</h4>
-	<p>
-		<em class="keyword">リレーション対応プロパティに対してアプリケーションが設定処理(set)を行う必要性はほとんどありません</em>。
-		例えば、検索結果データのEntityへの設定処理は、DBFlute内部にて実行されます。
-		また、Entityに格納されたリレーションデータを利用して更新処理を行う機能は存在しません。
-		(Entity をアプリケーション独自に "ただの入れ物" として扱うような場合のみ、利用する可能性があるかもしれません)
-	</p>
-	<h4>キャメルケースコード補完の活用</h4>
-	<p>
-		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberStatus()</em>
-		メソッドであれば、<em class="keyword">getMS</em> と打ち込めばかなり候補から選びやすくなるでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+	<dl class="textlist">
+		<dt>set はあまり利用しない</dt>
+		<dd>
+			<em class="keyword">リレーション対応プロパティに対してアプリケーションが設定処理(set)を行う必要性はほとんどありません</em>。
+			例えば、検索結果データのEntityへの設定処理は、DBFlute内部にて実行されます。
+			また、Entityに格納されたリレーションデータを利用して更新処理を行う機能は存在しません。
+			(Entity をアプリケーション独自に "ただの入れ物" として扱うような場合のみ、利用する可能性があるかもしれません)
+		</dd>
+		<dt>キャメルケースコード補完の活用</dt>
+		<dd>
+			キャメルケースコード補完で、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">getMemberStatus()</em>
+			メソッドであれば、<em class="keyword">getMS</em> と打ち込めばかなり候補から選びやすくなるでしょう。
+			<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+		</dd>
+	</dl>
 	<h3>メタデータの取得</h3>
 	<p>
 		<em class="keyword">基本的にアプリケーションで意識する必要はありません。</em>
@@ -209,6 +219,14 @@ DBMeta dbmeta = status.getDBMeta(); <span class="comment">// 会員ステータ�
 		区分値が関連付いていると、区分値をタイプセーフに扱える区分値メソッドが利用できます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+<pre><span class="codetitle">e.g. 区分値の設定や判定 @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">setMemberStatusCode_Formalized()</span>; <span class="comment">// 設定メソッド (正式会員にする)</span>
+<span class="abbreviation">...</span>
+<span class="keyword">if</span> (member.<span class="point">isMemberStatusCodeFormalized()</span>) { <span class="comment">// 判定メソッド (正式会員かどうか)</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
 	<h3 id="classify">区分値の設定</h3>
 	<p>
 		<em class="keyword">set[プロパティ名]_[区分値要素の名前]()</em> の形式のメソッドを利用します。
@@ -218,47 +236,44 @@ Member member = <span class="keyword">new</span> Member();
 member.<span class="point">setMemberStatusCode_Formalized()</span>;
 <span class="comment">// member.setMemberStatusCode("FML"); と同義</code>
 </code></pre>
-	<h4>通常のプロパティの設定と同じ set 始まり</h4>
-	<p>
-		通常のプロパティの設定と同じ set 始まりのメソッドなので、他のカラムと同様、とりあえず set
-		と打って、対象のカラムの set メソッドを補完すると、区分値メソッドが補完候補に並びますので、後はそこから選ぶだけです。
-		その時、ネイティブ型の設定メソッドしか存在しない場合は、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
-	</p>
-	<h4>キャメルケースコード補完の活用</h4>
-	<p>
-		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">setMemberStatusCode_Formalized()</em>
-		メソッドであれば、<em class="keyword">setMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">プログラミング - キャメルケースコード補完</a></div>
-	<h4>CDef を直接渡すメソッド</h4>
-	<p>
-		メソッド名解決のメソッドに対し、ENUMである CDef を直接渡すメソッドもあります。但し、<em class="keyword">基本的にはあまり利用する必要はありません</em>。
-		(アプリケーションの仕組みの都合でどうしても必要になった場合のみ利用すること)
-	</p>
-<pre><span class="codetitle">e.g. 区分値の設定(CDef指定)。会員ステータスコードに正式会員を設定 @Java</span><code>
+	<dl class="textlist">
+		<dt>通常のプロパティの設定と同じ set 始まり</dt>
+		<dd>
+			通常のプロパティの設定と同じ set 始まりのメソッドなので、他のカラムと同様、とりあえず set
+			と打って、対象のカラムの set メソッドを補完すると、区分値メソッドが補完候補に並びますので、後はそこから選ぶだけです。
+			その時、ネイティヴ型の設定メソッドしか存在しない場合は、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
+		</dd>
+		<dt>キャメルケースコード補完の活用</dt>
+		<dd>
+			キャメルケースコード補完で、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">setMemberStatusCode_Formalized()</em>
+			メソッドであれば、<em class="keyword">setMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
+			<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+		</dd>
+		<dt>CDef を直接渡すメソッド</dt>
+		<dd>
+			メソッド名解決のメソッドに対し、ENUMである CDef を直接渡すメソッドもあります。但し、<em class="keyword">基本的にはあまり利用する必要はありません</em>。
+			主に、(後述の)ネイティヴ型の設定メソッドがオプションで利用できない状態で、画面のFormから飛んで来た値を設定するような場合に利用します。
+<pre><span class="codetitle">e.g. 区分値の設定(CDef指定)。会員ステータスコードにFormのステータスを設定 @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
-member.setMemberStatusCodeAsMemberStatus(CDef.MemberStatus.Formalized);
-<span class="comment">// member.setMemberStatusCode_Formalized(); と同義</code>
+CDef.MemberStatus cdefStatus = CDef.MemberStatus.codeOf(form.status);
+member.setMemberStatusCodeAsMemberStatus(cdefStatus);
 </code></pre>
-	<h4>ネイティブ型の設定メソッドは残ったまま</h4>
-	<p>
-		区分値が関連付いたカラムのネイティブ型での設定メソッドは残っています。
-		これはこれで、既に区分値であることが保証されている変数(リストボックスのリクエストパラメータなど)を直接設定したり、
-		別のフレームワークでネイティブ型での設定メソッドが必要になる(CSVやTSVなどのデータをEntityで受け取る)場合など、場面場面で必要になるためです。
-		このような状況以外で、区分値のコードを(特にハードコードして)設定するようなことは基本的に想定されていません(<em class="keyword">利用してはいけません</em>)。
-	</p>
-<pre><span class="codetitle">e.g. (ディベロッパーが)絶対にやってはいけない設定の仕方 @Java</span><code>
-member.setMemberStatusCode(<span class="literal">"FML"</span>);
+		</dd>
+		<dt>ネイティヴ型の設定メソッドは残ったまま</dt>
+		<dd>
+			区分値が関連付いたカラムのネイティヴ型での設定メソッドは残っています。
+			ですが、よほどのことがない限り、<em class="keyword">区分値コードをハードコードした利用は絶対にやってはいけません</em>。
+<pre><span class="codetitle">e.g. (ディベロッパーが)絶対にやってはいけないやり方 @Java</span><code>
+member.setMemberStatusCode(<span class="literal">"FML"</span>); <span class="comment">// 絶対にだめ</span>
 </code></pre>
-	<p>
-		ネイティブ型のメソッドが補完候補となる場合、<em class="keyword">一緒に区分値メソッドも候補として表示されるため</em>、
-		区分値メソッドの存在に気付かずにネイティブ型の方を使ってしまうケースはあまりないでしょう。
-	</p>
-	<p>
-		ただ、それでもプロジェクト全体で <em class="keyword">区分値メソッド経由での設定の強制力を高めたい場合</em> は、littleAdjustmentMap.dfprop
-		の isForceClassificationSetting を有効にすることでネイティブ型の設定メソッドの可視性を protected にすることができます。
-	</p>
-	<div class="relatedpage"><a href="../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+		</dd>
+		<dd>
+			ネイティヴ型のメソッドが補完候補となる場合、<em class="keyword">一緒に区分値メソッドも候補として表示されるため</em>、
+			区分値メソッドの存在に気付かずにネイティヴ型を使ってしまうケースはあまりないでしょうが、"念には念を"
+			ということで、DBFluteプロパティのオプションで、このメソッドを削除して利用できないようにすることができます。
+			<div class="detailpage"><a href="../../genbafit/implfit/classification/index.html#forcedcls">現場フィット - 区分値 - ネイティヴ型メソッドの削除</a></div>
+		</dd>
+	</dl>
 	<h3 id="determination">区分値の判定</h3>
 	<p>
 		<em class="keyword">is[プロパティ名][区分値要素の名前]()</em> の形式のメソッドを利用します。
@@ -270,17 +285,19 @@ Member member = memberBhv.selectEntity(cb);
 }
 <span class="comment">// if ("FML".equalsIgnoreCase(member.getMemberStatusCode())) { と同義</code>
 </code></pre>
-	<h4>Entityで is で始まるメソッドはこれだけ</h4>
-	<p>
-		entity.is とまで打ち込めば、is[区分値] メソッドだけが補完候補となります。
-		逆に何も候補が挙がらなければ、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
-	</p>
-	<h4>キャメルケースコード補完の活用</h4>
-	<p>
-		キャメルケースコード補完を利用することで、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">isMemberStatusCodeFormalized()</em>
-		メソッドであれば、<em class="keyword">isMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+	<dl class="textlist">
+		<dt>Entityで is で始まるメソッドはこれだけ</dt>
+		<dd>
+			entity.is とまで打ち込めば、is[区分値] メソッドだけが補完候補となります。
+			逆に何も候補が挙がらなければ、区分値が関連付けられていません(設定漏れ)ので、(ディベロッパーは)アーキテクトに相談しましょう。
+		</dd>
+		<dt>キャメルケースコード補完の活用</dt>
+		<dd>
+			キャメルケースコード補完で、スムーズにメソッドを呼び出せます。例えば、<em class="keyword">isMemberStatusCodeFormalized()</em>
+			メソッドであれば、<em class="keyword">isMSCF</em> と打ち込めばほぼピンポイントで絞り込めるでしょう。
+			<div class="relatedpage"><a href="../../../topic/programming/completion/camelcase.html">キャメルケースコード補完</a></div>
+		</dd>
+	</dl>
 
 	<h3 id="namealias">区分値要素の名前、別名の取得</h3>
 	<p>

@@ -55,7 +55,9 @@
 		</li>
 		<li><a href="#cdef">ENUMクラス(CDef)の利用</a></li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
-		<li><a href="#forcedcls">ネイティブ型メソッドの削除</a></li>
+		<li><a href="#forcedcls">ネイティヴ型メソッドの削除</a></li>
+		<li><a href="#checkimplicitset">暗黙の区分値チェック</a></li>
+		<li><a href="#defaultdilemma">デフォルトのジレンマ</a></li>
 		<li><a href="#groupingmap">グルーピング判定 (GroupingMap)</a></li>
 		<li><a href="#sistercode">姉妹コードの利用 (SisterCode)</a></li>
 		<li><a href="#subitemmap">独自の属性を追加 (SubItemMap)</a>
@@ -158,18 +160,22 @@
 		をポリシーとしています。具体的には、区分値定義から区分値メソッドを自動生成して、プログラム上ではそのメソッド経由で区分値処理を行うようにします。
 		(コード変更が発生した場合は、メソッド名に影響が出ないレベルであれば影響なし、メソッド名に影響があるレベルであればコンパイルエラーとして検知)
 	</p>
-	<p>
-		Entityにおいては、<em class="keyword">区分値を設定するメソッド</em>、<em class="keyword">区分値を判定するメソッド</em> を利用できます。
-	</p>
-	<div class="detailpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
-	<p>
-		ConditionBeanにおいては、<em class="keyword">区分値で検索条件を設定するメソッド</em> を利用できます。
-	</p>
-	<div class="detailpage"><a href="../../../ormapper/conditionbean/howto.html#classification">ConditionBean - 区分値</a></div>
-	<p>
-		外だしSQLのParameterBeanにおいても <em class="keyword">区分値でパラメータを設定するメソッド</em> を利用できます。
-	</p>
-	<div class="detailpage"><a href="../../../generator/task/sql2entity/parameterbean.html#classification">ParameterBean - 区分値</a></div>
+	<dl class="valuemainlist">
+		<dt>Entity</dt>
+		<dd><a href="../../../ormapper/entity/index.html#classification">区分値を設定するメソッド、区分値を判定するメソッド</a></dd>
+		<dt>ConditionBean</dt>
+		<dd><a href="../../../ormapper/conditionbean/howto.html#classification">区分値で検索条件を設定するメソッド</a></dd>
+		<dt>ParameterBean</dt>
+		<dd><a href="../../../generator/task/sql2entity/parameterbean.html#classification">区分値でパラメータを設定するメソッド</a></dd>
+	</dl>
+<pre><span class="codetitle">e.g. 区分値の設定や判定 @Java</span><code>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">setMemberStatusCode_Formalized()</span>; <span class="comment">// 設定メソッド (正式会員にする)</span>
+<span class="abbreviation">...</span>
+<span class="keyword">if</span> (member.<span class="point">isMemberStatusCodeFormalized()</span>) { <span class="comment">// 判定メソッド (正式会員かどうか)</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
 
 	<h2 id="setting">区分値の設定(dfprop)</h2>
 	<p>
@@ -199,30 +205,32 @@
 		どのカラムがどの区分値に関連付くのか明確なため、classificationDeploymentMap.dfprop
 		の設定は不要です。(DBFluteがFKの関連を辿って自動で判断します)
 	</p>
-	<h4>名前(識別名)に対応するカラムがない場合</h4>
-	<p>
-		区分値要素の名前(識別名)に対応するカラムがない場合は、業務的に表示用として利用するカラム(別名(alias)に対応するカラム)を代わりに
-		name に定義します(その場合、そのカラムは識別名と表示名を兼任したカラムであると想定されます)。その場合は、alias
-		の定義は省略できます(省略すると name と同じ値となります)。
-	</p>
-	<p>
-		どうしても、対応させる適切なカラムが存在しない場合は、コードに対応するカラム(と同じカラム)を指定します。
-		その場合、メソッド名にはコード値が利用されますが、タイプセーフであることに変わりはありません。
-		但し、コード値が区分値要素を見分けるのにわかりにくい表現である場合は、comment
-		をしっかり定義して、JavaDocコメントでの補足を利用して実装しやすいようにする必要があるでしょう。
-	</p>
-	<h4>コメント(説明)に対応するカラムがない場合</h4>
-	<p>
-		コメント(説明)に対応するカラムがなくても業務上問題ない(可能性の高い)ものではありますが、
-		ディベロッパーの実装を助ける重要な補助要素ではありますので、テーブル区分値のテーブルに、相当するカラムを定義しておくことをお奨めします。
-		それは単にDBFluteにおける話だけではなく、開発全体の利益(区分値を管理する上でのドキュメントの充実)につながるものと考えられます。
-	</p>
-	<h4>テーブル区分値における別名(表示名)の扱い</h4>
-	<p>
-		テーブル区分値では、別名(表示名)を定義した場合、JavaDocなどのドキュメント上の充実だけの利用を想定しており、プログラム上での取得は想定されません。
-		厳密には取得できなくはないのですが、ディベロッパーからは取得しづらいような仕組みになっています。
-		テーブル区分値の場合は、実際のカラムから取得して利用することができ(また、そうするべきであると考えられる)、その必要性はほとんどないためです。
-	</p>
+	<dl class="textlist">
+		<dt>名前(識別名)に対応するカラムがない場合</dt>
+		<dd>
+			区分値要素の名前(識別名)に対応するカラムがない場合は、業務的に表示用として利用するカラム(別名(alias)に対応するカラム)を代わりに
+			name に定義します(その場合、そのカラムは識別名と表示名を兼任したカラムであると想定されます)。その場合は、alias
+			の定義は省略できます(省略すると name と同じ値となります)。
+		</dd>
+		<dd>
+			どうしても、対応させる適切なカラムが存在しない場合は、コードに対応するカラム(と同じカラム)を指定します。
+			その場合、メソッド名にはコード値が利用されますが、タイプセーフであることに変わりはありません。
+			但し、コード値が区分値要素を見分けるのにわかりにくい表現である場合は、comment
+			をしっかり定義して、JavaDocコメントでの補足を利用して実装しやすいようにする必要があるでしょう。
+		</dd>
+		<dt>コメント(説明)に対応するカラムがない場合</dt>
+		<dd>
+			コメント(説明)に対応するカラムがなくても業務上問題ない(可能性の高い)ものではありますが、
+			ディベロッパーの実装を助ける重要な補助要素ではありますので、テーブル区分値のテーブルに、相当するカラムを定義しておくことをお奨めします。
+			それは単にDBFluteにおける話だけではなく、開発全体の利益(区分値を管理する上でのドキュメントの充実)につながるものと考えられます。
+		</dd>
+		<dt>テーブル区分値における別名(表示名)の扱い</dt>
+		<dd>
+			テーブル区分値では、別名(表示名)を定義した場合、JavaDocなどのドキュメント上の充実だけの利用を想定しており、プログラム上での取得は想定されません。
+			厳密には取得できなくはないのですが、ディベロッパーからは取得しづらいような仕組みになっています。
+			テーブル区分値の場合は、実際のカラムから取得して利用することができ(また、そうするべきであると考えられる)、その必要性はほとんどないためです。
+		</dd>
+	</dl>
 	<h3 id="implicitcls">暗黙の区分値</h3>
 	<p>
 		定義が(DBFluteが参照できる世界の)どこにも存在していませんので、DBFluteプロパティ上に具体的な区分値要素を定義していきます。
@@ -267,19 +275,76 @@
 	</p>
 	<div class="detailpage"><a href="../../../generator/task/doc/schemahtml.html#classification">SchemaHTML - 区分値一覧</a></div>
 
-	<h2 id="forcedcls">ネイティブ型メソッドの削除</h2>
+	<h2 id="forcedcls">ネイティヴ型メソッドの削除</h2>
 	<p>
-		区分値メソッドを生成しても、ネイティブ型の設定メソッドはデフォルトの設定では残っています。
-		その理由はそれぞれの区分値メソッドのドキュメントの説明にある通りです。
-	</p>
-	<div class="relatedpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/conditionbean/howto.html#classification">ConditionBeanの使い方 - 区分値</a></div>
-	<p>
-		その理由を割り切って、区分値メソッドでの設定の強制力を高めたい場合は、
+		区分値メソッドを生成しても、ネイティヴ型の設定メソッドはデフォルトの設定では残っています。
+		そのメソッドを呼び出せないようにして区分値メソッドでの設定の強制力を高めたい場合は、
 		littleAdjustmentMap.dfprop の isForceClassificationSetting を true
-		にすることで、ネイティブ型の設定メソッドを不可視(protected)にすることが可能です。
+		にすることで、ネイティヴ型の設定メソッドを不可視(protected)にすることが可能です。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#isforceclassificationsetting">dfprop - isForceClassificationSetting</a></div>
+	<p>
+		また、こちらの設定を有効にした場合は、一緒に isCheckSelectedClassification
+		も true にしておくと良いでしょう。ネイティヴ型の設定メソッドを不可視にしておきながら、このプロパティを true にしない理由は(ほぼ)ないでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/littleadjustment/index.html#ischeckselectedclassification">dfprop - isCheckSelectedClassification</a></div>
+	<p>
+		多くの開発現場で、この設定を true に適用できるでしょう。"デフォルトのジレンマ"
+		のコラムを読んで特に問題ないと思えるのであれば、積極的に設定していった方が良いでしょう。
+	</p>
+	<div class="detailpage"><a href="#defaultdilemma">this - デフォルトのジレンマ</a></div>
+
+	<h2 id="checkimplicitset">暗黙の区分値チェック</h2>
+	<p>
+		暗黙の区分値は、データ登録時には何の制約もありません。
+		アプリ実装ではDBFluteの区分値メソッドを使ってタイプセーフにできますが、ReplaceSchemaのエクセルデータ作成ではケアレスミスが簡単に起きてしまいます。
+		そこで、DBFluteのオプションで登録時に自動チェックすることができます。
+	</p>
+	<p>
+		暗黙の区分値の定義の topComment の map の中で、isCheckImplicitSet を true
+		に設定すると、ReplaceSchema のデータ登録時や、Entity の Setter にて、正しい区分値かどうかの存在チェックがされるようになります。
+	</p>
+<pre><span class="codetitle">e.g. 暗黙の区分値チェックを設定する例 {MemberStatus} @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{
+            ; topComment=入会から退会までの会員のステータスを示す; codeType=String
+            ; <span class="point">isCheckImplicitSet</span>=true
+        }
+        ; <span class="keyword">map:</span>{code=PRV;name=Provisional;alias=仮会員  ;comment=<span class="abbreviation">...</span>}
+        ; <span class="keyword">map:</span>{code=FML;name=Formalized ;alias=正式会員;comment=<span class="abbreviation">...</span>}
+        ; <span class="keyword">map:</span>{code=WDL;name=Withdrawal ;alias=退会会員;comment=<span class="abbreviation">...</span>}
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		特に、エクセルデータの作成作業では、ケアレスミスで簡単に間違った値をついつい入力しがちです。間違った値でテストをしてもデバッグが大変なだけでいいことがありません。
+		テストデータ作成者の精神的負担を軽減する意味でも、積極的に設定していった方が良いでしょう。
+	</p>
+	<div class="detailpage"><a href="#defaultdilemma">this - デフォルトのジレンマ</a></div>
+
+	<div class="inucolumn">
+		<h2 id="defaultdilemma">デフォルトのジレンマ</h2>
+		<p>
+			DBFluteとしては、ネイティヴ型の設定メソッドの削除も暗黙の区分値チェックも、デフォルトでそうなるようにしたくてしょうがありません。
+			ですが、それをやっていません。
+		</p>
+		<div class="relatedpage"><a href="#forcedcls">this - ネイティヴ型メソッドの削除</a></div>
+		<div class="relatedpage"><a href="#checkimplicitset">this - 暗黙の区分値チェック</a></div>
+		<p>
+			もし万が一、別のアプリで利用する区分値とか、知らされてなかったとか、そもそも区分値の全てのセットがわからないとか、つまり、いわゆる
+			"隠れ区分値" があるような場合、DBFluteのチェックがトラブルの原因になる可能性があるからです。
+		</p>
+		<p>
+			そんなむちゃくちゃな状況ありえないでしょうと思われるかもしれませんが、実際の現場では少なからず区分値の管理が徹底できていないところもあります。
+			もし、DBFluteのデフォルトの仕様がトラブルを引き起こす原因になってしまったら、フレームワークとしての信用に関わる問題となる可能性があります。
+		</p>
+		<p>
+			そういうことから、デフォルトではなく明示的に true にしてもらうようにしています。"隠れ区分値"
+			なんてうちではありえない、あっちゃだめだ、と言えるなら(ほとんどの開発でそう言えるかと)、それら設定はすぐさま true にした方が良いでしょう。
+		</p>
+	</div>
 
 	<h2 id="groupingmap">グルーピング判定 (GroupingMap)</h2>
 	<p>
