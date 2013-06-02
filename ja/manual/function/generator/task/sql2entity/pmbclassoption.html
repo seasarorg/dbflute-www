@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,TypeSafeCursor,タイプセーフカーソル,カーソル検索,大量データ" />
+	<meta name="keywords" content="DBFlute,ParameterBean,オプション,Option" />
 	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>TypeSafeCursor | DBFlute</title>
+	<title>ParameterBeanのクラスオプション | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,107 +37,61 @@
 </div>
 
 <div id="content">
-	<h1>TypeSafeCursor</h1>
+	<h1>ParameterBeanのクラスオプション</h1>
 	<p>
-		Sql2Entityで自動生成される TypeSafeCursor についてのページです。
+		ページング検索など、ParameterBeanのクラスに付けるオプションについてのページです。
 	</p>
-	<div class="relatedpage"><a href="./index.html">Sql2Entity</a></div>
+	<div class="relatedpage"><a href="./parameterbean.html">ParameterBean</a></div>
 	<ul class="indexlist">
-		<li><a href="#about">TypeSafeCursorとは？</a></li>
-		<li><a href="#autogenerate">TypeSafeCursorの自動生成</a>
-			<ul>
-				<li><a href="#deleteold">古いクラスは削除される</a></li>
-			</ul>
-		</li>
-		<li><a href="#typesafecursormark">TypeSafeCursorマーク</a></li>
-		<li><a href="#structure">TypeSafeCursorの構造</a>
-			<ul>
-				<li><a href="#cursorclass">Cursorクラス</a></li>
-				<li><a href="#cursorhandlerclass">CursorHandlerクラス</a></li>
-			</ul>
-		</li>
-		<li><a href="#howto">TypeSafeCursorの使い方</a></li>
-		<li><a href="#valuetype">ValueTypeの調整</a></li>
+		<li><a href="#pagingoption">ページング検索のオプション</a></li>
 	</ul>
 
-	<h2 id="about">TypeSafeCursorとは？</h2>
+	<h2 id="pagingoption">ページング検索のオプション</h2>
 	<p>
-		外だしSQLのカーソル検索において、ResultSetオブジェクトを直接扱うのではなく、<em class="keyword">カーソル操作をしながらもタイプセーフにデータにアクセス</em>
-		できるようにするクラスを TypeSafeCursor
-		と呼びます。TypeSafeCursorはCustomizeEntityと同じくSQLのselect句と同じプロパティ構造(読み取りのみ)を持ちます。
+		自動生成する ParameterBean にページング機能を拡張することができます。
+		ParameterBeanのクラス名の指定部分の後ろに、<em class="keyword">extends Paging</em>
+		と付与します。<span class="freecomment">@since 0.9.7.5 (より前では extends SPB ※0.9.7.5以降でも利用可能)</span>
 	</p>
-	<div class="relatedpage"><a href="#howto">this - TypeSafeCursorの利用</a></div>
+<pre><span class="codetitle">e.g. ページング検索用のParameterBeanを生成 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb</span> <span class="point">extends Paging</span><span class="comment">!</span>
+<span class="comment">-- !!AutoDetect!!</span>
 
-	<h2 id="autogenerate">TypeSafeCursorの自動生成</h2>
-	<p>
-		TypeSafeCursorは、CustomizeEntityと同様にSql2EntityタスクでSQLを実行することで得られるメタデータを元に自動生成されます。
-		出力先ディレクトリと出力クラスのパッケージは、<span class="existscloset" title="exists a closet option">Generateタスクで自動生成されるクラスと同じ</span>で、
-		Behaviorのパッケージ配下の "cursor" パッケージに出力されます。
-	</p>
-	<div class="relatedpage"><a href="./index.html">Sql2Entityタスク</a></div>
-	<h3 id="deleteold">古いクラスは削除される</h3>
-	<p>
-		外だしSQLのどこにも記述されていない既存の<span class="existscloset" title="exists a closet option">古いTypeSafeCursorは(ファイルシステム上から)削除されます</span>。
-		古いTypeSafeCursorを利用しているプログラムはコンパイルエラーとして検知できます。
-	</p>
-
-	<h2 id="typesafecursormark">TypeSafeCursorマーク</h2>
-	<p>
-		TypeSafeCursorの生成は、CustomizeEntityのオプションとして指定します。CustomizeEntityマーク
-		を記述した上で、別途SQLの行コメントで <em class="keyword">+cursor+</em> という形で指定します。これを
-		"<em class="keyword">TypeSafeCursorマーク</em>" と呼びます。 
-	</p>
-<pre><span class="codetitle">e.g. SimpleMemberという名前のTypeSafeCursorを生成 @SQL-File</span><code>
-<span class="comment">-- #df:entity#</span>
-<span class="comment">-- +cursor+</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
 	<p>
-		TypeSafeCursorの名前の指定は、CustomizeEntityマークで指定されたものが利用されます。
-		直接クラス名を記述することもできますし、SQLファイル名から導出することもできます。
+		このように指定することで ParameterBeanは、<em class="keyword">SimplePagingBean</em>
+		を継承したものになり、<em class="keyword">paging()</em>
+		メソッドでページング条件の指定ができるようになります。このメソッドは、ConditionBeanにおける paging() メソッドと同じ仕様です。
 	</p>
+<pre><span class="codetitle">e.g. ページング検索用のParameterBeanを生成 {1ページ20件で3ページ目} @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">paging(20, 3)</span>;
+<span class="abbreviation">...</span> = memberBhv.outsideSql().manualPaging().selectPage(<span class="abbreviation">...</span>, pmb, <span class="abbreviation">...</span>);
+</code></pre>
+	<div class="relatedpage"><a href="../../../ormapper/conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/select/selectpagemanual.html">OutsideSql - ManualPaging</a></div>
+	<p>
+		TypedParameterBean においては、そのSQLが ManualPaging を期待するかどうか自動判別されます。
+		ManualPaging と判別された場合、AutoPaging で呼び出してしまうなどの間違いをコンパイル時に検知できます。
+		具体的には、そのSQL文の中にページング条件の要素(MySQLなら limit 句、Oracleなら rownum
+		など)が含まれているかどうかで判別されます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="#typed"> -->this - TypedParameterBean<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../../reference/dbway/index.html#paging">DBMSごとの取扱い - ページング検索の条件</a></div>
+	<p>
+		ただし、この判定はSQLをパースしているわけではなく単なる文字列によるため、誤判定が発生する可能性もあるかもしれません。
+		判別結果がうまく要件と一致しない場合は、明示的に(強制的に) Manual なのか Auto
+		なのかをこのページング検索のオプションで指定することができます。"extends ManualPaging" とすると
+		ManualPaging、"extends AutoPaging とすると AutoPaging になります。
+	</p>
+<pre><span class="codetitle">e.g. ManualPaging であることを明示的に指定 (自動判別に頼らない) @OutsideSql</span><code>
+<span class="comment">-- !df:pmb</span> <span class="point">extends ManualPaging</span><span class="comment">!</span>
+<span class="comment">-- !!AutoDetect!!</span>
 
-	<h2 id="structure">TypeSafeCursorの構造</h2>
-	<p>
-		<em class="keyword">ResultSetのラッパであるCursorクラス</em> と <em class="keyword">それをコールバックで扱うCursorHandlerクラス</em>
-		の２つが存在します。それぞれ、ジェネレーションギャップになっています。
-	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wg.html#generationgap">GenerationGap (ジェネレーションギャップ)</a></div>
-	<h3 id="cursorclass">Cursorクラス</h3>
-	<p>
-		ResultSetを保持し、"ResultSetに対する(カラムの)文字列アクセスを代理するメソッド" が存在します。
-	</p>
-	<dl class="keymainlist">
-		<dt>next()</dt><dd>次のレコードへ</dd>
-		<dt>getXxx()</dt><dd>カラムデータの取得 (タイプセーフ)</dd>
-		<dt>cursor()</dt><dd>保持しているResultSetの取得 (通常利用しない)</dd>
-	</dl>
-	<h3 id="cursorhandlerclass">CursorHandlerクラス</h3>
-	<p>
-		CursorHandlerインターフェースを実装しており、Cursorクラスを業務的に扱う処理を実装して、
-		Behavior(OusideSql)に渡してその処理をコールバックしてもらいます。生成されるクラス自体は abstractクラス であり、
-		fetchCursor()メソッドをオーバーライドしたクラスを定義して利用します。
-	</p>
-	<dl class="keymainlist">
-		<dt>fetchCursor()</dt><dd>Cursorクラスを業務的に扱う処理 (abstractメソッド)</dd>
-	</dl>
-
-	<h2 id="howto">TypeSafeCursorの使い方</h2>
-	<p>
-		<em class="keyword">CursorHandlerクラスの fetchCursor() メソッド</em>
-		をオーバーライドしたクラスを定義し、そのクラスのインスタンスを
-		<em class="keyword">外だしSQLの selectCursor() メソッド</em> の引数に指定します。fetchCursor()
-		では、Cursorクラスを参照して業務処理を実装します。
-	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/selectcursor.html"> -->外だしSQL - selectCursor()<!-- </a> --></span></div>
-
-	<h2 id="valuetype">ValueTypeの調整</h2>
-	<p>
-		デフォルトでは、マッピングされたプログラム型に対応する ValueType が利用されるため、基本的には意識する必要はありませんが、万が一、別の
-		ValutType を利用したい場合は、TypeSafeCursor のExクラスにて、get メソッドをオーバーライドすることで、独自の ValutType
-		を利用することができます。
-	</p>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
 
 </div>
 </div>

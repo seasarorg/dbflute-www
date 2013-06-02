@@ -38,46 +38,40 @@
 
 <div id="content">
 	<h1>外だしSQLの使い方</h1>
+	<p>
+		外だしSQLの実装における手順や仕様などのページです。
+	</p>
+	<div class="relatedpage"><a href="./index.html">外だしSQL (OutsideSql)</a></div>
 	<ul class="indexlist">
 		<li><a href="#implflow">実装の流れ</a></li>
-		<li><a href="#concept">実装概念</a>
+		<li><a href="#sqlfile">外だしSQLをパラメータコメントを使って2Way-SQLで書く</a>
 			<ul>
-				<li><a href="#conceptimage">外だしSQLの概念図</a></li>
-				<li><a href="#tabledriven">テーブル駆動でSQLを管理</a></li>
-				<li><a href="#separatedlogic">呼び出しロジックとSQLの固定仕様の分離</a></li>
-				<li><a href="#typedandfree">タイプセーフ、そして、自由度考慮</a></li>
+				<li><a href="#createnewfile">SQLファイルの作成 (EMecha利用)</a></li>
+				<li><a href="#writetwowaysql">2Way-SQLを実装</a></li>
 			</ul>
 		</li>
-		<li><a href="#sqlfile">1. SQLファイルを作成する</a>
+		<li><a href="#sql2entity">Sql2Entityで自動生成</a>
 			<ul>
-				<li><a href="#basepointtable">基点となるテーブル</a></li>
+				<li><a href="#comment">Sql2Entityタスクの実行</a></li>
+				<li><a href="#sqlretry">成功するまで修正＆トライ</a></li>
+				<li><a href="#successgen">成功すると自動生成される</a></li>
+			</ul>
+		</li>
+		<li><a href="#execute">outsideSql()メソッドから実行</a>
+			<ul>
+				<li><a href="#outsidesqlimpl">外だしSQLの呼び出し実装</a></li>
+				<li><a href="#typewrongpmb">ParameterBeanのプロパティがおかしい場合</a></li>
+				<li><a href="#nontypedpmb">outsideSql()の呼び出しでコンパイルエラー</a></li>
+			</ul>
+		</li>
+		<li><a href="#concept">実装コンセプト</a></li>
+		<li><a href="#miscspec">細かい補足仕様</a>
+			<ul>
+				<li><a href="#bhvinstance">Behaviorインスタンスの取得</a></li>
 				<li><a href="#sqlfileencoding">エンコーディング</a></li>
 				<li><a href="#wrongbhv">存在しないBehaviorを指定すると</a></li>
-			</ul>
-		</li>
-		<li><a href="#twowaysql">2. SQLを2Way-SQLで実装する</a>
-			<ul>
-				<li><a href="#customizeentitymark">CustomizeEntity マーク</a></li>
-				<li><a href="#parameterbeanmark">ParameterBean マーク</a></li>
-				<li><a href="#sqltitledesc">SQLのタイトルや説明</a></li>
-			</ul>
-		</li>
-		<li><a href="#sql2entity">3. Sql2Entity を実行する</a>
-			<ul>
-				<li><a href="#wrongsql">SQLが文法的に間違っている場合</a></li>
-			</ul>
-		</li>
-		<li><a href="#outsidesql">4. 外だしSQLを呼び出す</a>
-			<ul>
 				<li><a href="#log">外だしSQLの実行ログ</a></li>
-			</ul>
-		</li>
-		<li><a href="#bhvinstance">Behaviorインスタンスの取得</a></li>
-		<li><a href="#freestylebasic">フリースタイル基本仕様</a>
-			<ul>
-				<li><a href="#sqlpath">SQLのパス (path)</a></li>
-				<li><a href="#pmb">ParameterBean (pmb)</a></li>
-				<li><a href="#cmentity">CustomizeEntity (entityType)</a></li>
+				<li><a href="#freestyle">フリースタイルの呼び出しメソッド</a></li>
 			</ul>
 		</li>
 		<li><a href="#completion">コード補完を駆使して実装</a>
@@ -88,250 +82,291 @@
 		</li>
 	</ul>
 
-	<h2>外だしSQLの基本</h2>
-	<p>
-		そもそも外だしSQLとは？について説明するページがあります。
-	</p>
-	<div class="detailpage"><a href="./about.html">外だしSQLについて</a></div>
-
 	<h2 id="implflow">実装の流れ</h2>
 	<p>
 		実装の流れは以下のようになります。
 	</p>
-	<ul class="flowlist">
-		<li><a href="#concept">0. (DBFluteの外だしSQL実装の概念を学ぶ)</a></li>
-		<li><a href="#sqlfile">1. SQLファイルを作成する</a></li>
-		<li><a href="#twowaysql">2. SQLを 2Way-SQL で実装する</a></li>
-		<li><a href="#sql2entity">3. Sql2Entity を実行する</a></li>
-		<li><a href="#outsidesql">4. 外だしSQLを呼び出す</a></li>
-	</ul>
-	<p>
-		ここでは、EMecha を利用しないプリミティブなやり方を紹介します。実際の開発では、EMechaの <em class="keyword">EMSql</em>
-		の機能を利用して、<em class="keyword">SQLファイルの作成</em> と <em class="keyword">Sql2Entityマーク</em>
-		の記述をウィザード画面から指定できる安全なやり方をお奨めします。
-	</p>
-	<div class="detailpage"><a href="../../helper/emecha/emsql/index.html#newoutsidesql">EMecha - EMSql - SQLファイルの作成</a></div>
+	<ol>
+		<li>
+			外だしSQLを <em class="keyword"><a href="./about.html#pmcomment">パラメータコメント</a></em> を使って
+			<em class="keyword"><a href="./about.html#twowaysql">2Way-SQL</a></em> で書く
+		</li>
+		<li>
+			<em class="keyword"><a href="../../generator/task/sql2entity/index.html">Sql2Entity</a></em> を実行して
+			<em class="keyword"><a href="../../generator/task/sql2entity/customizeentity.html">CustomizeEntity</a></em> と
+			<em class="keyword"><a href="../../generator/task/sql2entity/parameterbean.html">ParameterBean</a></em> を自動生成
+		</li>
+		<li>Behaviorの outsideSql() メソッドから実行</li>
+	</ol>
 
-	<h2 id="concept">実装概念</h2>
-	<h3 id="conceptimage">外だしSQLの概念図</h3>
-	<p class="imgbox">図 : 外だしSQLの概念図
-		<a href="../../../../data/model/outsql-TypedConcept-view.png" title="外だしSQLの概念図"><img src="../../../../data/model/outsql-TypedConcept-view.png" alt="外だしSQLの概念図" width="550" height="390" /></a>
-	</p>
-	<h3 id="tabledriven">テーブル駆動でSQLを管理</h3>
+	<h2 id="sqlfile">外だしSQLをパラメータコメントを使って2Way-SQLで書く</h2>
+	<h3 id="createnewfile">SQLファイルの作成 (EMecha利用)</h3>
 	<p>
-		ConditionBean がそうであるように、外だしSQLも "基点テーブル"
-		という概念を重視します。SQLファイルの名前は <em class="keyword">[Behaviorクラス名]_[SQL名(SQLを表現する任意の名前)].sql</em>
-		という形式にすることを推奨しています(デフォルトでは exbhv
-		パッケージ配下)。たとえ基点テーブルが曖昧なSQLにおいても、管理上どれかのテーブルと関連付けるようにします。
-		これを <em class="keyword">BehaviorQuery</em> (形式) と呼びます。
-	</p>
-<pre><span class="codetitle">e.g. BehaviorQuery を使ったSQLファイルの管理 {src/main/resources} @Directory</span><code>
-foo-project
- |-src/main/resources
-       |-com<span class="abbreviation">...</span>/dbflute
-             |-exbhv
-               |-<span class="point">MemberBhv_selectSimpleMember.sql</span>
-</code></pre>
-	<p>
-		SQL名は、select文なら "select..."、update文なら "update..." と、小文字始まりでSQLを prefix
-		でわかりやすく表現することが推奨されます。この prefix を除去した残りの部分の名前を <em class="keyword">SQL業務名</em>
-		と呼び、アプリ全体でユニークなアプリ固有の業務上の名前を付けます。	(ただし、先頭文字が大文字の場合は、何も除去せずSQL名そのままがSQL業務名となります)
+		外だしSQLのSQLは、厳密には基点テーブルが特定できないことがありますが、管理上どこかのテーブルに紐付けます。
+		外だしSQLの紐付けテーブルと呼びます。
 	</p>
 	<p>
-		このSQLファイルへのパスは Sql2Entity タスクで分析され、プログラム上では Behavior
-		とSQL業務名(自動生成されたクラス、ParameterBean)だけで呼び出すことができるようになります。
+		Eclipse の リソースの検索(ctrl + shift + R)から対応する Behavior (Exクラス)
+		を開き、Javaエディター内で右クリックして <em class="keyword">EMecha - New Outside Sql</em>
+		と選択すると画面が起動します。
 	</p>
-<pre><span class="codetitle">e.g. テーブル駆動でSQLを呼び出す @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// SQL業務名 + Pmb</span>
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-<span class="comment">// 対応する Behavior で呼び出し</span>
-List&lt;SimpleMember&gt; memberList
-        = <span class="point">memberBhv</span>.outsideSql().selectList(pmb);
-</code></pre>
-	<p>
-		SQL業務名にどうのような名前を付けるか？
-		これは業務の特徴次第なのでフレームワークとして明確な定義はできませんが、例えば DBFlute の Example
-		では以下のような命名をしています。(参考までに)
+	<div class="relatedpage"><a href="../../helper/emecha/emsql/index.html#newoutsidesql">EMecha - EMSql - SQLファイルの作成</a></div>
+	<div class="relatedpage"><a href="../../../topic/programming/shortcut/searchcut.html">検索ショートカット</a></div>
+	<p class="imgbox">図 : EMSqlの画面 (初期状態)
+		<a href="../../../../data/screen/emsql-main.png" title="EMSqlの画面 (初期状態)"><img src="../../../../data/screen/emsql-main.png" alt="EMSqlの画面 (初期状態)" width="500" height="500" /></a>
 	</p>
 	<dl class="textlist">
-		<dt>検索系</dt>
-		<dd>検索対象の業務的概要 + 基点テーブルの抽象名</dd>
+		<dt>SQL名 (SQL Name) を入力</dt>
 		<dd>
-			e.g. UnpaidSummaryMember (未払い購入情報付き会員)
-			<span class="freecomment">MemberBhv_selectUnpaidSummaryMember.sql</span>
+			初期状態では、select が選択されていています。検索系のSQLであればそのまま SQL Name の select
+			に続けて(システムでユニークな) <em class="keyword">SQL業務名</em> を入力します。検索でなければ該当するものを選択してSQL名を完成させます。
 		</dd>
-		<dt>更新系</dt>
-		<dd>更新対象テーブルの抽象名 + 更新内容の業務的概要(受動態)</dd>
 		<dd>
-			e.g. MemberChangedToWithdrawalForcedly (会員の強制退会)
-			<span class="freecomment">MemberBhv_updateMemberChangedToWithdrawalForcedly.sql</span>
+			<ul>
+				<li>e.g. selectUnpaidSummaryMember (未払い購入情報付き会員)</li>
+				<li>e.g. updateMemberChangedToWithdrawalForcedly (会員の強制退会)</li>
+			</ul>
+		</dd>
+		<dt>SQLのタイトルを入力</dt>
+		<dd>
+			そのSQLを一行で表現するタイトルを入力します。<span class="freecomment">※思い付かなければ後でも構いません</span>
+		</dd>
+		<dt>Sql2Entityオプションを選択</dt>
+		<dd>基本的にはデフォルトのチェックはそのままでOK。(更新系なら CustomizeEntity を外す)</dd>
+		<dd>
+			<ul>
+				<li>ページング検索するなら、"Use Paging"</li>
+				<li>カーソル検索するなら、"Use Cursor"</li>
+				<li>スカラ検索 (最大値など一つの値を取るだけの検索) するなら、"Use Scalar"</li>
+				<li>ドメイン検索 (既に存在するテーブルのEntityを利用) するなら、"Use Domain"</li>
+			</ul>
 		</dd>
 	</dl>
-	<h3 id="separatedlogic">呼び出しロジックとSQLの固定仕様の分離</h3>
 	<p>
-		DBFluteでは、呼び出しロジックとSQLの固定仕様を分離したインターフェースを提供しています。
+		したら、Enter どーん！
 	</p>
-	<p>
-		呼び出しロジックは、例えば、結果をリスト型で受け取るのか、Entity(一件) 型で受け取るのか、ページング形式で受け取るのか、その他細かいオプション(StatementConfig
-		など)をどのように指定するのか、こういったものを指します。これらは、一つのSQLに対し複数の実装が存在することが想定されます。
-		それに対しSQLの固定仕様というのは、例えば、バインドパラメータの構成、戻り値の型など、一つのSQLで基本的に一つの決まるものです。
-	</p>
-	<p>
-		プログラム上での呼び出しにおいて、この考え方がそのまま反映されています。
-	</p>
-<pre><span class="codetitle">e.g. 呼び出しロジックとSQLの仕様の分離 (リスト) @Java</span><code>
-<span class="comment">// リスト型での呼び出し</span>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// SQLの固定仕様</span>
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>); <span class="comment">// バインドパラメータ</span>
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-<span class="comment">// o 結果をリスト型で受け取る -&gt; 呼び出しロジック</span>
-<span class="comment">// o Entityの型は SimpleMemberクラス -&gt; SQLの固定仕様</span>
-List&lt;<span class="point">SimpleMember</span>&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectList</span>(pmb);
-</code></pre>
-<pre><span class="codetitle">e.g. 呼び出しロジックとSQLの仕様の分離 (Entity) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// SQLの固定仕様</span>
-pmb.setMemberId(<span class="literal">3</span>); <span class="comment">// バインドパラメータ (PK値の指定)</span>
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-<span class="comment">// o 結果を Entity(一件) 型で受け取る -&gt; 呼び出しロジック</span>
-<span class="comment">// o Entityの型は SimpleMemberクラス -&gt; SQLの固定仕様</span>
-<span class="point">SimpleMember</span> member
-        = <span class="attribute">memberBhv</span>.outsideSql().entityHandling().<span class="point">selectEntity</span>(pmb);
-</code></pre>
-	<p>
-		ConditionBean のことを思い出すと、条件は ConditionBean で呼び出しロジックは
-		Behavior。つまり、DBFlute 全体でこのようなポリシーになっていることがわかります。
-	</p>
-	<h3 id="typedandfree">タイプセーフ、そして、自由度考慮</h3>
-	<p>
-		"外部のSQLを呼び出す" という場合、一般に指定すべき基本的な要素は以下の三つです。
-	</p>
-	<ul>
-		<li>SQLへのパス</li>
-		<li>SQLに渡すパラメータ(バインド変数の値など)</li>
-		<li>戻り値 Entity の型 (検索時)</li>
-	</ul>
-	<p>
-		DBFluteでは、"SQLに渡すパラメータ" を格納する DTO を ParameterBean、"戻り値を受け取る型" に対応する Entity
-		クラスを CustomizeEntity と呼びます。また、BehaviorQuery 形式のSQLファイルへのパスを BehaviorQueryPath と呼びます。
-	</p>
-	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html">Sql2Entity - ParameterBean</a></div>
-	<div class="relatedpage"><a href="../../generator/task/sql2entity/customizeentity.html">Sql2Entity - CustomizeEntity</a></div>
-	<h4 id="typedpmb">TypedParameterBean</h4>
-	<p>
-		これらはSQLの固定仕様であり、それぞれ基本的に 1:1:1 です。DBFluteでは、Sql2Entity
-		タスクにより、これらの要素が全て関連付いた ParameterBean を自動生成します。これを "SQLに型付けされた ParameterBean"
-		ということで TypedParameterBean (たいぷどぱらめーたびーん)
-		と呼び、SQLの特定や戻り値 Entity の型の解決を一括した "定型呼び出し" を提供します<span class="freecomment">(@since 0.9.8.0)</span>。
-	</p>
-<pre><span class="codetitle">e.g. TypedParameterBean による呼び出し @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// TypedParameterBean</span>
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-<span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
-List&lt;SimpleMember&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().selectList(<span class="point">pmb</span>);
-</code></pre>
-	<p>
-		ParameterBean の引数は、Sql2Entity タスクで自動付与されるそれぞれの呼び出しロジックに対応したインターフェースです。例えば、selectList()
-		なら ListHandlingPmb、selectCursor() なら CursorHandlingPmb
-		など。パスや戻り値Entityの型の解決にも利用されるためパラメータがなくてもParameterBeanは必要です(つまり、null は許容されない)。
-	</p>
-	<p>
-		さらには、対応する Behavior
-		への型付け、リストやページング、カーソルなど、そのSQLが実行可能な呼び出しロジックの型付けもされ、間違った呼び出しはコンパイル時にチェックされます。
-		例えば、PurchaseBhv に関連付けられている SQL を MemberBhv で呼び出すことはできません。
-		また、ページングを前提としたSQLに対して、単なるリスト型の検索や、カーソル検索などの間違った呼び出しをすることはできません。
-	</p>
-	<p>
-		TypedParameterBean として型付けされる条件は、それぞれの呼び出しロジックごとにあります。その ParameterBean
-		がどのように型付けされたのかは、Bsクラスが実装しているインターフェースでもわかりますが、ParameterBean
-		のクラスコメント(javadoc)にわかりやすく書かれています。Eclipse 上で ParameterBean
-		にカーソルを合わせてふんわり出てくるクラスコメントを参考にすると良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="./select/selectlist.html">selectList()</a></div>
-	<div class="relatedpage"><a href="./select/selectentity.html">entityHandling() - selectEntity()</a></div>
-	<div class="relatedpage"><a href="./select/selectpagemanual.html">manualPaging() - selectPage()</a></div>
-	<div class="relatedpage"><a href="./select/selectpageauto.html">autoPaging() - selectPage()</a></div>
-	<div class="relatedpage"><a href="./select/selectcursor.html">cursorHandling() - selectCursor()</a></div>
-	<p>
-		ConditionBean はテーブルごとの CB、外だしSQLはSQLごとの TypedParameterBean、プロシージャはプロシージャごとの
-		ProcedurePmb、つまり、DBFlute全体で "対応する Bean" を基点にDBアクセスが始まっていると言えます。
-	</p>
-	<h4 id="freestyle">フリースタイル形式のメソッド</h4>
-	<p>
-		ほとんどの外だしSQLは、この TypedParameterBean の形式で実行されることが想定されます。
-		ただし、場合によっては 1:1:1 とならないような利用方法も想定されます。例えば、ParameterBean
-		を別のSQLでも再利用したり、戻り値Entityの型に別のSQLの CustomizeEntity
-		や独自に作ったクラスを使ったり(String, Integer などのスカラ型や DomainEntity は除く)、など。
-		そういった場合のために、この三つの要素をバラバラに指定するフリースタイル形式の自由度考慮のメソッドも用意されています。
-	</p>
-<pre><span class="codetitle">e.g. フリースタイル形式の自由度考慮のメソッドによる呼び出し @Java</span><code>
-String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>; <span class="comment">// BehaviorQueryPath</span>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// ParameterBean</span>
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-<span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
-List&lt;SimpleMember&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().selectList(<span class="point">path</span>, <span class="point">pmb</span>, <span class="point">entityType</span>);
-</code></pre>
-	<p>
-		ParameterBean 引数は、単なる Object 型であり何でも受け入れます。パラメータがない場合は null
-		も許容されます。TypedParameterBean を指定したとしても、内部ロジックで評価されるのはパラメータ部分の要素だけです。
-	</p>
-	<div class="inucolumn">
-		<h4 id="migration">0.9.8.0 より前はフリースタイルのみ</h4>
-		<p>
-			TypedParameterBean の概念は、DBFlute-0.9.8.0
-			から導入されたものであり、それより前のバージョンではフリースタイル形式のみでの実行となります。
-		</p>
-		<p>
-			ただ、フリースタイル形式であっても、BehaviorQuery であれば "SQLのパス"
-			は自動生成されるため、呼び出し対象SQLの指定がタイプセーフであることに変わりはありません。
-			TypedParameterBean の導入で、お決まりパターン(三要素が 1:1:1
-			になるケース)の呼び出しに対して、お決まりのレールを整備したと言えます。(実装のすっきりさ、そして、組み合わせの間違い防止など)
-		</p>
-	</div>
-
-	<h2 id="sqlfile">1. SQLファイルを作成する</h2>
-	<p>
-		外だしSQLが初めての方は、先に DBFlute の "外だしSQLの実装概念"
-		を理解するようにして下さい。(ここでは TypedParameterBean を前提とした手順となります)
-	</p>
-	<div class="detailpage"><a href="#concept">this - 実装概念</a></div>
-	<p>
-		Sql2Entityタスクで参照されるディレクトリ(通常は src/main/resources 配下)の exbhv パッケージ配下に
-		<em class="keyword">[Behaviorクラス名]_[SQL名(SQLを表現する任意の名前)].sql</em>
-		という形式の名前でSQLファイルを作成します。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/index.html#refsql">Sql2Entity - 外だしSQLを参照</a></div>
-<pre><span class="codetitle">e.g. SQLファイルの配置パッケージ(ディレクトリ) {src/main/resources} @Directory</span><code>
+	<dl class="valuemainlist">
+		<dt>パッケージ</dt>
+		<dd>src/main/resourcesのBehavior(Exクラス)と同じパッケージ</dd>
+		<dt>ファイル名</dt>
+		<dd>[紐付けテーブルBhv]_[select,updateなど][SQL業務名].sql</dd>
+	</dl>
+<pre><span class="codetitle">e.g. EMechaで作成されたSQLファイル {src/main/resources} @Directory</span><code>
 foo-project
  |-dbflute_foo
    |-dfprop
    |-<span class="abbreviation">...</span>
- |-src
-   |-main
-     |-resources
-       |-com
-         |-<span class="abbreviation">...</span>
-           |-dbflute
-             |-exbhv
-               |-<span class="point">MemberBhv_selectSimpleMember.sql</span>
+ |-src/main/resources
+   |-com
+     |-<span class="abbreviation">...</span>
+       |-dbflute
+         |-exbhv
+           |-<span class="point">MemberBhv_selectSimpleMember.sql</span>
 </code></pre>
-	<h3 id="basepointtable">基点となるテーブル</h3>
 	<p>
-		Behaviorは、<em class="keyword">その外だしSQLの中で業務的に基点となるテーブル</em>
-		に対応するものを選びます。但し、これは業務的な関連付けなので、厳密でなくても動作自体には支障はありません。
+		SQLファイルのひな形が生成され、Sql2Entityマークも指定された通りに設定されています。
 	</p>
-	<div class="relatedpage"><a href="#tabledriven">this - テーブル駆動でSQLを管理</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/index.html#sql2entitymark">Sql2Entityマーク</a></div>
+	<dl class="keymainlist">
+		<dt>#df:entity#</dt><dd><a href="../../generator/task/sql2entity/customizeentity.html#customizeentitymark">CustomizeEntityマーク</a> (Entityを自動生成するぞ宣言)</dd>
+		<dt>!df:pmb!</dt><dd><a href="../../generator/task/sql2entity/parameterbean.html#parameterbeanmark">ParameterBeanマーク</a> (Pmbを自動生成するぞ宣言)</dd>
+		<dt>!!AutoDetect!!</dt><dd>ParameterBeanの<a href="../../generator/task/sql2entity/pmbautodetect.html">プロパティ項目の自動判別マーク</a></dd>
+	</dl>
+<pre><span class="codetitle">e.g. EMechaで作成したばかりのSQL (CustomizeEntity と ParameterBean を利用) @OutsideSql</span><code>
+<span class="comment">/*</span>
+ <span class="comment">[df:title]</span>
+ <span class="comment">SQL title here.</span>
+ 
+ <span class="comment">[df:description]</span>
+ <span class="comment">SQL description here.</span>
+<span class="comment">*/</span>
+<span class="comment">-- #df:entity#</span>
+
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+ <span class="keyword">order by</span> <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		Eclipse以外の環境を使っているなど、どうしても EMecha
+		が利用できないケースでも、EMechaで作っているSQLファイルを手動で作成すればOKです。パッケージやSql2Entityマークなど、文字の打ち間違いに気をつけましょう。
+	</p>
+	<h3 id="writetwowaysql">2Way-SQLを実装</h3>
+	<p>
+		そうしたら、パラメータコメントを駆使して、2Way-SQLとしてSQLを実装していきます。
+	</p>
+	<div class="relatedpage"><a href="./pmcomment.html">パラメータコメント</a></div>
+	<dl class="keymainlist">
+		<dt><a href="./pmcomment.html#bindvariable">バインド変数コメント</a></dt><dd>/*pmb.memberName*/'S%' <span class="freecomment">※必ずテスト値を入れること</span></dd>
+		<dt><a href="./pmcomment.html#ifcomment">IFコメント</a></dt><dd>/*IF pmb.memberStatusCode != null*/ ... /*END*/</dd>
+		<dt><a href="./pmcomment.html#begincomment">BEGINコメント</a></dt><dd>/*BEGIN*/where ... /*END*/</dd>
+		<dt><a href="./pmcomment.html#forcomment">FORコメント</a></dt><dd>/*FOR pmb.memberNameList*/ ... /*END*/</dd>
+	</dl>
+<pre><span class="codetitle">e.g. 2Way-SQLでの実装 (CustomizeEntity と ParameterBean を利用) @OutsideSql</span><code>
+<span class="comment">/*</span>
+ <span class="comment">[df:title]</span>
+ <span class="comment">単なるシンプルな会員検索</span>
+ 
+ <span class="comment">[df:description]</span>
+ <span class="comment">これはDBFluteドキュメント上のExampleであり、</span>
+ <span class="comment">正直、このくらいなら ConditionBean で実装してしまうだろう。</span>
+<span class="comment">*/</span>
+<span class="comment">-- #df:entity#</span>
+
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+
+<span class="keyword">select</span> mb.MEMBER_ID
+     , mb.MEMBER_NAME
+     , stat.MEMBER_STATUS_NAME
+  <span class="keyword">from</span> MEMBER mb
+    <span class="keyword">left outer join</span> MEMBER_STATUS stat
+      <span class="keyword">on</span> mb.MEMBER_STATUS_CODE = stat.MEMBER_STATUS_CODE
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+   mb.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberName != null*/</span>
+   <span class="keyword">and</span> mb.MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'M%'</span>
+   <span class="comment">/*END*/</span>
+ <span class="comment">/*END*/</span>
+ <span class="keyword">order by</span> mb.BIRTHDATE <span class="keyword">desc</span>, mb.MEMBER_ID <span class="keyword">asc</span>
+</code></pre>
+	<dl class="textlist">
+		<dt>SQLのタイトルや説明</dt>
+		<dd>
+			他の人や将来の自分がこのSQLをメンテナンスするときのために、df:title, df:description
+			にSQLのタイトルや説明を入れておくと良いでしょう。書いておくと SchemaHTML でも表示されます。
+			<div class="relatedpage"><span class="working"><!-- <a href="./genbafit/outsidesqltitle/index.html"> -->(外だしSQL)現場フィット - 外だしSQLのタイトル<!-- </a> --></span></div>
+			<div class="relatedpage"><a href="../../generator/task/doc/schemahtml.html#outsidesql">SchemaHTML - 外だしSQL一覧</a></div>
+		</dd>
+		<dt>検索カラムのコメント</dt>
+		<dd>
+			関数などで計算処理を入れたカラム、SQLだけ見てもなんでここでそれを検索しているのかわからないカラム、アプリケーションで利用上の注意があるようなカラム、
+			こういった特徴的なカラムを検索するような場合は、検索カラムのコメントを入れておくと良いでしょう。
+			<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#columncomment">CustomizeEntity - 検索カラムのコメント</a></div>
+		</dd>
+		<dt>ParameterBeanのオプション</dt>
+		<dd>
+			(主に)バインド変数コメントにおいて、ParameterBeanのプロパティにオプションを付与することができます。
+			これらをしっかり利用することで、より安全でスピーディーな実装ができます。
+			<div class="detailpage"><a href="../../generator/task/sql2entity/pmbpropoption.html">ParameterBeanのオプション</a></div>
+		</dd>
+	</dl>
+
+	<h2 id="sql2entity">Sql2Entityで自動生成</h2>
+	<h3 id="comment">Sql2Entityタスクの実行</h3>
+	<p>
+		それでは、Sql2Entityタスクを叩いて、CustomizeEntity や ParameterBean を自動生成しましょう。
+		DBFluteクライアント配下の sql2entity.(bat|sh) をコマンドから実行します。
+	</p>
+	<p>
+		Windows環境のEclipse上からは、ダブルクリックで実行できます。もしくは、"ctrl + shift + R" の "Open Resource"
+		からコマンドファイルを選択して実行できます<span class="freecomment">(多くの人がこれで実行しています)</span>。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/index.html#command">Sql2Entity - 実行コマンド</a></div>
+	<h3 id="sqlretry">成功するまで修正＆トライ</h3>
+	<p>
+		このとき、Sql2Entity内では、外だしSQLが 2Way-SQL として実際のデータベースに実行されます。
+		ゆえに、この時点でSQLの文法エラーがあるとタスクが落ちます。コンソールと dbflute.log
+		にエラーが出力されますので、そのエラー内容をもとにSQLを直して通るまで再実行を繰り返します。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/index.html#log">タスク実行ログ</a></div>
+	<h3 id="successgen">成功すると自動生成される</h3>
+	<p>
+		成功すると、CustomizeEntity や ParameterBean が所定のパッケージに自動生成されます。
+	</p>
+	<dl class="valuemainlist">
+		<dt><a href="../../generator/task/sql2entity/customizeentity.html">CustomizeEntity</a></dt><dd>bsentity.customize と exentity.customize 配下</dd>
+		<dt><a href="../../generator/task/sql2entity/parameterbean.html">ParameterBean</a></dt><dd>bsbhv.pmbean と exentity.pmbean 配下</dd>
+	</dl>
+
+	<h2 id="execute">outsideSql()メソッドから実行</h2>
+	<h3 id="outsidesqlimpl">外だしSQLの呼び出し実装</h3>
+	<p>
+		それでは準備が整ったので、BehaviorのoutsideSql()メソッドから外だしSQLを実行しましょう。
+	</p>
+	<ol>
+		<li>ParameterBean を new して条件値をセットしていく <span class="freecomment">※SQL業務名 + Pmb という名前のクラス</span></li>
+		<li>outsideSql()メソッドから検索スタイルを選ぶ <span class="freecomment">※リスト検索、一件検索、ページング検索など</span></li>
+		<li><em class="keyword">ctrl + 2 -&gt; L</em> のショートカットで戻り値を補完 <span class="freecomment">※CustomizeEntityで受け取り</span></li>
+	</ol>
+<pre><span class="codetitle">e.g. リスト検索 (TypedParameterBean) {名前が 'S' で始まる会員を検索｝@Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+
+<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(pmb);
+</code></pre>
+	<dl class="shortkeymainlist">
+		<dt><a href="./select/selectlist.html">リスト検索</a></dt><dd>outsideSql().selectList(pmb)</dd>
+		<dt><a href="./select/selectentity.html">一件検索</a></dt><dd>outsideSql().entityHandling().selectEntity(pmb)</dd>
+		<dt><a href="./select/selectentitywithdeletedcheck.html">一件検索(チェック)</a></dt><dd>outsideSql().entityHandling().selectEntityWithDeletedCheck(pmb)</dd>
+		<dt><a href="./select/selectpagemanual.html">手動ページング検索</a></dt><dd>outsideSql().manualHandling().selectPage(pmb)</dd>
+		<dt><a href="./select/selectpageauto.html">自動ページング検索</a></dt><dd>outsideSql().autoHandling().selectPage(pmb)</dd>
+		<dt><a href="./select/selectcursor.html">カーソル検索</a></dt><dd>outsideSql().cursorHandling().selectPage(pmb)</dd>
+	</dl>
+
+	<h3 id="typewrongpmb">ParameterBeanのプロパティがおかしい場合</h3>
+	<p>
+		ParameterBeanのプロパティ項目は、自動判別機能(AutoDetect)を使って生成されています。
+		ゆえに、時にプロパティのプログラム型が自動判別仕切れず想定外のものになってしまうことがあります。
+		自動判別の情報となるバインド変数コメントのテスト値を判別ルールと照らし合わせて見直したり、プロパティ項目の明示的な宣言を利用したりして微調整しましょう。
+		<span class="freecomment">(直したら、もういっかい Sql2Entity を実行)</span>
+	</p>
+	<dl class="keymainlist">
+		<dt>プロパティがない</dt><dd><a href="../../generator/task/sql2entity/pmbautodetect.html#detectrule">プロパティ自動判別対象外ではないか？</a></dd>
+		<dt>プログラム型がおかしい</dt><dd><a href="../../generator/task/sql2entity/pmbautodetect.html#typederiving">ルールとテスト値を見直し(refも検討)</a>、だめなら <a href="../../generator/task/sql2entity/parameterbean.html#parameterbeanmark">明示的宣言で微調整</a></dd>
+		<dt>オプションが付与されない</dt><dd><a href="../../generator/task/sql2entity/pmbautodetect.html#optionderiving">オプション付与のルールを見直し</a>、だめなら <a href="../../generator/task/sql2entity/parameterbean.html#parameterbeanmark">明示的宣言で微調整</a></dd>
+	</dl>
+	<h3 id="nontypedpmb">outsideSql()の呼び出しでコンパイルエラー</h3>
+	<p>
+		selectList(pmb) や manualPaging().selectPage(pmb) の部分で、"引数の型が違う"
+		というコンパイルエラーが発生するような場合は、<em class="keyword">その外だしSQLがその検索スタイルに合っていないこと</em> を示します。
+		例えば、ページングじゃない外だしSQLの ParameterBean で selectPage() は呼べません。
+	</p>
+	<p>
+		ParameterBean の JavaDoc コメントで、どの検索スタイルに対応しているかどうか表示されますので、まずはそこを確認してみてください。
+		<span class="freecomment">(Eclipse上でカーソルを合わせるとぴょいっと出てきます)</span>
+	</p>
+<pre><span class="codetitle">e.g. ParameterBean の JavaDoc をぴょいっと表示 (リスト検索と一件検索に対応)  @JavaDoc</span><code>
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+The typed parameter-bean of SimpleMember. <span class="point">(typed to list, entity)</span>
+This is related to "<span class="point">selectSimpleMember</span>" on MemberBhv,
+described as "単なるシンプルな会員検索".
+
+You can implement your original methods here.
+This class remains when re-generating.
+_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+</code></pre>
+	<p>
+		想定した検索スタイルに対応していなければ、以下のポイントを踏まえて外だしSQLを確認してみて、修正したらもう一度 Sql2Entity を実行してみてみましょう。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>Behavior</dt><dd>紐付きテーブルのBehaviorかどうか？ <span class="freecomment">※間違ってると呼べない</span></dd>
+		<dt>パッケージ</dt><dd>パッケージ間違っていると何にもならない <span class="freecomment">※EMechaで作っていればありえない</span></dd>
+		<dt><span class="working"><!-- <a href="../../generator/task/sql2entity/pmbclassoption.html#pagingselect"> -->ページング宣言<!-- </a> --></span></dt><dd>ページング宣言していれば、manual/auto の selectPage() が呼べる</dd>
+		<dt><span class="working"><!-- <a href="../../generator/task/sql2entity/pmbclassoption.html#pagingselect"> -->ページング条件<!-- </a> --></span></dt><dd>ページング条件があれば、manualPaging() の selectPage() が呼べる</dd>
+		<dt><a href="../../generator/task/sql2entity/typesafecursor.html">カーソル宣言</a></dt><dd>カーソル宣言していれば、cursorHandling() の selectCursor() が呼べる</dd>
+	</dl>
+
+	<h2 id="concept">実装コンセプト</h2>
+	<p>
+		外だしSQLの実装におけるコンセプトを理解しておくと、より一層実装がスムーズに進むでしょう。
+	</p>
+	<div class="detailpage"><a href="./concept.html">外だしSQLの実装コンセプト</a></div>
+
+	<h2 id="miscspec">細かい補足仕様</h2>
+	<h3 id="bhvinstance">Behaviorインスタンスの取得</h3>
+	<p>
+		Behaviorインスタンスは <em class="keyword">DIコンテナから取得</em> します。
+	</p>
+	<div class="detailpage"><a href="../behavior/howto.html">Behaviorの使い方</a></div>
 	<h3 id="sqlfileencoding">エンコーディング</h3>
 	<p>
 		outsideSqlDefinitionMap.dfprop の <em class="keyword">sqlFileEncoding</em>
@@ -343,213 +378,6 @@ foo-project
 		存在しないBehaviorを指定すると、Sql2Entityで明示的な例外が発生します。
 		テーブル名の変更などで利用していたBehaviorが削除された場合は、Sql2Entityを実行することで検知して修正します。
 	</p>
-
-	<h2 id="twowaysql">2. SQLを2Way-SQLで実装する</h2>
-	<p>
-		作成したSQLファイルの中で、SQLを <em class="keyword">2Way-SQL</em> として実装します。
-	</p>
-<pre><span class="codetitle">e.g. 2Way-SQLでの実装 (CustomizeEntity と ParameterBean を利用) @OutsideSql</span><code>
-<span class="comment">-- #df:entity#</span>
-
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Integer memberId!!</span>
-<span class="comment">-- !!String memberName:likePrefix!!</span>
-
-<span class="keyword">select</span> member.MEMBER_ID
-     , member.MEMBER_NAME
-     , memberStatus.MEMBER_STATUS_NAME
-  <span class="keyword">from</span> MEMBER member
-    <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
-      <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
- <span class="comment">/*BEGIN*/</span><span class="keyword">where</span>
-   <span class="comment">/*IF pmb.memberId != null*/</span>
-   member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
-   <span class="comment">/*END*/</span>
-   <span class="comment">/*IF pmb.memberName != null*/</span>
-   <span class="keyword">and</span> member.MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'M%'</span>
-   <span class="comment">/*END*/</span>
- <span class="comment">/*END*/</span>
- <span class="keyword">order by</span> member.BIRTHDATE <span class="keyword">desc</span>, member.MEMBER_ID <span class="keyword">asc</span>
-</code></pre>
-	<p>
-		ポイントは以下の通りです。
-	</p>
-	<dl class="textlist">
-		<dt>A. Sql2Entityマーク</dt>
-		<dd>
-			CustomizeEntity (検索時) と ParameterBean の宣言を行う。
-			<div class="detailpage"><a href="../../generator/task/sql2entity/index.html#sql2entitymark">Sql2Entityマーク</a></div>
-		</dd>
-		<dt>B. パラメータコメント</dt>
-		<dd>
-			ParameterBeanへの参照は pmb という変数名を利用すること。
-			<div class="detailpage"><a href="./pmcomment.html">パラメータコメント</a></div>
-		</dd>
-	</dl>
-	<h3 id="customizeentitymark">CustomizeEntity マーク</h3>
-	<p>
-		CustomizeEntity マークを宣言することで、SQLに対応する Entity (CustomizeEntity)
-		が自動生成されます。検索系で TypedParameterBean を利用する場合は必須です。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#customizeentitymark">CustomizeEntityマーク</a></div>
-<pre><span class="codetitle">e.g. CustomizeEntityマークの宣言 @OutsideSql</span><code>
-<span class="comment">-- #df:entity#</span>
-</code></pre>
-	<h4 id="cursor">カーソル検索</h4>
-	<p>
-		カーソル検索の場合は、CustomizeEntity マークに加えて TypeSafeCursor マーク (cursor オプション) を付与することで、TypeSafeCursor
-		が自動生成されます。カラムが一つだけの場合でも、カーソル検索の場合は必ずこの宣言を行います。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/typesafecursor.html#typesafecursormark">TypeSafeCursorマーク</a></div>
-<pre><span class="codetitle">e.g. TypeSafeCursorマーク(cursor オプション)の宣言 @OutsideSql</span><code>
-<span class="comment">-- #df:entity#</span>
-<span class="comment">-- +cursor+</span>
-</code></pre>
-	<h4 id="scalar">スカラ検索</h4>
-	<p>
-		カラムが一つだけの場合(かつ、カーソル検索ではない場合)で、Entity ではなくスカラ値(Integer や String
-		など)として取得する場合は、CustomizeEntity マークに加えて scalar
-		オプションを付けます<span class="freecomment">(@since 0.9.8.0)</span>。この場合 Entity
-		は生成されずカラムの型(だけ)が戻り値の型として TypedParameterBean に関連付けられます。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#scalar">CustomizeEntityマーク - ScalarHandling</a></div>
-<pre><span class="codetitle">e.g. CustomizeEntityマーク scalar オプションの宣言 @OutsideSql</span><code>
-<span class="comment">-- #df:entity#</span>
-<span class="comment">-- +scalar+</span>
-<span class="abbreviation">...</span>
-<span class="keyword">select</span> max(BIRTHDATE) <span class="keyword">from</span> <span class="abbreviation">...</span>
-</code></pre>
-	<h4 id="domain">対応テーブルそのまま検索</h4>
-	<p>
-		SQLの検索結果が対応するテーブルそのままかそのテーブルに包含され、DomainEntity 型で受け取りたい場合は、
-		CustomizeEntity マークに加えて domain オプションを付けます<span class="freecomment">(@since 0.9.8.1)</span>。この場合 Entity
-		は生成されず、BehaviorQuery に対応する DomainEntity の型が戻り値の型として TypedParameterBean に関連付けられます。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/customizeentity.html#domain">CustomizeEntityマーク - DomainHandling</a></div>
-	<div class="relatedpage"><a href="../../generator/task/sql2entity/customizeentity.html">Sql2Entity - CustomizeEntity</a></div>
-<pre><span class="codetitle">e.g. CustomizeEntityマークの domain オプションの宣言 @OutsideSql</span><code>
-<span class="comment">-- #df:entity#</span>
-<span class="comment">-- +domain+</span>
-<span class="abbreviation">...</span>
-<span class="keyword">select</span> MEMBER_ID, MEMBER_NAME, BIRTHDATE <span class="keyword">from</span> MEMBER
-</code></pre>
-	<h3 id="parameterbeanmark">ParameterBean マーク</h3>
-	<p>
-		ParameterBean マークを宣言することで、SQLへ渡すパラメータが格納できる ParameterBean
-		が自動生成されます。また、TypedParameterBean であれば対応するSQLへのパスや Entity
-		の型なども関連付けられ、プログラム上での呼び出しにおける基点クラスとなります。
-		ゆえに TypedParameterBean の場合はこの宣言は必須です。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/parameterbean.html#parameterbeanmark">ParameterBeanマーク</a></div>
-	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html">Sql2Entity - ParameterBean</a></div>
-<pre><span class="codetitle">e.g. ParameterBeanマークの宣言 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Integer memberId!!</span>
-<span class="abbreviation">...</span>
-</code></pre>
-<pre><span class="codetitle">e.g. スカラ値のParameterBean利用時のパラメータコメント @OutsideSql</span><code>
-<span class="comment">MEMBER_ID = /*pmb*/3</span>
-</code></pre>
-	<h3 id="sqltitledesc">SQLのタイトルや説明</h3>
-	<p>
-		必須ではありませんが、<em class="keyword">そのSQLを業務的に表すタイトルと説明</em>
-		をSQLファイルに付与しておくことをお奨めします。それらは、単なるSQLファイル上のコメントとしてだけでなく、<em class="keyword">JavaDocやSchemaHTMLでも参照できる重要なコメント</em>
-		となります。
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="./genbafit/outsidesqltitle/index.html"> -->(外だしSQL)現場フィット - 外だしSQLのタイトル<!-- </a> --></span></div>
-	<div class="relatedpage"><span class="working"><!-- <a href="./genbafit/outsidesqldescription/index.html"> -->(外だしSQL)現場フィット - 外だしSQLの説明<!-- </a> --></span></div>
-	<div class="relatedpage"><a href="../../generator/task/doc/schemahtml.html#outsidesql">SchemaHTML - 外だしSQL一覧</a></div>
-	<p>
-		SQLファイルの先頭の <em class="keyword">/* ... */</em> 形式のコメントの中で、<em class="keyword">[df:title]</em>
-		の直後にSQLのタイトル、<em class="keyword">[df:description]</em> の直後にSQLの説明を記述します。
-	</p>
-<pre><span class="codetitle">e.g. SQLのタイトルと説明を記述 @OutsideSql</span><code>
-<span class="comment">/*</span>
- <span class="point">[df:title]</span>
- <span class="comment">シンプルな会員検索のExample</span>
- 
- <span class="point">[df:description]</span>
- <span class="comment">このSQLはOutsideSqlの最も基本的なExampleです。
- 参考ポイント：
-   o パラメータコメント(IFコメントやバインド変数コメントなど)の利用方法
-   o Sql2Entityで生成するCustomizeEntityとParameterBeanの定義方法
-   o 外だしSQLの業務的なタイトル・説明(SchemaHTMLにて表示される)の記述方法
- 外だしSQLのエンコーディングはデフォルトで「UTF-8」です。
- ダブルバイト文字を利用する場合はエディタのエンコーディングにご注意下さい。
- 補足：
-   o この外だしSQLと同じSQLはConditionBeanで実現可能
-*/</span>
-<span class="comment">-- #df:entity#</span>
-<span class="abbreviation">...</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		例えば、このタイトルと説明をアプリケーション全体で必須にしたいというときは、outsideSqlDefinitionMap.dfprop
-		の設定で <em class="keyword">OutsideSqlTestタスクで必須チェック</em> を掛けることができます。
-	</p>
-	<div class="relatedpage"><a href="../../generator/task/outsidesqltest/index.html#checksqltitle">OutsideSqlTest - 外だしSQLのタイトル (オプション)</a></div>
-	<div class="relatedpage"><a href="../../generator/task/outsidesqltest/index.html#checksqldesc">OutsideSqlTest - 外だしSQLの説明 (オプション)</a></div>
-
-	<h2 id="sql2entity">3. Sql2Entity を実行する</h2>
-	<p>
-		<em class="keyword">Sql2Entityタスク</em> を実行します。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/sql2entity/index.html">DBFluteタスク - Sql2Entityタスク</a></div>
-	<p>
-		ParameterBean (TypedParameterBean) や CustomizeEntity が自動生成されます。
-	</p>
-	<h3 id="wrongsql">SQLが文法的に間違っている場合</h3>
-	<p>
-		Sql2Entity実行時に例外が発生します。SQL文を修正して成功するまで再実行して下さい。
-	</p>
-
-	<h2 id="outsidesql">4. 外だしSQLを呼び出す</h2>
-	<p>
-		対応する Behavior の <em class="keyword">outsideSql()</em> メソッドを利用して該当のSQLを実行します。 
-	</p>
-	<div class="relatedpage"><a href="#bhvinstance">this - Behaviorインスタンスの取得</a></div>
-	<p>
-		outsideSql() に続いて、リスト検索、カーソル検索、更新処理など、様々なメソッドが用意されています。
-		TypedParameterBean であれば、パラメータを設定した ParameterBean
-		を指定するだけで呼び出すことができます<span class="freecomment">(@since 0.9.8.0)</span>。
-		(また、利用できるメソッドが既に型付けされていて、間違ったメソッドで呼び出してもコンパイルエラーとして検知できます)
-	</p>
-<pre><span class="codetitle">e.g. リスト検索 (TypedParameterBean) {名前が 'S' で始まる会員を検索｝@Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-
-<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
-List&lt;SimpleMember&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().selectList(pmb);
-</code></pre>
-	<p>
-		その他詳しい仕様はメソッドごとの詳細ページにて。
-	</p>
-	<div class="relatedpage"><a href="./select/selectlist.html">selectList()</a></div>
-	<div class="relatedpage"><a href="./select/selectentity.html">entityHandling() - selectEntity()</a></div>
-	<div class="relatedpage"><a href="./select/selectpagemanual.html">manualPaging() - selectPage()</a></div>
-	<div class="relatedpage"><a href="./select/selectpageauto.html">autoPaging() - selectPage()</a></div>
-	<div class="relatedpage"><a href="./select/selectcursor.html">cursorHandling() - selectCursor()</a></div>
-	<p>
-		一方、ParameterBean が宣言されている SQL 以外の SQL を呼び出したり(つまり、別のSQLで ParameterBean
-		を再利用)、CustomizeEntity を利用せずに独自のクラスを戻り値の型にしたりなど、パスやパラメータ、戻り値の型がバラバラに連携するような場合は、
-		それぞれの要素を個別に指定して呼び出します(フリースタイル形式)。
-	</p>
-<pre><span class="codetitle">e.g. リスト検索 (フリースタイル形式) {名前が 'S' で始まる会員を検索｝@Java</span><code>
-<span class="comment">// SQLのパス: BehaviorQueryPath</span>
-String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
-
-<span class="comment">// パラメータ: ParameterBean</span>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-
-<span class="comment">// 戻り値Entityの型: CustomizeEntity</span>
-Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>;
-
-<span class="comment">// 外だしSQLの実行 (指定された path に対応するSQL)</span>
-List&lt;SimpleMember&gt; memberList
-        = <span class="attribute">memberBhv</span>.outsideSql().selectList(path, pmb, entityType);
-</code></pre>
 	<h3 id="log">外だしSQLの実行ログ</h3>
 	<p>
 		外だしSQLの実行ログ(表示用SQLも含む)は以下のようになります。
@@ -582,8 +410,7 @@ List&lt;SimpleMember&gt; memberList
 -- #df:entity#
 
 -- !df:pmb!
--- !!Integer memberId!!
--- !!String memberName:likePrefix!!
+<span class="comment">-- !!AutoDetect!!</span>
 </span>
 <span class="keyword">select</span> member.MEMBER_ID
      , member.MEMBER_NAME
@@ -603,45 +430,62 @@ List&lt;SimpleMember&gt; memberList
 (XLog#log():38) - ===========/ [00m00s063ms (4) first={12, Suker, 1968-01-01, 仮会員}@ef28f3f]
 (XLog#log():38) -  
 </code></pre>
-
-	<h2 id="bhvinstance">Behaviorインスタンスの取得</h2>
+	<h3 id="freestyle">フリースタイルの呼び出しメソッド</h3>
 	<p>
-		Behaviorインスタンスは <em class="keyword">DIコンテナから取得</em> します。
+		一方、ParameterBean が宣言されている SQL 以外の SQL を呼び出したり(つまり、別のSQLで ParameterBean
+		を再利用)、CustomizeEntity を利用せずに独自のクラスを戻り値の型にしたりなど、パスやパラメータ、戻り値の型がバラバラに連携するような場合は、
+		それぞれの要素を個別に指定して呼び出します(フリースタイル形式)。
 	</p>
-	<div class="detailpage"><a href="../behavior/howto.html">Behaviorの使い方</a></div>
+<pre><span class="codetitle">e.g. リスト検索 (フリースタイル形式) {名前が 'S' で始まる会員を検索｝@Java</span><code>
+<span class="comment">// SQLのパス: BehaviorQueryPath</span>
+String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>;
 
-	<h2 id="freestylebasic">フリースタイル基本仕様</h2>
+<span class="comment">// パラメータ: ParameterBean</span>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+
+<span class="comment">// 戻り値Entityの型: CustomizeEntity</span>
+Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>;
+
+<span class="comment">// 外だしSQLの実行 (指定された path に対応するSQL)</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(path, pmb, entityType);
+</code></pre>
 	<p>
 		フリースタイルにおける全てメソッドで共通の基本仕様です。
 		ここにない情報はそれぞれのメソッドの詳細をご覧下さい。
 	</p>
-	<h3 id="sqlpath">SQLのパス (path)</h3>
-	<p>
-		主に第一引数で指定します。必須の引数なので null を指定してはいけません。
-	</p>
-	<p>
-		String型ですが、基本的には BehaviorQueryPath を利用することで簡単に指定できます。
-		BehaviorQueryPath を利用しない場合は、"/" (スラッシュ)区切りのクラスパスからのファイルパスとなります。
-	</p>
-	<div class="relatedpage"><a href="../../generator/task/sql2entity/behaviorquerypath.html">Sql2Entity - BehaviorQueryPath</a></div>
-	<p>
-		存在しないパスを指定した場合は、OutsideSqlNotFoundException が発生します。
-	</p>
-	<h3 id="pmb">ParameterBean (pmb)</h3>
-	<p>
-		SQLへ渡すパラメータがない場合は null 指定できます。
-	</p>
-	<p>
-		Object型なので、(推奨されませんが)自動生成していないクラスも指定できます。また、パラメータが一つだけの場合は、String
-		型や Integer 型などの値をそのまま指定することもできます。但し、その場合、ParameterBeanの空文字フィルタやもろもろのオプションは利用できません。
-	</p>
-	<div class="relatedpage"><a href="#parameterbeanmark">this - ParameterBeanマーク</a></div>
-	<h3 id="cmentity">CustomizeEntity (entityType)</h3>
-	<p>
-		主に検索時(かつ、カーソル検索でない)において戻り値Entityの型を第三引数で指定します。
-		必須の引数なので null を指定してはいけません。Entity ではなく String や Integer
-		などのスカラ型も指定できます(これらも広い意味でEntityと概念付けます)。
-	</p>
+	<dl class="textlist">
+		<dt>SQLのパス (path)</dt>
+		<dd>
+			主に第一引数で指定します。必須の引数なので null を指定してはいけません。
+		</dd>
+		<dd>
+			String型ですが、基本的には BehaviorQueryPath を利用することで簡単に指定できます。
+			BehaviorQueryPath を利用しない場合は、"/" (スラッシュ)区切りのクラスパスからのファイルパスとなります。
+			<div class="relatedpage"><a href="../../generator/task/sql2entity/behaviorquerypath.html">Sql2Entity - BehaviorQueryPath</a></div>
+		</dd>
+		<dd>
+			存在しないパスを指定した場合は、OutsideSqlNotFoundException が発生します。
+		</dd>
+		<dt>ParameterBean (pmb)</dt>
+		<dd>
+			SQLへ渡すパラメータがない場合は null 指定できます。
+		</dd>
+		<dd>
+			Object型なので、(推奨されませんが)自動生成していないクラスも指定できます。また、パラメータが一つだけの場合は、String
+			型や Integer 型などの値をそのまま指定することもできます。但し、その場合、ParameterBeanの空文字フィルタやもろもろのオプションは利用できません。
+			<div class="relatedpage"><span class="working"><!-- <a href="#parameterbeanmark"> -->this - ParameterBeanマーク<!-- </a> --></span></div>
+		</dd>
+		<dt>CustomizeEntity (entityType)</dt>
+		<dd>
+			主に検索時(かつ、カーソル検索でない)において戻り値Entityの型を第三引数で指定します。
+			必須の引数なので null を指定してはいけません。Entity ではなく String や Integer
+			などのスカラ型も指定できます(これらも広い意味でEntityと概念付けます)。
+		</dd>
+		<dd>
+		</dd>
+	</dl>
 
 	<h2 id="completion">コード補完を駆使して実装</h2>
 	<p>

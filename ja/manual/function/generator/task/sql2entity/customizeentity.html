@@ -38,10 +38,15 @@
 
 <div id="content">
 	<h1>CustomizeEntity</h1>
+	<p>
+		Sql2Entityで自動生成される CustomizeEntity についてのページです。
+	</p>
+	<div class="relatedpage"><a href="./index.html">Sql2Entity</a></div>
 	<ul class="indexlist">
 		<li><a href="#about">CustomizeEntityとは？</a></li>
 		<li><a href="#autogenerate">CustomizeEntityの自動生成</a>
 			<ul>
+				<li><a href="#sql2entity">Sql2Entityで自動生成される</a></li>
 				<li><a href="#merit">自動生成によるメリット</a></li>
 				<li><a href="#deleteold">古いクラスは削除される</a></li>
 			</ul>
@@ -75,6 +80,7 @@
 		テーブル対応のEntityを DomainEntity と呼ぶのに対し、<em class="keyword">SQL対応のEntity</em>
 		を CustomizeEntity と呼びます。CustomizeEntityは <em class="keyword">SQLのselect句と同じプロパティ構造</em> を持ちます。
 	</p>
+	<div class="relatedpage"><a href="../../../ormapper/entity/index.html">Entity</a></div>
 	<p>
 		例えば、"select * from MEMBER" というようなSQLの結果はDomainEntityで受け取ることができますが、
 		"select MEMBER_ID, MAX(xxx) from ... group by MEMBER_ID"
@@ -82,19 +88,21 @@
 	</p>
 
 	<h2 id="autogenerate">CustomizeEntityの自動生成</h2>
+	<h3 id="sql2entity">Sql2Entityで自動生成される</h3>
 	<p>
-		ParameterBeanは、Sql2Entityタスクで自動生成されます。
-		出力先ディレクトリと出力クラスのパッケージは、<span class="existscloset" title="exists a closet option">Generateタスクで自動生成されるクラスと同じ</span>で、
-		Entityのパッケージ配下の <em class="keyword">customize</em> パッケージに出力されます。
+		CustomizeEntityは、Sql2Entityタスクで自動生成されます。
+		出力先ディレクトリと出力クラスのパッケージは、デフォルトではGenerateタスクで自動生成されるクラスと同じで、Entity
+		のパッケージ配下の <em class="keyword">customize</em> パッケージに出力されます。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/applicationoutsidesql/index.html">現場フィット - アプリごとの外だしSQL</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/outsidesqldefinition/index.html#sqlpackage">dfprop - sqlPackage</a></div>
 	<p>
-		外だしSQLに <em class="keyword">このSQLに対応するCustomizeEntityを生成したいというマーク</em>
+		外だしSQLに、このSQLに対応するCustomizeEntityを生成したいというマーク <em class="keyword">(CustomizeEntity)</em>
 		を記述し、Sql2Entityタスクを実行することでCustomizeEntityが自動生成されます。
 		(CustomizeEntityの自動生成対象となる外だしSQLは、Sql2Entityタスクで実際のDBに対して実行されるため、外だしSQLは必ず
 		"2Way-SQL" で記述されていることを前提とします)
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/outsidesql/about.html#twowaysql">外だしSQL - 2Way-SQL</a></div>
-	<div class="relatedpage"><a href="./index.html">Sql2Entityタスク</a></div>
 	<h3 id="merit">自動生成によるメリット</h3>
 	<p>
 		外だしSQLで利用する戻り値の型は、DomainEntity
@@ -117,21 +125,21 @@
 		例えば、SQLファイルの名前が MemberBhv_selectSimpleMember.sql なら、CustomizeEntityのクラス名は SimpleMember となります。
 		(SQL業務名がそのまま名前となります)
 	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#tabledriven">外だしSQLの使い方 - テーブル駆動でSQLを管理</a></div>
-<pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する CustomizeEntity を生成 @SQL-File</span><code>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/concept.html#tabledriven">外だしSQLの実装コンセプト - テーブル駆動でSQLを管理</a></div>
+<pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する CustomizeEntity を生成 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
-select ...
-  from ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		CustomizeEntity のクラス名を明示的に指定することもできます。SQLの行コメントで、"#[Entityのクラス名]#"
 		という形で記述します。主に、他のSQLで CustomizeEntity を再利用するなど、SQL名に依存しない名前を付けたいようなときに利用します。
 	</p>
 
-<pre><span class="codetitle">e.g. SimpleMemberという名前のCustomizeEntityを生成 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. SimpleMemberという名前のCustomizeEntityを生成 @OutsideSql</span><code>
 <span class="comment">-- #SimpleMember#</span>
-select ...
-  from ...
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		CustomizeEntityマークは、基本的に select文 に対して記述することを想定しています。
@@ -151,7 +159,7 @@ select ...
 		という形で記述します(複数指定する場合はカンマ区切りで指定)。これを
 		CustomizeEntityのPKマーク と呼びます。
 	</p>
-<pre><span class="codetitle">e.g. MEMBER_IDをPKとして扱いたい場合 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. MEMBER_IDをPKとして扱いたい場合 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="point">-- *MEMBER_ID*</span>
 <span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
@@ -162,7 +170,7 @@ select ...
 	<p>
 		ここでは、元のカラム名ではなく、検索結果上で利用される名前を指定します。例えば、エリアス名が付いている場合は、エリアス名を指定します。
 	</p>
-<pre><span class="codetitle">e.g. エリアス名が付いているのでPK_IDをPKマークに指定 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. エリアス名が付いているのでPK_IDをPKマークに指定 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="point">-- *PK_ID*</span>
 <span class="keyword">select</span> MEMBER_ID <span class="point">as PK_ID</span>, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
@@ -176,7 +184,7 @@ select ...
 		LoadReferrer では対応テーブルの情報が必要なため(本来、メタデータから自動解決される)、単にJavaDocコメントでの表示だけの話でなく、そういった
 		DBMS の場合においての補完機能となります。<span class="freecomment">@since 0.9.7.5</span>
 	</p>
-<pre><span class="codetitle">e.g. 指定したPKの関連テーブルを明示的に指定 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. 指定したPKの関連テーブルを明示的に指定 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- *<span class="point">MEMBER</span>.MEMBER_ID*</span>
 <span class="keyword">select</span> MEMBER_ID, MAX(<span class="abbreviation">...</span>), <span class="abbreviation">...</span>
@@ -201,7 +209,13 @@ select ...
 	</p>
 	<div class="detailpage"><a href="./typesafecursor.html">TypeSafeCursor</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/cursor.html"> -->外だしSQL - カーソル検索<!-- </a> --></span></div>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#cursor">外だしSQLの使い方 - カーソル検索</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/howto.html#cursor"> -->外だしSQLの使い方 - カーソル検索<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. TypeSafeCursorを生成 @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+<span class="comment">-- +cursor+</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
 	<h3 id="scalar">ScalarHandling</h3>
 	<p>
 		<em class="keyword">CustomizeEntityマークのオプション</em> で、単一のカラム を String や Integer
@@ -211,7 +225,7 @@ select ...
 		TypeParameterBean に関連付けられます。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/outsidesql/select/selectlist.html#scalar">OutsideSql - selectList() - スカラ値で受け取る</a></div>
-<pre><span class="codetitle">e.g. スカラ型のオプションを指定 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. スカラ型のオプションを指定 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- +scalar+</span>
 <span class="keyword">select</span> MEMBER_NAME
@@ -220,7 +234,7 @@ select ...
 	<p>
 		フリースタイル形式では単に第三引数にスカラ型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
 	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#scalar">外だしSQLの使い方 - スカラ検索</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/howto.html#scalar"> -->外だしSQLの使い方 - スカラ検索<!-- </a> --></span></div>
 	<h3 id="domain">DomainHandling</h3>
 	<p>
 		<em class="keyword">CustomizeEntityマークのオプション</em> で、BehaviorQuery に対応する DomainEntity
@@ -229,7 +243,7 @@ select ...
 		は自動生成されず、BehaviorQuery に対応する DomainEntity が戻り値Entityの型として
 		TypeParameterBean に関連付けられます。(対象の外だしSQLが BehaviorQuery である必要あり)
 	</p>
-<pre><span class="codetitle">e.g. DomainEntity 型のオプションを指定 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. DomainEntity 型のオプションを指定 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- +domain+</span>
 <span class="keyword">select</span> MEMBER_ID, MEMBER_NAME, BIRTHDATE
@@ -238,7 +252,7 @@ select ...
 	<p>
 		フリースタイル形式では単に第三引数に DomainEntity 型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
 	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#domain">外だしSQLの使い方 - 対応テーブルそのまま検索</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/howto.html#domain"> -->外だしSQLの使い方 - 対応テーブルそのまま検索<!-- </a> --></span></div>
 	<h3 id="forcedtype">プログラム型の強制指定</h3>
 	<p>
 		CustomizeEntityのプロパティの型(プログラム型)は、メタデータより取得したDB上のデータ型情報を元にマッピングされます。
@@ -246,7 +260,7 @@ select ...
 		そのような場合に、型を強制的に指定することができます。SQLの行コメントで <em class="keyword">##プログラム型 カラム名##</em>
 		という形で記述します。するとのそのカラムにマッピング型が指定された型になります。
 	</p>
-<pre><span class="codetitle">e.g. PURCHASE_PERCENTをBigDecimalに強制的にマッピング @SQL-File</span><code>
+<pre><span class="codetitle">e.g. PURCHASE_PERCENTをBigDecimalに強制的にマッピング @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 <span class="comment">-- ##BigDecimal PURCHASE_PERCENT##</span>
 select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
@@ -274,7 +288,7 @@ select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
 		と入れた後にコメントを書くと、それがJavaDocコメントに付与されます。
 		JavaDoc上では、もともとのメタデータによるコメントに続いて "改行 + //" が付与されて、その後にコメントが追記されます。
 	</p>
-<pre><span class="codetitle">e.g. 検索カラムにコメントを付与する @SQL-File</span><code>
+<pre><span class="codetitle">e.g. 検索カラムにコメントを付与する @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 
 <span class="keyword">select</span> MEMBER_ID <span class="comment">-- // 検索結果のユニーク性を表現する項目</span>
@@ -292,14 +306,14 @@ select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
 	<p>
 		ParameterBeanのプロパティ宣言でも同じようなことができます。合わせて利用すると良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="./parameterbean.html#propertycomment">ParameterBean - プロパティのコメント</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="./parameterbean.html#propertycomment"> -->ParameterBean - プロパティのコメント<!-- </a> --></span></div>
 	<h3 id="commoncolumnspec">検索カラムのコメントの細かい仕様</h3>
 	<p>
 		JavaDocには追記したくないけど、外だしSQL上ではコメントとして書きたいというような内容のものがある場合は、
 		行コメントマーク "--" と "//" の間にそのコメントを書くことができます。つまり、"--" と "//"
 		は同じ行であれば離して書くことができます。
 	</p>
-<pre><span class="codetitle">e.g. JavaDocに追記しないコメントも書く @SQL-File</span><code>
+<pre><span class="codetitle">e.g. JavaDocに追記しないコメントも書く @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 
 <span class="keyword">select</span> MEMBER_ID <span class="comment">-- これはJavaDocに追記しない // これはJavaDocへ</span>
@@ -347,7 +361,7 @@ select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
-<pre><span class="codetitle">e.g. MEMBER_STATUS_CODEという名前が区分値として関連付けられている場合 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. MEMBER_STATUS_CODEという名前が区分値として関連付けられている場合 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 select MEMBER_ID
      , MEMBER_STATUS_CODE <span class="comment">-- treated as classification</span>
@@ -355,7 +369,7 @@ select MEMBER_ID
      , 0 as MEMBER_STATUS_CODE <span class="comment">-- treated as classification</span>
   from MEMBER
 </code></pre>
-<pre><span class="codetitle">e.g. _FLGで終わるカラムが区分値として関連付けられている場合 @SQL-File</span><code>
+<pre><span class="codetitle">e.g. _FLGで終わるカラムが区分値として関連付けられている場合 @OutsideSql</span><code>
 <span class="comment">-- #df:entity#</span>
 select MEMBER_ID
      , 0 as DELETE_FLG <span class="comment">-- treated as classification</span>

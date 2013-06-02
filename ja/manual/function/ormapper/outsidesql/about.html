@@ -38,10 +38,19 @@
 
 <div id="content">
 	<h1>外だしSQL(OutsideSql)について</h1>
+	<p>
+		外だしSQLとはそもそもどういったものか？わりと事務的なページです。
+	</p>
+	<div class="relatedpage"><a href="./index.html">外だしSQL (OutsideSql)</a></div>
 	<ul class="indexlist">
-		<li><a href="#about">外だしSQL(OutsideSql)とは？</a></li>
-		<li><a href="#pmcomment">パラメータコメント</a></li>
+		<li><a href="#about">外だしSQL(OutsideSql)とは？</a>
+			<ul>
+				<li><a href="#feature">二つの特徴</a></li>
+				<li><a href="#gendriven">自動生成ドリブン</a></li>
+			</ul>
+		</li>
 		<li><a href="#twowaysql">2Way-SQL</a></li>
+		<li><a href="#pmcomment">パラメータコメント</a></li>
 		<li><a href="#role">実装上の役割</a></li>
 		<li><a href="#flexibility">自由度の高さを重視</a></li>
 	</ul>
@@ -50,44 +59,41 @@
 	<p>
 		<em class="keyword">外部テキストファイルに記載されたSQL文をアプリケーションから実行</em> する機能のことを言います。
 	</p>
+	<h3 id="feature">二つの特徴</h3>
 	<p>
-		主な特徴は以下の通りです。
+		特徴はこの二つ。
 	</p>
 	<dl class="textlist">
-		<dt>2Way-SQL</dt><dd>パラメータコメントを使うことで、アプリからでもツールからでも動作するSQLとして管理できる</dd>
-		<dt>BehaviorQueryPath</dt><dd>SQLファイルを指定するパス定義を自動生成(タイプセーフ呼び出し)</dd>
-		<dt>ParameterBean</dt><dd>SQLに渡すパラメータを格納するクラスを自動生成(タイプセーフ設定)</dd>
-		<dt>CustomizeEntity</dt><dd>SQL(select文)の結果セットに対応するクラスを自動生成(タイプセーフ受け取り)</dd>
-		<dt>SQL変更に強い</dt><dd>SQLでの変更は、プログラムのコンパイルエラーとして検知でき、同期漏れが発生しない</dd>
+		<dt>2Way-SQL</dt><dd>アプリからでもツールからでも動作するSQLとして管理できるので、すぐに実行して確認できる</dd>
+		<dt>SQL変更に強い</dt><dd>必要なクラスは自動生成され、SQL変更の影響もコンパイルエラーとして検知できる</dd>
 	</dl>
-
-	<h2 id="pmcomment">パラメータコメント</h2>
+	<h3 id="gendriven">自動生成ドリブン</h3>
 	<p>
-		単にSQL文を実行するだけでなく、パラメータコメントを利用することで、アプリケーションで指定される動的なパラメータを参照し
-		<em class="keyword">SQL上で分岐(IF文)指定・バインド変数指定</em> などができます。
+		一般に、外だしにされたSQLを呼び出す際に必要な手続きは三つ。これらを自動生成することでタイプセーフな実装ができるようにし、最大限呼び出し手続きでのミスが発生しないようにしています。
 	</p>
-	<div class="detailpage"><a href="./pmcomment.html">パラメータコメント</a></div>
-<pre><span class="codetitle">e.g. アプリで指定された会員IDがnullじゃなければ、その会員IDで等値条件(テスト値：3)</span><code>
-<span class="comment">/*IF pmb.memberId != null*/</span>
-MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
-<span class="comment">/*END*/</span>
-</code></pre>
+	<dl class="textlist">
+		<dt>どのSQLを実行するか？ <span class="freecomment">(BehaviorQueryPath)</span></dt><dd>SQLファイルを指定するパス定義を自動生成 (タイプセーフ呼び出し)</dd>
+		<dt>SQLにどんな値を渡すか？ <span class="freecomment">(ParameterBean)</span></dt><dd>SQLに渡すパラメータを格納するクラスを自動生成 (タイプセーフ設定)</dd>
+		<dt>検索結果をどう受け取るか？ <span class="freecomment">(CustomizeEntity)</span></dt><dd>SQL(select文)の結果セットに対応するクラスを自動生成 (タイプセーフ受け取り)</dd>
+	</dl>
 
 	<h2 id="twowaysql">2Way-SQL</h2>
 	<p>
-		パラメータコメントでは、<em class="keyword">バインド変数指定でテスト値を含めることができる</em>
-		ため、外だしSQLはアプリケーションでもSQLツールでもどちらでも実行可能です。
-		記述したSQLはアプリケーションを起動することなく、SQLツールでそのSQLの文法の確認ができます。
-		これは非常に大きなメリットであり、開発者はSQLの実装に集中できます。
+		外だしSQLはアプリケーションでもSQLツールでもどちらでも実行可能です。
 	</p>
 	<p>
-		プログラム上で文字列でSQLを埋め込んで生成していたときは、アプリケーションを実行するまでそのSQLが正しいかどうかを確認することができませんでした。結局実行すると
-		"右カッコがありません"
-		と怒られ再度修正し、アプリケーションを再起動してまた試します。その繰り返しが本当に時間を費やすものでした。
+		昔はよく見かけた "画面から実行しないとそのSQLが本当に文法的に正しいかわからない"
+		という状態は基本的に発生しません。アプリを起動させる前にSQLツールなどで実行して気軽に確認ができます。
 	</p>
 	<p>
-		外だしSQLならその時間は非常に短いです。SQLツールで簡単に実行できてしまうからです。この
-		<em class="keyword">アプリケーション・SQLツールの両方で実行可能なSQL</em> のことを <em class="keyword">2Way-SQL</em> と呼びます。
+		それをどうやって実現しているのか？ポイントが二つ。
+	</p>
+	<dl class="keymainlist">
+		<dt>バインド指定しつつテスト値</dt><dd>バインド変数指定でテスト値を含めることができる</dd>
+		<dt>動的制御をSQLコメントで</dt><dd>分岐やループなどのSQLの動的制御をSQLコメント形式で書ける</dd>
+	</dl>
+	<p>
+		この "アプリケーション・SQLツールの両方で実行可能なSQL" のことを <em class="keyword">2Way-SQL</em> と呼びます。
 	</p>
 <pre><span class="codetitle">e.g. 2Way-SQLでの実装 (アプリケーション・SQLツールの両方で実行可能) @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
@@ -96,7 +102,7 @@ MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
      , (<span class="keyword">select</span> sum(purchase.PURCHASE_PRICE)
           <span class="keyword">from</span> PURCHASE purchase
          <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
-           <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = 0
+           <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
        ) <span class="keyword">as</span> UNPAID_PRICE_SUMMARY
      , memberStatus.MEMBER_STATUS_NAME
 <span class="comment">-- ELSE select count(*)</span>
@@ -106,16 +112,17 @@ MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
     <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
       <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
     <span class="comment">/*END*/</span>
- <span class="comment">/*BEGIN*/</span><span class="keyword">where</span>
-   <span class="comment">/*IF pmb.memberId != null*/</span>member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3<span class="comment">/*END*/</span>
+ <span class="comment">/*BEGIN*/</span>
+ <span class="keyword">where</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span><span class="comment">/*END*/</span>
    <span class="comment">/*IF pmb.memberStatusCode != null*/</span>
-   <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span>'FML'
+   <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
    <span class="comment">/*END*/</span>
    <span class="comment">/*IF pmb.unpaidMemberOnly*/</span>
-   <span class="keyword">and exists</span> (<span class="keyword">select</span> 'yes'
+   <span class="keyword">and exists</span> (<span class="keyword">select</span> <span class="literal">'yes'</span>
                  <span class="keyword">from</span> PURCHASE purchase
                 <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
-                  <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = 0
+                  <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
        )
    <span class="comment">/*END*/</span>
  <span class="comment">/*END*/</span>
@@ -129,6 +136,31 @@ MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
 		Entity クラス、CustomizeEntity を自動生成します。
 	</p>
 	<div class="relatedpage"><a href="../../generator/task/sql2entity/index.html">DBFluteタスク - Sql2Entityタスク</a></div>
+
+	<h2 id="pmcomment">パラメータコメント</h2>
+	<p>
+		2Way-SQLを実現するための動的制御のためのSQLコメントを、パラメータコメントと呼びます。
+	</p>
+	<p>
+		パラメータコメントの中で、アプリケーションから指定される動的なパラメータを参照したり判定したりして、<em class="keyword">SQL上で分岐指定(IF文)・バインド変数指定</em> などができます。
+	</p>
+	<div class="detailpage"><a href="./pmcomment.html">パラメータコメント</a></div>
+<pre><span class="codetitle">e.g. 会員IDが指定されていれば、その会員IDで等値条件(テスト値：3)</span><code>
+<span class="comment">/*IF pmb.memberId != null*/</span>
+MEMBER_ID = <span class="comment">/*pmb.memberId*/</span>3
+<span class="comment">/*END*/</span>
+</code></pre>
+<pre><span class="codetitle">e.g. 複雑な制御を入れたパラメータコメントの利用 (ループなど) @OutsideSql</span><code>
+<span class="comment">/*BEGIN*/</span>
+<span class="keyword">where</span>
+  <span class="comment">/*FOR pmb.memberNameList*/</span>
+  <span class="comment">/*NEXT 'and '*/</span>member.MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*#current*/</span><span class="literal">'S%'</span>
+  <span class="comment">/*END*/</span>
+  <span class="comment">/*IF pmb.memberStatusCode != null*/</span>
+  <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+  <span class="comment">/*END*/</span>
+<span class="comment">/*END*/</span>
+</code></pre>
 
 	<h2 id="role">実装上の役割</h2>
 	<p>

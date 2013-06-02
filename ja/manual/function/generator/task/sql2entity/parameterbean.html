@@ -38,6 +38,10 @@
 
 <div id="content">
 	<h1>ParameterBean</h1>
+	<p>
+		Sql2Entityで自動生成される ParameterBean についてのページです。
+	</p>
+	<div class="relatedpage"><a href="./index.html">Sql2Entity</a></div>
 	<ul class="indexlist">
 		<li><a href="#about">ParameterBeanとは？</a>
 			<ul>
@@ -48,6 +52,7 @@
 		</li>
 		<li><a href="#autogenerate">ParameterBeanの自動生成</a>
 			<ul>
+				<li><a href="#sql2entity">Sql2Entityで自動生成される</a></li>
 				<li><a href="#deleteold">古いクラスは削除される</a></li>
 			</ul>
 		</li>
@@ -59,14 +64,11 @@
 		</li>
 		<li><a href="#option">ParameterBeanのオプション</a>
 			<ul>
-				<li><a href="#pagingselect">ページング検索のオプション</a></li>
-				<li><a href="#likesearch">LikeSearch条件のオプション</a></li>
-				<li><a href="#datefromto">DateFromTo条件のオプション</a></li>
-				<li><a href="#classification">区分値条件のオプション</a></li>
-				<li><a href="#reference">参照カラムのオプション</a></li>
-				<li><a href="#propertycomment">プロパティのコメント</a></li>
+				<li><a href="#classoption">クラスのオプション</a></li>
+				<li><a href="#propertyoption">プロパティのオプション</a></li>
 			</ul>
 		</li>
+		<li><a href="#autodetect">プロパティ項目の自動判別</a></li>
 		<li><a href="#packageresolve">プログラム型のパッケージ解決</a>
 			<ul>
 				<li><a href="#basicpkg">基本的なパッケージ解決</a></li>
@@ -76,18 +78,6 @@
 				<li><a href="#otherpkg">それ以外はフルパッケージ指定</a></li>
 			</ul>
 		</li>
-		<li><a href="#autodetect">プロパティ項目の自動判別</a>
-			<ul>
-				<li><a href="#autodetectmark">自動判別マーク</a></li>
-				<li><a href="#typederiving">プログラム型の導出</a></li>
-				<li><a href="#optionderiving">オプションの導出</a></li>
-				<li><a href="#optionset">明示的オプション指定</a></li>
-				<li><a href="#typeadjustment">参照カラムのオプションによる型調整</a></li>
-				<li><a href="#commentoption">プロパティのコメントは？</a></li>
-				<li><a href="#supplement">補助機能である</a></li>
-			</ul>
-		</li>
-		<li><a href="#alternatebool">代理判定メソッドの自動判別</a></li>
 		<li><a href="#structure">ParameterBeanの構造</a>
 			<ul>
 				<li><a href="#emptystring">getメソッドの空文字フィルタ</a></li>
@@ -107,7 +97,7 @@
 		また、何のSQLを呼び出すか？ 戻り値Entityの型は何か？
 		といった情報も合わせて型付けされた ParameterBean を TypedParameterBean と呼びます。
 	</p>
-	<div class="detailpage"><a href="../../../ormapper/outsidesql/howto.html#typedandfree">外だしSQLの使い方 - タイプセーフ、そして、自由度考慮</a></div>
+	<div class="relatedpage"><a href="../../../ormapper/outsidesql/concept.html#typedandfree">外だしSQLの実装コンセプト - タイプセーフ、そして、自由度考慮</a></div>
 	<h3 id="procedure">プロシージャ対応のParameterBean</h3>
 	<p>
 		ParameterBeanには、プロシージャ対応のもの(ProcedurePmb)が存在します。
@@ -117,10 +107,9 @@
 	<div class="relatedpage"><a href="./procedurepmb.html">ProcedurePmb</a></div>
 	<h3 id="emptyasnull">空文字は null として扱われる</h3>
 	<p>
-		ParameterBeanのString型のプロパティの空文字は null
-		として扱われます。そうすることで、外だしSQLのパラメータコメント上で空文字なのか null
+		ParameterBeanのString型のプロパティの空文字は null として扱われます。よって、外だしSQLで空文字なのか null
 		なのかを意識する必要はなく、IFコメントで "nullでないこと"
-		という条件で分岐可能です。(但し、ListやMap型プロパティの要素のString型の値はそのまま空文字として扱われます)
+		という条件で分岐可能です。(ただし、ListやMap型プロパティの要素のString型の値はそのまま空文字として扱われます)
 	</p>
 <pre><span class="codetitle">e.g. String型プロパティは空文字かどうかは条件に含めてなくてもOK @OutsideSql</span><code>
 <span class="comment">/*IF pmb.memberName != null*/</span>
@@ -130,19 +119,22 @@
 	<p>
 		地味なことですが、画面側フレームワークによっては
 		"存在しない値" の表現が空文字だったり null
-		だったりとします。ParameterBeanを利用することでそういった細かいことを極力気にしないで済むようにしています。
+		だったりとします。ParameterBeanではそういった細かいことを極力気にしないで済むようにしています。
 	</p>
 	<div class="relatedpage"><a href="#emptystring">this - getメソッドの空文字フィルタ</a></div>
 	<div class="relatedpage"><a href="../../../genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
 
 	<h2 id="autogenerate">ParameterBeanの自動生成</h2>
+	<h3 id="sql2entity">Sql2Entityで自動生成される</h3>
 	<p>
 		ParameterBeanは、Sql2Entityタスクで自動生成されます。
-		出力先ディレクトリと出力クラスのパッケージは、<span class="existscloset" title="exists a closet option">Generateタスクで自動生成されるクラスと同じ</span>で、
-		Behaviorのパッケージ配下の <em class="keyword">pmbean</em> パッケージに出力されます。
+		出力先ディレクトリと出力クラスのパッケージは、デフォルトではGenerateタスクで自動生成されるクラスと同じで、Behavior
+		のパッケージ配下の <em class="keyword">pmbean</em> パッケージに出力されます。
 	</p>
+	<div class="relatedpage"><a href="../../../genbafit/projectfit/applicationoutsidesql/index.html">現場フィット - アプリごとの外だしSQL</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/outsidesqldefinition/index.html#sqlpackage">dfprop - sqlPackage</a></div>
 	<p>
-		外だしSQLに <em class="keyword">このSQLで利用するParameterBeanを生成したいというマーク</em>
+		外だしSQLに、ParameterBeanを生成したいというマーク <em class="keyword">(ParameterBeanマーク)</em>
 		を記述し、Sql2Entityタスクを実行することでParameterBeanが自動生成されます。
 		(ParameterBeanのみの自動生成の場合は、Sql2Entityタスクで該当の外だしSQLが実際のDBに実行されませんが、外だしSQLは必ず
 		2Way-SQL で記述されていることを前提とすることに変わりはありません)
@@ -158,36 +150,61 @@
 	<h2 id="parameterbeanmark">ParameterBeanマーク</h2>
 	<h3 id="basicspec">基本仕様</h3>
 	<p>
-		ParameterBeanの生成を示すマークは、SQLの行コメントで、"!df:pmb!"
-		という形で記述します。これを "<em class="keyword">ParameterBeanマーク</em>"
-		と呼びます。例えば、SQLファイルの名前が MemberBhv_selectSimpleMember.sql なら、ParameterBean のクラス名は SimpleMemberPmb
-		となります。(SQL業務名に Pmb を付けた名前となります)
+		ParameterBeanの生成を示すマークは、SQLの行コメントで、<em class="keyword">!df:pmb!</em>
+		という形で記述します。これを <em class="keyword">ParameterBeanマーク</em> と呼びます。生成されるクラス名は以下のような感じ。
 	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/howto.html#tabledriven">外だしSQLの使い方 - テーブル駆動でSQLを管理</a></div>
+	<dl class="keymainlist">
+		<dt>SimpleMemberPmb</dt><dd>例えば、MemberBhv_selectSimpleMember.sql であれば</dd>
+	</dl>
 	<p>
-		また、それぞれのプロパティ要素の指定は、SQLの行コメント形式 "-- " で、"!![プログラム型 プロパティ名]!!"
-		という形で記述します。CustomizeEntityとは違い "どういったプロパティ構造を保持するか"
-		をメタデータとして取得することができませんので、明示的に一つずつ宣言していきます。
+		CustomizeEntityとは違い "どういったプロパティ構造を保持するか" をメタデータとして取得することができません。
+		そこで、プロパティ項目を <em class="keyword">パラメータコメントから自動判別</em> して導出するためのマークを付与します。同じくSQLの行コメント形式 "-- "
+		で、<em class="keyword">!!AutoDetect!!</em> と記述します。これで、パラメータコメントで利用するプロパティを持った ParameterBean が自動生成されます。
+	</p>
+	<div class="relatedpage"><a href="./pmbautodetect.html">ParameterBean - プロパティ項目の自動判別</a></div>
+<pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する ParameterBean を生成 @OutsideSql</span><code>
+<span class="point">-- !df:pmb!</span>
+<span class="point">-- !!AutoDetect!!</span>
+
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
+</code></pre>
+	<p>
+		自動判別を利用せずに、明示的にプロパティを宣言することもできます。
+		同じくSQLの行コメント形式 "-- " で、"!![プログラム型 プロパティ名]!!"
+		という形で記述します。
 	</p>
 <pre><span class="codetitle">e.g. "MemberBhv_selectSimpleMember.sql" に対応する ParameterBean を生成 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Integer memberId!!</span>
-<span class="comment">-- !!Date fromBirthdate!!</span>
+<span class="point">-- !!Integer memberId!!</span>
+<span class="point">-- !!String memberName!!</span>
+
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
 </code></pre>
 	<p>
 		プログラム上でパッケージ名を指定しなければいけないプログラム型において、よく利用される型(Date, Timestamp, List
 		など)においてはパッケージ名は自動解決され、それらクラスに関してはパッケージ名を省略することができます。
 	</p>
 	<div class="relatedpage"><a href="#packageresolve">this - プログラム型のパッケージ解決</a></div>
+	<p>
+		自動判別と明示的宣言を併用することもできます。その場合、同じプロパティは明示的宣言の方が優先されます。
+		自動判別を使いつつ、微調整をしたいときに明示的宣言を併用すると良いでしょう。
+	</p>
 	<h3 id="otherspec">その他補足仕様</h3>
 	<p>
-		一つの外だしSQLに CustomizeEntityマーク と同時に記述することができます。逆に CustomizeEntityマーク
-		がなくても利用できます(その場合は、ParameterBean だけを自動生成することになりますが、TypedParameterBean としての利用はできません)。
+		一つの外だしSQLに CustomizeEntityマーク と一緒に記述することができます。逆に CustomizeEntityマーク
+		がなくても利用できます。(その場合は、ParameterBean だけを自動生成することになりますが、TypedParameterBean としての利用はできません)
 	</p>
 	<p>
-		ParameterBean のクラス名を明示的に指定することもできます。SQLの行コメントで、"![ParameterBeanのクラス名]!"
+		ParameterBean のクラス名を明示的に指定することもできます。
+	</p>
+	<p>
+		SQLの行コメントで、"![ParameterBeanのクラス名]!"
 		という形で記述します。主に、他のSQLで ParameterBean を再利用するなど、SQL名に依存しない名前を付けたいようなときに利用します。
 	</p>
 <pre><span class="codetitle">e.g. SimpleMemberPmb という名前の ParameterBean を生成 @OutsideSql</span><code>
@@ -197,365 +214,62 @@
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<p>
-		プロパティ項目をバインド変数コメントから自動判別することも可能です。
-	</p>
-	<div class="detailpage"><a href="#autodetect">this - プロパティ項目の自動判別</a></div>
 
 	<h2 id="option">ParameterBeanのオプション</h2>
-	<h3 id="pagingselect">ページング検索のオプション</h3>
 	<p>
-		自動生成する ParameterBean にページング機能を拡張することができます。
-		ParameterBeanのクラス名の指定部分の後ろに、<em class="keyword">extends Paging</em>
-		と付与します。<span class="freecomment">@since 0.9.7.5 (より前では extends SPB ※0.9.7.5以降でも利用可能)</span>
+		ParameterBeanには様々なオプションがあります。効果的に使いましょう。
 	</p>
-<pre><span class="codetitle">e.g. ページング検索用のParameterBeanを生成 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb</span> <span class="point">extends Paging</span><span class="comment">!</span>
-<span class="comment">-- !!String memberId!!</span>
-<span class="comment">-- !!Date fromBirthdate!!</span>
-select <span class="abbreviation">...</span>
-  from <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		このように指定することで ParameterBeanは、<em class="keyword">SimplePagingBean</em>
-		を継承したものになり、<em class="keyword">paging()</em>
-		メソッドでページング条件の指定ができるようになります。このメソッドは、ConditionBeanにおける paging() メソッドと同じ仕様です。
-	</p>
-<pre><span class="codetitle">e.g. ページング検索用のParameterBeanを生成 {1ページ20件で3ページ目} @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">paging(20, 3)</span>;
-<span class="abbreviation">...</span> = memberBhv.outsideSql().manualPaging().selectPage(<span class="abbreviation">...</span>, pmb, <span class="abbreviation">...</span>);
-</code></pre>
-	<div class="relatedpage"><a href="../../../ormapper/conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/select/selectpagemanual.html">OutsideSql - ManualPaging</a></div>
-	<p>
-		TypedParameterBean においては、そのSQLが ManualPaging を期待するかどうか自動判別されます。
-		ManualPaging と判別された場合、AutoPaging で呼び出してしまうなどの間違いをコンパイル時に検知できます。
-		具体的には、そのSQL文の中にページング条件の要素(MySQLなら limit 句、Oracleなら rownum
-		など)が含まれているかどうかで判別されます。
-	</p>
-	<div class="relatedpage"><a href="#typed">this - TypedParameterBean</a></div>
-	<div class="relatedpage"><a href="../../../../reference/dbway/index.html#paging">DBMSごとの取扱い - ページング検索の条件</a></div>
-	<p>
-		ただし、この判定はSQLをパースしているわけではなく単なる文字列によるため、誤判定が発生する可能性もあるかもしれません。
-		判別結果がうまく要件と一致しない場合は、明示的に(強制的に) Manual なのか Auto
-		なのかをこのページング検索のオプションで指定することができます。"extends ManualPaging" とすると
-		ManualPaging、"extends AutoPaging とすると AutoPaging になります。
-	</p>
-<pre><span class="codetitle">e.g. ManualPaging であることを明示的に指定 (自動判別に頼らない) @OutsideSql</span><code>
-<span class="comment">-- !df:pmb</span> <span class="point">extends ManualPaging</span><span class="comment">!</span>
-<span class="comment">-- !!String memberId!!</span>
-<span class="comment">-- !!Date fromBirthdate!!</span>
-select <span class="abbreviation">...</span>
-  from <span class="abbreviation">...</span>
-</code></pre>
-	<h3 id="likesearch">LikeSearch条件のオプション</h3>
-	<p>
-		外だしSQLでも "LikeSearch条件" を利用できます。
-		検索条件の中でも曖昧検索の条件はちょっと特別な存在です。一致の方向やエスケープ処理の考慮などの要素があります。
-		ParameterBeanのオプションとして指定することで、それら処理を自動で解決することができます。
-	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../../genbafit/implfit/likesearchcondition/index.html"> -->現場フィット - LikeSearch条件<!-- </a> --></span></div>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchmatchdirection">LikeSearchMatchDirection (LikeSearch条件の一致の方向)</a></div>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wl.html#likesearchescape">LikeSearchEscape (LikeSearch条件のエスケープ)</a></div>
-	<p>
-		プロパティ定義のプロパティ名の後ろに ":[like-search-option]"
-		と追加することで、ParameterBeanでLikeSearch条件を指定することができます。
-		文字列型のプロパティを利用するバインド変数コメントと埋め込み変数コメントに対して有効です。
-		(like-search オプションと呼びます)
-	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#bindvariable">バインド変数コメント</a></div>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#embeddedvariable">埋め込み変数コメント</a></div>
-	<p>
-		利用できるオプションは以下の通りです。
-	</p>
-	<dl class="keymainlist">
-		<dt>like</dt>
-		<dd>(プログラム上で)LikeSearchOptionを指定</dd>
-		<dt>likePrefix</dt>
-		<dd>固定でエスケープ付きの前方一致</dd>
-		<dt>likeContain</dt>
-		<dd>固定でエスケープ付きの中間一致</dd>
-		<dt>likeSuffix</dt>
-		<dd>固定でエスケープ付きの後方一致</dd>
+	<h3 id="classoption">クラスのオプション</h3>
+	<dl class="longkeymainlist">
+		<dt><a href="./pmbclassoption.html#pagingoption">ページング検索のオプション</a></dt><dd>-- !df:pmb extends Paging!</dd>
 	</dl>
-<pre><span class="codetitle">e.g. 会員名で固定でエスケープ付きの中間一致 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberName:</span><span class="point">likeContain</span><span class="comment">!!</span>
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
-</code></pre>
-	<p>
-		"like" 指定は、動的に一致の方向を変える要件がある場合に有効です。一致の方向が固定の場合は、"likePrefix"
-		や "likeContain" などの固定の指定がお奨めです。
-	</p>
-	<h4>Example: LikeSearchOptionを指定</h4>
-<pre><span class="codetitle">e.g. 会員名でLikeSearchOptionの利用 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberName:</span><span class="point">like</span><span class="comment">!!</span>
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. like指定：会員名が 'S' で始まっていること(エスケープ付き) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">setMemberName_LikeSearch</span>(<span class="literal">"S"</span>, <span class="keyword">new</span> LikeSearchOption().likePrefix());
-</code></pre>
-	<h4>Example: 固定でエスケープ付きの前方一致</h4>
-<pre><span class="codetitle">e.g. 会員名でエスケープ付きの前方一致検索 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberName:</span><span class="point">likePrefix</span><span class="comment">!!</span>
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_NAME like <span class="comment">/*pmb.memberName*/</span><span class="literal">'foo'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. likePrefix指定：会員名が 'S' で始まっていること(エスケープ付き) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>);
-</code></pre>
-	<h4>LikeSearchOption</h4>
-	<p>
-		ConditionBeanで利用する LikeSearchOption と同じクラスですが、ここで利用出来るのは <em class="keyword">一致の方向の指定</em> と
-		<em class="keyword">エスケープ処理のOFF</em> だけです。その他の機能(メソッド)は利用できません。
-	</p>
-	<div class="relatedpage"><a href="../../../ormapper/runtime/likesearchoption.html">DBFluteランタイム - LikeSearchOption</a></div>
-	<h4>エスケープ処理の仕様</h4>
-	<p>
-		ConditionBeanのエスケープ処理と同じ仕様です。
-	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../../ormapper/conditionbean/query/likesearch/escape.html"> -->ConditionBean - Escape<!-- </a> --></span></div>
-	<h4>テスト値の中のワイルドカード</h4>
-	<p>
-		バインド変数コメントのテスト値の中にワイルドカードがあってもなくても関係ありません。
-		(2Way-SQLとして実行したときに曖昧検索となるか完全一致となるかの違いでしかありません)
-	</p>
-	<h4>オプションの適用法則</h4>
-	<p>
-		文字列型のプロパティだけでなく、ネストしたプロパティに反映させることを前提にリスト型やDTO型などのプロパティにも指定できます。
-	</p>
-	<div class="detailpage"><a href="../../../ormapper/outsidesql/pmcomment.html#bindlikesearch">バインド変数コメント - LikeSearch条件のオプション</a></div>
-	<h4>オプションを利用しない(外だしSQLでの)曖昧検索</h4>
-	<p>
-		オプションを利用しなくても曖昧検索は可能ですが、エスケープ処理の考慮漏れなどが発生するリスクがありますので、
-		オプションを利用するやり方をお奨めします。
-	</p>
-	<h3 id="datefromto">DateFromTo条件のオプション</h3>
-	<p>
-		外だしSQLでも "DateFromTo条件" を利用できます。
-	</p>
-	<div class="detailpage"><a href="../../../genbafit/implfit/datefromto/index.html">現場フィット - 日付範囲の条件指定を定型化(安全に)</a></div>
-	<p>
-		プロパティ定義のプロパティ名の後ろに ":[from-to-option]"
-		と追加することで、ParameterBeanにてFromTo条件を指定することができます。(from-to オプションと呼びます)
-	</p>
-	<dl class="keymainlist">
-		<dt>fromDate</dt><dd>DateFromTo条件 (from に対応)</dd>
-		<dt>toDate</dt><dd>DateFromTo条件 (to に対応)</dd>
-		<dt>fromDate(option)</dt><dd>FromToOption指定の条件 (from に対応) <span class="freecomment">@since 0.9.9.2C</span></dd>
-		<dt>toDate(option)</dt><dd>FromToOption指定の条件 (to に対応) <span class="freecomment">@since 0.9.9.2C</span></dd>
+	<h3 id="propertyoption">プロパティのオプション</h3>
+	<dl class="longkeymainlist">
+		<dt><a href="./pmbpropoption.html#likesearch">LikeSearch条件のオプション</a></dt><dd>:like, :likeContain, :likePrefix, ... <span class="freecomment">※もしくは自動判別</span></dd>
+		<dt><a href="./pmbpropoption.html#datefromto">DateFromTo条件のオプション</a></dt><dd>:fromDate, :toDate, :fromDate(option), ...</dd>
+		<dt><a href="./pmbpropoption.html#classification">区分値条件のオプション</a></dt><dd>:ref(MEMBER.MEMBER_STATUS_CODE), ref(MEMBER)</dd>
+		<dt><a href="./pmbpropoption.html#refcolumn">参照カラムのオプション</a></dt><dd>:ref(MEMBER.MEMBER_STATUS_CODE), ref(MEMBER)</dd>
+		<dt><a href="./pmbpropoption.html#propcomment">プロパティのコメント</a></dt><dd>-- !!...!! // ..., :comment(...)</dd>
 	</dl>
+
+	<h2 id="autodetect">プロパティ項目の自動判別</h2>
 	<p>
-		よく利用される DateFromTo をデフォルトとし、それ以外の範囲条件を指定する場合は (option) を付与して
-		FromToOption で明示的に指定することで柔軟な範囲条件が表現できます。
+		プロパティ項目をIFコメントやバインド変数コメントなどから自動判別することが可能です。
 	</p>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Date fromFormalizedDate:<span class="point">fromDate</span>!!</span>
-<span class="comment">-- !!Date toFormalizedDate:<span class="point">toDate</span>!!</span>
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*/</span><span class="literal">'...'</span>
- <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate*/</span><span class="literal">'...'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">setFromFormalizedDate_FromDate</span>(toDate(<span class="literal">"2009-10-26 12:34:56"</span>));
-pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="literal">"2009-10-29 12:34:56"</span>));
-</code></pre>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して日付範囲で検索 (26日から29日まで) @DisplaySQL</span><code>
- <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2009-10-26 00:00:00'</span>
- <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2009-10-30 00:00:00'</span>
-</code></pre>
-	<p>
-		FromToOption の明示的指定の場合は、第二引数に FromToOption が指定できるようになります。
-	</p>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!Date fromFormalizedDate:<span class="point">fromDate(option)</span>!!</span>
-<span class="comment">-- !!Date toFormalizedDate:<span class="point">toDate(option)</span>!!</span>
-<span class="keyword">select</span> ...
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate*/</span><span class="literal">'...'</span>
- <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate*/</span><span class="literal">'...'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-FromToOption option = <span class="keyword">new</span> FromToOption().<span class="point">compareAsMonth()</span>;
-pmb.<span class="point">setFromFormalizedDate_FromDate</span>(toDate(<span class="literal">"2009-10-03"</span>), option);
-pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="literal">"2009-12-14"</span>), option);
-</code></pre>
-<pre><span class="codetitle">e.g. 正式会員になった日時に対して年月範囲で検索 (10月から12月まで) @DisplaySQL</span><code>
- <span class="keyword">where</span> FORMALIZED_DATETIME &gt;= <span class="literal">'2009-10-01 00:00:00'</span>
- <span class="keyword">  and</span> FORMALIZED_DATETIME &lt; <span class="literal">'2010-01-01 00:00:00'</span>
-</code></pre>
-	<h3 id="classification">区分値条件のオプション</h3>
-	<p>
-		外だしSQLでも "区分値" を利用できます。
-	</p>
-	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
-	<h4 id="tableclassification">テーブル区分値</h4>
-	<p>
-		テーブル区分値の場合は、対応するカラムを参照カラムのオプション ":ref([table-name].[column-name])"
-		にて指定すると、ParameterBeanにて区分値メソッドが利用できます。プロパティ名と対応するカラム名が FlexibleName
-		として一致する場合は、カラム名の指定は省略できます。このオプションは厳密には区分値用のものではありませんが、
-		対応するカラムが明確になることで自動的に区分値が解決されます。(ref オプションと呼びます)
-	</p>
-	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
-<pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. 会員ステータス(区分値)が正式会員であること(検索条件) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
-</code></pre>
-	<h4 id="implicitclassification">暗黙の区分値</h4>
-	<p>
-		暗黙の区分値の場合は、プロパティ定義のプロパティ名の後ろに ":cls([classification-name])"
-		と追加することで、ParameterBeanにて区分値メソッドが利用できます。(cls オプションと呼びます)
-	</p>
-<pre><span class="codetitle">e.g. paymentCompleteFlg を Flg に関連付け @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String paymentCompleteFlg:<span class="point">cls(Flg)</span>!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> PURCHASE
- <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteFlg*/</span><span class="literal">0</span>
-</code></pre>
-	<h4 id="listclassification">リスト型の区分値</h4>
-	<p>
-		リスト型に関しては、区分値を関連付けても区分値メソッドは生成されませんので、少なくとも cls オプションを付ける意味はありません。
-		代わりにリストの要素型を対応する CDef の区分値クラスにして、CDef を使って複数の区分値要素を指定するようにすると良いでしょう。
-		(ただし、ref オプション自体はドキュメント上のメリットがあるので、付けて損はありません)
-	</p>
-	<div class="relatedpage"><a href="#cdefpkg">this - プログラム型のパッケージ解決 - CDefのパッケージ解決</a></div>
-<pre><span class="codetitle">e.g. memberStatusCodeを複数指定するためにリスト型のプロパティを指定 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!List&lt;<span class="point">$$CDef$$.MemberStatus</span>&gt; statusList:ref(MEMBER.MEMBER_STATUS_CODE)!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.statusList*/</span>(<span class="literal">'FML'</span>)
-</code></pre>
-	<h4 id="fixedclassification">固定の区分値</h4>
-	<p>
-		固定の区分値を条件値にするような場合は、cls オプションで区分要素まで指定することで固定の区分値を指定することができます<span class="freecomment">(@since 0.9.9.0D)</span>。
-		これを利用することで、外だしSQLの中で区分値をハードコードする必要がなくなり、タイプミスによる区分値コードの間違いの心配はなくなります。
-		ハードコードよりも少し書くことが多くなりますが、安全性を優先するならば積極的に利用した方が良いでしょう。
-	</p>
-	<p>
-		普通に区分値を関連付けてプログラム上で固定値を設定しても同じことが実現できますが、
-		固定の区分値を利用することでプログラム上での値の設定は必要はなくなり、さらに外だしSQL上でその固定値が何なのか判断することができるためSQLの可読性を保つことができます。
-		また、固定値であるため、ParameterBeanではこのプロパティに対する設定メソッド(Setter)は生成されません。
-	</p>
-<pre><span class="codetitle">e.g. paymentCompleteFlg の True を固定に関連付け @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String paymentCompleteTrue:<span class="point">cls(Flg.True)</span>!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> PURCHASE
- <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteTrue*/</span><span class="literal">0</span>
-</code></pre>
-	<p>
-		InScope に対して固定の(複数の)区分値を指定することもできます。区分要素を "," で追加します。
-	</p>
-<pre><span class="codetitle">e.g. memberStatusCode で Formalized と Provisional を固定に関連付け @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!List&lt;String&gt; validStatusList:<span class="point">cls(MemberStatus.Formalized, Provisional)</span>!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER
- <span class="keyword">where</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.validStatusList*/</span>(<span class="literal">'FML'</span>)
-</code></pre>
-	<h3 id="reference">参照カラムのオプション</h3>
-	<p>
-		ParameterBeanのプロパティの "参照カラム"
-		を定義して、プロパティのJavaDocコメントなどでカラムの情報を利用することができます。
-		そのプロパティがどのカラムに対するパラメータなのか、ドキュメントに目をやらずに実装しながら情報を得ることができます。
-	</p>
-	<p>
-		プロパティ定義のプロパティ名の後ろに ":ref([table-name].[column-name])"
-		と追加することで、そのプロパティの参照カラムを定義できます。(ref オプションと呼びます)
-	</p>
-<pre><span class="codetitle">e.g. 会員名称を参照するプロパティ @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberName:<span class="point">ref(MEMBER.MEMBER_NAME)</span>!!</span>
-</code></pre>
-	<p>
-		プロパティ名とカラム名を "FlexibleName" として比較して同名になるのであれば、":ref([table-name])" というようにカラム名の指定は省略できます。
-		(リスト型の場合でプロパティ名が List で終わっている場合は、最後の List
-		を除去した名前で比較されます<span class="freecomment">(@since 0.9.8.0)</span>) 
-	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wf.html#flexiblename">FlexibleName</a></div>
-<pre><span class="codetitle">e.g. プロパティと参照カラムが同名の場合 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberName:<span class="point">ref(MEMBER)</span>!!</span>
-</code></pre>
-	<p>
-		他のオプションと組み合わせる場合は、オプション表記の中で "|"
-		を区切り文字として利用することで、複数のオプションが指定できます。
-	</p>
-<pre><span class="codetitle">e.g. プロパティと参照カラムが同名の場合 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:ref(MemberStatus)<span class="point">|</span>ref(MEMBER)!!</span>
-</code></pre>
-	<h4 id="shortchar">ShortCharHandlingで必要</h4>
-	<p>
-		この機能は、基本的にカラム情報の参照などによるささやかな実装支援のためのものですが、ShortCharHandling
-		の機能をParameterBeanで利用する場合には、このオプションが必須となります。
-	</p>
-	<div class="relatedpage"><span class="working"><!-- <a href="../../../genbafit/deprecatedfit/shortcharhandling/index.html"> -->現場フィット - char型の桁数不足の取扱い<!-- </a> --></span></div>
-	<h3 id="propertycomment">プロパティのコメント</h3>
-	<p>
-		それぞれのプロパティにコメントを付けることができます。
-		決まった形式でコメントを書くことで、単に外だしSQL上で業務的な意味がわかりやすくなるというだけでなく、自動生成された ParameterBean
-		のプロパティのメソッドの JavaDoc コメントにそのコメントに転記され、実装しながらそのコメントを読むことができます。
-		特に利用方法が特殊なものには、積極的にコメントを書いていくと他の人が見たときにわかりやすくなります。
-		<span class="freecomment">@since 0.9.8.4</span>
-	</p>
-	<p>
-		プロパティ項目の宣言の後に、"//" というマークの後に一行コメントを書きます。
-	</p>
-<pre><span class="codetitle">e.g. プロパティにコメントを書く @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberId!!</span>   <span class="point">// それぞれのプロパティの説明や補足などを書く</span>
-<span class="comment">-- !!String memberName!!</span> <span class="point">// このように書いておけば JavaDoc で読める</span>
-<span class="comment">-- !!Date birthdate!!</span>    <span class="point">// なのでJavaDocで利用できない文字は使えない</span>
-<span class="comment">-- !!String statusCode!!</span> <span class="point">// スラスラ(//)ってなんか Java っぽい</span>
-select <span class="abbreviation">...</span>
-  from <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		プロパティの自動判別を利用した場合は、comment([comment])
-		という形式のオプションとしてコメントを記述できます。
-		ただし、この場合あまり書き過ぎると見づらくなるのでシンプルなコメントにとどめておくと良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="#autodetect">プロパティの自動判別</a></div>
-<pre><span class="codetitle">e.g. 自動判別されるプロパティにコメントを書く @OutsideSql</span><code>
+	<div class="relatedpage"><a href="./pmbautodetect.html">ParameterBeanの自動判別</a></div>
+	<dl class="longkeymainlist">
+		<dt><a href="./pmbautodetect.html#autodetect">プロパティ項目の自動判別</a></dt><dd>-- !!AutoDetect!!</dd>
+		<dt><a href="./pmbautodetect.html#alternatebool">代理判定メソッドの自動判別</a></dt><dd>/*IF pmb.existsPurchase()*/</dd>
+	</dl>
+<pre><span class="codetitle">e.g. プロパティ項目を自動判別 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!AutoDetect!!</span>
-select <span class="abbreviation">...</span>
-  from <span class="abbreviation">...</span>
- where MEMBER_ID = <span class="comment">/*pmb.memberId:comment(ここにコメントを書く)*/3</span>
-</code></pre>
-	<p>
-		CustomizeEntityの検索カラムでも同じようなことができます。合わせて利用すると良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="./customizeentity.html#columncomment">CustomizeEntity - 検索カラムのコメント</a></div>
 
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
+</code></pre>
+<pre><span class="codetitle">e.g. IFコメントで代理判定メソッドを指定 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!<span class="point">AutoDetect</span>!!</span>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+ <span class="keyword">where</span> <span class="abbreviation">...</span>
+<span class="abbreviation">...</span>
+ <span class="comment">/*IF pmb.<span class="point">existsPurchase()</span>*/</span>
+ <span class="keyword">and exists</span> (<span class="keyword">select</span> PURCHASE_ID
+             <span class="keyword">from</span> PURCHASE
+             <span class="abbreviation">...</span>
+ <span class="comment">/*END*/</span>
+</code></pre>
+
+	<!-- _/_/_/_/_/_/_/_/ -->
+	<!-- Resolve Package  -->
+	<!-- _/_/_/_/_/_/_/_/ -->
 	<h2 id="packageresolve">プログラム型のパッケージ解決</h2>
 	<p>
-		指定するプログラム型のパッケージ名は、頻繁に利用されることが想定されるクラスに関しては自動で解決されます。
+		明示的宣言で指定するプログラム型のパッケージ名は、頻繁に利用されることが想定されるクラスに関しては自動で解決されます。
 	</p>
 	<h3 id="basicpkg">基本的なパッケージ解決</h3>
 	<p>
@@ -617,7 +331,7 @@ select <span class="abbreviation">...</span>
 		をプロパティ型にしたい場合に有効ですが、区分値を条件にする際の支援機能は別途あるため、
 		基本的にはリストの要素型として扱うケース<span class="freecomment">(@since 0.9.8.0)</span>での利用が想定されています。
 	</p>
-	<div class="relatedpage"><a href="#classification">this - 区分値条件のオプション</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="#classification"> -->this - 区分値条件のオプション<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. CDefを指定 @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!List&lt;$$CDef$$.MemberStatus&gt; statusList!!</span>
@@ -634,266 +348,6 @@ select <span class="abbreviation">...</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-
-	<h2 id="autodetect">プロパティ項目の自動判別</h2>
-	<h3 id="autodetectmark">自動判別マーク</h3>
-	<p>
-		プロパティ項目をIFコメントやバインド変数コメントなどから(ある程度の精度で)自動判別することが可能です。
-		プロパティ項目の指定と同じくSQLの行コメント形式 "--" にて、"!!AutoDetect!!"
-		と指定すると、バインド変数コメントとそのテスト値からプロパティ名とプログラム型を導出します<span class="freecomment">(@since 0.9.8.0)</span>。
-		例えば、"/*pmb.memberId*/3" といったバインド変数コメントがSQLの中に存在する場合は、テスト値の "3"
-		という値から型を推測し、"-- !!Integer memberId!!" と明示的に指定するのと同じ扱いになります。
-	</p>
-<pre><span class="codetitle">e.g. プロパティ項目を自動判別 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!AutoDetect!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
-   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="comment">/*pmb.memberName*/</span><span class="literal">'S%'</span>
-</code></pre>
-	<h4>プロパティの基本ルール</h4>
-	<p>
-		判別対象となるプロパティの基本ルールは以下の通りです。
-	</p>
-	<ul>
-		<li>バインド変数コメントでテスト値を持っているもの</li>
-		<li>IFコメントで比較値で型が判別できるもの(できそうなもの) <span class="freecomment">(@since 0.9.8.4)</span></li>
-		<li>FORコメントでカレント変数がバインド変数コメントで利用され判別できるもの <span class="freecomment">(@since 0.9.8.4)</span></li>
-		<li>プロパティのパス指定が "pmb." で始まること</li>
-		<li>プロパティのパス指定がネストしていないこと <span class="freecomment">("pmb.foo" は OK, "pmb.foo.bar" は対象外)</span></li>
-		<li>(バインド変数コメントであれば)テスト値を持っていること</li>
-	</ul>
-	<p>
-		厳密にどこまでが判別対象となるかは若干の曖昧さがあります。
-		実際にやってみて判別されていないものがあれば、同時に明示的なプロパティの指定もするという流れが良いでしょう。
-	</p>
-	<h4>明示的なプロパティの同時利用</h4>
-	<p>
-		明示的なプロパティ指定も同時に利用できます。同じ名前のプロパティが双方に存在した場合は、明示的に指定されたものが(オプションも含めて)優先されます。
-		自動判別の結果が要件に合わない場合(プログラム型やオプションなど)において、明示的な指定で上書きして調整します。
-	</p>
-	<h4>予約プロパティ名は対象外</h4>
-	<p>
-		DBFluteで予約されているプロパティ名は対象外です(そもそも利用してはいけません)。
-		例えば、"outsideSqlPath", "entityType", "fetchSize", "pageStartIndex", "pageEndIndex"
-		など、ParameterBean のインターフェースやスーパークラスで利用されているプロパティです。
-	</p>
-	<h3 id="typederiving">プログラム型の導出</h3>
-	<p>
-		プログラム型はバインド変数コメントならテスト値、IFコメントなら比較値から導出されます。
-	</p>
-	<p>
-		導出ロジックは以下の通りです。
-	</p>
-	<dl class="textlist">
-		<dt>Integer</dt><dd>数値リテラルで Integer.MAX_VALUE 以下の値</dd>
-		<dt>Long</dt><dd>数値リテラルで Integer.MAX_VALUE を超える値</dd>
-		<dt>BigDecimal</dt><dd>数値リテラルで "." (ドット) が含まれる値</dd>
-		<dt>Date</dt>
-		<dd>
-			dateリテラル、もしくは、クォート値で日付型としてパースできて時分秒ミリ秒が全て0の値
-		</dd>
-		<dd>
-			例えば、以下のような形式。
-			<ul class="supplementlist">
-				<li>/*pmb.fooDate*/date '2011-01-28'</li>
-				<li>/*pmb.fooDate*/'2011-01-28 00:00:00'</li>
-			</ul>
-		</dd>
-		<dt>Timestamp</dt>
-		<dd>
-			timestampリテラル、もしくは、クォート値で日付型としてパースできてDateと判別されなかった値
-		</dd>
-		<dd>
-			例えば、以下のような形式。
-			<ul class="supplementlist">
-				<li>/*pmb.fooDatetime*/timestamp '2011-01-28'</li>
-				<li>/*pmb.fooDatetime*/'2011-01-28 12:34:56'</li>
-			</ul>
-		</dd>
-		<dt>Time</dt>
-		<dd>
-			timeリテラル、もしくは、クォート値で時刻型としてパースできる値
-		</dd>
-		<dd>
-			例えば、以下のような形式。
-			<ul class="supplementlist">
-				<li>/*pmb.fooTime*/time '12:34:56'</li>
-				<li>/*pmb.fooTime*/'12:34:56'</li>
-			</ul>
-		</dd>
-		<dt>List&lt;&gt;</dt>
-		<dd>
-			('foo', 'bar') といった形式の値。要素型は一番目の要素を元に他の型と同じように判別されるが、文字列型と数値型に限られる。
-		</dd>
-		<dd>
-			例えば、以下のような形式。
-			<ul class="supplementlist">
-				<li>/*pmb.fooList*/('foo', 'bar')</li>
-				<li>/*pmb.fooList*/(2, 5)</li>
-			</ul>
-		</dd>
-		<dt>String</dt>
-		<dd>
-			他の型に判別されなかった場合
-		</dd>
-	</dl>
-	<p>
-		導出された型が要件に一致しない場合は、明示的なプロパティ指定で定義を上書き(そのプロパティだけは自動判別に頼らない)、
-		もしくは、参照カラムのオプションを利用して型調整を行います。
-	</p>
-	<div class="relatedpage"><a href="#typeadjustment">this - 参照カラムのオプションによる型調整</a></div>
-	<h3 id="optionderiving">オプションの導出</h3>
-	<p>
-		オプションも一部テスト値から判別されます。
-	</p>
-	<dl class="textlist">
-		<dt>likePrefix</dt><dd>クォート値で最後に "%" がある値</dd>
-		<dt>likeSuffix</dt><dd>クォート値で最初に "%" がある値</dd>
-		<dt>likeContain</dt><dd>クォート値で最初と最後に "%" がある値</dd>
-		<dt>like</dt><dd>クォート値でどこかに "%" があり、一致の方向が特定できない値</dd>
-	</dl>
-	<h3 id="optionset">明示的オプション指定</h3>
-	<p>
-		テスト値で導出されないオプションは、バインド変数コメントの中で直接オプション指定をすることで利用できます。
-		また、テスト値で導出できるオプションであっても、ここでの明示的オプション指定がある場合はそれが優先されます。
-		オプションの仕様は、通常のオプション指定のものと全く同じです。
-	</p>
-<pre><span class="codetitle">e.g. 自動判別にて、バインド変数コメントでオプション指定 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!AutoDetect!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
-   <span class="keyword">and</span> FORMALIZED_DATETIME &gt;= <span class="comment">/*pmb.fromFormalizedDate:fromDate*/</span><span class="literal">'2011-01-30'</span>
-   <span class="keyword">and</span> FORMALIZED_DATETIME &lt; <span class="comment">/*pmb.toFormalizedDate:toDate*/</span><span class="literal">'2011-01-31'</span>
-   <span class="keyword">and</span> MEMBER_STATUS_CODE <span class="keyword">like</span> <span class="comment">/*pmb.memberStatusCode:cls(MemberStatus)*/</span><span class="literal">'FML'</span>
-</code></pre>
-	<p>
-		同じプロパティに対して複数のバインド変数コメントがある場合は、どれか一つにオプションが指定されていればそれが有効になります。
-		(また、それぞれ別のオプションを指定している場合は、最後に評価されたオプションが有効になります)
-	</p>
-	<h3 id="typeadjustment">参照カラムのオプションによる型調整</h3>
-	<p>
-		バインド変数コメントに参照カラムのオプション、ref オプションを指定した場合は、
-		テスト値から導出したプロパティのプログラム型に代わり、参照カラムに対応するプログラム型が強制的に利用されます。
-		導出された型が業務に合致しない場合はこのオプションを利用して調整すると良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="#reference">this - 参照カラムのオプション</a></div>
-<pre><span class="codetitle">e.g. 参照カラムのオプションで自動判別された型を調整 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!AutoDetect!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId:ref(MEMBER)*/</span><span class="literal">3</span>
-</code></pre>
-	<p>
-		リスト型に対して ref オプションを指定した場合は、リストの要素型が参照カラムのプログラム型になります。
-		さらにそのとき、参照カラムが区分値に関連付いている場合は、対応する CDef
-		の区分値クラスの型が要素型になります。
-		(つまり、区分値カラムのリスト型の場合は積極的に ref オプションを利用すると良いでしょう)
-	</p>
-<pre><span class="codetitle">e.g. 区分値カラムのリスト型には参照カラムのオプションを指定して CDef のリストに @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!AutoDetect!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCodeList:ref(MEMBER)*/</span>(<span class="literal">'FML'</span>)
-</code></pre>
-	<h3 id="commentoption">プロパティのコメントは？</h3>
-	<p>
-		自動判別にするとプロパティのコメントを書く場所がなくなってしまいます。
-		代わりに、バインド変数コメントにコメントのオプションを付与することができます。
-	</p>
-<pre><span class="codetitle">e.g. 区分値カラムのリスト型には参照カラムのオプションを指定して CDef のリストに @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!AutoDetect!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_ID = <span class="comment">/*pmb.memberId:<span class="point">comment(指定すると一件検索になる)</span>*/</span><span class="literal">3</span>
-</code></pre>
-	<p>
-		ただし、ここはSQL文の中なので、あまり書き過ぎると見づらいでしょう。この方法で大量のコメントを書くのはあまりお奨めではありません。
-		コメントを重視するようであれば、自動判別は利用せず明示的に指定した方が可読性は良いでしょう。
-	</p>
-	<h3 id="supplement">補助機能である</h3>
-	<p>
-		多くのケースにてこの自動判別機能が利用できると想定されます。ただし、ご覧の通りある程度の曖昧さを許容する仕様となっており、
-		項目指定コストを軽減するための(あくまで)補助的な機能と位置付けられています。
-		(一方で、ParameterBeanのプロパティ項目がベタっとSQLの上部の一覧記述されることは、それはそれでドキュメント的な役割があるため、
-		それを重視するケースにおいてはこの自動判別機能を遠慮なく利用しないでも良いでしょう)
-	</p>
-
-	<h2 id="alternatebool">代理判定メソッドの自動判別</h2>
-	<p>
-		外だしSQLで複雑な条件での分岐がどうしても必要なとき、IFコメントの中で複雑な条件を書くよりも、ParameterBeanのExクラスに
-		<em class="keyword">代理判定メソッド</em>
-		を作成して、IFコメントではそのメソッドを単に呼び出すやり方が推奨されています。
-	</p>
-	<div class="relatedpage"><a href="../../../ormapper/outsidesql/pmcomment.html#alternatebool">パラメータコメント - 複雑な条件はメソッド化</a></div>
-	<p>
-		通常、その代理判定メソッドの作成するときは、IFコメントで代理判定メソッドを指定した後、Sql2EntityでParameterBeanを自動生成し、Exクラスに手動で作成します。
-		メソッドの定義で名前を間違えたり、そもそも定義するのを忘れたりすれば、当然実行時に "メソッドがない例外" となります。
-	</p>
-	<p>
-		プロパティ項目の自動判別機能を利用している場合(自動判別マークを指定している場合)は、
-		IFコメントで指定された代理判定メソッドが自動判別され、ParameterBeanのBsクラスに
-		abstract メソッドとして定義されます<span class="freecomment">(@since 0.9.8.2)</span>。
-		つまり、自動生成された瞬間いきなりコンパイルエラーになり、定義漏れがなくなるのはもちろん、メソッド名を間違えるということもなくなります。
-		また、Exクラスの実装で @Override アノテーションをしっかり指定していれば、
-		IFコメント側で代理判定メソッドの名前を変更したときも古いメソッドがコンパイルエラーで検知できます。
-	</p>
-<pre><span class="codetitle">e.g. IFコメントで代理判定メソッドを指定 @OutsideSql</span><code>
-<span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!<span class="point">AutoDetect</span>!!</span>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> <span class="abbreviation">...</span>
- <span class="keyword">where</span> <span class="abbreviation">...</span>
-<span class="abbreviation">...</span>
- <span class="comment">/*IF pmb.<span class="point">existsPurchase()</span>*/</span>
- <span class="keyword">and exists</span> (<span class="keyword">select</span> PURCHASE_ID
-             <span class="keyword">from</span> PURCHASE
-             <span class="abbreviation">...</span>
- <span class="comment">/*END*/</span>
-</code></pre>
-<pre><span class="codetitle">e.g. ParameterBeanのBsクラスにて代理判定メソッドのテンプレート @Java</span><code>
-<span class="comment">// この抽象メソッドは自動生成され、</span>
-<span class="comment">// 自動生成直後はExクラスでコンパイルエラー</span>
-<span class="keyword">public abstract boolean</span> existsPurchase();
-</code></pre>
-<pre><span class="codetitle">e.g. ParameterBeanのExクラスにて代理判定メソッドを実装 @Java</span><code>
-<span class="comment">// コンパイルエラーの赤い波線にカーソル合わせて</span>
-<span class="comment">// ctrl + 1 -&gt; enter で実装メソッド補完 (Eclipse)</span>
-<span class="attribute">@Override</span>
-<span class="keyword">public boolean</span> existsPurchase() {
-    <span class="keyword">return</span> (_purchaseCount != <span class="keyword">null</span> || _purchasePrice != <span class="keyword">null</span>) && <span class="abbreviation">...</span>;
-}
-</code></pre>
-	<p>
-		この機能は、プロパティ項目の自動判別機能の付加要素としての提供となります。
-	</p>
-	<div class="relatedpage"><a href="#autodetect">this - プロパティ項目の自動判別</a></div>
-	<p>
-		自動判別対象となるのは、<em class="keyword">/*IF pmb.foo()*/</em> というシンプルな形式のboolean型メソッドです。
-	</p>
-	<ul>
-		<li>引数のないメソッドであること</li>
-		<li>条件が一つであること(ANDやORは不可)</li>
-		<li>否定演算子はあってもよい <span class="freecomment">e.g. /*IF !pmb.foo()*/</span></li>
-	</ul>
-	<p>
-		逆に明確に自動判別の対象外となる状況は以下の通りです。
-	</p>
-	<ul>
-		<li>ネストした呼び出しは対象外 <span class="freecomment">e.g. /*IF pmb.foo().bar()*/</span></li>
-		<li>比較式があるものは対象外 <span class="freecomment">e.g. /*IF pmb.foo() == true*/</span></li>
-		<li>予約された名前のメソッドは対象外 <span class="freecomment">e.g. /*IF isPaging()*/</span></li>
-		<li>定義されたプロパティ名のメソッドは対象外 <span class="freecomment">e.g. /*IF getMemberName()*/, /*IF isMemberName()*/</span></li>
-	</ul>
-	<p>
-		ただし、普段は細かいルールを意識する必要はあまりないでしょう。自然に書いていればOKです。
-	</p>
 
 	<h2 id="structure">ParameterBeanの構造</h2>
 	<p>
