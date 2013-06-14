@@ -350,6 +350,11 @@
 			</ul>
 		</dd>
 	</dl>
+	<p>
+		<span class="freecomment">※MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
+		outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
+		を設定して再実行してみましょう。</span>
+	</p>
 	<h3 id="bonus">ボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、一行ずつフェッチでCSVにデータを出力してみてください。
@@ -360,9 +365,12 @@
 		<dt>エンコーディング</dt><dd>UTF-8</dd>
 		<dt>改行コード</dt><dd>LF</dd>
 		<dt>カラムヘッダー</dt><dd>一行目にはカラム名のヘッダー</dd>
-		<dt>出力ファイル</dt><dd>/tmp/hands-on-outside-bonus.tsv</dd>
-		<dt>CSV出力API</dt><dd>FileToken <span class="freecomment">(じっくりソースを読んで...)</span></dd>
+		<dt>出力ファイル</dt><dd>[PROJECT_ROOT]/target/hands-on-outside-bonus.tsv <span class="freecomment">※1</span></dd>
+		<dt>CSV出力API</dt><dd>FileToken <span class="freecomment">(それはもう、じっくりソースを読んで...)</span></dd>
 	</dl>
+	<p>
+		<span class="freecomment">※1: DfResourceUtil.getBuildDir(getClass())で target/classes の File インスタンスが取得できます</span>
+	</p>
 	<p>
 		Logicクラスの selectLetsCursor() にて、そのまま処理を追加し、
 		テストコードのアサートにて、同じく FileToken を使ってそのファイルを読み込んでログに出力してみましょう。
@@ -377,11 +385,23 @@
 		<dt>エンコーディング</dt><dd>UTF-8</dd>
 		<dt>改行コード</dt><dd>LF</dd>
 		<dt>カラムヘッダー</dt><dd>なし</dd>
-		<dt>出力ファイル</dt><dd>/tmp/hands-on-cb-bonus.tsv</dd>
-		<dt>TSV出力API</dt><dd>FileToken <span class="freecomment">(DBFlute-1.0.4D にアップグレードすべし)</span></dd>
+		<dt>出力ファイル</dt><dd>[PROJECT_ROOT]/target/hands-on-cb-bonus.tsv</dd>
+		<dt>TSV出力API</dt><dd>FileToken <span class="freecomment">@since DBFlute-1.0.4D</span></dd>
 	</dl>
 	<p>
 		同じように、アサートで FileToken を使ってそのファイルを読み込んでログに出力してみてください。
+	</p>
+	<p>
+		しかしながら、テストを実行するたびに target 配下を F5 するのは面倒ではありませんか？
+		そのテストの最後の処理でハンズオンのプロジェクトを自動が F5 されるようにしてみたらどうでしょう!?
+	</p>
+	<dl class="keymainlist">
+		<dt>リフレッシュ情報dfprop</dt><dd>refreshDefinitionMap.dfprop</dd>
+		<dt>dfprop読み込みAPI</dt><dd>DfPropFile <span class="freecomment">※InputStream から Map で読み込み</span></dd>
+		<dt>F5 API (リフレッシュAPI)</dt><dd>DfRefreshResourceRequest <span class="freecomment">@since DBFlute-1.0.4D</span></dd>
+	</dl>
+	<p>
+		<span class="freecomment">※F5を押すので面倒でなければ、やる必要はありません。</span>
 	</p>
 
 	<h2 id="procedure">ストアドプロシージャも外だしSQL</h2>
