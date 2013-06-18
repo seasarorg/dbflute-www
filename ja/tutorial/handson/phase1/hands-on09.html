@@ -45,6 +45,7 @@
 		<li><a href="#firstoutside">初めての外だしSQL</a>
 			<ul>
 				<li><a href="#schemahtml">外だしSQLのドキュメント</a></li>
+				<li><a href="#firstexplain">2Way-SQLを活かして実行計画</a></li>
 			</ul>
 		</li>
 		<li><a href="#paging">外だしSQLでページングってみる</a></li>
@@ -147,6 +148,26 @@
 	<h3 id="schemahtml">外だしSQLのドキュメント</h3>
 	<p>
 		Docタスクを叩いて、SchemaHTMLを作り直して外だしSQLの欄を見てみましょう。
+	</p>
+	<h3 id="firstexplain">2Way-SQLを活かして実行計画</h3>
+	<p>
+		2Way-SQLの特徴を活かして、作成した外だしSQLの実行計画を見てみましょう。
+		ctrl + shift + R (リソースの検索) で login-mysql-root.bat(sh) を起動して exampledb に接続(use)し、explain [SQL文字列]
+		を流してみましょう。
+	</p>
+<pre><span class="codetitle">e.g. 外だしSQLのコメントを必須に設定 @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">explain</span> select <span class="abbreviation">...</span> from <span class="abbreviation">...</span>;
+</code></pre>
+	<p>
+		実行計画の見方が変わらない場合は、片っ端からわからない単語などをググって、おおまかな流れを把握してみましょう。
+		カラムのインデックスの有無は、SchemaHTMLを参考に。また、検索結果が一件もヒットしないSQLの場合はそっけない実行計画になるので、会員IDの等値条件を抜いたりして試すと良いでしょう。
+		<span class="freecomment">(講師による実行計画の講習あり)</span>
+	</p>
+	<p>
+		同じように、今までの ConditionBean の検索の中で、"ちょっと実行計画見てみたいなぁ"
+		と思うようなものを二つ選んで、テストを実行してログに表示されたSQLをコピーして explain
+		してみてください。ざらっと眺めて満足したら次のエクササイズへ。
+		<span class="freecomment">(ここでは、インデックスによる検索の基本的な概念と、おおまかな実行計画の見方を掴めたらOKです)</span>
 	</p>
 
 	<h2 id="paging">外だしSQLでページングってみる</h2>
