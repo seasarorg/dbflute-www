@@ -43,6 +43,7 @@
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
 				<li><a href="#attention">InnerJoin の利用上の注意</a></li>
+				<li><a href="#twoedgedsword">諸刃の剣</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -58,7 +59,6 @@
 				<li><a href="#nestedrelation">ネストしたリレーションでは</a></li>
 			</ul>
 		</li>
-		<li><a href="#autodetect">InnerJoin の自動判別</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -89,8 +89,16 @@
 	</ul>
 	<p>
 		もちろん、該当リレーションを使った(OnClause や InlineView ではない)絞り込み条件がある場合は、
-		実質的な{n : 1} 型リレーションになるため、外部結合でも内部結合でも検索結果は変わりませんので気にする必要はありません。
+		実質的な {n : 1} 型リレーションになるため、外部結合でも内部結合でも検索結果は変わりませんので気にする必要はありません。
 	</p>
+	<h3 id="twoedgedsword">諸刃の剣</h3>
+	<p>
+		TwoEdgedSword 認定のされた機能です。しっかり精度高く利用しないと、逆にカオスを生み出します。
+		どうしても InnerJoinAutoDetect では行き届かない結合で、しかしながらそこを内部結合にすると速くなる、というケース以外での利用は想定されません。
+		<span class="freecomment">(要は、基本的に使わないで、という感じです)</span>
+	</p>
+	<div class="detailpage"><a href="../sidebar/innerjoinautodetect.html">InnerJoinAutoDetect</a></div>
+	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wt.html#twoedgedsword">TwoEdgedSword</a></div>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
@@ -151,14 +159,6 @@ cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
 		SQLの文法的には、その場合は途中のリレーションも内部結合にしてしまっても同じ結果となりますが、
 		この機能はあくまでピンポイントでの指定を基本としています。
 	</p>
-
-	<h2 id="autodetect">InnerJoin の自動判別</h2>
-	<p>
-		手動で InnerJoin を指定する機能とは別に、自動で InnerJoin
-		可能な結合を自動判別する機能があります。
-		ただし、チューニングのためにピンポイントで内部結合を利用するのであれば、固定的な指定となる (Manual)InnerJoin の方がお奨めです。
-	</p>
-	<div class="detailpage"><a href="../sidebar/innerjoinautodetect.html">InnerJoinAutoDetect</a></div>
 
 </div>
 </div>
