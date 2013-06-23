@@ -38,8 +38,17 @@
 
 <div id="content">
 	<h1>SchemaSyncCheck</h1>
+	<p>
+		Alto DBFlute のパートです。
+	</p>
+	<div class="relatedpage"><a href="../../../../../introduction/altodbflute.html">Alto DBFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#about">SchemaSyncCheckとは？</a></li>
+		<li><a href="#about">SchemaSyncCheckとは？</a>
+			<ul>
+				<li><a href="#integration">結合DBと開発DBの比較</a></li>
+				<li><a href="#integration">本番DBと開発DBの比較</a></li>
+			</ul>
+		</li>
 		<li><a href="#howto">利用方法</a>
 			<ul>
 				<li><a href="#diff">スキーマ差分の確認</a></li>
@@ -50,12 +59,24 @@
 	<h2 id="about">SchemaSyncCheckとは？</h2>
 	<p>
 		二つのスキーマの構造が同期されているのかどうかをチェックする機能です<span class="freecomment">(@since 0.9.8.4)</span>。
-		主に以下の二つの目的があります。
 	</p>
+	<h3 id="integration">結合DBと開発DBの比較</h3>
 	<p>
-		例えば、結合テスト環境とローカル環境で本当に同じスキーマ構造をしているのかどうか不明なときに、確認作業の支援機能として利用できます。
+		例えば、結合DBと開発DBで本当に同じスキーマ構造をしているのかどうか不明なときに、確認作業の支援機能として利用できます。
 		本来はそのような状況が発生しないような仕組み作りが必要ですが(例えば、ReplaceSchema を活用するなど)、
-		どうしてもズレが発生する可能性のある仕組みが既にでき上がってしまっている場合などに活躍するでしょう。
+		どうしてもズレが発生する可能性のある仕組みが既にでき上がってしまっている場合に SchemaSyncCheck を使ってチェックすると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="../replaceschema/index.html">ReplaceSchema</a></div>
+	<h3 id="integration">本番DBと開発DBの比較</h3>
+	<p>
+		また、本番運用をしているうちに、どうしても本番DBと開発DBがズレていってしまうこともあるでしょう。もしくは、ズレてるのかどうかがわからなくて不安だったり。
+		こちらも同じく AlterCheck などを使ってズレが発生させないような仕組み作りが大切ですが、その仕組みがどうしても利用できない場合や、その仕組みを導入する段階で現状のズレを直す必要がある場合に
+		SchemaSyncCheck を使ってチェックすると良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="../replaceschema/altercheck.html">AlterCheck</a></div>
+	<p>
+		本番DBは運用していますので直接接続はできませんし、接続すべきではないでしょう。この場合は、本番DBのスキーマ構造だけを DBMS の機能を使ってダンプしてテスト環境に復元して
+		SchemaSyncCheck を使うと良いでしょう。
 	</p>
 
 	<h2 id="howto">利用方法</h2>
