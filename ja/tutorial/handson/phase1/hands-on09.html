@@ -131,16 +131,17 @@
 		<dd>test_letsOutside_会員が検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>会員名称が "S" で始まる正式会員で検索すること</li>
+				<li>会員名称が "S" で始まる正式会員 <span class="freecomment">(区分値メソッドを使う)</span> で検索すること</li>
+				<li>条件値を設定しなかった条件が除去されていることをログで目視確認</li>
 				<li>会員サービスのサービスポイント数が取得できていることをアサート</li>
-				<li>条件値を設定しなかった条件が除去されていることをログで確認</li>
+				<li>検索された会員が "S" で始まっていて、かつ、正式会員であることをアサート</li>
 			</ul>
 		</dd>
 		<dd>test_letsOutside_条件値なしで全件検索されること()</dd>
 		<dd>
 			<ul class="supplementlist">
 				<li>全ての引数を null にして実行</li>
-				<li>where句が存在しないことをログで確認</li>
+				<li>where句が存在しないことをログで目視確認</li>
 				<li>検索結果が全件であることをアサート</li>
 			</ul>
 		</dd>
@@ -183,9 +184,12 @@
 		<dd>MemberBhv_selectPartOfMember.sql</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>(Manual)ページング検索すること <em class="keyword">(カウント検索のパフォーマンス考慮すること)</em></li>
+				<li>(Manual)ページング検索すること</li>
+				<li>基本は "初めての外だしSQL" のSQLと同じで...</li>
+				<li>会員ステータスの等値条件は要らない</li>
 				<li>会員サービスのサービスポイント数の大なり条件を追加</li>
-				<li>あとは、"機能的なやり方" のSQLと全く同じ</li>
+				<li>結合に関して、カウント検索のパフォーマンスを最大限考慮すること</li>
+				<li>IFコメントに記述する条件が複雑にならないように <span class="freecomment">(代理判定メソッドを使う)</span></li>
 			</ul>
 		</dd>
 		<dt>ロジックのメソッド</dt>
@@ -206,6 +210,8 @@
 				<li>検索したカラム全てのデータをログ出力</li>
 				<li>検索結果がページサイズ以下のデータだけであることをアサート</li>
 			</ul>
+		</dd>
+		<dd>
 			<span class="freecomment">※実装できたら、テスト実行時の条件として、サービスポイント数が1000以上というのを追加してみましょう。実行してみて特に落ちなければOKです。</span>
 		</dd>
 	</dl>
@@ -287,7 +293,7 @@
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/generator/task/sql2entity/pmbpropoption.html#propcomment">ParameterBean - プロパティのコメント</a></div>
 	<p>
-		"さらに外だし" のSQLで、検索カラム(CustomizeEntityのプロパティ)にコメントを付与してみましょう。
+		"さらに外だし" のSQLで、検索カラム (CustomizeEntityのプロパティ) にコメントを付与してみましょう。
 		<span class="freecomment">(CustomizeEntityのページを参考に)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/generator/task/sql2entity/customizeentity.html#columncomment">CustomizeEntity - 検索カラムのコメント</a></div>
@@ -308,6 +314,7 @@
 			<ul class="supplementlist">
 				<li>"さらに外だし" と同じ仕様(ページングは不要)</li>
 				<li>カーソル検索として作成すること</li>
+				<li>明らかにおかしいカラム名のカラムは取得してはいけない <span class="freecomment">(後は何を取ってもOKですが、これだけはっ)</span></li>
 			</ul>
 		</dd>
 		<dt>ロジックのメソッド</dt>
@@ -315,8 +322,9 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>指定された ParameterBean でカーソル検索する</li>
-				<li>平均購入価格の分、その会員のサービスポイント数を足す(更新) <span class="freecomment">(varyingUpdate()を使っ...)</span></li>
 				<li>引数の値で null は許されない</li>
+				<li>平均購入価格の分、その会員のサービスポイント数を足す (更新)</li>
+				<li>足す際に、パフォーマンス考慮すること (夜間バッチのつもりで) <span class="freecomment">(varyingUpdat... を使う)</span></li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
@@ -328,15 +336,15 @@
 				<li>誰か一人でもサービスポイント数が増えていることをアサート</li>
 			</ul>
 		</dd>
+		<dd>
+			<span class="freecomment">※さて、MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
+			outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
+			を設定して再実行してみましょう。(ものすごく厳密にはJava上のメモリ使用量がものすごく少しだけ減ったはずです...確認の術なし)</span>
+		</dd>
+		<dd>
+			<span class="freecomment">※ちなみに、テストクラスにて beginNewTransaction() とか performNewTransaction() でトランザクション制御できます(@since UTFlute-0.3.0)。</span>
+		</dd>
 	</dl>
-	<p>
-		MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
-		outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
-		を設定して再実行してみましょう。(ものすごく厳密にはJava上のメモリ使用量がものすごく少しだけ減ったはずです...確認の術なし)
-	</p>
-	<p>
-		ちなみに、テストクラスにて beginNewTransaction() とか performNewTransaction() でトランザクション制御できます<span class="freecomment">(@since UTFlute-0.3.0)</span>。
-	</p>
 	<h3 id="bonus">ボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、一行ずつフェッチでCSVにデータを出力してみてください。
@@ -383,9 +391,6 @@
 		<dt>dfprop読み込みAPI</dt><dd>DfPropFile <span class="freecomment">※InputStream から Map で読み込み</span></dd>
 		<dt>F5 API (リフレッシュAPI)</dt><dd>DfRefreshResourceRequest <span class="freecomment">@since DBFlute-1.0.4D</span></dd>
 	</dl>
-	<p>
-		<span class="freecomment">※F5を押すので面倒でなければ、やる必要はありません。</span>
-	</p>
 
 	<h2 id="procedure">ストアドプロシージャも外だしSQL</h2>
 	<p>
