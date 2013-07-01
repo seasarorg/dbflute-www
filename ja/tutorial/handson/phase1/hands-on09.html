@@ -51,15 +51,16 @@
 		<li><a href="#paging">外だしSQLでページングってみる</a></li>
 		<li><a href="#moreout">さらに外だし</a>
 			<ul>
-				<li><a href="#bonus">ボーナスステージ</a></li>
+				<li><a href="#pagingbonus">ボーナスステージ</a></li>
 			</ul>
 		</li>
 		<li><a href="#commentrequired">外だしSQLのコメントを必須に</a></li>
 		<li><a href="#columncomment">プロパティとカラムのコメントを付与</a></li>
 		<li><a href="#cursor">外だしSQLでカーソル検索ってみる</a>
 			<ul>
-				<li><a href="#bonus">ボーナスステージ</a></li>
+				<li><a href="#cursorbonus">ボーナスステージ</a></li>
 				<li><a href="#superbonus">スーパーボーナスステージ</a></li>
+				<li><a href="#superbonus">ミラクルボーナスステージ</a></li>
 			</ul>
 		</li>
 		<li><a href="#procedure">ストアドプロシージャも外だしSQL</a>
@@ -257,7 +258,7 @@
 		<span class="freecomment">(最後にConditionBeanのスコープについて講師による説明あり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
-	<h3 id="bonus">ボーナスステージ</h3>
+	<h3 id="pagingbonus">ボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、この集計のSQLをページング検索に修正してみてください。
 	</p>
@@ -306,7 +307,10 @@
 		そして、"さらに外だし" で作成した外だしSQLと同じ仕様(ページングは不要)で、新たにカーソル検索のエクササイズをやってみましょう。
 		ConditionBeanでのカーソル検索を思い出して、比較しながら実装してみましょう。<span class="freecomment">(講師によるお話あり)</span>
 	</p>
-	<div class="detailpage"><a href="../../../manual/topic/programming/dbaccess/cursorselect.html">カーソル検索</a></div>
+	<div class="detailpage"><a href="../../../manual/topic/programming/dbaccess/cursorselect.html">そもそもカーソル検索とは？</a></div>
+	<p>
+		このエクササイズは <em class="keyword">とっても難しい</em> です。気を引き締めて臨んでください。
+	</p>
 	<dl class="textlist">
 		<dt>外だしSQLのファイル</dt>
 		<dd>PurchaseBhv_selectPurchaseMonthCursor.sql</dd>
@@ -323,8 +327,8 @@
 			<ul class="supplementlist">
 				<li>指定された ParameterBean でカーソル検索する</li>
 				<li>引数の値で null は許されない</li>
-				<li>平均購入価格の分、その会員のサービスポイント数を足す (更新)</li>
-				<li>足す際に、パフォーマンス考慮すること (夜間バッチのつもりで) <span class="freecomment">(varyingUpdat... を使う)</span></li>
+				<li>平均購入価格の分、その会員のサービスポイント数を足す</li>
+				<li>足す際、パフォーマンス考慮のために事前selectはせず、updateだけで足す <span class="freecomment">(varyingUpdat...)</span></li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
@@ -336,16 +340,23 @@
 				<li>誰か一人でもサービスポイント数が増えていることをアサート</li>
 			</ul>
 		</dd>
-		<dd>
-			<span class="freecomment">※さて、MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
-			outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
-			を設定して再実行してみましょう。(ものすごく厳密にはJava上のメモリ使用量がものすごく少しだけ減ったはずです...確認の術なし)</span>
-		</dd>
-		<dd>
-			<span class="freecomment">※ちなみに、テストクラスにて beginNewTransaction() とか performNewTransaction() でトランザクション制御できます(@since UTFlute-0.3.0)。</span>
-		</dd>
 	</dl>
-	<h3 id="bonus">ボーナスステージ</h3>
+	<h3 id="cursorbonus">ボーナスステージ</h3>
+	<p>
+		さて、MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
+		outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
+		を設定して再実行してみましょう。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/reference/dbway/mysql/index.html#cursorselect">MySQLの取扱い - カーソル検索でのメモリ対策</a></div>
+	<p>
+		(...テスト再実行中) <span class="freecomment">※エラーメッセージには真摯に姿勢で...</span>
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/mind/errormessage.html">エラーメッセージには真摯に接する</a></div>
+	<p>
+		ちなみに、テストクラスにて beginNewTransaction() とか performNewTransaction()
+		でトランザクション制御できます<span class="freecomment">(@since UTFlute-0.3.1)</span>。これらはスーパークラスのメソッドです。
+	</p>
+	<h3 id="superbonus">スーパーボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、一行ずつフェッチでCSVにデータを出力してみてください。
 	</p>
@@ -366,9 +377,9 @@
 		テストコードのアサートにて、同じく FileToken を使ってそのファイルを読み込んでログに出力してみましょう。
 		<span class="freecomment">(講師によるコードリーディングの小話あり)</span>
 	</p>
-	<h3 id="superbonus">スーパーボーナスステージ</h3>
+	<h3 id="superbonus">ミラクルボーナスステージ</h3>
 	<p>
-		もし、スーパーものすごい頑張れるのであれば、セクション３のカーソル検索でも出力してみましょう。
+		もし、ミラクルものすごい頑張れるのであれば、セクション３のカーソル検索でも出力してみましょう。
 	</p>
 	<dl class="shortkeymainlist">
 		<dt>出力項目</dt><dd>会員名称、生年月日(yyyy/MM/dd)、正式会員日時(yyyy/MM/dd HH:mm:ss)</dd>

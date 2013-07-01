@@ -51,10 +51,20 @@
 				<li><a href="#nowok">そもそもいま本番とズレてない？</a></li>
 			</ul>
 		</li>
-		<li><a href="#howto">AlterCheck の利用方法</a>
+		<li><a href="#saveprevious">まずは SavePrevious</a>
 			<ul>
-				<li><a href="#saveprevious">PreviousDDL を保存</a></li>
-				<li><a href="#altercheck">AlterCheck の実行</a></li>
+				<li><a href="#beforedbchange">DB変更する前に、今を保存</a></li>
+				<li><a href="#previouszip">ZIP形式で保存される</a></li>
+			</ul>
+		</li>
+		<li><a href="#altercheck">AlterCheck の実行</a>
+			<ul>
+				<li><a href="#letsalter">そろそろ alter 文を作らないとぅ</a></li>
+				<li><a href="#warmingup">まずは、ウォーミングアップ</a></li>
+				<li><a href="#writeandcheck">alter文を書いてチェック</a></li>
+				<li><a href="#whennodiff">差分がなくなったら</a></li>
+				<li><a href="#aftercheck">正常終了後のDBの状態</a></li>
+				<li><a href="#errorlog">エラー発生時のログ</a></li>
 			</ul>
 		</li>
 		<li><a href="#ngseries">そもそもDDLがNGだったら</a>
@@ -124,8 +134,8 @@
 		さて、本番DBと開発DBにズレがなくなれば、ここからが AlterCheck の活躍の場面です。
 	</p>
 
-	<h2 id="howto">AlterCheck の利用方法</h2>
-	<h3 id="saveprevious">PreviousDDL を保存</h3>
+	<h2 id="saveprevious">まずは SavePrevious</h2>
+	<h3 id="beforedbchange">DB変更する前に、今を保存</h3>
 	<p>
 		DB変更する前(前回リリース直後)に、DB変更前のDBを復元できる DDL
 		やデータをまるごと保存します。これが(リリースするまでは)本番DBと同じ構造を表現する PreviousDDL となります。
@@ -141,6 +151,7 @@
 
 <span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh   <span class="comment">// Enter, and then select the number</span>
 </code></pre>
+	<h3 id="previouszip">ZIP形式で保存される</h3>
 	<p>
 		すると、playsql 直下の DDL やデータがまるごと playsql/migration/previous
 		配下にコピー保存されます。さらに、妥当性をチェックするために内部的に ReplaceSchema が実行されます。正常に終了した場合は、migration
@@ -165,12 +176,14 @@ dbflute_exampledb
 	<p>
 		さてこの後、思う存分DB変更をして開発を続けてください。
 	</p>
-	<h3 id="altercheck">AlterCheck の実行</h3>
+
+	<h2 id="altercheck">AlterCheck の実行</h2>
+	<h3 id="letsalter">そろそろ alter 文を作らないとぅ</h3>
 	<p>
-		DB変更した後、開発が落ち着いてDB構造も固まって、"そろそろ alter 文を作らないとー"
+		DB変更した後、開発が落ち着いてDB構造も固まって、"そろそろ alter 文を作らないとぅ"
 		というタイミングにて、現在の最新状態(NextDDL)と Previous-DB + AlterDDL の整合性をチェックします。
 	</p>
-	<h4>まずは、ウォーミングアップ</h4>
+	<h3 id="warmingup">まずは、ウォーミングアップ</h3>
 	<p>
 		alter文はどこに書けばいいのか!? 差分ってどんな風にみれるのか!?
 		まずは何も考えず何の準備もせず、そのままAlterCheckタスクをいきなり実行してみてみましょう。
@@ -213,7 +226,7 @@ dbflute_exampledb
     |  |-previous
     |  |-<span class="abbreviation">...</span>
 </code></pre>
-	<h4>alter文を書いてチェック</h4>
+	<h3 id="writeandcheck">alter文を書いてチェック</h3>
 	<p>
 		このSQLファイルに、今回のDB変更で本番環境に適用する予定の AlterDDL を記述します。AlterDDL
 		のファイル名は、alter-schema で始まり .sql で終わる名前にします。必要に応じて、複数のファイルに分割が可能です。
@@ -237,7 +250,7 @@ dbflute_exampledb
 		など、基本的にアプリに影響のない微修正ものに関しては差として認識されません。
 	</p>
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
-	<h4>差分がなくなったら</h4>
+	<h3 id="whennodiff">差分がなくなったら</h3>
 	<p>
 		差分がなくなったらAlterCheckタスクは正常終了し、その AlterDDL は妥当性のチェック済みとして
 		migration/history 配下に保存されます(alter配下から移動します)。
@@ -256,12 +269,12 @@ dbflute_exampledb
     |  |        |-<span class="point">checked-alter-to-20120804-1746.zip</span> <span class="comment">// for 2012/08/04 17:46</span>
     |  |-schema
 </code></pre>
-	<h4 id="afterdb">正常終了後のDBの状態</h4>
+	<h3 id="aftercheck">正常終了後のDBの状態</h3>
 	<p>
 		AlterCheck正常終了後のDBは、PreviousDB に AlterDDL を適用させたものとなっています。
 		そのままアプリを起動してテストを行えば、より本番に近い状態のテスト環境として利用できます。
 	</p>
-	<h4 id="error">エラー発生時のログ</h4>
+	<h3 id="errorlog">エラー発生時のログ</h3>
 	<p>
 		タスク実行がエラーになったとき、原因が実行時エラーなのか、不整合なのか、または別のエラーなのか、コンソールやタスクログの
 		<em class="keyword">最後のログメッセージ(Final Message)</em> でそれらを確認することができます。

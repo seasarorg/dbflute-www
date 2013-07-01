@@ -132,7 +132,7 @@
 
 	<h2 id="livingdb">運用後のDB変更</h2>
 	<p>
-		次は運用後のDB変更を想定してやってみましょう。<span class="freecomment">(講師による講習あり)</span>
+		次は運用後のDB変更を想定してやってみましょう。<span class="freecomment">(講師によるお話あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../../manual/function/generator/task/replaceschema/livingdbmigration.html">運用後のDB変更</a></div>
 	<p>
@@ -142,23 +142,24 @@
 	<p>
 		まずは、DB変更前のスキーマ(現状のスキーマ)のDDL(PreviousDDL)を保存しましょう。
 	</p>
-	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/altercheck.html#saveprevious">AlterCheck - PreviousDDLを保存</a></div>
+	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/altercheck.html#saveprevious">AlterCheck - まずは SavePrevious</a></div>
 	<h3 id="dbchange">普通にDB変更</h3>
 	<p>
 		以下の内容を playsql 配下の DDL に反映して ReplaceSchema を実行。
 	</p>
 	<dl class="textlist">
-		<dt>会員セキュリティ情報にリマインダ回数を追加</dt>
+		<dt>会員セキュリティ情報にリマインダ回数を追加 <span class="freecomment">(忘れっぽい人を分析する)</span></dt>
 		<dd>MEMBER_SECURITY に REMINDER_USE_COUNT を追加</dd>
-		<dd>REMINDER_USE_COUNT は INTEGER 型</dd>
-		<dd>REMINDER_USE_COUNT は NOT NULL</dd>
-		<dt>会員サービスに代理キーを付与</dt>
+		<dd>REMINDER_USE_COUNT は INTEGER 型で、NOT NULL</dd>
+		<dt>会員サービスに代理キーを付与 <span class="freecomment">(律儀にIDの役割を分ける)</span></dt>
 		<dd>MEMBER_SERVICE に MEMBER_SERVICE_ID を追加</dd>
-		<dd>PK が MEMBER_ID から MEMBER_SERVICE_ID に変更</dd>
-		<dd>MEMBER_SERVICE_ID は INTEGER 型</dd>
-		<dd>MEMBER_SERVICE_ID は AUTO_INCREMENT</dd>
+		<dd>PK を MEMBER_ID から MEMBER_SERVICE_ID に変更</dd>
+		<dd>MEMBER_SERVICE_ID は INTEGER 型で、AUTO_INCREMENT</dd>
 		<dd>MEMBER_ID にユニーク制約を付与</dd>
 	</dl>
+	<p>
+		<span class="freecomment">(...ReplaceSchema実行中)</span>
+	</p>
 	<p>
 		落ちます。データがDB変更されていないからですね。playsql/data/ut/xls
 		配下の 20-member.xls と 30-product.xls
@@ -175,16 +176,23 @@
 	</p>
 	<h3 id="altercheck">AlterCheck</h3>
 	<p>
-		そして AlterDDL、まずは "空っぽ" で作成して ReplaceSchema
-		してみましょう。alter-check-result.diffmap にて差分が確認できるかと思います。
+		さて、まだ alter 文を書いてませんが、というか、どこに書いたらいいのかもわからないまま、いきなり AlterCheck
+		を実行してみましょう。manage.bat(sh)を叩いて該当の番号を入力して、どーん。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/altercheck.html#altercheck">AlterCheck - AlterCheck の実行</a></div>
 	<p>
-		AlterDDL に以下の内容を転記して、ちょっとお待ち下さい。(ReplaceSchemaはまだ！)
+		落ちるはずなので、よーくエラーメッセージを読んでみましょう。
+	</p>
+	<p>
+		<span class="freecomment">(...エラーメッセージを熟読中)</span>
+	</p>
+	<p>
+		差分は確認できましたでしょうか？この時点では、変更したもの全てが差分になっているはずです。
+		そうしましたら、作成された alter-schema.sql に以下の内容を転記して再度 AlterCheck を！
 	</p>
 <pre><span class="codetitle">e.g. 運用後のDB変更のエクササイズの alter 文 @alter-schema.sql</span><code>
 <span class="comment">-- add column</span>
-<span class="keyword">alter table</span> MEMBER_SECURITY <span class="keyword">add</span> REMINDER_USE_COUNT <span class="dbtype">INTEGER</span> NOT NULL <span class="keyword">after</span> REMINDER_ANSWER;
+<span class="keyword">alter table</span> MEMBER_SECURITY <span class="keyword">add</span> REMINDER_USE_COUNT <span class="dbtype">BIGINT</span> NOT NULL <span class="keyword">after</span> REMINDER_ANSWER;
 
 <span class="comment">-- add identity column as primary key</span>
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> NOT NULL;
@@ -194,39 +202,64 @@
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add primary key</span> (MEMBER_SERVICE_ID);
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add constraint</span> FK_MEMBER_SERVICE_MEMBER 
     <span class="keyword">foreign key</span> (MEMBER_ID) <span class="keyword">references</span> MEMBER (MEMBER_ID);
-<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">modify column</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> AUTO_INCREMENT NOT NULL;
+<span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">modify column</span> MEMBER_SERVICE_ID <span class="dbtype">INTEGER</span> AUTO_INCREMENT <span class="keyword">NOT NULL</span>;
 <span class="keyword">alter table</span> MEMBER_SERVICE <span class="keyword">add constraint</span> UQ_MEMBER_SERVICE <span class="keyword">unique</span> (MEMBER_ID);
 </code></pre>
 	<p>
-		せっかくなのでわざと間違えてみましょう。REMINDER_USE_COUNT の型を BIGINT に、MEMBER_SERVICE_ID の
-		AUTO_INCREMENT を除去して ReplaceSchema してみましょう。
+		まだ差分が出ますでしょうか？
 	</p>
 	<p>
-		そうしたら、差分(alter-check-result.diffmap)を確認してみてください。間違えた通りに差分が出力されたはずです。create
-		の結果と alter の結果が一致するまではエラーとなりDB変更はロールバックされ続けます。
-	</p>
-	<p>
-		では、元に戻して ReplaceSchema を実行、その後は既にやった通りのクラスの再自動生成(JDBC, Doc, Generate)
-		に、外だしSQLのチェック(OutsideSqlTest, Sql2Entity)をやります。
+		create の結果と alter の結果が一致するまでエラーとなりDB変更はロールバックされ続けます。
+		差分がなくなるまで修正と AlterCheck を繰り返しましょう。
 	</p>
 
 	<h2 id="morelivingdb">さらに運用後のDB変更</h2>
 	<p>
 		それでは、エクササイズです。さらに運用後を想定したDB変更をしてみましょう。
 	</p>
+	<p>
+		間違えないように、<em class="keyword">AlterCheck の運用を思い出しながら踏みしめながら</em> じっくりやりましょう。
+	</p>
 	<dl class="textlist">
-		<dt>商品ステータスに表示順カラムを追加</dt>
+		<dt>商品ステータスに表示順カラムを追加 <span class="freecomment">(会員ステータスと同じように)</span></dt>
 		<dd>PRODUCT_STATUS に DISPLAY_ORDER を追加</dd>
 		<dd>DISPLAY_ORDER はユニーク制約</dd>
 		<dd>ONS, PST, SST の順番で 1, 2, 3</dd>
+		<dt>会員フォローイングを追加 <span class="freecomment">(他の会員をフォローできるように)</span></dt>
+		<dd>※DDLとデータは以下の通り</dd>
 	</dl>
+<pre><span class="codetitle">e.g. お気に入り会員テーブルの create 文 @replace-schema-10-basic.sql</span><code>
+<span class="keyword">create table</span> MEMBER_FOLLOWING(
+    MEMBER_FOLLOWING_ID <span class="dbtype">BIGINT</span> <span class="keyword">AUTO_INCREMENT NOT NULL COMMENT</span> '会員フォローイングID: 連番',
+    MY_MEMBER_ID <span class="dbtype">INTEGER</span> <span class="keyword">NOT NULL COMMENT</span> 'わたし: 気になった人がいて...勇気を振り絞った会員のID。',
+    YOUR_MEMBER_ID <span class="dbtype">INTEGER</span> <span class="keyword">NOT NULL COMMENT</span> 'あなた: いきなりのアクションに...ちょっと心揺らいだ会員のID。',
+    FOLLOW_DATETIME <span class="dbtype">DATETIME</span> <span class="keyword">NOT NULL COMMENT</span> 'その瞬間: ふりかえるとちょっと恥ずかしい気持ちになる日時',
+    <span class="keyword">PRIMARY KEY</span> (MEMBER_FOLLOWING_ID),
+    <span class="keyword">UNIQUE</span> (MY_MEMBER_ID, YOUR_MEMBER_ID)
+) <span class="keyword">COMMENT</span>='会員フォローイング: とある会員が他の会員をフォローできる。すると、フォローした会員の購入履歴が閲覧できる。';
+
+<span class="keyword">alter table</span> MEMBER_FOLLOWING <span class="keyword">add constraint</span> FK_MEMBER_FOLLOWING_MY_MEMBER 
+    <span class="keyword">foreign key</span> (MY_MEMBER_ID) <span class="keyword">references</span> MEMBER (MEMBER_ID);
+
+<span class="keyword">alter table</span> MEMBER_FOLLOWING <span class="keyword">add constraint</span> FK_MEMBER_FOLLOWING_YOUR_MEMBER 
+    <span class="keyword">foreign key</span> (YOUR_MEMBER_ID) <span class="keyword">references</span> MEMBER (MEMBER_ID);
+
+<span class="keyword">create index</span> IX_MEMBER_FOLLOWING_UNIQUE_REVERSE <span class="keyword">on</span> MEMBER_FOLLOWING(YOUR_MEMBER_ID, MY_MEMBER_ID);
+<span class="keyword">create index</span> IX_MEMBER_FOLLOWING_FOLLOW_DATETIME <span class="keyword">on</span> MEMBER_FOLLOWING(FOLLOW_DATETIME);
+</code></pre>
+	<dl class="valuemainlist">
+		<dt>会員ID 1 番さん</dt><dd>2, 3, 5, 6, 7 をフォロー</dd>
+	</dl>
+	<p>
+		表示順カラムの追加とデータ移行のための alter 文の例は以下の通り。
+	</p>
 <pre><span class="codetitle">e.g. さらに運用後のDB変更のエクササイズの alter 文 @alter-schema.sql</span><code>
 <span class="comment">-- add column for display order</span>
 <span class="keyword">alter table</span> PRODUCT_STATUS <span class="keyword">add</span> DISPLAY_ORDER INTEGER NOT NULL <span class="keyword">after</span> PRODUCT_STATUS_NAME;
 <span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 1 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'ONS';
 <span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 2 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'PST';
 <span class="keyword">update</span> PRODUCT_STATUS <span class="keyword">set</span> DISPLAY_ORDER = 3 <span class="keyword">where</span> PRODUCT_STATUS_CODE= 'SST';
-alter table PRODUCT_STATUS add constraint unique(DISPLAY_ORDER);
+<span class="keyword">alter table</span> PRODUCT_STATUS <span class="keyword">add constraint</span> unique(DISPLAY_ORDER);
 </code></pre>
 
 	<div class="inucolumn">
