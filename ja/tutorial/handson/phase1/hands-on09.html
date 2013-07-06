@@ -222,7 +222,6 @@
 		それではさらに外だしSQLのエクササイズです。せっかくなので機能的なやり方でやりましょう。
 		以下は、ConditionBeanでは実現できないレベルのSQLです。頑張ってください。
 	</p>
-	<div class="relatedpage"><a href="../../../manual/topic/programming/dbaccess/pagingselect.html">ページング検索</a></div>
 	<dl class="textlist">
 		<dt>外だしSQLのファイル</dt>
 		<dd>PurchaseBhv_selectPurchaseMonthSummary.sql</dd>
@@ -237,7 +236,7 @@
 			</ul>
 		</dd>
 		<dt>ロジックのメソッド</dt>
-		<dd>PagingResultBean&lt;PurchaseMonthSummary&gt; selectLetsSummary(PurchaseMonthSummaryPmb pmb)</dd>
+		<dd>ListResultBean&lt;PurchaseMonthSummary&gt; selectLetsSummary(PurchaseMonthSummaryPmb pmb)</dd>
 		<dd>
 			<ul class="supplementlist">
 				<li>指定された ParameterBean で検索して、検索結果を戻す</li>
@@ -249,6 +248,7 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>会員名称に "vi" を含む会員を対象に検索</li>
+				<li>会員名称に "vi" が含まれていることをアサート</li>
 				<li>期待通りのSQLがログに出力されることを確認する</li>
 				<li>検索したカラム全てのデータをログ出力</li>
 			</ul>
@@ -261,7 +261,9 @@
 	<h3 id="pagingbonus">ボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、この集計のSQLをページング検索に修正してみてください。
+		ページサイズは 4 でページ番号は 1 で検索してみましょう。
 	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/programming/dbaccess/pagingselect.html">ページング検索</a></div>
 
 	<h2 id="commentrequired">外だしSQLのコメントを必須に</h2>
 	<p>
@@ -353,8 +355,15 @@
 	</p>
 	<div class="relatedpage"><a href="../../../manual/topic/programming/mind/errormessage.html">エラーメッセージには真摯に接する</a></div>
 	<p>
-		ちなみに、テストクラスにて beginNewTransaction() とか performNewTransaction()
-		でトランザクション制御できます<span class="freecomment">(@since UTFlute-0.3.1)</span>。これらはスーパークラスのメソッドです。
+		ちなみに、テストクラスにて新しいトランザクションを発行したり、トランザクション分離レベルを制御したりできます<span class="freecomment">(@since UTFlute-0.3.2)</span>。
+		これらはスーパークラスのメソッドです。
+	</p>
+	<dl class="longvaluemainlist">
+		<dt>新しいトランザクション発行</dt><dd>performNewTransaction()</dd>
+		<dt>READ COMMITTED にする</dt><dd>adjustTransactionIsolationLevel_ReadCommitted()</dd>
+	</dl>
+	<p>
+		<span class="freecomment">※存在しない場合は、SVN更新してみてください</span>
 	</p>
 	<h3 id="superbonus">スーパーボーナスステージ</h3>
 	<p>
@@ -367,7 +376,7 @@
 		<dt>改行コード</dt><dd>LF</dd>
 		<dt>カラムヘッダー</dt><dd>一行目にはカラム名のヘッダー</dd>
 		<dt>出力ファイル</dt><dd>[PROJECT_ROOT]/target/hands-on-outside-bonus.tsv <span class="freecomment">※1</span></dd>
-		<dt>CSV出力API</dt><dd>FileToken <span class="freecomment">(それはもう、じっくりソースを読んで...)</span></dd>
+		<dt>CSV出力API</dt><dd>FileToken <span class="freecomment">@since DBFlute-1.0.4D (それはもう、じっくりソースを読んで...)</span></dd>
 	</dl>
 	<p>
 		<span class="freecomment">※1: DfResourceUtil.getBuildDir(getClass())で target/classes の File インスタンスが取得できます</span>
