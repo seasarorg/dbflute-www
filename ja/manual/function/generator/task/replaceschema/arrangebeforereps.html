@@ -40,13 +40,13 @@
 	<h1>ReplaceSchema実行前の調整</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
-		<li><a href="#howto">使い方</a>
+		<li><a href="#copy">コピー</a>
 			<ul>
-				<li><a href="#basiccopy">基本的なコピー</a></li>
 				<li><a href="#extsearchcopy">拡張子検索コピー</a></li>
 				<li><a href="#absolutecopy">絶対パスコピー</a></li>
 			</ul>
 		</li>
+		<li><a href="#script">スクリプト実行 <span class="freecomment">@since 1.0.4H</span></a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -58,11 +58,10 @@
 		ReplaceSchema実行前にDBFlute管理外の場所に出力されたDDLファイルを playsql 配下にコピーさせることができます。
 	</p>
 
-	<h2 id="howto">使い方</h2>
-	<h3 id="basiccopy">基本的なコピー</h3>
+	<h2 id="copy">コピー</h2>
 	<p>
 		replaceSchemaDefinitionMap.dfprop の arrangeBeforeRepsMap にて、
-		アレンジ操作を指定すると、ReplaceSchemaの最初の処理でその操作が実行されます。
+		copy指定すると、ReplaceSchemaの最初の処理でそのコピーが実行されます。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#arrangebeforerepsmap">dfprop - arrangeBeforeRepsMap</a></div>
 <pre><span class="codetitle">e.g. foo.ddl を replace-schema-10-basic.sql にコピー @replaceSchemaDefinitionMap.dfprop</span><code>
@@ -118,6 +117,27 @@
 }
 </code></pre>
 
+	<h2 id="script">スクリプト実行 <span class="freecomment">@since 1.0.4H</span></h2>
+	<p>
+		replaceSchemaDefinitionMap.dfprop の arrangeBeforeRepsMap にて、
+		script指定すると、ReplaceSchemaの最初の処理でそのスクリプトが実行されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/replaceschemadefinition/index.html#arrangebeforerepsmap">dfprop - arrangeBeforeRepsMap</a></div>
+<pre><span class="codetitle">e.g. maven-install.sh を実行 @replaceSchemaDefinitionMap.dfprop</span><code>
+; arrangeBeforeRepsMap = <span class="keyword">map:</span>{
+    ; script = <span class="keyword">map:</span>{
+        ; ../maven-install.sh = dummy
+    }
+}
+</code></pre>
+	<p>
+		map の key 値に、スクリプトのファイル名を相対パスで指定すると、そのファイルが実行されます。
+		Windowsであれば .bat, Macであれば .sh という風に実行できる拡張子が限定されています。
+		例えば、Windows環境では .sh は実行されずにスキップされます。
+	</p>
+	<p>
+		map の value 値は dummy で未使用(将来用)です。
+	</p>
 
 </div>
 </div>
