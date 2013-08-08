@@ -122,7 +122,7 @@ PROJECT_ROOT
 	<h3 id="assertnotestdata">テストデータがあることをアサートするテスト</h3>
 	<p>
 		HandsOn02Test に、会員(MEMBER)のデータをアサートするテストを書いて "落ちること"
-		を確認してください。テストメソッド名は "testテストデータがあること" とします。
+		を確認してください。テストメソッド名は "test_existsTestData()" とします。
 	</p>
 	<p>
 		このプロジェクトでは、メソッド名が test で始まることで、それがテストメソッドであると認識されます。
@@ -130,8 +130,12 @@ PROJECT_ROOT
 	</p>
 	<h4>テストメソッドの雛形</h4>
 	<p>
-		test と打って ctrl + space して enter
-		するとテストメソッドの雛形が作成される。
+		test と打って ctrl + space して enter するとテストメソッドの雛形が作成されます。
+	</p>
+	<p>
+		テストコードのお約束コメントの Arrange や Act のコメントが付与されているかと思います。
+		実はこれは、セクション１でエディターテンプレートを設定したからです。
+		このように、Eclipseのコード補完を拡張することができます。
 	</p>
 <pre><span class="codetitle">e.g. テストメソッドのコード補完 @Java</span><code>
 
@@ -140,38 +144,10 @@ PROJECT_ROOT
     test <span class="comment">// test と入力して ctrl + space して enter</span>
 }
 --
+
 <span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
 
     <span class="keyword">public void</span> testname() <span class="keyword">throws</span> Exception { <span class="comment">// name の部分が入力モードに</span>
-        
-    }
-}
-</code></pre>
-	<h4>メソッド名とBehaviorの宣言</h4>
-	<p>
-		テストメソッド名は、"testテストデータがあること" とし、MemberBhv をインスタンス変数として宣言してください。
-		Behavior のインスタンスは UnitContainerTestCase の仕組みでテスト実行前にインジェクションされるようになっています。
-	</p>
-<pre><span class="codetitle">e.g. testテストデータがあること、の実装準備 @Java</span><code>
-<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
-
-    <span class="keyword">private</span> MemberBhv <span class="attribute">memberBhv</span>;
-
-    <span class="keyword">public void</span> testテストデータがあること() <span class="keyword">throws</span> Exception {
-        
-    }
-}
-</code></pre>
-	<h4>テストコードのお約束コメント</h4>
-	<p>
-		テストの準備(Arrange)、テスト対象の処理の実行(Act)、アサート処理(Assert)がコード上でわかりやすいようにするために、コメントを用意してください。
-	</p>
-<pre><span class="codetitle">e.g. 準備、実行、アサートがわかりやすいようなコメントを準備 @Java</span><code>
-<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
-
-    <span class="keyword">private</span> MemberBhv <span class="attribute">memberBhv</span>;
-
-    <span class="keyword">public void</span> testテストデータがあること() <span class="keyword">throws</span> Exception {
         <span class="comment">// ## Arrange ##</span>
 
         <span class="comment">// ## Act ##</span>
@@ -180,19 +156,28 @@ PROJECT_ROOT
     }
 }
 </code></pre>
+	<h4>メソッド名とBehaviorの宣言</h4>
 	<p>
-		ただ、毎度毎度テストを作るたびにコメントを書くのは大変なので、ワークスペースの設定(Preferences)に組み込んでみましょう。
-		Preferences の Java - Editor - Templates の "test" を選択して Edit、Arrangeなどのコメントを以下のように追加してみましょう。
-		追加したら、試しにも test メソッドを補完して作成してみてください。
+		テストメソッド名は、"test_existsTestData()" とし、MemberBhv を protected のインスタンス変数として宣言してください。
+		Seasarでは、@Resource というアノテーションを付けるとDI対象となります。<span class="freecomment">(厳密にはテストクラスではアノテーションは不要なのですが習慣として)</span>
 	</p>
-<pre><span class="codetitle">e.g. testメソッド補完のテンプレートにArrangeなどのコメントを @Setting</span><code>
-<span class="keyword">public void</span> test${name}() <span class="keyword">throws</span> Exception {
-    <span class="comment">// ## Arrange ##</span>
-    ${cursor}
+	<p>
+		インスタンス変数の名前の入力のところ (MemberBhvの後ろ一つ空白を空けたところ) で ctrl + space を押すと、memberBhv
+		という名前を候補として選べます。<span class="freecomment">(間違い防止のためにも積極的に利用しましょう)</span>
+	</p>
+<pre><span class="codetitle">e.g. test_existsTestData() の実装準備 @Java</span><code>
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
 
-    <span class="comment">// ## Act ##</span>
+    @Resource
+    <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
 
-    <span class="comment">// ## Assert ##</span>
+    <span class="keyword">public void</span> test_existsTestData() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+
+        <span class="comment">// ## Act ##</span>
+
+        <span class="comment">// ## Assert ##</span>
+    }
 }
 </code></pre>
 	<h3 id="impltestcode">テストコードの実装</h3>
@@ -250,16 +235,16 @@ PROJECT_ROOT
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></div>
 	<p>
-		せっかくなので、どのようなデータが入っているかさらに見てみましょう。同時に ConditionBean
-		の基本中の基本に触れておきます。以下のテストを作成してください。<span class="freecomment">(メソッド名の先頭にtestを付けましょう)</span>
+		せっかくなので、どのようなデータが入っているかさらに見てみましょう。
+		以下のテストを作成してください。<span class="freecomment">(メソッド名の先頭にtestを付けましょう。メソッド名はいい感じに...)</span>
 	</p>
 	<dl class="textlist">
 		<!-- SetupSelect(Relation), PrefixSearch, OrderBy Asc, selectList() -->
-		<dt>会員名称がSで始まる会員を検索</dt>
+		<dt>会員名称がSで始まる会員を検索 <span class="freecomment">(これはタイトル、この中にも要件が含まれている)</span></dt>
 		<dd>
 			<ul class="supplementlist">
-				<li>会員名称の昇順で並べる</li>
-				<li>(検索結果の)会員名称がSで始まっていることをアサート</li>
+				<li>会員名称の昇順で並べる <span class="freecomment">(これは実装要件、Arrange でこの通りに実装すること)</span></li>
+				<li>(検索結果の)会員名称がSで始まっていることをアサート <span class="freecomment">(これはアサート要件、Assert でこの通りに実装すること)</span></li>
 			</ul>
 		</dd>
 		<!-- Equal, selectEntity() -->
