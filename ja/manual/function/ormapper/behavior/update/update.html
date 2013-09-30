@@ -59,6 +59,7 @@
 		<li><a href="#modified">設定された値だけ更新</a>
 			<ul>
 				<li><a href="#noupdate">設定された値がなければ</a></li>
+				<li><a href="#columnsummary">更新系、列挙されるカラムのまとめ</a></li>
 			</ul>
 		</li>
 		<li><a href="#exclusive">排他制御の自動化</a></li>
@@ -158,11 +159,12 @@ member.<span class="point">setVersionNo</span>(versionNo); <span class="comment"
 		のカラムがあっても、そのカラムが null で更新されることはありません(明示的に null で設定されれば、null で更新されます)。 
 	</p>
 	<p>
-		これを <em class="keyword">ModifedOnlyUpdate</em>
-		と呼び、DBFluteでは基本的には更新都合の事前検索は不要です。
+		これを <em class="keyword">ModifedOnly</em>
+		と呼び、DBFluteでは基本的には <em class="keyword">更新都合の事前検索は不要</em> です。
 	</p>
 <pre><span class="codetitle">e.g. update()は設定された値だけ更新される {MEMBER,memberId=3} @Java</span><code>
-Member member = <span class="attribute">memberBhv</span>.selectByPKValue(<span class="literal">3</span>);
+Member member = <span class="keyword">new</span> Member();
+member.setMemberId(<span class="literal">3</span>);
 member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 明示的に設定されたカラムだけが更新される</span>
 member.setBirthdate(<span class="keyword">null</span>); <span class="comment">// 明示的に null を設定すれば null で更新される</span>
 <span class="attribute">memberBhv</span>.update(member);
@@ -178,6 +180,11 @@ member.setBirthdate(<span class="keyword">null</span>); <span class="comment">//
 		で自動設定を無効にしていない)で、設定された値(更新値)が何もない(呼び出された Setter
 		がない)場合は更新処理自体が発生しません。その場合、DB上で仕掛けているトリガがあったとして発動しません。
 	</p>
+	<h3 id="columnsummary">更新系、列挙されるカラムのまとめ</h3>
+	<p>
+		まとめていますので、ぜひご覧を。
+	</p>
+	<div class="detailpage"><a href="./insert.html">insert() - 更新系、列挙されるカラムのまとめ</a></div>
 
 	<h2 id="exclusive">排他制御の自動化</h2>
 	<p>

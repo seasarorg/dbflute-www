@@ -60,7 +60,21 @@
 		<li><a href="#commoncolumn">共通カラムは自動設定</a></li>
 		<li><a href="#exclusive">排他制御カラムの自動設定</a></li>
 		<li><a href="#nocascade">カスケードはしません</a></li>
-		<li><a href="#defaultvalue">デフォルト制約の活用</a></li>
+		<li><a href="#insertcolumn">insert文に列挙されるカラム</a>
+			<ul>
+				<li><a href="#modifiedonly">Setterが呼ばれたカラムが登録される <span class="freecomment">@since 1.0.5A</span></a></li>
+				<li><a href="#copyinsert">copy insertなら全カラム列挙 <span class="freecomment">@since 1.0.5A</span></a></li>
+				<li><a href="#notnulldefault">デフォルト制約付きNotNullカラム追加してもOK</a></li>
+				<li><a href="#before105a">1.0.5Aより前のバージョンでは</a></li>
+			</ul>
+		</li>
+		<li><a href="#columnsummary">更新系、列挙されるカラムのまとめ</a>
+			<ul>
+				<li><a href="#newcreated">newしたEntityにセット <span class="freecomment">※通常はこちら</span></a></li>
+				<li><a href="#selected">検索されたEntityにセット</a></li>
+				<li><a href="#batchupdate">バッチ更新は呼び出しセット一致</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -173,12 +187,82 @@ Integer memberId = member.getMemberId(); <span class="comment">// 自動採番�
 		できた方が便利と思う場面も確かにありますが、別の機能でも同様ですが <em class="keyword">明示的に</em> が重視されています。
 	</p>
 
-	<h2 id="defaultvalue">デフォルト制約の活用</h2>
+	<h2 id="insertcolumn">insert文に列挙されるカラム</h2>
+	<h3 id="modifiedonly">Setterが呼ばれたカラムが登録される <span class="freecomment">@since 1.0.5A</span></h3>
+	<p>
+		(newされた) Entity の Setter が呼ばれたカラムが、insert 文の項目に列挙されます<span class="freecomment">(@since 1.0.5A)</span>。
+		これを <em class="keyword">ModifedOnly</em> と呼び、update() の方と同じ方式です。
+	</p>
+	<p>
+		ゆえに、呼び出していないカラムでDB上ので設定でデフォルト制約が存在する場合は、そのデフォルト値が登録されます。
+		ただし、登録処理後の Entity にそのデフォルト値が格納されることはありません。
+	</p>
+	<p>
+		<span class="freecomment">※自動採番のPKや共通カラムや排他制御カラムは、Setterが呼ばれなくても特別な処理で列挙されます。</span>
+	</p>
+	<h3 id="copyinsert">copy insertなら全カラム列挙 <span class="freecomment">@since 1.0.5A</span></h3>
+	<p>
+		一方で、検索された(別のレコードの)Entityに対して値をセットして insert()
+		する場合に限り、全カラム列挙になります。copy insertのようなケースが考えられ、Setter呼び出しがほとんど存在しない可能性があります。
+		デフォルト制約は利用できなくなりますが、既に別のレコードの値が土台として入っているため、その必要性はあまりないでしょう。
+	</p>
+	<h3 id="notnulldefault">デフォルト制約付きNotNullカラム追加してもOK</h3>
+	<p>
+		DB変更で、デフォルト制約付きNotNullカラム追加された場合でも、修正すること無く対応できます。
+		新しいカラムはSetterが呼ばれないので、insert文に列挙されずにデフォルト制約が利きます。
+		また、copy insertのときは、そもそも既に格納されている別のレコードの値が登録されます。
+	</p>
+	<h3 id="before105a">1.0.5Aより前のバージョンでは</h3>
 	<p>
 		Entity に設定された null でない値のみ、insert 文の項目に列挙されます。
 		ゆえに、値が存在しない(nullの値の)カラムは、DB上ので設定でデフォルト制約が存在する場合はそのデフォルト値が登録されます。
 		ただし、登録処理後の Entity にそのデフォルト値が格納されることはありません。
 	</p>
+	<p>
+		<span class="freecomment">※update()の方と方式が違うため、ちょっとわかりづらい仕様でありました。</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../../environment/upgrade/migration/migrate104Kto105A.html">移行ポイント - 移行 1.0.4K to 1.0.5A</a></div>
+
+	<div class="inucolumn">
+		<h2 id="columnsummary">更新系、列挙されるカラムのまとめ</h2>
+		<p>
+			バッチ更新やクエリ更新も含めた場合の、列挙されるカラムをまとめています<span class="freecomment">(@since 1.0.5A)</span>。
+		</p>
+		<p>
+			基本的には ModifiedOnly であり、検索されたEntityへのセットの insert 系だけが挙動が変わる、と認識しておくと良いでしょう。
+		</p>
+		<h3 id="newcreated">newしたEntityにセット <span class="freecomment">※通常はこちら</span></h3>
+		<dl class="shortkeymainlist">
+			<dt>insert()</dt><dd>ModifiedOnly</dd>
+			<dt>batchInsert()</dt><dd>ModifiedOnlyで、複数のEntityでの最小公倍数のカラム</dd>
+			<dt>update()</dt><dd>ModifiedOnly</dd>
+			<dt>batchUpdate()</dt><dd>ModifiedOnlyで、複数のEntityにて呼び出しセットが一致の必要あり</dd>
+			<dt>queryUpdate()</dt><dd>ModifiedOnly</dd>
+		</dl>
+		<h3 id="selected">検索されたEntityにセット</h3>
+		<dl class="shortkeymainlist">
+			<dt>insert()</dt><dd>全カラム列挙 <span class="freecomment">※copy insertを想定</span></dd>
+			<dt>batchInsert()</dt><dd>全カラム列挙 <span class="freecomment">※copy insertを想定</span></dd>
+			<dt>update()</dt><dd>※特に変わらず</dd>
+			<dt>batchUpdate()</dt><dd>※特に変わらず</dd>
+			<dt>queryUpdate()</dt><dd>※特に変わらず</dd>
+		</dl>
+		<h3 id="batchupdate">バッチ更新は呼び出しセット一致</h3>
+		<p>
+			バッチ更新は、複数のEntityで呼び出しセットがバラバラの状態が許されません。
+			これは、不意のnullによる更新事故を防ぐためです。nullで更新するなら、明示的にnullをセットする方が良いでしょう。
+			また、バッチ更新には、第二引数で更新カラムをSetter呼び出しとは無関係に明示するオプションもあり、自由度が求められる場合はそちらを使うと良いでしょう。
+		</p>
+		<p>
+			ただ、そもそもバッチ更新は、あまり利用頻度は少ないものです。固定値を複数レコードに更新するのであれば queryUpdate()
+			が使えるからです。複数レコードでそれぞれ違う値で更新する、とか、複数レコード更新でも排他制御をしたい、という場合のみ、バッチ更新の出番です。
+		</p>
+		<p>
+			一方で、バッチ登録は、もともとレコード自体が存在していませんので、セットしてなければ単にnullで登録されるという仕様で問題ないだろうと考えました。
+			また、実際の現場でそのように実装している箇所が多く見られたからです。
+		</p>
+		<div class="relatedpage"><a href="../../../../../environment/upgrade/migration/migrate104Kto105A.html">移行ポイント - 移行 1.0.4K to 1.0.5A</a></div>
+	</div>
 
 </div>
 </div>

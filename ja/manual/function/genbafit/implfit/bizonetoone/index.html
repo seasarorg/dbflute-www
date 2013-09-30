@@ -405,7 +405,22 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
                          <span class="keyword">left outer join</span> MEMBER_STATUS dffixedjoin_0_0 <span class="abbreviation">...</span>
                     ) dfrel_4
       <span class="keyword">on</span> dfloc.MEMBER_ID = dfrel_4.MEMBER_ID
-     <span class="keyword">and</span> dfrel_0.DISPLAY_ORDER = <span class="point">dfrel_4</span>.DISPLAY_ORDER
+     <span class="keyword">and</span> <span class="point">dfrel_4</span>.DISPLAY_ORDER = 2
+</code></pre>
+	<p>
+		結合条件の中で、インラインビューの中に含めることができるとDBFluteに自動判別されたものは、インラインビューに展開されます。
+		これにより、ビューマージが発生しないDBMSにおけるパフォーマンス劣化が予防されます。
+		<span class="freecomment">@since 1.0.5A</span>
+	</p>
+<pre><span class="codetitle">e.g. ForeignテーブルのForeignテーブルの自動判別によるインライン展開 @DisplaySql</span><code>
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+    <span class="keyword">left outer join</span> (<span class="keyword">select</span> dffixedbase.*, <span class="point">dffixedjoin_0_0.DISPLAY_ORDER</span>
+                       <span class="keyword">from</span> MEMBER_LOGIN dffixedbase
+                         <span class="keyword">left outer join</span> MEMBER_STATUS dffixedjoin_0_0 <span class="abbreviation">...</span>
+                      <span class="keyword">where</span> <span class="point">dffixedjoin_0_0</span>.DISPLAY_ORDER = 2
+                    ) dfrel_4
+      <span class="keyword">on</span> dfloc.MEMBER_ID = dfrel_4.MEMBER_ID
 </code></pre>
 	<h3 id="foreigncolumnalias">Foreignテーブルのカラムの別名</h3>
 	<p>
@@ -419,7 +434,8 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
         ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
         ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
         ; fixedCondition =
-     <span class="point">$$over($foreignTable.memberStatus, DISPLAY_ORDER)$$</span>.STATUS_ORDER = 2
+<span class="attribute">$$over($localTable.memberStatus)$$</span>.DISPLAY_ORDER
+    = <span class="point">$$over($foreignTable.memberStatus, DISPLAY_ORDER)$$</span>.STATUS_ORDER
         ; fixedSuffix = AsValid
         ; comment = <span class="abbreviation">...</span>
     }

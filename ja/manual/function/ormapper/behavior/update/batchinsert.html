@@ -60,9 +60,11 @@
 		<li><a href="#commoncolumn">共通カラムは自動設定</a></li>
 		<li><a href="#exclusive">排他制御カラムの自動設定</a></li>
 		<li><a href="#nocascade">カスケードはしません</a></li>
-		<li><a href="#defaultvalue">デフォルト制約は利用できない</a>
+		<li><a href="#insertcolumn">insert文に列挙されるカラム</a>
 			<ul>
-				<li><a href="#headache">バッチ登録の悩み</a></li>
+				<li><a href="#modifiedonly">Setterが呼ばれたカラムが登録される <span class="freecomment">@since 1.0.5A</span></a></li>
+				<li><a href="#before105a">1.0.5Aより前のバージョンでは</a></li>
+				<li><a href="#columnsummary">更新系、列挙されるカラムのまとめ</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -80,10 +82,10 @@
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../../topic/programming/dbaccess/batchupdate"> -->DBアクセス - バッチ更新<!-- </a> --></span></div>
 	<p>
 		通常の一件登録の insert() とは違う仕様を持つことがあります。例えば、登録時に自動採番された Identity の値は登録後の Entity
-		の中には格納されません。また、insert 文には全カラム列挙されるため、デフォルト制約を利用することはできません。
+		の中には格納されません。また、insert 文に列挙されるカラムは複数のEntityでの最小公倍数のカラムです<span class="freecomment">(@since 1.0.5A)</span>。
 	</p>
 	<div class="relatedpage"><a href="#autoincrement">this - 自動採番処理の自動化</a></div>
-	<div class="relatedpage"><a href="#defaultvalue">this - デフォルト制約は利用できない</a></div>
+	<div class="relatedpage"><a href="#insertcolumn">this - insert文に列挙されるカラム</a></div>
 	<p>
 		会話上では、<em class="keyword">ばっちいんさーと</em> と表現します。
 	</p>
@@ -180,24 +182,41 @@ List&lt;Member&gt; memberList = <span class="keyword">new</span> ArrayList&lt;Me
 	</p>
 	<div class="relatedpage"><a href="./insert.html#nocascade">insert(entity) - カスケードはしません</a></div>
 
-	<h2 id="defaultvalue">デフォルト制約は利用できない</h2>
+	<h2 id="insertcolumn">insert文に列挙されるカラム</h2>
+	<h3 id="modifiedonly">Setterが呼ばれたカラムが登録される <span class="freecomment">@since 1.0.5A</span></h3>
+	<p>
+		(newされた) Entity の Setter が呼ばれたカラムが、insert 文の項目に列挙されます<span class="freecomment">(@since 1.0.5A)</span>。
+		これを <em class="keyword">ModifedOnly</em> と呼び、一件登録の insert() の方と同じ方式です。
+	</p>
+	<p>
+		ただ、複数のEntityで呼び出しセットがバラバラな場合は、最小公倍数のカラムが列挙されます。
+		ゆえに、一部のEntityで呼び出されなかったカラムの登録では、デフォルト制約が利用されず、固定でnullで登録されます(nullでセットすることを省略したとみなされる)。
+		もちろん、最小公倍数に含まれなかったカラムは、デフォルト制約が有効です。
+	</p>
+	<p>
+		<span class="freecomment">※自動採番のPKや共通カラムや排他制御カラムは、Setterが呼ばれなくても特別な処理で列挙されます。</span>
+	</p>
+	<h3 id="before105a">1.0.5Aより前のバージョンでは</h3>
 	<p>
 		insert 文の項目には全てのカラムが列挙されます。
 		ゆえに、DB上ので設定でデフォルト制約が存在する場合でも、そのデフォルト値を利用して登録することはできません。
 	</p>
+	<div class="relatedpage"><a href="../../../../../environment/upgrade/migration/migrate104Kto105A.html">移行ポイント - 移行 1.0.4K to 1.0.5A</a></div>
 	<p>
 		運用後のDB変更でNotNullのカラム追加をする際は、そのテーブルのBehaviorの batchInsert()
 		の呼び出し処理を確認する必要があります。そのまま何も対応せずカラムだけ追加すると、NotNull制約で落ちる可能性があります。
 		例えば Eclipse であれば、ctrl + shift + G のショートカットで呼び出し階層を検索できます。
 	</p>
 	<div class="relatedpage"><a href="../../../../topic/programming/shortcut/searchcut.html#program">Topic - 検索ショートカット - プログラム周り</a></div>
-	<div class="inucolumn">
-		<h3 id="headache">バッチ登録の悩み</h3>
-		<p>
-			デフォルト制約の話が地味に悩みです。
-		</p>
-		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20121217/1355749396">外部サイト - jfluteの日記 - DBFluteのノリ切れないやつ、バッチ登録</a></div>
-	</div>
+	<p>
+		以前の悩みがこちらです。<span class="freecomment">(ようやく改善しました)</span>
+	</p>
+	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20121217/1355749396">外部サイト - jfluteの日記 - DBFluteのノリ切れないやつ、バッチ登録</a></div>
+	<h3 id="columnsummary">更新系、列挙されるカラムのまとめ</h3>
+	<p>
+		まとめていますので、ぜひご覧を。
+	</p>
+	<div class="detailpage"><a href="./insert.html">insert() - 更新系、列挙されるカラムのまとめ</a></div>
 
 </div>
 </div>
