@@ -81,13 +81,25 @@
 
 	<h2 id="howto">利用方法</h2>
 	<p>
-		この機能は、オプションです。documentDefinitionMap.dfprop の schemaSyncCheckMap
-		で同期チェック対象スキーマの情報を設定し、Manageタスクで
+		この機能は、オプションです。まずは、documentDefinitionMap.dfprop の schemaSyncCheckMap
+		で同期チェック対象スキーマの情報を設定します。
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#schemasynccheckmap">dfprop - schemaSyncCheckMap</a></div>
+<pre><span class="codetitle">e.g. schemaSyncCheckMapの仕様 @documentDefinitionMap.dfprop</span><code>
+; schemaSyncCheckMap = <span class="keyword">map:</span>{
+    ; url = [connection url] <span class="comment"># デフォルト: databaseInfoMap.dfpropのものと同じ</span>
+    ; catalog = [catalog (database name)] <span class="comment"># デフォルト: url から自動判別される</span>
+    ; schema = [schema] <span class="comment"># デフォルト: 設定なし (スキーマの概念のないDBMSでは空指定)</span>
+    ; user = [user] <span class="comment"># 必須</span>
+    ; password = [password] <span class="comment"># デフォルト: 設定なし</span>
+}
+</code></pre>
+	<p>
+		そして、Manageタスクで
 		schema-sync-check を実行すると<span class="freecomment">(@since 0.9.9.7B)</span>、チェック処理が行われるようになります。
 		もし、同期されていない(構造に違いがある)場合はManageタスクがエラーで中断し、[DBFluteクライアント]/output/doc
 		配下に sync-check-result.html <span class="freecomment">(@since 0.9.9.7F)</span> という形式の名前で差分が出力されます。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/documentdefinition/index.html#schemasynccheckmap">dfprop - schemaSyncCheckMap</a></div>
 	<div class="relatedpage"><a href="../manage/index.html">Manageタスク</a></div>
 <pre><span class="codetitle">e.g. Manageタスクで SchemaSyncCheck の実行 (シェル) @Command</span><code>
 <span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh schema-sync-check
