@@ -39,24 +39,98 @@
 <div id="content">
 	<h1>Effective ConditionBean</h1>
 	<ul class="indexlist">
-		<li><a href="#procedure">書き方</a></li>
+		<li><a href="#codeway">コードスタイル</a>
+			<ul>
+				<li><a href="#cb">変数名は cb で</a></li>
+				<li><a href="#implorder">実装順序は、データの取得、絞り込み、並び替え</a></li>
+			</ul>
+		</li>
+		<li><a href="#recycle">再利用</a>
+			<ul>
+				<li><a href="#slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></a></li>
+				<li><a href="#arrange">再利用メソッドの名前は arrangeXxx()</a></li>
+				<li><a href="#javadoc">再利用メソッドには必ずJavaDocを</a></li>
+				<li><a href="#balance">再利用を凝りすぎない</a></li>
+			</ul>
+		</li>
+		<li><a href="#option">実装オプション</a>
+			<ul>
+				<li><a href="#noif">不要なif文を減らそう</a></li>
+				<li><a href="#invalidquery">引数チェックをしよう</a></li>
+				<li><a href="#queryupdate">queryUpdate()を有効活用</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="procedure">書き方</h2>
-	<h3>変数名は cb で</h3>
+	<h2 id="codeway">コードスタイル</h2>
+	<h3 id="cb">変数名は cb で</h3>
 	<p>
-		ConditionBeanの ... TODO jflute 作り途中です
+		みなそうしています。
 	</p>
-<pre><span class="codetitle">e.g. ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員という条件を設定するメソッド @Java</span><code>
-<span class="keyword">public class</span> MemberCQ <span class="keyword">extends</span> BsMemberCQ {
+<pre><span class="codetitle">変数名は cb で @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+</code></pre>
+	<p>
+		SubQueryは subCB, OrScopeQueryは orCB など、コールバックの変数は補完されたままのもので。
+	</p>
+<pre><span class="codetitle">SubQueryは subCB で @Java</span><code>
+cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> query(PurchaseCB <span class="point">subCB</span>) {
+        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+    }
+});
+</code></pre>
+	<p>
+		一つのメソッド内に、複数の ConditionBean を宣言する必要がある場合、つまり二回検索するような場合は、そもそもメソッド分けすると良いでしょう。
+		<span class="freecomment">(できれば、くらいのニュアンスで)</span>
+	</p>
+	<h3 id="implorder">実装順序は、データの取得、絞り込み、並び替え</h3>
+	<p>
+		みながそうすれば、可読性が良くなります。<span class="freecomment">(ぜひとも、くらいのニュアンスで)</span>
+	</p>
+<pre><span class="codetitle">データの取得、絞り込み、並び替え @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
 
+<span class="comment">// データの取得</span>
+cb.setupSelect_MemberStatus();
+
+<span class="comment">// データの絞り込み</span>
+cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+
+<span class="comment">// データの並び替え</span>
+cb.query().addOrderBy_MemberId_Asc();
+
+<span class="comment">// 並び替えの後に絞り込みとかやらない</span>
+<span class="comment">//cb.query().setBirthdate_IsNull();</span>
+
+<span class="comment">// データの取得は一番最初がうれしい</span>
+<span class="comment">//cb.setupSelect_MemberSecurityAsOne();</span>
+
+<span class="comment">// リスト検索</span>
+ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+</code></pre>
+
+	<h2 id="recycle">再利用</h2>
+	<h3 id="slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></h3>
+	<p>
+		検索まるごとを再利用すると、画面間の要求のちょっとしたギャップで分岐がカオスになりがちですし、setupSelect
+		が最小公倍数の指定になって、無駄なデータ取得が発生しやすいです。検索は、絞り込み条件などを細かく分けて再利用する方が扱いやすく効果的です。
+	</p>
+	<p>
+		ジェネレーションギャップを有効活用して、ConditionBean や ConditinoQuery の "Exクラス" に Arrange
+		メソッドを定義して再利用しましょう。<span class="freecomment">(ArrangeQueryと呼ぶ)</span>
+	</p>
+<pre><span class="codetitle">e.g. サービス会員: ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員 @Java</span><code>
+<span class="keyword">public class</span> MemberCQ <span class="keyword">extends</span> BsMemberCQ {
     <span class="abbreviation">...</span>
 
     <span class="comment">/**</span>
-    <span class="comment"> * Arrange the query for selecting service members.</span>
-    <span class="comment"> * o starts 'S'</span>
+    <span class="comment"> * Arrange the query for selecting service members. &lt;br /&gt;</span>
+    <span class="comment"> * &lt;pre&gt;</span>
+    <span class="comment"> * o starts with 'S'</span>
     <span class="comment"> * o status 'Formalized'</span>
     <span class="comment"> * o exists the special product</span>
+    <span class="comment"> * &lt;/pre&gt;</span>
     <span class="comment"> */</span>
     <span class="keyword">public void</span> arrangeServiceMember() {
         setMemberName_PrefixSearch(<span class="literal">"S"</span>);
@@ -69,6 +143,63 @@
     }
 }
 </code></pre>
+<pre><span class="codetitle">e.g. サービス会員を検索 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query().<span class="point">arrangeServiceMember()</span>;
+</code></pre>
+<pre><span class="codetitle">e.g. サービス会員の購入を検索 @Java</span><code>
+PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
+cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
+</code></pre>
+	<p>
+		ConditinoQuery の方が、基点テーブルがどこであるかに依存せず再利用できるのでベターです。
+		ですが、OrScopeQuery や ColumnQuery などは "ConditionBeanドリブン"
+		なので、それらを使う場合は ConditionBean にて。
+	</p>
+	<h3 id="arrange">再利用メソッドの名前は arrangeXxx()</h3>
+	<p>
+		arrangeXxx() という名前がオススメです。みなで合わせれば、補完するときにとりあえず arr
+		で探せば簡単に見つけることができます。<span class="freecomment">(再利用のポイントは、いかに知ってもらうか)</span>
+	</p>
+	<p>
+		(Specify)DerivedReferrer や LoadReferrer のときでも、(特に違和感なければ) arrangeXxx()
+		で良いでしょう。<span class="freecomment">(ここはまあ、好みにおまかせします、くらいのニュアンスで)</span>
+	</p>
+<pre><span class="codetitle">e.g. 最終ログイン日時を取得する再利用メソッド @Java</span><code>
+<span class="keyword">public class</span> MemberCB <span class="keyword">extends</span> BsMemberCB {
+    <span class="abbreviation">...</span>
+
+    <span class="comment">/**</span>
+    <span class="comment"> * Arrange the (Specify)DerivedReferrer for latest login datetime.</span>
+    <span class="comment"> * @return The alias name of the derived column. (NotNull)</span>
+    <span class="comment"> */</span>
+    <span class="keyword">public </span> String arrangeSpecifyLatestLoginDatetime() {
+        String alias = Member.ALIAS_latestLoginDatetime;
+        cb.specify().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
+            <span class="keyword">public void</span> query(MemberLoginCB subCB) {
+                subCB.specify().columnLoginDatetime();
+            }
+        }, alias);
+        <span class="keyword">return</span> alias; <span class="comment">// order by で使うかもしれないので戻しておく</span>
+    }
+}
+</code></pre>
+	<h3 id="javadoc">再利用メソッドには必ずJavaDocを</h3>
+	<p>
+		黙っているメソッドは不安を与え、使ってくれません。
+	</p>
+	<h3 id="balance">再利用を凝りすぎない</h3>
+	<p>
+		完璧な再利用を目指してはいけません。
+	</p>
+	<p>
+		再利用が破綻するよりかは、少しだけでもいいので "確実で安全な再利用" の方が効果があります。
+	</p>
+
+	<h2 id="option">実装オプション</h2>
+	<h3 id="noif">不要なif文を減らそう</h3>
+	<h3 id="invalidquery">引数チェックをしよう</h3>
+	<h3 id="queryupdate">queryUpdate()を有効活用</h3>
 
 </div>
 </div>
