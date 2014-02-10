@@ -45,19 +45,19 @@
 				<li><a href="#implorder">実装順序は、データの取得、絞り込み、並び替え</a></li>
 			</ul>
 		</li>
-		<li><a href="#recycle">再利用</a>
+		<li><a href="#determination">実装判断</a>
+			<ul>
+				<li><a href="#noif">不要なif文を減らそう</a></li>
+				<li><a href="#invalidquery">引数チェックをしよう</a></li>
+				<li><a href="#queryupdate">queryUpdate()を有効活用</a></li>
+			</ul>
+		</li>
+		<li><a href="#recycle">再利用メソッド</a>
 			<ul>
 				<li><a href="#slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></a></li>
 				<li><a href="#arrange">再利用メソッドの名前は arrangeXxx()</a></li>
 				<li><a href="#javadoc">再利用メソッドには必ずJavaDocを</a></li>
 				<li><a href="#balance">再利用を凝りすぎない</a></li>
-			</ul>
-		</li>
-		<li><a href="#option">実装オプション</a>
-			<ul>
-				<li><a href="#noif">不要なif文を減らそう</a></li>
-				<li><a href="#invalidquery">引数チェックをしよう</a></li>
-				<li><a href="#queryupdate">queryUpdate()を有効活用</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -110,10 +110,39 @@ cb.query().addOrderBy_MemberId_Asc();
 ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
 </code></pre>
 
-	<h2 id="recycle">再利用</h2>
+	<h2 id="determination">実装判断</h2>
+	<h3 id="noif">不要なif文を減らそう</h3>
+	<p>
+		条件値がnullや空文字の場合は条件が無視されます。検索画面の検索条件などにぴったりフィットします。
+		この特性をうまく活かしてif文を減らして可読性を良くしましょう。
+	</p>
+<pre><span class="codetitle">nullや空文字なら無視されるので、if文は要らない @Java</span><code>
+cb.query().setMemberId_Equal(memberId);
+cb.query().setMemberName_PrefixSearch(memberPrefix);
+
+<span class="comment">// selectedStatusCode が null なら status も null</span>
+CDef.MemberStatus status = CDef.MemberStatus.codeOf(selectedStatusCode);
+cb.query().setMemberStatusCode_Equal_AsMemberStatus(status);
+</code></pre>
+	<p>
+		ただし、ExistsReferrerなど条件が無い場合はサブクエリごと消えて欲しい場合は、やはりif文が必要なので、何も考えずにif文を外し過ぎないようにしましょう。
+	</p>
+<pre><span class="codetitle">ExistsReferrerの中の条件がなくなったらサブクエリごと無くすif文 @Java</span><code>
+<span class="keyword">if</span> (purchasePriceFrom != null) {
+    cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
+        <span class="keyword">public void</span> query(PurchaseCB subCB) {
+            subCB.query().setPurchasePrice_GreaterEqual(purchasePriceFrom);
+        }
+    });
+}
+</code></pre>
+	<h3 id="invalidquery">引数チェックをしよう</h3>
+	<h3 id="queryupdate">queryUpdate()を有効活用</h3>
+
+	<h2 id="recycle">再利用メソッド</h2>
 	<h3 id="slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></h3>
 	<p>
-		検索まるごとを再利用すると、画面間の要求のちょっとしたギャップで分岐がカオスになりがちですし、setupSelect
+		検索をまるごと再利用すると、画面間の要求のちょっとしたギャップで分岐がカオスになりがちですし、setupSelect
 		が最小公倍数の指定になって、無駄なデータ取得が発生しやすいです。検索は、絞り込み条件などを細かく分けて再利用する方が扱いやすく効果的です。
 	</p>
 	<p>
@@ -195,11 +224,6 @@ cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
 	<p>
 		再利用が破綻するよりかは、少しだけでもいいので "確実で安全な再利用" の方が効果があります。
 	</p>
-
-	<h2 id="option">実装オプション</h2>
-	<h3 id="noif">不要なif文を減らそう</h3>
-	<h3 id="invalidquery">引数チェックをしよう</h3>
-	<h3 id="queryupdate">queryUpdate()を有効活用</h3>
 
 </div>
 </div>
