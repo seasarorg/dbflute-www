@@ -115,25 +115,38 @@
 
 	<h3 id="propertytype">property-type (*)</h3>
 	<p>
-		型を指定します。
+		プロパティ型を指定します。
 	</p>
 	<dl class="textlist">
-		<dt>値候補</dt><dd>String, Number, Date</dd>
+		<dt>値候補</dt><dd>String, Number, Date, OrderBy<span class="freecomment">(@since 1.0.5B)</span>, Myself<span class="freecomment">(@since 1.0.5B)</span></dd>
 		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>String, Number, Dateと、データ型ごとに指定できる</li>
+				<li>OrderByは、データ型ごとではなくひとまとまりである</li>
+				<li>OrderByは、ConditionKeyとして Asc, Desc が指定できる</li>
+				<li>Myselfは、ScalarConditionやMyselfDerivedなどの単一PKに紐づくものが指定できる</li>
+				<li>Myselfは、カラムの指定が意味をなさないのでカラム指定はしない</li>
+			</ul>
+		</dd>
 	</dl>
 	<h3 id="conditionkey">condition-key (*)</h3>
 	<p>
-		生成対象の ConditionKey を指定します。"!" を付けると除外指定になります。
+		生成対象の ConditionKey を指定します。それぞれ先頭に "!" を付けると除外指定になります。
 	</p>
 	<dl class="textlist">
 		<dt>値候補</dt>
 		<dd>
 			NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual,
 			InScope, NotInScope, PrefixSearch, LikeSearch, NotLikeSearch,
-			EmptyString, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>, RangeOf<span class="freecomment">(@since 0.9.9.2C)</span>
+			EmptyString, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>, RangeOf<span class="freecomment">(@since 0.9.9.2C)</span>,
 		</dd>
 		<dd>
-			※除外指定する場合は、先頭に "!" を付ける e.g. !GreaterThan <span class="freecomment">(@since 0.9.9.0C)</span>
+			Asc, Desc <span class="freecomment">※OrderByで利用可能 (@since 1.0.5B)</span>
+		</dd>
+		<dd>
+			ScalarCondition, MyselfDerived, MyselfExists, MyselfInScope <span class="freecomment">※Myselfで利用可能 (@since 1.0.5B)</span>
 		</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 		<dt>補足</dt>
@@ -147,6 +160,8 @@
 					が対象となり、それらメソッドの定義とは独立した設定となる。
 					(例えば、NotEqual自体が無効になっていても、EmptyStringが有効であれば、EmptyStringのNotEqualメソッドは生成される)
 				</li>
+				<li>Asc, Desc は OrderBy 専用</li>
+				<li>ScalarCondition, MyselfDerived などは Myself 専用</li>
 			</ul>
 		</dd>
 	</dl>
@@ -159,11 +174,12 @@
 		対象とするテーブル名を指定します。
 	</p>
 	<dl class="textlist">
-		<dt>値候補</dt><dd>テーブルの名前 (自動生成対象になっていること) or $$ALL$$</dd>
+		<dt>値候補</dt><dd>(自動生成対象)テーブルの名前 or $$ALL$$</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 		<dd>
 			<ul class="supplementlist">
 				<li>$$ALL$$ の場合は、対象カラムが存在する全てのテーブルに対して有効に</li>
+				<li>prefix:, suffix:などを使って曖昧検索もできる <span class="freecomment">e.g. suffix:_STATUS</span> <span class="freecomment">(@since 1.0.5B)</span></li>
 			</ul>
 		</dd>
 	</dl>
@@ -178,9 +194,15 @@
 			<ul class="supplementlist">
 				<li>$$CommonColumn$$ の場合は、共通カラム全てを指定したことになる</li>
 				<li>$$VersionNo$$ の場合は、バージョン番号カラムを指定したことになる</li>
+				<li><em class="keyword">prefix:</em>, <em class="keyword">suffix:</em> などを使って曖昧検索もできる <span class="freecomment">e.g. suffix:_ORDER</span> <span class="freecomment">(@since 1.0.5B)</span></li>
+				<li><em class="keyword">type:</em> を使ってデータ型(JDBC型)による検索もできる <span class="freecomment">e.g. type:CLOB</span> <span class="freecomment">(@since 1.0.5B)</span></li>
+				<li>プロパティ型が Myself のときは空っぽでOK <span class="freecomment">(指定するものがないため)</span> <span class="freecomment">(@since 1.0.5B)</span></li>
 			</ul>
 		</dd>
 	</dl>
+	<p>
+		type: を使ったJDBC型指定は、ConditionKeyでの除外指定と組み合わせて、例えば「テキスト型に対するInScopeやNotEqualを抑制する」のに使うとよいでしょう。
+	</p>
 
 	<h2 id="example">Example</h2>
 <pre><span class="codetitle">e.g. 文字列型カラムの大なり小なり比較を生成しない設定例 @includeQueryMap.dfprop</span><code>
