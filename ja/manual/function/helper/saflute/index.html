@@ -49,6 +49,7 @@
 			<ul>
 				<li><a href="#conceptmap">アーキテクチャ概念マップ</a></li>
 				<li><a href="#twoapproach">きっかけを作った二つのアプローチ</a></li>
+				<li><a href="#deepworld">深みにはまっていった結果</a></li>
 			</ul>
 		</li>
 		<li><a href="#nameidentity">Action/JSP Name Identity</a>
@@ -58,7 +59,7 @@
 				<li><a href="#compatiblename">通常のやり方と互換性があり</a></li>
 			</ul>
 		</li>
-		<li><a href="#returntypesafe">Action Return TypeSafe</a>
+		<li><a href="#typesafereturn">Action TypeSafe Return</a>
 			<ul>
 				<li><a href="#gogotypesafe">タイプセーフな戻り値指定</a></li>
 				<li><a href="#freegenjsp">FreeGenでJSPのパス定義を自動生成</a></li>
@@ -67,6 +68,13 @@
 			</ul>
 		</li>
 		<li><a href="#livingtogether">SAStrutsと半同棲の三ヶ月</a></li>
+		<li><a href="#responsereturn">Action Response Return</a>
+			<ul>
+				<li><a href="#jsonresponse">JsonResponse</a></li>
+				<li><a href="#xmlresponse">XmlResponse</a></li>
+				<li><a href="#streamresponse">StreamResponse</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">SAFluteとは？</h2>
@@ -108,11 +116,15 @@
 	<h3 id="twoapproach">きっかけを作った二つのアプローチ</h3>
 	<p>
 		SAFluteには、様々な最適化が施されていますが、それらを実装するきっかけを作った最初の二つのアプローチがあります。
-		これらの実装から全ては始まり、どんどん深みに入っていきました。
+		これらの実装から全ては始まり、どんどん深みにはまっていきました。
 	</p>
 	<dl class="longkeymainlist">
 		<dt><a href="#nameidentity">Action, JSP Name Identity</a></dt><dd>ActionクラスやJSPファイルの名前を識別しやすく</dd>
-		<dt><a href="#returntypesafe">Action Return TypeSafe</a></dt><dd>Actionの@Executeメソッドの戻り値をタイプセーフに</dd>
+		<dt><a href="#typesafereturn">Action TypeSafe Return</a></dt><dd>Actionの@Executeメソッドの戻り値をタイプセーフに</dd>
+	</dl>
+	<h3 id="deepworld">深みにはまっていった結果</h3>
+	<dl class="longkeymainlist">
+		<dt><a href="#responsereturn">Action Response Return</a></dt><dd>JSON や Stream をオブジェクト型を戻す</dd>
 	</dl>
 
 	<h2 id="nameidentity">Action/JSP Name Identity</h2>
@@ -164,7 +176,7 @@
 		単にマッピングの対象となるクラスが増えただけであり、既に通常のSAStruts構成のアプリにも適用しやすくなっています。
 	</p>
 
-	<h2 id="returntypesafe">Action Return TypeSafe</h2>
+	<h2 id="typesafereturn">Action TypeSafe Return</h2>
 	<h3 id="gogotypesafe">タイプセーフな戻り値指定</h3>
 	<p>
 		Actionクラスの@Executeのメソッドの戻り値をタイプセーフに実装できます。
@@ -221,6 +233,52 @@
 		</p>
 		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20130302/1362151960">外部サイト - SAStrutsと半同棲の三ヶ月</a></div>
 	</div>
+
+	<h2 id="responsereturn">Action Response Return</h2>
+	<p>
+		さらには Action の戻り値で、JSON を戻したり Stream を戻したりなど、Responseに直接書き込み系の戻りをオブジェクトとして指定できるようにしています。
+		(自分で Response に write するのではなく、オブジェクト型を戻すだけ)
+	</p>
+	<h3 id="jsonresponse">JsonResponse</h3>
+	<p>
+		Actionの@Executeメソッドの戻り値の型を JsonResponse にして...
+	</p>
+<pre><span class="codetitle">e.g. JsonResponseを戻す @Java</span><code>
+@Execute(validator = <span class="keyword">false</span>)
+<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/json</span>
+    FooWebBean bean = <span class="abbreviation">...</span>;
+    <span class="keyword">return new</span> JsonResponse(bean);
+}
+</code></pre>
+<pre><span class="codetitle">e.g. JSONP形式の JsonResponse を戻す @Java</span><code>
+@Execute(validator = <span class="keyword">false</span>)
+<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/javascript</span>
+    FooWebBean bean = <span class="abbreviation">...</span>;
+    <span class="keyword">return new</span> JsonResponse(bean).asJsonp(<span class="literal">"callback"</span>);
+}
+</code></pre>
+	<h3 id="xmlresponse">XmlResponse</h3>
+	<p>
+		Actionの@Executeメソッドの戻り値の型を XmlResponse にして...
+	</p>
+<pre><span class="codetitle">e.g. XmlResponseを戻す @Java</span><code>
+@Execute(validator = <span class="keyword">false</span>)
+<span class="keyword">public</span> <span class="point">XmlResponse</span> submit() { <span class="comment">// text/xml</span>
+    String xmlStr = <span class="abbreviation">...</span>;
+    <span class="keyword">return new</span> XmlResponse(xmlStr);
+}
+</code></pre>
+	<h3 id="streamresponse">StreamResponse</h3>
+	<p>
+		Actionの@Executeメソッドの戻り値の型を StreamResponse にして...
+	</p>
+<pre><span class="codetitle">e.g. StreamResponseを戻す (ダウンロードする) @Java</span><code>
+@Execute(validator = <span class="keyword">false</span>)
+<span class="keyword">public</span> <span class="point">StreamResponse</span> submit() { <span class="comment">// application/octet-stream</span>
+    InputStream ins = <span class="abbreviation">...</span>;
+    <span class="keyword">return new</span> StreamResponse(<span class="literal">"dbflute.pdf"</span>).stream(ins);
+}
+</code></pre>
 
 </div>
 </div>
