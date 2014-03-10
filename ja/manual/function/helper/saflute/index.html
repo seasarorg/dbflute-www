@@ -68,11 +68,22 @@
 			</ul>
 		</li>
 		<li><a href="#livingtogether">SAStrutsと半同棲の三ヶ月</a></li>
-		<li><a href="#responsereturn">Action Response Return</a>
+		<li><a href="#actioncallback">Action Callback</a>
 			<ul>
+				<li><a href="#interceptorheadache">Interceptorの悩み</a></li>
+				<li><a href="#actionimpl">前後処理をAction自身に書く</a></li>
+				<li><a href="#godhand">godHandBefore(), godHandFinally()</a></li>
+				<li><a href="#subcallback">callbackBefore(), callbackFinally()</a></li>
+				<li><a href="#callbackdisp">画面描画処理は callbackFinally() にて</a></li>
+				<li><a href="#nandemocallback">認証チェックや業務例外ハンドリングなどなど</a></li>
+			</ul>
+		</li>
+		<li><a href="#jsonhandling">Action Json Handling</a>
+			<ul>
+				<li><a href="#jsonparameter">JsonParameter</a></li>
 				<li><a href="#jsonresponse">JsonResponse</a></li>
-				<li><a href="#xmlresponse">XmlResponse</a></li>
-				<li><a href="#streamresponse">StreamResponse</a></li>
+				<li><a href="#xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></a></li>
+				<li><a href="#streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -124,7 +135,8 @@
 	</dl>
 	<h3 id="deepworld">深みにはまっていった結果</h3>
 	<dl class="longkeymainlist">
-		<dt><a href="#responsereturn">Action Response Return</a></dt><dd>JSON や Stream をオブジェクト型を戻す</dd>
+		<dt><a href="#actioncallback">Action Callback</a></dt><dd>前後処理をInterceptorではなくActionで</dd>
+		<dt><a href="#jsonhandling">Action Json Handling</a></dt><dd>JSONでのやり取りをオブジェクト型で</dd>
 	</dl>
 
 	<h2 id="nameidentity">Action/JSP Name Identity</h2>
@@ -234,12 +246,143 @@
 		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20130302/1362151960">外部サイト - SAStrutsと半同棲の三ヶ月</a></div>
 	</div>
 
-	<h2 id="responsereturn">Action Response Return</h2>
+	<h2 id="actioncallback">Action Callback</h2>
+	<h3 id="interceptorheadache">Interceptorの悩み</h3>
 	<p>
-		さらには Action の戻り値で、JSON を戻したり Stream を戻したりなど、Responseに直接書き込み系の戻りをオブジェクトとして指定できるようにしています。
+		Interceptorによる横断処理には以下の二つの問題があると考えました。
+	</p>
+	<dl class="keymainlist">
+		<dt>バリデーションよりも後</dt><dd>バリデーションエラーになると実行されない</dd>
+		<dt>Interceptorだらけ</dt><dd>StackTraceの汚れ、追いかけづらく、親近感が湧かない</dd>
+	</dl>
+	<h3 id="actionimpl">前後処理をAction自身に書く</h3>
+	<p>
+		ServletFilterでは、まだどのActionが実行されるかわからないので業務的な処理が書きづらく、そもそも扱いやすさでは
+		Interceptor とあまり変わりがありません。
+	</p>
+	<p>
+		そこで、"Strutsを通過した後、バリデーションよりも前"
+		のタイミングにて、Action自身に前後処理を書けるようにしています。
+		それを ActionCallback と呼んでいます。
+	</p>
+	<p>
+		それにより、すぐ近くにあって追いかけやすく親近感も湧き、Interceptorチェーンによる StackTrace
+		も汚れもなく、そして、Actionクラスにてオーバーライドすることで簡単に挙動も変更することもできます。
+	</p>
+	<h3 id="godhand">godHandBefore(), godHandFinally()</h3>
+	<p>
+		SAFluteでは、全てのActionで共通のスーパークラスを継承することを推奨しています。
+		そのスーパークラスにて、godHandBefore(), godHandFinally()を実装すると、リクエスト時に前後処理として呼び出されます。
+	</p>
+	<dl class="keymainlist">
+		<dt>godHandBefore()</dt><dd>バリデーションよりも前のタイミング</dd>
+		<dt>godHandFinally()</dt><dd>正常終了でもバリデーションエラーでも最後に必ず呼ばれる</dd>
+	</dl>
+<pre><span class="codetitle">e.g. Actionのスーパークラスにて、共通の前後処理を実装 @Java</span><code>
+@Override
+<span class="keyword">public</span> String godHandBefore(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">final</span> String path = <span class="keyword">super</span>.godHandBefore(executeMeta);
+    <span class="keyword">if</span> (path != null) {
+        return path;
+    }
+    <span class="keyword">final</span> String sslRedirect = processSslRedirect(executeMeta);
+    <span class="keyword">if</span> (sslRedirect != null) {
+        return sslRedirect;
+    }
+    processTrackingCode();
+    processUserAgent();
+    <span class="keyword">return null</span>;
+}
+
+@Override
+<span class="keyword">public void</span> godHandFinally(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
+        <span class="keyword">if</span> (userWebBean == <span class="keyword">null</span>) { <span class="comment">// basically true, however just in case</span>
+            <span class="keyword">final</span> MemberUserBean userBean = getUserBean();
+            userWebBean = <span class="keyword">new</span> MemberUserWebBean();
+            userWebBean.initialize(userBean, convertCoinLogic);
+        }
+    }
+    <span class="keyword">super</span>.godHandFinally(executeMeta);
+}
+</code></pre>
+	<h3 id="subcallback">callbackBefore(), callbackFinally()</h3>
+	<p>
+		godHandXxx()は、スーパークラス用のメソッドとして用意しています<span class="freecomment">(別にサブクラスでもオーバーライドできてしまいますが、やらないように)</span>。
+		サブクラス、つまり、末端の具象クラスのためのメソッドとして、callbackBefore(), callbackFinally() を用意しています。
+	</p>
+	<dl class="keymainlist">
+		<dt>callbackBefore()</dt><dd>godHandBefore()と仕様は同じ</dd>
+		<dt>callbackFinally()</dt><dd>godHandFinally()と仕様は同じ</dd>
+	</dl>
+	<p>
+		わざわざ分けているのは、画面開発者がオーバーライドするときに super
+		呼び忘れるトラブル<span class="freecomment">(何も動かなくなる事件)</span>が起きないようにするためで、super
+		を呼び忘れても問題のないサブクラス専用のメソッドを提供しています。
+	</p>
+	<p>
+		わざと、サブクラス用の方が覚えやすいまともな名前にしています。
+		godHandなんてメソッド、通常のコード補完で見ることほぼないでしょうし、見つけてもきもちわるくてオーバーライドしようとは思わないでしょう。
+		<span class="freecomment">(一方で、インパクトがありすぎてすぐに覚えちゃうという話もあるようですが...)</span>
+	</p>
+	<h3 id="callbackdisp">画面描画処理は callbackFinally() にて</h3>
+	<p>
+		サブクラスでの callback は、画面内リクエスト共通処理という扱いになります。
+		用途としては、例えば、画面描画のためのデータ準備処理を callbackFinally() で実装すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. Actionのサブクラスにて、画面描画処理をcallbackFinally()で実装 @Java</span><code>
+@Override
+<span class="keyword">public void</span> callbackFinally(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
+        <span class="abbreviation">...</span> <span class="comment">// そのJSPを描画するための準備処理</span>
+    }
+    <span class="keyword">super</span>.godHandFinally(executeMeta);
+}
+</code></pre>
+	<p>
+		こうすると、バリデーションエラーのときでも実行されます。@Execute の input
+		属性には、JSPをそのまま指定してOKです。
+		<span class="freecomment">(描画用の@Executeメソッドを用意してフォワードするやり方は、その入り口は外からは本来不要ですし、Interceptor
+		もまた動いてしまいますし、何かとスパゲッティになりがちなので推奨されません)</span>
+	</p>
+<pre><span class="codetitle">e.g. 画面描画処理は callbackFinally() でやるので、inputは普通にJSPを指定 @Java</span><code>
+<span class="comment">// input属性には、JSPを指定するのが流儀</span>
+@Execute(validate = <span class="literal">"doValidate"</span>, input = <span class="point">path_Member_MemberEditJsp</span>)
+<span class="keyword">public void</span> submit() {
+    <span class="abbreviation">...</span>;
+}
+</code></pre>
+	<h3 id="nandemocallback">認証チェックや業務例外ハンドリングなどなど</h3>
+	<p>
+		もろもろ ActionCallback で処理を行っています。<span class="freecomment">(Interceptorを "あまり" 使わないがSAFluteの流儀)</span>
+	</p>
+	<p>
+		SAFluteのフレームワーク<span class="freecomment">(TypicalBaseAction)</span>にて、既に以下の処理が ActionCallback に組み込まれています。
+	</p>
+	<ul>
+		<li>DBFluteの共通カラム自動設定のための AccessContext の初期化</li>
+		<li>DBFluteのSQL呼び出しActionのSQLコメントへの埋め込み CallbackContext の初期化</li>
+		<li>DBFluteのリクエスト内SQL発行階数のカウント CallbackContext の初期化とロギング処理</li>
+		<li>ログインチェック、自動ログインも含む</li>
+		<li>業務例外のハンドリング</li>
+		<li>Responseに no cache を付与</li>
+	</ul>
+
+	<h2 id="jsonhandling">Action Json Handling</h2>
+	<h3 id="jsonparameter">JsonParameter</h3>
+	<p>
+		ActionFormのプロパティに @JsonParameter
+		を付けると、リクエストパラメーターのJSON文字列をパースして、Beanにマッピングしてくれます。
+	</p>
+<pre><span class="codetitle">e.g. JsonParameterでJSONをBeanで受け取る (ActionFormにて) @Java</span><code>
+<span class="point">@JsonParameter</span>
+<span class="keyword">public</span> FooWebBean <span class="attribute">jsonBean</span>;
+</code></pre>
+	<h3 id="jsonresponse">JsonResponse</h3>
+	<p>
+		さらには Action の戻り値で、JSON をオブジェクトとして指定できるようにしています。
 		(自分で Response に write するのではなく、オブジェクト型を戻すだけ)
 	</p>
-	<h3 id="jsonresponse">JsonResponse</h3>
 	<p>
 		Actionの@Executeメソッドの戻り値の型を JsonResponse にして...
 	</p>
@@ -247,7 +390,7 @@
 @Execute(validator = <span class="keyword">false</span>)
 <span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/json</span>
     FooWebBean bean = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> JsonResponse(bean);
+    <span class="keyword">return new</span> JsonResponse(bean); <span class="comment">// JSONになって欲しいBeanを引数に</span>
 }
 </code></pre>
 <pre><span class="codetitle">e.g. JSONP形式の JsonResponse を戻す @Java</span><code>
@@ -257,9 +400,9 @@
     <span class="keyword">return new</span> JsonResponse(bean).asJsonp(<span class="literal">"callback"</span>);
 }
 </code></pre>
-	<h3 id="xmlresponse">XmlResponse</h3>
+	<h3 id="xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></h3>
 	<p>
-		Actionの@Executeメソッドの戻り値の型を XmlResponse にして...
+		XMLも指定できます。Actionの@Executeメソッドの戻り値の型を XmlResponse にして...
 	</p>
 <pre><span class="codetitle">e.g. XmlResponseを戻す @Java</span><code>
 @Execute(validator = <span class="keyword">false</span>)
@@ -268,7 +411,7 @@
     <span class="keyword">return new</span> XmlResponse(xmlStr);
 }
 </code></pre>
-	<h3 id="streamresponse">StreamResponse</h3>
+	<h3 id="streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></h3>
 	<p>
 		Actionの@Executeメソッドの戻り値の型を StreamResponse にして...
 	</p>
