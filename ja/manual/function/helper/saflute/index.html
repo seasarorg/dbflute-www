@@ -86,6 +86,15 @@
 				<li><a href="#streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#objsafeprop">Objective Typesafe Properties</a>
+			<ul>
+				<li><a href="#simpleprop">Propertiesはとてもシンプル</a></li>
+				<li><a href="#antidiconfig">これはやめたい！diconの環境ごとの切り替え</a></li>
+				<li><a href="#envprop">Properties 切り替えに PropertiesHTML チェック <span class="freecomment">☆</span></a></li>
+				<li><a href="#objectiveprop">継承できる Properties <span class="freecomment">☆</span></a></li>
+				<li><a href="#typesafeprop">タイプセーフな Properties <span class="freecomment">☆</span></a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">SAFluteとは？</h2>
@@ -137,6 +146,7 @@
 	<dl class="longkeymainlist">
 		<dt><a href="#actioncallback">Action Callback</a></dt><dd>前後処理をInterceptorではなくActionで</dd>
 		<dt><a href="#jsonhandling">Action Json Handling</a></dt><dd>JSONでのやり取りをオブジェクト型で</dd>
+		<dt><a href="#objsafeprop">Objective Typesafe Properties</a></dt><dd>継承できてタイプセーフなProperties</dd>
 	</dl>
 
 	<h2 id="nameidentity">Action/JSP Name Identity</h2>
@@ -422,6 +432,160 @@
     <span class="keyword">return new</span> StreamResponse(<span class="literal">"dbflute.pdf"</span>).stream(ins);
 }
 </code></pre>
+
+	<h2 id="objsafeprop">Objective Typesafe Properties</h2>
+	<h3 id="simpleprop">Propertiesはとてもシンプル</h3>
+	<p>
+		プログラムにハードコードしたくないコンフィグや環境依存のコンフィグなどの管理に、Javaの古来からある
+		Properties (.propertiesファイル) を利用しています。
+	</p>
+	<p>
+		Javaの経験の長い人であれば、Propertiesとは古いなぁと思われるかもしれません。
+		XMLに移り変わって、最近ではJSON形式でプロパティを管理する現場もあるかと思います。
+		ですが、Propertiesは構造を扱えない単なるkey-valueで、逆に不自由でとてもシンプルであるという一面に着目しました。
+	</p>
+	<h3 id="antidiconfig">これはやめたい！diconの環境ごとの切り替え</h3>
+	<p>
+		とにかく一番避けたいと思ったのは、diconファイルなどDIコンテナのコンポーネント管理をするファイルに環境依存のコンフィグ値を埋め込んで、ローカル、結合、本番と切り分ける方法です。
+	</p>
+<pre><span class="codetitle">e.g. これはやめたい！Diconファイルに環境依存の値を埋め込んで本番では切り替える @Dicon</span><code>
+&lt;component name="foo" class="Foo"&gt;
+    <span class="point">&lt;property name="key">bar&lt;/property&gt;</span>
+&lt;/component&gt;
+</code></pre>
+	<p>
+		diconファイルは、たまたまXMLファイルの形式をとっていますが、いわゆる設定ファイルというよりかは、<em class="keyword">コンポーネントの生成と依存関係のロジック</em>
+		だと捉えています。
+	</p>
+	<p>
+		クラス構造が変わったり、依存関係が変わったら修正する必要があります。
+		すると、時には環境依存のコンフィグ値は何も変わっていないのに本番用のファイルを修正しないといけないことも。
+		本番用のファイルは厳密には本番でしかテストできません。できるだけ修正する階数は減らしたいものです。
+		そして、環境依存のコンフィグ値は、間違いを起こしにくくチェックもしやすいシンプルな構造で管理したいものです。
+	</p>
+	<h3 id="envprop">Properties 切り替えに PropertiesHTML チェック <span class="freecomment">☆</span></h3>
+	<p>
+		SAFluteでは、環境依存のコンフィグ値を [アプリ名]_env.properties という Properties
+		で管理して、環境ごとに切り替えます。
+		また、環境依存でないコンフィグ値も、統一性や管理のしやすさの面、そして、いざ環境依存に変わってもプログラムに影響がないように、同じく Properties
+		で管理します。
+	</p>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでの環境ごとのProperties @Directory</span><code>
+maihama-common
+ |-src/main/resources
+ |  |-maihama_config.properties <span class="comment">// 環境依存しないコンフィグ</span>
+ |  |-<span class="point">maihama_env.properties</span> <span class="comment">// ローカル環境用のコンフィグ (環境ごとにコピーされる)</span>
+ |
+ |-src/main/integration
+ |  |-maihama_env.properties <span class="comment">// 結合環境用のコンフィグ</span>
+ |
+ |-src/main/production
+ |  |-maihama_env.properties <span class="comment">// 本番環境用のコンフィグ</span>
+</code></pre>
+	<p>
+		とはいえ、Propertiesの差分をDIFFツールなどで見ようとすると、なかなか見づらいものです。
+		なぜなら、value値は違う値が入っていて当然で差分ノイズが出てしまうからです。
+		これはXMLでもなんでもファイルを切り替えれば同じですが、Propertiesがシンプルで不自由がゆえに、それを支援する機能が利用できます。
+	</p>
+	<p>
+		DBFlute の PropertiesHTML を使って、キー値の差分をチェックすることができます。
+		どの環境のファイルに、どのキーが余計で、どのキーが足りていないかが一目瞭然です。
+		これを使って、環境ごとのコンフィグ値の追加や修正による作業ミスをチェックすることができます。
+	</p>
+	<div class="detailpage"><a href="../../generator/task/doc/propertieshtml.html">Docタスク - PropertiesHTML</a></div>
+	<p class="imgbox">PropertiesHtmlのDIFF部分の例
+		<a href="../../../../data/model/doc-PropertiesHtml-Diff-example.png" title="PropertiesHTML Diff Example"><img src="../../../../data/model/doc-PropertiesHtml-Diff-example.png" alt="PropertiesHTML Diff Example" width="550" height="130" /></a>
+	</p>
+	<p>
+		"Propertiesは不自由である" というのがここで効きます。自由度が高すぎると、こういったチェックツールを作るのが大変になります。
+		<span class="freecomment">(XMLの差分ドキュメントも作ろうともしましたが、ちょっと挫折しています...)</span>
+	</p>
+	<h3 id="objectiveprop">継承できる Properties <span class="freecomment">☆</span></h3>
+	<p>
+		通常の Properties のいやなところ、プロジェクト共通のプロパティもアプリ(ドメイン)ごとにコピーしないといけないところ。
+		コンフィグだけでなくバリデーションエラーなどの画面表示するメッセージ(いわゆるメッセージリソース)も、文言が変わったらアプリごとにコピーした
+		Properties を修正しなければなりませんでした。
+	</p>
+	<p>
+		SAFluteでは、Propertiesを継承できるようにし、共通の .properties ファイルとアプリごとの .properties
+		ファイルを分けながらも、Java側では同じインターフェースで取得できます。
+	</p>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでのProperties継承構造 @Directory</span><code>
+maihama-common
+ |-src/main/resources
+    |-maihama_config.properties <span class="comment">// スーパークラスならぬスーパーProperties</span>
+    |-maihama_env.properties <span class="comment">// さらにスーパーProperties</span>
+    |-maihama_message.properties <span class="comment">// 共通のメッセージリソース</span>
+
+maihama-dockside
+ |-src/main/resources
+ |  |-dockside_config.properties <span class="comment">// サブクラスならぬサブProperties</span>
+ |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
+</code></pre>
+<pre><span class="codetitle">e.g. maihama_config.properties に定義されてる foo.bar のプロパティを取得 @Java</span><code>
+<span class="comment">// maihama_config のプロパティも docksideConfig インターフェースから取得できる</span>
+<span class="comment">// (ここでは、"foo.bar" というキー値のプロパティを取得している)</span>
+String prop = docksideConfig.getFooBar();
+</code></pre>
+	<p>
+		ちなみに、環境依存しないPropertiesと環境依存するPropertiesも継承関係にあるため、移動しても呼び出し側プログラムを修正する必要はありません。
+	</p>
+	<p>
+		もちろん、プロパティをオーバーライドすることもできます。
+		プロパティの一行コメントに、@Overrideというアノテーションを付けるとオーバーライドできます。
+	</p>
+<pre><span class="codetitle">e.g. @Overrideアノテーションを付けて明示的オーバーライド @Properties</span><code>
+<span class="comment"># @Override fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span>
+foo.bar = ABC
+</code></pre>
+	<p>
+		@Overrideを付けずにオーバーライドすると、例外になります。
+		あくまで設定ファイルですから、暗黙のオーバーライドによるトラブルが発生しないようにしています。
+	</p>
+	<h3 id="typesafeprop">タイプセーフな Properties <span class="freecomment">☆</span></h3>
+	<p>
+		そしてこれが一番の特徴です。Javaプログラムの中で、キー値をハードコードせずにプロパティ値を取得することができます。
+		DBFluteのFreeGenを使って、キー値に対応するメソッドを自動生成します。
+	</p>
+<pre><span class="codetitle">e.g. FreeGenを使って Properties のインターフェースを自動生成 @Java</span><code>
+<span class="comment">// "foo.bar" というプロパティがあったら getFooBar()</span>
+String prop = docksideConfig.<span class="point">getFooBar()</span>;
+</code></pre>
+<pre><span class="codetitle">e.g. メッセージリソースのインターフェースも自動生成 @Java</span><code>
+DocksideMessages messages = createActionMessages();
+<span class="keyword">if</span> (<span class="abbreviation">...</span>) { <span class="comment">// Formの値をチェックして</span>
+    <span class="comment">// "errors.foo.bar" というプロパティがあったら addErrorsFooBar()</span>
+    messages.<span class="point">addErrorsFooBar</span>(<span class="abbreviation">...</span>); <span class="comment">// 引数はFormのプロパティ名と{0}などのパラメーター</span>
+}
+</code></pre>
+	<p>
+		自動生成時に参照したプロパティの値がtrue/falseであれば boolean を戻す isXxx()
+		メソッドが、数値であれば Integer を戻す getXxxAsInteger()
+		というメソッドも一緒に自動生成されます。
+	</p>
+<pre><span class="codetitle">e.g. boolean を戻す Properties のメソッド @Java</span><code>
+<span class="comment">// "foo.bar" というプロパティの値が true or false だったら isFooBar()</span>
+<span class="keyword">if</span> (docksideConfig.<span class="point">isFooBar()</span>) {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		また、メソッドのJavaDocコメントには、キー値に加え、自動生成時に使ったプロパティ値と一行コメントを参考に載せています。
+		わざわざ .properties ファイルまで見に行かなくても、プログラミング中にそのプロパティがどんなものなのかを補完しながら理解することができます。
+	</p>
+<pre><span class="codetitle">e.g. 自動生成された Properties のインターフェースのメソッドのJavaDoc @Java</span><code>
+<span class="comment">/**</span>
+<span class="comment"> * Get the value for the key <span class="point">'foo.bar'</span>. &lt;br /&gt;</span>
+<span class="comment"> * The value is, e.g. <span class="point">ABC</span> &lt;br /&gt;</span>
+<span class="comment"> * comment: <span class="point">fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span></span>
+<span class="comment"> * @return The value of found property. (NullAllowed: if null, not found)</span>
+<span class="comment"> */</span>
+String getFooBar();
+</code></pre>
+	<p>
+		プロパティのキーを打ち間違えることもなく、プロパティのキーが変われば自動生成し直せばコンパイルエラーで検知、
+		そのプロパティを利用している箇所を洗い出したかったら、メソッドの呼び出し階層をIDE(Eclipseとか)で検索、そんな Properties です。
+	</p>
 
 </div>
 </div>
