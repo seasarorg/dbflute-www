@@ -39,7 +39,12 @@
 <div id="content">
 	<h1>暗号化・復号化処理の組込み (GearedCipher)</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#invertiblecase">可逆のケース</a></li>
+				<li><a href="#noninvertiblecase">不可逆のケース</a></li>
+			</ul>
+		</li>
 		<li><a href="#howto">組み込みのやり方</a>
 			<ul>
 				<li><a href="#dbfluteconfig">DBFluteConfig</a></li>
@@ -64,12 +69,51 @@
 	<p>
 		これを、<em class="keyword">GearedCipher</em> と呼びます。
 	</p>
+	<h3 id="invertiblecase">可逆のケース</h3>
+	<p>
+		Behaviorで更新すると...
+	</p>
+<pre><span class="codetitle">e.g. Behavior の updateNonstrict() で暗号化 {MEMBER.UPDATE_USER} @Java</span><code>
+Member security = <span class="keyword">new</span> Member();
+security.setMemberId(<span class="literal">3</span>);
+security.<span class="point">setUpdateUser</span>(<span class="literal">"foo"</span>); <span class="comment">// プレーンテキストのままセット</span>
+<span class="attribute">memberBhv</span>.updateNonstrict(security);
+</code></pre>
+<pre><span class="codetitle">e.g. Behavior の updateNonstrict() で暗号化 {MEMBER.UPDATE_USER} @DisplaySql</span><code>
+<span class="keyword">update</span> MEMBER
+   <span class="keyword">set</span> UPDATE_USER = <span class="point">hex(aes_encrypt('foo', 'himitsu'))</span>
+     , <span class="abbreviation">...</span>
+     , VERSION_NO = VERSION_NO + 1
+ <span class="keyword">where</span> MEMBER_ID = 3
+</code></pre>
+	<p>
+		ConditionBeanで検索すると...
+	</p>
+<pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER.UPDATE_USER} @Java</span><code>
+MemberCB cb = new MemberCB();
+cb.query().setMemberId_Equal(<span class="literal">1</span>);
+Member member = <span class="attribute">memberBhv</span>.selectEntityWithDeletedCheck(cb);
+String updateUser = member.getUpdateUser(); <span class="comment">// 復号化された foo が取れる</span>
+</code></pre>
+<pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER.UPDATE_USER} @DisplaySql</span><code>
+<span class="keyword">select</span> dfloc.MEMBER_ID as MEMBER_ID, dfloc.MEMBER_NAME as MEMBER_NAME, <span class="abbreviation">...</span>
+     , <span class="point">convert(aes_decrypt(unhex(dfloc.UPDATE_USER), 'himitsu') using utf8)</span>
+       as UPDATE_USER
+  <span class="keyword">from</span> MEMBER dfloc
+</code></pre>
+	<h3 id="noninvertiblecase">不可逆のケース</h3>
+	<p>
+		検索条件でも...
+	</p>
 <pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER_SECURITY.LOGIN_PASSWORD} @Java</span><code>
 MemberSecurityCB cb = <span class="keyword">new</span> MemberSecurityCB();
-cb.query().setLoginPassword_Equal(<span class="literal">"cipher"</span>);
+cb.query().setLoginPassword_Equal(<span class="literal">"foo"</span>); <span class="comment">// プレーンテキストのままセット</span>
+<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. ConditionBeanで暗号化した上で比較 {MEMBER_SECURITY.LOGIN_PASSWORD} @DisplaySql</span><code>
- <span class="keyword">where</span> dfloc.LOGIN_PASSWORD = sha1(<span class="literal">'cipher'</span>)
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc 
+ <span class="keyword">where</span> dfloc.LOGIN_PASSWORD = sha1(<span class="literal">'foo'</span>) <span class="comment">-- 暗号化された値同士で比較</span>
 </code></pre>
 
 	<h2 id="howto">組み込みのやり方</h2>
