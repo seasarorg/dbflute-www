@@ -51,6 +51,7 @@
 			<ul>
 				<li><a href="#nonadjusteddefault">デフォルトsysdateのカラムは対象外</a></li>
 				<li><a href="#registeredadjusted">DBには調整後のデータが登録される</a></li>
+				<li><a href="#milliscolumn">ミリ秒を格納した日付型にも対応 <span class="freecomment">@since 1.0.5C</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -237,6 +238,39 @@
 		つまり、LoadDataReverseなどでデータを抽出した場合は、調整後のデータが出力されるため、調整前の情報は残っていません。
 	</p>
 	<div class="relatedpage"><a href="../doc/loaddatareverse.html">LoadDataReverse</a></div>
+	<h3 id="milliscolumn">ミリ秒を格納した日付型にも対応 <span class="freecomment">@since 1.0.5C</span></h3>
+	<p>
+		DB上のデータ型は日付ではなく、単なる BIGINT でミリ秒を格納するような日付データでも、日付調整が利用できます<span class="freecomment">(@since 1.0.5C)</span>。
+	</p>
+	<p>
+		通常の BIGINT のカラムと区別するために、カラム名を指定する必要があります。
+		dateAdjustmentMap の直下の要素として、df:millisColumnList を追加してカラム名を指定します。
+	</p>
+<pre><span class="codetitle">e.g. 名前が _MILLIS で終わるカラムも日付調整対象にする @loadingControlMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+
+    <span class="comment"># dateAdjustmentMap = <span class="keyword">map:</span>{
+    #     ; df:originDate = 2013/03/09
+    #     ; $$ALL$$ = map:{
+    #         ; $$ALL$$ = addDay($distance)
+    #     }
+    #     ; MEMBER = map:{ BIRTHDATE = addDay(0) }
+    # }</span>
+    ; dateAdjustmentMap = <span class="keyword">map:</span>{
+        ; df:originDate = 2008/01/01
+        ; ; <span class="point">df:millisColumnList</span> = <span class="keyword">list:</span>{
+            ; <span class="attribute">suffix:</span>_MILLIS
+        }
+        ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+            ; <span class="attribute">$$ALL$$</span> = <span class="literal">addDay(<span class="attribute">$distance</span>)</span>
+        }
+    }
+}
+</code></pre>
+	<p>
+		エクセル上において、ミリ秒ではなく日付表現(yyyy/MM/dd)でも解釈されるようになります。
+	</p>
 
 </div>
 </div>
