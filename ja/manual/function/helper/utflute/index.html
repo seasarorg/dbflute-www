@@ -53,14 +53,15 @@
 		</li>
 		<li><a href="#setup">UTFluteの環境構築</a>
 			<ul>
-				<li><a href="#maven">Maven の dependency 設定</a></li>
 				<li><a href="#junit">JUnit の jar は 3 でも 4 でも</a></li>
-				<li><a href="#extends">スーパークラスを継承</a></li>
+				<li><a href="#mavenifdi">Maven の dependency 設定 <span class="freecomment">(DIコンテナ利用なら)</span></a></li>
+				<li><a href="#extends">スーパークラスを継承 <span class="freecomment">(DIコンテナ利用なら)</span></a></li>
 				<li><a href="#diseasar">SeasarのDI設定</a></li>
 				<li><a href="#dispring">SpringのDI設定</a></li>
 				<li><a href="#diguice">GuiceのDI設定</a></li>
 			</ul>
 		</li>
+		<li><a href="#plainuse">Plainに使うなら <span class="freecomment">(DIコンテナ利用なし)</span></a></li>
 	</ul>
 
 	<h2 id="about">UTFluteとは？</h2>
@@ -79,12 +80,13 @@ action.index();
 
 	<h2 id="feature">UTFluteの特徴</h2>
 	<h3 id="zatto">ざっとこんな感じです</h3>
-	<dl class="longkeymainlist">
-		<dt>inject()</dt><dd>自分で new したものに DI する ☆</dd>
-		<dt>markHere()</dt><dd>ここを通ったことをassertするための仕組み</dd>
-		<dt>cannonball()</dt><dd>マルチスレッド実行、10スレッドでよーいドン！</dd>
-		<dt>policeStoryOf...()</dt><dd>JavaクラスやJSPファイルなどを走査して好きなようにチェック</dd>
-		<dt>readLine()</dt><dd>お手軽ファイル読み込み (テキストファイル)</dd>
+	<dl class="keymainlist">
+		<dt>inject()</dt><dd>自分で new したものに DI する</dd>
+		<dt>markHere()</dt><dd>ここを通ったことをassertするための仕組み <span class="freecomment">(plain)</span></dd>
+		<dt>cannonball()</dt><dd>マルチスレッド実行、10スレッドでよーいドン！ <span class="freecomment">(plain)</span></dd>
+		<dt>projectA()</dt><dd>cannonball() の中で、手続き的にスレッドコントロール <span class="freecomment">(plain)</span></dd>
+		<dt>policeStoryOf...()</dt><dd>JavaクラスやJSPファイルなどを走査して好きなようにチェック <span class="freecomment">(plain)</span></dd>
+		<dt>readLine()</dt><dd>お手軽ファイル読み込み (テキストファイル) <span class="freecomment">(plain)</span></dd>
 		<dt>テストクラスDI</dt><dd>テストクラスのフィールドにコンポーネントをDI</dd>
 		<dt>自動トランザクション</dt><dd>テストケースごとに強制Rollbackトランザクション</dd>
 		<dt>performNewTransaction()</dt><dd>独自にその場でトランザクション</dd>
@@ -102,7 +104,15 @@ action.index();
 	<div class="detailpage"><a href="../../../reference/example/index.html">DBFlute Example</a></div>
 
 	<h2 id="setup">UTFluteの環境構築</h2>
-	<h3 id="maven">Maven の dependency 設定</h3>
+	<h3 id="junit">JUnit の jar は 3 でも 4 でも</h3>
+	<p>
+		UTFlute は、JUnit3 方式を採用しています。 
+	</p>
+	<p>
+		ですが、利用する Junit のバージョンは 3 でも 4 でもどちらでも構いません。
+		<span class="freecomment">(JUnit4 でも、JUnit3 の TestCase クラスが同梱されているので)</span>
+	</p>
+	<h3 id="mavenifdi">Maven の dependency 設定 <span class="freecomment">(DIコンテナ利用なら)</span></h3>
 	<p>
 		Maven の pom.xml に、利用するDIコンテナに対応する UTFlute を指定します。
 	</p>
@@ -128,7 +138,12 @@ action.index();
     &lt;/dependency&gt;
 </code></pre>
 	<p>
-		HttpServlet の Mock を利用したい場合は、Spring と Guice に関しては "-web" を付けます。
+		Maven の repository は、DBFlute Runtime と同じです。
+	</p>
+	<div class="relatedpage"><a href="../../../../environment/setup/runtime.html#repository">DBFluteランタイムの準備 - repositoryの定義</a></div>
+	<p>
+		さらに、HttpServlet の Mock を利用したい場合は、Spring と Guice に関しては "-web" を付けます。
+		<span class="freecomment">(Seasarは、そもそも Servlet への依存を持っていて、"-web" なしでも Mock が利用できます)</span>
 	</p>
 <pre><span class="codetitle">e.g. Springと Web Mock の UTFlute の dependency 設定 @pom.xml</span><code>
     &lt;dependency&gt;
@@ -145,16 +160,10 @@ action.index();
     &lt;/dependency&gt;
 </code></pre>
 	<p>
-		Seasarは、そもそも Servlet への依存を持っていて、"-web" なしでも Mock が利用できます。
+		DIコンテナを使わず、UTFluteをPlainに使うのであれば、utflute-coreを指定します。
 	</p>
-	<h3 id="junit">JUnit の jar は 3 でも 4 でも</h3>
-	<p>
-		UTFlute は、JUnit3 方式を採用しています。 
-	</p>
-	<p>
-		ですが、利用する Junit のバージョンは 3 でも 4 でもどちらでも構いません。<span class="freecomment">(JUnit4 でも、JUnit3 の TestCase クラスが同梱されているため)</span>
-	</p>
-	<h3 id="extends">スーパークラスを継承</h3>
+	<div class="detailpage"><a href="#plainuse">this - Plainに使うなら</a></div>
+	<h3 id="extends">スーパークラスを継承 <span class="freecomment">(DIコンテナ利用なら)</span></h3>
 	<p>
 		ContainerTestCase というクラスが用意されています。DIコンテナを利用するテストケースでは、このクラスを継承します。
 		こうすることで、テストケース起動時にDIコンテナが起動して、inject()が利用できるようになります。<span class="freecomment">(後述のDI設定が必要です)</span>
@@ -284,6 +293,42 @@ action.index();
 		dbflute-guice-example が参考になります。
 	</p>
 	<div class="detailpage"><a href="../../../reference/example/index.html#dicontainer">DBFlute Example - DIコンテナ</a></div>
+
+	<h2 id="plainuse">Plainに使うなら <span class="freecomment">(DIコンテナ利用なし)</span></h2>
+	<p>
+		DIコンテナは使わないプロジェクトで、UTFluteを単なるテスト支援ツールとして利用するのであれば、utflute-coreを指定します。
+	</p>
+<pre><span class="codetitle">e.g. plainな使い方をするときの UTFlute の dependency 設定 @pom.xml</span><code>
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.seasar.dbflute&lt;/groupId&gt;
+      &lt;artifactId&gt;<span class="point">utflute-core</span>&lt;/artifactId&gt;
+      &lt;version&gt;0.4.1&lt;/version&gt;
+    &lt;/dependency&gt;
+</code></pre>
+	<p>
+		そして、PlainTestCase を継承してテストケースを作成します。
+	</p>
+	<p>
+		DIコンテナやトランザクション処理に依存していない、markHere() や cannonball(), projectA(),
+		policeStoryOf...() などの機能が利用できます。
+	</p>
+<pre><span class="codetitle">e.g. PlainTestCaseを継承して、plainな機能を使う @Java</span><code>
+<span class="keyword">public class</span> FooTest <span class="keyword">extends</span> <span class="point">PlainTestCase</span> {
+
+    <span class="keyword">public void</span> test_demo() { <span class="comment">// メソッド名が test で始まること</span>
+        markHere(<span class="literal">"called"</span>);
+        assertMarked(<span class="literal">"called"</span>);
+        
+        cannonball(<span class="abbreviation">...</span>);
+        policeStoryOf<span class="abbreviation">...</span>(<span class="abbreviation">...</span>);
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<p>
+		そもそも、DIコンテナを利用した ContainerTestCase などは、この PlainTestCase
+		を継承しています。
+	</p>
 
 </div>
 </div>
