@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,SAStruts,SAFlute,Maihama,Dockside" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>SAFlute の ActionCallback | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>SAFlute の ActionCallback</h1>
+	<p>
+		SAFluteの特徴の一つです。
+	</p>
+	<div class="relatedpage"><a href="./index.html">SAFlute</a></div>
+	<ul class="indexlist">
+		<li><a href="#overview">ActionCallbackのきっかけ</a>
+			<ul>
+				<li><a href="#interceptorheadache">Interceptorの悩み</a></li>
+				<li><a href="#actionimpl">前後処理をAction自身に書く</a></li>
+			</ul>
+		</li>
+		<li><a href="#godhand">godHandBefore(), godHandFinally()</a></li>
+		<li><a href="#subcallback">callbackBefore(), callbackFinally()</a>
+			<ul>
+				<li><a href="#callbackdisp">画面描画処理は callbackFinally() にて</a></li>
+			</ul>
+		</li>
+		<li><a href="#nandemocallback">認証チェックや業務例外ハンドリングなどなど</a></li>
+	</ul>
+
+	<h2 id="overview">ActionCallbackのきっかけ</h2>
+	<h3 id="interceptorheadache">Interceptorの悩み</h3>
+	<p>
+		Interceptorによる横断処理には以下の二つの問題があると考えました。
+	</p>
+	<dl class="keymainlist">
+		<dt>バリデーションよりも後</dt><dd>バリデーションエラーになると実行されない</dd>
+		<dt>Interceptorだらけ</dt><dd>StackTraceの汚れ、追いかけづらく、親近感が湧かない</dd>
+	</dl>
+	<h3 id="actionimpl">前後処理をAction自身に書く</h3>
+	<p>
+		ServletFilterでは、まだどのActionが実行されるかわからないので業務的な処理が書きづらく、そもそも扱いやすさでは
+		Interceptor とあまり変わりがありません。
+	</p>
+	<p>
+		そこで、"Strutsを通過した後、バリデーションよりも前"
+		のタイミングにて、Action自身に前後処理を書けるようにしています。
+		それを ActionCallback と呼んでいます。
+	</p>
+	<p>
+		それにより、すぐ近くにあって追いかけやすく親近感も湧き、Interceptorチェーンによる StackTrace
+		も汚れもなく、そして、Actionクラスにてオーバーライドすることで簡単に挙動も変更することもできます。
+	</p>
+
+	<h2 id="godhand">godHandBefore(), godHandFinally()</h2>
+	<p>
+		SAFluteでは、全てのActionで共通のスーパークラスを継承することを推奨しています。
+		そのスーパークラスにて、godHandBefore(), godHandFinally()を実装すると、リクエスト時に前後処理として呼び出されます。
+	</p>
+	<dl class="keymainlist">
+		<dt>godHandBefore()</dt><dd>バリデーションよりも前のタイミング</dd>
+		<dt>godHandFinally()</dt><dd>正常終了でもバリデーションエラーでも最後に必ず呼ばれる</dd>
+	</dl>
+<pre><span class="codetitle">e.g. Actionのスーパークラスにて、共通の前後処理を実装 @Java</span><code>
+@Override
+<span class="keyword">public</span> String godHandBefore(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">final</span> String path = <span class="keyword">super</span>.godHandBefore(executeMeta);
+    <span class="keyword">if</span> (path != null) {
+        return path;
+    }
+    <span class="keyword">final</span> String sslRedirect = processSslRedirect(executeMeta);
+    <span class="keyword">if</span> (sslRedirect != null) {
+        return sslRedirect;
+    }
+    processTrackingCode();
+    processUserAgent();
+    <span class="keyword">return null</span>;
+}
+
+@Override
+<span class="keyword">public void</span> godHandFinally(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
+        <span class="keyword">if</span> (userWebBean == <span class="keyword">null</span>) { <span class="comment">// basically true, however just in case</span>
+            <span class="keyword">final</span> MemberUserBean userBean = getUserBean();
+            userWebBean = <span class="keyword">new</span> MemberUserWebBean();
+            userWebBean.initialize(userBean, convertCoinLogic);
+        }
+    }
+    <span class="keyword">super</span>.godHandFinally(executeMeta);
+}
+</code></pre>
+
+	<h2 id="subcallback">callbackBefore(), callbackFinally()</h2>
+	<p>
+		godHandXxx()は、スーパークラス用のメソッドとして用意しています<span class="freecomment">(別にサブクラスでもオーバーライドできてしまいますが、やらないように)</span>。
+		サブクラス、つまり、末端の具象クラスのためのメソッドとして、callbackBefore(), callbackFinally() を用意しています。
+	</p>
+	<dl class="keymainlist">
+		<dt>callbackBefore()</dt><dd>godHandBefore()と仕様は同じ</dd>
+		<dt>callbackFinally()</dt><dd>godHandFinally()と仕様は同じ</dd>
+	</dl>
+	<p>
+		わざわざ分けているのは、画面開発者がオーバーライドするときに super
+		呼び忘れるトラブル<span class="freecomment">(何も動かなくなる事件)</span>が起きないようにするためで、super
+		を呼び忘れても問題のないサブクラス専用のメソッドを提供しています。
+	</p>
+	<p>
+		わざと、サブクラス用の方が覚えやすいまともな名前にしています。
+		godHandなんてメソッド、通常のコード補完で見ることほぼないでしょうし、見つけてもきもちわるくてオーバーライドしようとは思わないでしょう。
+		<span class="freecomment">(一方で、インパクトがありすぎてすぐに覚えちゃうという話もあるようですが...)</span>
+	</p>
+	<h3 id="callbackdisp">画面描画処理は callbackFinally() にて</h3>
+	<p>
+		サブクラスでの callback は、画面内リクエスト共通処理という扱いになります。
+		用途としては、例えば、画面描画のためのデータ準備処理を callbackFinally() で実装すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. Actionのサブクラスにて、画面描画処理をcallbackFinally()で実装 @Java</span><code>
+@Override
+<span class="keyword">public void</span> callbackFinally(BrActionExecuteMeta executeMeta) {
+    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
+        <span class="abbreviation">...</span> <span class="comment">// そのJSPを描画するための準備処理</span>
+    }
+    <span class="keyword">super</span>.godHandFinally(executeMeta);
+}
+</code></pre>
+	<p>
+		こうすると、バリデーションエラーのときでも実行されます。@Execute の input
+		属性には、JSPをそのまま指定してOKです。
+		<span class="freecomment">(描画用の@Executeメソッドを用意してフォワードするやり方は、その入り口は外からは本来不要ですし、Interceptor
+		もまた動いてしまいますし、何かとスパゲッティになりがちなので推奨されません)</span>
+	</p>
+<pre><span class="codetitle">e.g. 画面描画処理は callbackFinally() でやるので、inputは普通にJSPを指定 @Java</span><code>
+<span class="comment">// input属性には、JSPを指定するのが流儀</span>
+@Execute(validate = <span class="literal">"doValidate"</span>, input = <span class="point">path_Member_MemberEditJsp</span>)
+<span class="keyword">public void</span> submit() {
+    <span class="abbreviation">...</span>;
+}
+</code></pre>
+
+	<h2 id="nandemocallback">認証チェックや業務例外ハンドリングなどなど</h2>
+	<p>
+		もろもろ ActionCallback で処理を行っています。<span class="freecomment">(Interceptorを "あまり" 使わないがSAFluteの流儀)</span>
+	</p>
+	<p>
+		SAFluteのフレームワーク<span class="freecomment">(TypicalBaseAction)</span>にて、既に以下の処理が ActionCallback に組み込まれています。
+	</p>
+	<ul>
+		<li>DBFluteの共通カラム自動設定のための AccessContext の初期化</li>
+		<li>DBFluteのSQL呼び出しActionのSQLコメントへの埋め込み CallbackContext の初期化</li>
+		<li>DBFluteのリクエスト内SQL発行階数のカウント CallbackContext の初期化とロギング処理</li>
+		<li>ログインチェック、自動ログインも含む</li>
+		<li>業務例外のハンドリング</li>
+		<li>Responseに no cache を付与</li>
+	</ul>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/manage/index.html">Manage</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha (Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/intro/index.html">DBFlute Intro</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/saflute/index.html">SAFlute</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/utflute/index.html">UTFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

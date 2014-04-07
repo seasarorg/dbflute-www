@@ -41,78 +41,147 @@
 	<ul class="indexlist">
 		<li><a href="#about">SAFluteとは？</a>
 			<ul>
+				<li><a href="#concept">SAFluteのコンセプト</a></li>
+				<li><a href="#conceptmap">アーキテクチャ概念マップ</a></li>
+				<li><a href="#twotrigger">最初の二つのきっかけ</a></li>
+				<li><a href="#selfincremental">SAFlute自らインクリメンタル開発</a></li>
+				<li><a href="#morerequired">インクリメンタル開発で外せない機能たち</a></li>
+				<li><a href="#moredbflute">欠かせないDBFluteの機能たち</a></li>
+				<li><a href="#livingtogether">SAStrutsと半同棲の三ヶ月</a></li>
+			</ul>
+		</li>
+		<li><a href="#environment">SAFluteの環境</a>
+			<ul>
+				<li><a href="#projstructure">SAFluteのプロジェクト構成</a></li>
+				<li><a href="#pkgstructure">SAFluteのパッケージ構成</a></li>
+				<li><a href="#assistantdirector">とにかく大事なAssistantDirector</a></li>
 				<li><a href="#distribution">配布はソースコードだけ</a></li>
 				<li><a href="#saflutetemplate">SAFlute Template</a></li>
-			</ul>
-		</li>
-		<li><a href="#overview">アーキテクチャ</a>
-			<ul>
-				<li><a href="#conceptmap">アーキテクチャ概念マップ</a></li>
-				<li><a href="#twoapproach">きっかけを作った二つのアプローチ</a></li>
-				<li><a href="#deepworld">深みにはまっていった結果</a></li>
-			</ul>
-		</li>
-		<li><a href="#nameidentity">Action/JSP Name Identity</a>
-			<ul>
-				<li><a href="#actionname">アクションクラス名に一工夫</a></li>
-				<li><a href="#jspname">JSPファイル名でも同じように</a></li>
-				<li><a href="#compatiblename">通常のやり方と互換性があり</a></li>
-			</ul>
-		</li>
-		<li><a href="#typesafereturn">Action TypeSafe Return</a>
-			<ul>
-				<li><a href="#gogotypesafe">タイプセーフな戻り値指定</a></li>
-				<li><a href="#freegenjsp">FreeGenでJSPのパス定義を自動生成</a></li>
-				<li><a href="#redirectclass">redirectメソッドでClassクラス指定</a></li>
-				<li><a href="#goodsafe">間違えにくく、変更に強く、追跡しやすい</a></li>
-			</ul>
-		</li>
-		<li><a href="#livingtogether">SAStrutsと半同棲の三ヶ月</a></li>
-		<li><a href="#actioncallback">Action Callback</a>
-			<ul>
-				<li><a href="#interceptorheadache">Interceptorの悩み</a></li>
-				<li><a href="#actionimpl">前後処理をAction自身に書く</a></li>
-				<li><a href="#godhand">godHandBefore(), godHandFinally()</a></li>
-				<li><a href="#subcallback">callbackBefore(), callbackFinally()</a></li>
-				<li><a href="#callbackdisp">画面描画処理は callbackFinally() にて</a></li>
-				<li><a href="#nandemocallback">認証チェックや業務例外ハンドリングなどなど</a></li>
-			</ul>
-		</li>
-		<li><a href="#jsonhandling">Action Json Handling</a>
-			<ul>
-				<li><a href="#jsonparameter">JsonParameter</a></li>
-				<li><a href="#jsonresponse">JsonResponse</a></li>
-				<li><a href="#xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></a></li>
-				<li><a href="#streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></a></li>
-			</ul>
-		</li>
-		<li><a href="#objsafeprop">Objective Typesafe Properties</a>
-			<ul>
-				<li><a href="#simpleprop">Propertiesはとてもシンプル</a></li>
-				<li><a href="#antidiconfig">これはやめたい！diconの環境ごとの切り替え</a></li>
-				<li><a href="#envprop">Properties 切り替えに PropertiesHTML チェック <span class="freecomment">☆</span></a></li>
-				<li><a href="#objectiveprop">継承できる Properties <span class="freecomment">☆</span></a></li>
-				<li><a href="#typesafeprop">タイプセーフな Properties <span class="freecomment">☆</span></a></li>
 			</ul>
 		</li>
 	</ul>
 
 	<h2 id="about">SAFluteとは？</h2>
 	<p>
-		DBFluteを使って SAStruts を最適化した拡張モジュールです。
+		DBFluteを使って、<em class="keyword">リーンスタートアップ、インクリメンタル開発</em>
+		をターゲットに、SAStruts を最適化した拡張モジュール <span class="freecomment">(+ 開発スタイル)</span> です。
 	</p>
+	<h3 id="concept">SAFluteのコンセプト</h3>
+	<p>
+		インクリメンタル開発では、業務の変更の頻度が激しく、DB変更だけでなく画面の構成の変更なども頻繁に発生します。
+		その特徴に対する細かいケアをしています。
+	</p>
+	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20130826/saflute">外部サイト - SAFlute始めました</a></div>
+	<dl class="textlist">
+		<dt>ソースコードを読むことが多いため、探しやすく</dt>
+		<dd>
+			ドキュメントを充実させる時間があまりないため、ソースコードを読んで(それまでの)仕様を確認することが多くあります。
+			SAStrutsのいわゆる "IndexActionだらけ" にならないように、ActionやJSPに探しやすい名前を付けられるようにしています。
+			<span class="freecomment">(同時に、規約ベースマッピングによる統一性のメリットも享受)</span>
+		</dd>
+		<dd>
+			また、既に作成された画面を動かして、挙動を確認することが多くあります。
+			デバッグログにて、どんなActionクラスやJSPが動いたのかを見つけやすいように出力しています。
+		</dd>
+		<dt>気付いたらよくデグレってるので、変更を検知しやすく</dt>
+		<dd>
+			業務も変わりプログラムも変更しまくっていると、気付いたらよくデグレっています。
+			Actionクラスの return 値で指定する画面遷移をタイプセーフにし、DBFluteのDB変更耐性と同じようなメリットをWeb側でも享受できるようにしています。
+		</dd>
+		<dt>という感じで細かくケア</dt>
+		<dd>
+			SAFlute自体も、リーンスタートアップ、インクリメンタル開発の現場で、リーンスタートアップ、インクリメンタルに開発されました。
+			こういった現場のニーズをとらえながら、細かく細かく現場のスピードを高めるケアを追加しておきました。
+			実際に機能を見ていくとその特徴がわかるかと思います。
+		</dd>
+	</dl>
+	<h3 id="conceptmap">アーキテクチャ概念マップ</h3>
+	<p class="imgbox">図 : SAFluteアーキテクチャ概念マップ
+		<a href="../../../../data/model/saflute/saflute-Architecture-view.png" title="SAFluteアーキテクチャ概念マップ"><img src="../../../../data/model/saflute/saflute-Architecture-view.png" alt="SAFluteアーキテクチャ概念マップ" width="550" height="440" /></a>
+	</p>
+	<h3 id="twotrigger">最初の二つのきっかけ</h3>
+	<p>
+		SAFluteには、様々な最適化が施されていますが、実装を始めた最初の二つのきっかけがあります。
+	</p>
+	<div class="relatedpage"><a href="./twotrigger.html">SAFluteの二つのきっかけ</a></div>
+	<dl class="longkeymainlist">
+		<dt><a href="./twotrigger.html#nameidentity">Action, JSP Name Identity</a></dt><dd>ActionクラスやJSPファイルの名前を識別しやすく</dd>
+		<dt><a href="./twotrigger.html#typesafereturn">Action TypeSafe Return</a></dt><dd>Actionの@Executeメソッドの戻り値をタイプセーフに</dd>
+	</dl>
+	<h3 id="selfincremental">SAFlute自らインクリメンタル開発</h3>
+	<p>
+		二つのきっかけから全ては始まり、Web側は時代の流れとともに新たな思想も生まれ、SAFluteのコンセプトにフィットした現場からはどんどんニーズが出てきました。
+	</p>
+	<dl class="longkeymainlist">
+		<dt><a href="./actioncallback.html">Action Callback</a></dt><dd>前後処理をInterceptorではなくActionで</dd>
+		<dt><a href="./jsonhandling.html">Action Json Handling</a></dt><dd>JSONでのやり取りをオブジェクト型で</dd>
+	</dl>
+	<h3 id="morerequired">インクリメンタル開発で外せない機能たち</h3>
+	<p>
+		そして、インクリメンタル開発では外せない機能も明確になりました。
+	</p>
+	<dl class="longkeymainlist">
+		<dt><a href="./objsafeprop.html">Objective Typesafe Properties</a></dt><dd>継承できてタイプセーフなProperties</dd>
+		<dt><a href="./friendlylogging.html">Friendly Logging</a></dt><dd>ぜひ見たいと思うようなログ</dd>
+	</dl>
+	<h3 id="moredbflute">欠かせないDBFluteの機能たち</h3>
+	<p>
+		また、SAFluteの機能というわけではありませんが、インクリメンタル開発では欠かせないDBFluteの機能を使うことが前提となっています。
+	</p>
+	<dl class="textlist">
+		<dt>循環テストデータ運用</dt>
+		<dd>
+			テストデータを手動で準備していくことが困難なため、LoadDataReverseを使って既に動く画面からReplaceSchemaのデータを作成していきます。
+			<span class="freecomment">(もちろん、手動での微調整もやりつつ)</span>
+			<div class="relatedpage"><a href="../../generator/task/doc/loaddatareverse.html">LoadDataReverse</a></div>
+		</dd>
+		<dt>UTFluteでお手軽テスト</dt>
+		<dd>
+			業務変更が多く、テストケースの実装やメンテもなかなか困難であるため、凝ったテストはなかなか書けません。
+			手軽にモックできて手軽に実装できる UTFlute を使っています。
+			<div class="relatedpage"><a href="../utflute/index.html">UTFlute</a></div>
+		</dd>
+		<dd>
+			さらに、UTFluteを使って費用対効果の高い横断的なテストを作成するとよいでしょう。
+			<span class="freecomment">(PolicyStoryを使って、ソースコードの一括チェックなど)</span>
+		</dd>
+	</dl>
+	<div class="inucolumn">
+		<h3 id="livingtogether">SAStrutsと半同棲の三ヶ月</h3>
+		<p>
+			SAStrutsとDBFluteの構成で、少人数でのリーン・スタートアップのサービス構築において生まれました。
+			基本思想と構成は、既に運用実績のあるアーキテクチャと言えます。
+		</p>
+		<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20130302/1362151960">外部サイト - SAStrutsと半同棲の三ヶ月</a></div>
+	</div>
+
+	<h2 id="environment">SAFluteの環境</h2>
+	<h3 id="projstructure">SAFluteのプロジェクト構成</h3>
+	<p>
+		では、実務的なプロジェクト構成の説明に入ります。
+	</p>
+	<div class="detailpage"><a href="./projstructure.html">SAFluteのプロジェクト構成</a></div>
+	<h3 id="pkgstructure">SAFluteのパッケージ構成</h3>
+	<p>
+		そして、パッケージ構成も見てみましょう。
+	</p>
+	<div class="detailpage"><a href="./pkgstructure.html">SAFluteのパッケージ構成</a></div>
+	<h3 id="assistantdirector">とにかく大事なAssistantDirector</h3>
+	<p>
+		TODO jflute 書き途中
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./assistantdirector.html"> -->SAFluteのAssistantDirector<!-- </a> --></span></div>
 	<h3 id="distribution">配布はソースコードだけ</h3>
 	<p>
 		jarファイルとしては提供されてはおらず、ソースコードだけが公開されており、自由に閲覧・取り込み・拡張ができるようになっています。"SAFluteリポジトリ"
 		にて公開されていて、gitクライアントがあれば誰でもチェックアウト可能です。
 	</p>
-	<div class="detailpage"><a href="https://www.codebreak.com/git/jflute/saflute/">外部サイト - SAFluteリポジトリのページ</a></div>
-	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20130826/saflute">外部サイト - SAFlute始めました</a></div>
+	<div class="relatedpage"><a href="https://www.codebreak.com/git/jflute/saflute/">外部サイト - SAFluteリポジトリのページ</a></div>
 	<p>
-		"Maihama" プロジェクトという参考実装があります。
-		参考実装も含めてSAFluteと言えるので、一緒にチェックアウトしておくと良いでしょう。
+		"Maihama" プロジェクトというExample実装があります。
+		Example実装も含めてSAFluteと言えるので、一緒にチェックアウトしておくと良いでしょう。
 	</p>
-	<div class="detailpage"><a href="https://www.codebreak.com/git/jflute/maihama/">外部サイト - Maihamaリポジトリのページ</a></div>
+	<div class="relatedpage"><a href="https://www.codebreak.com/git/jflute/maihama/">外部サイト - Maihamaリポジトリのページ</a></div>
 	<p>
 		詳しくは、SAFluteのプロジェクト直下に INTRO_ja.txt がありますのでそちらをご覧下さい。さらに、それぞれのプロジェクトに README_ja.txt もあります。 
 	</p>
@@ -122,470 +191,6 @@
 		プラグインがあります。それを使う事で、SAFlute環境を手っ取り早く作ることができます。
 	</p>
 	<div class="detailpage"><a href="./saflute_template.html">SAFlute Template</a></div>
-
-	<h2 id="overview">アーキテクチャ</h2>
-	<p>
-		SASFluteを使った Example プロジェクト Maihama <span class="freecomment">(Webアプリ名は Dockside)</span>
-		が参考になります。ソースコードをチェックアウトして、アーキテクチャ概念マップと照らし合わせて追ってみると良いでしょう。
-		<span class="freecomment">(クリックすると画像が開きます)</span>
-	</p>
-	<h3 id="conceptmap">アーキテクチャ概念マップ</h3>
-	<p class="imgbox">図 : SAFluteアーキテクチャ概念マップ
-		<a href="../../../../data/model/saflute/saflute-Architecture-view.png" title="SAFluteアーキテクチャ概念マップ"><img src="../../../../data/model/saflute/saflute-Architecture-view.png" alt="SAFluteアーキテクチャ概念マップ" width="550" height="440" /></a>
-	</p>
-	<h3 id="twoapproach">きっかけを作った二つのアプローチ</h3>
-	<p>
-		SAFluteには、様々な最適化が施されていますが、それらを実装するきっかけを作った最初の二つのアプローチがあります。
-		これらの実装から全ては始まり、どんどん深みにはまっていきました。
-	</p>
-	<dl class="longkeymainlist">
-		<dt><a href="#nameidentity">Action, JSP Name Identity</a></dt><dd>ActionクラスやJSPファイルの名前を識別しやすく</dd>
-		<dt><a href="#typesafereturn">Action TypeSafe Return</a></dt><dd>Actionの@Executeメソッドの戻り値をタイプセーフに</dd>
-	</dl>
-	<h3 id="deepworld">深みにはまっていった結果</h3>
-	<dl class="longkeymainlist">
-		<dt><a href="#actioncallback">Action Callback</a></dt><dd>前後処理をInterceptorではなくActionで</dd>
-		<dt><a href="#jsonhandling">Action Json Handling</a></dt><dd>JSONでのやり取りをオブジェクト型で</dd>
-		<dt><a href="#objsafeprop">Objective Typesafe Properties</a></dt><dd>継承できてタイプセーフなProperties</dd>
-	</dl>
-
-	<h2 id="nameidentity">Action/JSP Name Identity</h2>
-	<h3 id="actionname">アクションクラス名に一工夫</h3>
-	<p>
-		いわゆる IndexAction だらけ問題に対応しています。(ListActionだらけ、AddActionだらけ)
-	</p>
-	<p>
-		ぱっと見たいActionクラスがあっても、ctrl + shift + R (リソースの検索)
-		をしたときに、大量の IndexAction や ListAction
-		の前に立ち尽くしてしまう問題です。通常のSAStrutsにおけるクラス名とURLのマッピングルールは以下の通りです。
-	</p>
-	<dl class="longkeymainlist">
-		<dt>member.ListAction</dt><dd>/member/list/</dd>
-		<dt>login.IndexAction</dt><dd>/login/</dd>
-	</dl>
-	<p>
-		できれば、MemberListAction でも /member/list/
-		にマッピングしたいと。そうすればクラス名による検索がしやすくなります。ただそのままでは /member/memberList/
-		というURLになってしまいます。
-	</p>
-	<p>
-		SAFluteでは、パッケージ名をクラス名のプレフィックスとして付与して識別性を高められます。
-	</p>
-	<dl class="longkeymainlist">
-		<dt>member.MemberListAction</dt><dd>/member/list/</dd>
-		<dt>login.LoginIndexAction</dt><dd>/login/</dd>
-	</dl>
-	<p>
-		<span class="freecomment">※例えば、/member/purchase/list/ であば MemberPurchaseListAction となる</span>
-	</p>
-	<h3 id="jspname">JSPファイル名でも同じように</h3>
-	<p>
-		これは、JSPでも同じような拡張がされています。
-	</p>
-	<p>
-		s:form や s:link でaction属性やhref属性を省略した場合のマッピングは以下の通りです。
-	</p>
-	<dl class="shortvaluemainlist">
-		<dt>member.MemberListAction</dt><dd>/view/member/member_list.jsp</dd>
-		<dt>login.LoginIndexAction</dt><dd>/view/login/login_index.jsp (or login.jsp)</dd>
-	</dl>
-	<p>
-		<span class="freecomment">※例えば、/view/member/purchase/member_purchase_list.jsp であば MemberPurchaseListAction となる</span>
-	</p>
-	<h3 id="compatiblename">通常のやり方と互換性があり</h3>
-	<p>
-		もちろん、以前のようなシンプルなクラス名やファイル名でも動きます。
-		単にマッピングの対象となるクラスが増えただけであり、既に通常のSAStruts構成のアプリにも適用しやすくなっています。
-	</p>
-
-	<h2 id="typesafereturn">Action TypeSafe Return</h2>
-	<h3 id="gogotypesafe">タイプセーフな戻り値指定</h3>
-	<p>
-		Actionクラスの@Executeのメソッドの戻り値をタイプセーフに実装できます。
-	</p>
-	<p>
-		通常のSAStrutsにおける return の実装は以下の通りです。
-	</p>
-<pre><span class="codetitle">e.g. 通常のSAStrutsにおける return の実装 @Java</span><code>
-
-<span class="comment">// JSPファイル名を指定してフォワード</span>
-<span class="keyword">return</span> <span class="literal">"list.jsp"</span>;
-
-<span class="comment">// URL (Actionクラス) を指定してリダイレクト</span>
-<span class="keyword">return</span> <span class="literal">"/edit/"</span> + listForm.<span class="attribute">memberId</span> + <span class="literal">"/?redirect=true"</span>;
-</code></pre>
-	<p>
-		これが、SAFluteでは以下のように実装できます。
-	</p>
-<pre><span class="codetitle">e.g. SAFluteにおける return の実装 @Java</span><code>
-
-<span class="comment">// "pa" で補完すればJSPの候補が出てくるので選ぶだけ</span>
-<span class="keyword">return</span> <span class="attribute">path_Member_MemberListJsp</span>;
-
-<span class="comment">// "redi" で補完して redirect メソッドにClassクラスでアクション指定</span>
-<span class="keyword">return</span> redirectById(MemberEditAction.<span class="keyword">class</span>, listForm.<span class="attribute">memberId</span>);
-</code></pre>
-	<h3 id="freegenjsp">FreeGenでJSPのパス定義を自動生成</h3>
-	<p>
-		JSPの path_Xxx の定義は、DBFlute の FreeGen と言われる機能で自動生成されます。JSPファイルを作成したら(作り途中でもOK)、manage.bat(sh)を叩いて
-		12 番を選びます。すると、Actionクラスの return 部分で pa で ctrl + space で補完すれば選択できます。
-	</p>
-	<h3 id="redirectclass">redirectメソッドでClassクラス指定</h3>
-	<p>
-		redirectXxx()メソッドは、Actionのスーパークラスに用意されています。redirectById()
-		だけでなく、GETパラメーターを追加できるメソッドなど色々用意されています。XxxActon.class
-		で指定できるので、リンク切れはありませんし、ctrl + クリック (F3)
-		で遷移先のActionのプログラムをすぐに見ることができます。
-	</p>
-	<h3 id="goodsafe">間違えにくく、変更に強く、追跡しやすい</h3>
-	<p>
-		タイプセーフにすることで打ち間違えなく実装できるのと同時に、画面構造の変更などが発生したときに影響範囲を検知しやすくなります。
-		また、ctrl + クリック (F3) や ctrl + shift + G (呼び出し側の検索) と組み合わせることで、処理の追跡がしやすくなります。
-	</p>
-	<p>
-		実は、この改善は、アクションクラス名の識別性の向上が前提となっています。例えば、いくらタイプセーフでも、ListAction.class
-		では、どの ListAction にリダイレクトするのかどうかがさっぱりわかりませんので。
-	</p>
-
-	<div class="inucolumn">
-		<h2 id="livingtogether">SAStrutsと半同棲の三ヶ月</h2>
-		<p>
-			SAStrutsとDBFluteの構成で、少人数でのリーン・スタートアップのサービス構築において生まれました。
-			基本思想と構成は既に運用実績のあるアーキテクチャと言えます。
-		</p>
-		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20130302/1362151960">外部サイト - SAStrutsと半同棲の三ヶ月</a></div>
-	</div>
-
-	<h2 id="actioncallback">Action Callback</h2>
-	<h3 id="interceptorheadache">Interceptorの悩み</h3>
-	<p>
-		Interceptorによる横断処理には以下の二つの問題があると考えました。
-	</p>
-	<dl class="keymainlist">
-		<dt>バリデーションよりも後</dt><dd>バリデーションエラーになると実行されない</dd>
-		<dt>Interceptorだらけ</dt><dd>StackTraceの汚れ、追いかけづらく、親近感が湧かない</dd>
-	</dl>
-	<h3 id="actionimpl">前後処理をAction自身に書く</h3>
-	<p>
-		ServletFilterでは、まだどのActionが実行されるかわからないので業務的な処理が書きづらく、そもそも扱いやすさでは
-		Interceptor とあまり変わりがありません。
-	</p>
-	<p>
-		そこで、"Strutsを通過した後、バリデーションよりも前"
-		のタイミングにて、Action自身に前後処理を書けるようにしています。
-		それを ActionCallback と呼んでいます。
-	</p>
-	<p>
-		それにより、すぐ近くにあって追いかけやすく親近感も湧き、Interceptorチェーンによる StackTrace
-		も汚れもなく、そして、Actionクラスにてオーバーライドすることで簡単に挙動も変更することもできます。
-	</p>
-	<h3 id="godhand">godHandBefore(), godHandFinally()</h3>
-	<p>
-		SAFluteでは、全てのActionで共通のスーパークラスを継承することを推奨しています。
-		そのスーパークラスにて、godHandBefore(), godHandFinally()を実装すると、リクエスト時に前後処理として呼び出されます。
-	</p>
-	<dl class="keymainlist">
-		<dt>godHandBefore()</dt><dd>バリデーションよりも前のタイミング</dd>
-		<dt>godHandFinally()</dt><dd>正常終了でもバリデーションエラーでも最後に必ず呼ばれる</dd>
-	</dl>
-<pre><span class="codetitle">e.g. Actionのスーパークラスにて、共通の前後処理を実装 @Java</span><code>
-@Override
-<span class="keyword">public</span> String godHandBefore(BrActionExecuteMeta executeMeta) {
-    <span class="keyword">final</span> String path = <span class="keyword">super</span>.godHandBefore(executeMeta);
-    <span class="keyword">if</span> (path != null) {
-        return path;
-    }
-    <span class="keyword">final</span> String sslRedirect = processSslRedirect(executeMeta);
-    <span class="keyword">if</span> (sslRedirect != null) {
-        return sslRedirect;
-    }
-    processTrackingCode();
-    processUserAgent();
-    <span class="keyword">return null</span>;
-}
-
-@Override
-<span class="keyword">public void</span> godHandFinally(BrActionExecuteMeta executeMeta) {
-    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
-        <span class="keyword">if</span> (userWebBean == <span class="keyword">null</span>) { <span class="comment">// basically true, however just in case</span>
-            <span class="keyword">final</span> MemberUserBean userBean = getUserBean();
-            userWebBean = <span class="keyword">new</span> MemberUserWebBean();
-            userWebBean.initialize(userBean, convertCoinLogic);
-        }
-    }
-    <span class="keyword">super</span>.godHandFinally(executeMeta);
-}
-</code></pre>
-	<h3 id="subcallback">callbackBefore(), callbackFinally()</h3>
-	<p>
-		godHandXxx()は、スーパークラス用のメソッドとして用意しています<span class="freecomment">(別にサブクラスでもオーバーライドできてしまいますが、やらないように)</span>。
-		サブクラス、つまり、末端の具象クラスのためのメソッドとして、callbackBefore(), callbackFinally() を用意しています。
-	</p>
-	<dl class="keymainlist">
-		<dt>callbackBefore()</dt><dd>godHandBefore()と仕様は同じ</dd>
-		<dt>callbackFinally()</dt><dd>godHandFinally()と仕様は同じ</dd>
-	</dl>
-	<p>
-		わざわざ分けているのは、画面開発者がオーバーライドするときに super
-		呼び忘れるトラブル<span class="freecomment">(何も動かなくなる事件)</span>が起きないようにするためで、super
-		を呼び忘れても問題のないサブクラス専用のメソッドを提供しています。
-	</p>
-	<p>
-		わざと、サブクラス用の方が覚えやすいまともな名前にしています。
-		godHandなんてメソッド、通常のコード補完で見ることほぼないでしょうし、見つけてもきもちわるくてオーバーライドしようとは思わないでしょう。
-		<span class="freecomment">(一方で、インパクトがありすぎてすぐに覚えちゃうという話もあるようですが...)</span>
-	</p>
-	<h3 id="callbackdisp">画面描画処理は callbackFinally() にて</h3>
-	<p>
-		サブクラスでの callback は、画面内リクエスト共通処理という扱いになります。
-		用途としては、例えば、画面描画のためのデータ準備処理を callbackFinally() で実装すると良いでしょう。
-	</p>
-<pre><span class="codetitle">e.g. Actionのサブクラスにて、画面描画処理をcallbackFinally()で実装 @Java</span><code>
-@Override
-<span class="keyword">public void</span> callbackFinally(BrActionExecuteMeta executeMeta) {
-    <span class="keyword">if</span> (executeMeta.isForwardToJsp()) { <span class="comment">// JSPへフォワードするなら</span>
-        <span class="abbreviation">...</span> <span class="comment">// そのJSPを描画するための準備処理</span>
-    }
-    <span class="keyword">super</span>.godHandFinally(executeMeta);
-}
-</code></pre>
-	<p>
-		こうすると、バリデーションエラーのときでも実行されます。@Execute の input
-		属性には、JSPをそのまま指定してOKです。
-		<span class="freecomment">(描画用の@Executeメソッドを用意してフォワードするやり方は、その入り口は外からは本来不要ですし、Interceptor
-		もまた動いてしまいますし、何かとスパゲッティになりがちなので推奨されません)</span>
-	</p>
-<pre><span class="codetitle">e.g. 画面描画処理は callbackFinally() でやるので、inputは普通にJSPを指定 @Java</span><code>
-<span class="comment">// input属性には、JSPを指定するのが流儀</span>
-@Execute(validate = <span class="literal">"doValidate"</span>, input = <span class="point">path_Member_MemberEditJsp</span>)
-<span class="keyword">public void</span> submit() {
-    <span class="abbreviation">...</span>;
-}
-</code></pre>
-	<h3 id="nandemocallback">認証チェックや業務例外ハンドリングなどなど</h3>
-	<p>
-		もろもろ ActionCallback で処理を行っています。<span class="freecomment">(Interceptorを "あまり" 使わないがSAFluteの流儀)</span>
-	</p>
-	<p>
-		SAFluteのフレームワーク<span class="freecomment">(TypicalBaseAction)</span>にて、既に以下の処理が ActionCallback に組み込まれています。
-	</p>
-	<ul>
-		<li>DBFluteの共通カラム自動設定のための AccessContext の初期化</li>
-		<li>DBFluteのSQL呼び出しActionのSQLコメントへの埋め込み CallbackContext の初期化</li>
-		<li>DBFluteのリクエスト内SQL発行階数のカウント CallbackContext の初期化とロギング処理</li>
-		<li>ログインチェック、自動ログインも含む</li>
-		<li>業務例外のハンドリング</li>
-		<li>Responseに no cache を付与</li>
-	</ul>
-
-	<h2 id="jsonhandling">Action Json Handling</h2>
-	<h3 id="jsonparameter">JsonParameter</h3>
-	<p>
-		ActionFormのプロパティに @JsonParameter
-		を付けると、リクエストパラメーターのJSON文字列をパースして、Beanにマッピングしてくれます。
-	</p>
-<pre><span class="codetitle">e.g. JsonParameterでJSONをBeanで受け取る (ActionFormにて) @Java</span><code>
-<span class="point">@JsonParameter</span>
-<span class="keyword">public</span> FooWebBean <span class="attribute">jsonBean</span>;
-</code></pre>
-	<h3 id="jsonresponse">JsonResponse</h3>
-	<p>
-		さらには Action の戻り値で、JSON をオブジェクトとして指定できるようにしています。
-		(自分で Response に write するのではなく、オブジェクト型を戻すだけ)
-	</p>
-	<p>
-		Actionの@Executeメソッドの戻り値の型を JsonResponse にして...
-	</p>
-<pre><span class="codetitle">e.g. JsonResponseを戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/json</span>
-    FooWebBean bean = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> JsonResponse(bean); <span class="comment">// JSONになって欲しいBeanを引数に</span>
-}
-</code></pre>
-<pre><span class="codetitle">e.g. JSONP形式の JsonResponse を戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/javascript</span>
-    FooWebBean bean = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> JsonResponse(bean).asJsonp(<span class="literal">"callback"</span>);
-}
-</code></pre>
-	<h3 id="xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></h3>
-	<p>
-		XMLも指定できます。Actionの@Executeメソッドの戻り値の型を XmlResponse にして...
-	</p>
-<pre><span class="codetitle">e.g. XmlResponseを戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">XmlResponse</span> submit() { <span class="comment">// text/xml</span>
-    String xmlStr = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> XmlResponse(xmlStr);
-}
-</code></pre>
-	<h3 id="streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></h3>
-	<p>
-		Actionの@Executeメソッドの戻り値の型を StreamResponse にして...
-	</p>
-<pre><span class="codetitle">e.g. StreamResponseを戻す (ダウンロードする) @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">StreamResponse</span> submit() { <span class="comment">// application/octet-stream</span>
-    InputStream ins = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> StreamResponse(<span class="literal">"dbflute.pdf"</span>).stream(ins);
-}
-</code></pre>
-
-	<h2 id="objsafeprop">Objective Typesafe Properties</h2>
-	<h3 id="simpleprop">Propertiesはとてもシンプル</h3>
-	<p>
-		プログラムにハードコードしたくないコンフィグや環境依存のコンフィグなどの管理に、Javaの古来からある
-		Properties (.propertiesファイル) を利用しています。
-	</p>
-	<p>
-		Javaの経験の長い人であれば、Propertiesとは古いなぁと思われるかもしれません。
-		XMLに移り変わって、最近ではJSON形式でプロパティを管理する現場もあるかと思います。
-		ですが、Propertiesは構造を扱えない単なるkey-valueで、逆に不自由でとてもシンプルであるという一面に着目しました。
-	</p>
-	<h3 id="antidiconfig">これはやめたい！diconの環境ごとの切り替え</h3>
-	<p>
-		とにかく一番避けたいと思ったのは、diconファイルなどDIコンテナのコンポーネント管理をするファイルに環境依存のコンフィグ値を埋め込んで、ローカル、結合、本番と切り分ける方法です。
-	</p>
-<pre><span class="codetitle">e.g. これはやめたい！Diconファイルに環境依存の値を埋め込んで本番では切り替える @Dicon</span><code>
-&lt;component name="foo" class="Foo"&gt;
-    <span class="point">&lt;property name="key">bar&lt;/property&gt;</span>
-&lt;/component&gt;
-</code></pre>
-	<p>
-		diconファイルは、たまたまXMLファイルの形式をとっていますが、いわゆる設定ファイルというよりかは、<em class="keyword">コンポーネントの生成と依存関係のロジック</em>
-		だと捉えています。
-	</p>
-	<p>
-		クラス構造が変わったり、依存関係が変わったら修正する必要があります。
-		すると、時には環境依存のコンフィグ値は何も変わっていないのに本番用のファイルを修正しないといけないことも。
-		本番用のファイルは厳密には本番でしかテストできません。できるだけ修正する階数は減らしたいものです。
-		そして、環境依存のコンフィグ値は、間違いを起こしにくくチェックもしやすいシンプルな構造で管理したいものです。
-	</p>
-	<h3 id="envprop">Properties 切り替えに PropertiesHTML チェック <span class="freecomment">☆</span></h3>
-	<p>
-		SAFluteでは、環境依存のコンフィグ値を [アプリ名]_env.properties という Properties
-		で管理して、環境ごとに切り替えます。
-		また、環境依存でないコンフィグ値も、統一性や管理のしやすさの面、そして、いざ環境依存に変わってもプログラムに影響がないように、同じく Properties
-		で管理します。
-	</p>
-<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでの環境ごとのProperties @Directory</span><code>
-maihama-common
- |-src/main/resources
- |  |-maihama_config.properties <span class="comment">// 環境依存しないコンフィグ</span>
- |  |-<span class="point">maihama_env.properties</span> <span class="comment">// ローカル環境用のコンフィグ (環境ごとにコピーされる)</span>
- |
- |-src/main/integration
- |  |-maihama_env.properties <span class="comment">// 結合環境用のコンフィグ</span>
- |
- |-src/main/production
- |  |-maihama_env.properties <span class="comment">// 本番環境用のコンフィグ</span>
-</code></pre>
-	<p>
-		とはいえ、Propertiesの差分をDIFFツールなどで見ようとすると、なかなか見づらいものです。
-		なぜなら、value値は違う値が入っていて当然で差分ノイズが出てしまうからです。
-		これはXMLでもなんでもファイルを切り替えれば同じですが、Propertiesがシンプルで不自由がゆえに、それを支援する機能が利用できます。
-	</p>
-	<p>
-		DBFlute の PropertiesHTML を使って、キー値の差分をチェックすることができます。
-		どの環境のファイルに、どのキーが余計で、どのキーが足りていないかが一目瞭然です。
-		これを使って、環境ごとのコンフィグ値の追加や修正による作業ミスをチェックすることができます。
-	</p>
-	<div class="detailpage"><a href="../../generator/task/doc/propertieshtml.html">Docタスク - PropertiesHTML</a></div>
-	<p class="imgbox">PropertiesHtmlのDIFF部分の例
-		<a href="../../../../data/model/doc-PropertiesHtml-Diff-example.png" title="PropertiesHTML Diff Example"><img src="../../../../data/model/doc-PropertiesHtml-Diff-example.png" alt="PropertiesHTML Diff Example" width="550" height="130" /></a>
-	</p>
-	<p>
-		"Propertiesは不自由である" というのがここで効きます。自由度が高すぎると、こういったチェックツールを作るのが大変になります。
-		<span class="freecomment">(XMLの差分ドキュメントも作ろうともしましたが、ちょっと挫折しています...)</span>
-	</p>
-	<h3 id="objectiveprop">継承できる Properties <span class="freecomment">☆</span></h3>
-	<p>
-		通常の Properties のいやなところ、プロジェクト共通のプロパティもアプリ(ドメイン)ごとにコピーしないといけないところ。
-		コンフィグだけでなくバリデーションエラーなどの画面表示するメッセージ(いわゆるメッセージリソース)も、文言が変わったらアプリごとにコピーした
-		Properties を修正しなければなりませんでした。
-	</p>
-	<p>
-		SAFluteでは、Propertiesを継承できるようにし、共通の .properties ファイルとアプリごとの .properties
-		ファイルを分けながらも、Java側では同じインターフェースで取得できます。
-	</p>
-<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでのProperties継承構造 @Directory</span><code>
-maihama-common
- |-src/main/resources
-    |-maihama_config.properties <span class="comment">// スーパークラスならぬスーパーProperties</span>
-    |-maihama_env.properties <span class="comment">// さらにスーパーProperties</span>
-    |-maihama_message.properties <span class="comment">// 共通のメッセージリソース</span>
-
-maihama-dockside
- |-src/main/resources
- |  |-dockside_config.properties <span class="comment">// サブクラスならぬサブProperties</span>
- |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
-</code></pre>
-<pre><span class="codetitle">e.g. maihama_config.properties に定義されてる foo.bar のプロパティを取得 @Java</span><code>
-<span class="comment">// maihama_config のプロパティも docksideConfig インターフェースから取得できる</span>
-<span class="comment">// (ここでは、"foo.bar" というキー値のプロパティを取得している)</span>
-String prop = docksideConfig.getFooBar();
-</code></pre>
-	<p>
-		ちなみに、環境依存しないPropertiesと環境依存するPropertiesも継承関係にあるため、移動しても呼び出し側プログラムを修正する必要はありません。
-	</p>
-	<p>
-		もちろん、プロパティをオーバーライドすることもできます。
-		プロパティの一行コメントに、@Overrideというアノテーションを付けるとオーバーライドできます。
-	</p>
-<pre><span class="codetitle">e.g. @Overrideアノテーションを付けて明示的オーバーライド @Properties</span><code>
-<span class="comment"># @Override fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span>
-foo.bar = ABC
-</code></pre>
-	<p>
-		@Overrideを付けずにオーバーライドすると、例外になります。
-		あくまで設定ファイルですから、暗黙のオーバーライドによるトラブルが発生しないようにしています。
-	</p>
-	<h3 id="typesafeprop">タイプセーフな Properties <span class="freecomment">☆</span></h3>
-	<p>
-		そしてこれが一番の特徴です。Javaプログラムの中で、キー値をハードコードせずにプロパティ値を取得することができます。
-		DBFluteのFreeGenを使って、キー値に対応するメソッドを自動生成します。
-	</p>
-<pre><span class="codetitle">e.g. FreeGenを使って Properties のインターフェースを自動生成 @Java</span><code>
-<span class="comment">// "foo.bar" というプロパティがあったら getFooBar()</span>
-String prop = docksideConfig.<span class="point">getFooBar()</span>;
-</code></pre>
-<pre><span class="codetitle">e.g. メッセージリソースのインターフェースも自動生成 @Java</span><code>
-DocksideMessages messages = createActionMessages();
-<span class="keyword">if</span> (<span class="abbreviation">...</span>) { <span class="comment">// Formの値をチェックして</span>
-    <span class="comment">// "errors.foo.bar" というプロパティがあったら addErrorsFooBar()</span>
-    messages.<span class="point">addErrorsFooBar</span>(<span class="abbreviation">...</span>); <span class="comment">// 引数はFormのプロパティ名と{0}などのパラメーター</span>
-}
-</code></pre>
-	<p>
-		自動生成時に参照したプロパティの値がtrue/falseであれば boolean を戻す isXxx()
-		メソッドが、数値であれば Integer を戻す getXxxAsInteger()
-		というメソッドも一緒に自動生成されます。
-	</p>
-<pre><span class="codetitle">e.g. boolean を戻す Properties のメソッド @Java</span><code>
-<span class="comment">// "foo.bar" というプロパティの値が true or false だったら isFooBar()</span>
-<span class="keyword">if</span> (docksideConfig.<span class="point">isFooBar()</span>) {
-    <span class="abbreviation">...</span>
-}
-</code></pre>
-	<p>
-		また、メソッドのJavaDocコメントには、キー値に加え、自動生成時に使ったプロパティ値と一行コメントを参考に載せています。
-		わざわざ .properties ファイルまで見に行かなくても、プログラミング中にそのプロパティがどんなものなのかを補完しながら理解することができます。
-	</p>
-<pre><span class="codetitle">e.g. 自動生成された Properties のインターフェースのメソッドのJavaDoc @Java</span><code>
-<span class="comment">/**</span>
-<span class="comment"> * Get the value for the key <span class="point">'foo.bar'</span>. &lt;br /&gt;</span>
-<span class="comment"> * The value is, e.g. <span class="point">ABC</span> &lt;br /&gt;</span>
-<span class="comment"> * comment: <span class="point">fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span></span>
-<span class="comment"> * @return The value of found property. (NullAllowed: if null, not found)</span>
-<span class="comment"> */</span>
-String getFooBar();
-</code></pre>
-	<p>
-		プロパティのキーを打ち間違えることもなく、プロパティのキーが変われば自動生成し直せばコンパイルエラーで検知、
-		そのプロパティを利用している箇所を洗い出したかったら、メソッドの呼び出し階層をIDE(Eclipseとか)で検索、そんな Properties です。
-	</p>
 
 </div>
 </div>
