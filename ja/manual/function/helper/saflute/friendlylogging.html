@@ -46,7 +46,12 @@
 		<li><a href="#manydebug">幾度となくログを見る</a></li>
 		<li><a href="#requestscopelog">どの Request かわかりやすく</a></li>
 		<li><a href="#requestinfolog">RequestパラメーターやSessionの状態など</a></li>
-		<li><a href="#finalexceptionlog">最後の砦として例外メッセージをログに</a></li>
+		<li><a href="#finalexceptionlog">最後の砦として例外メッセージをログに</a>
+			<ul>
+				<li><a href="#throwthrow">アプリでは、基本的に catch せず throw</a></li>
+				<li><a href="#slimerror">本当のエラーだけ 500 に</a></li>
+			</ul>
+		</li>
 		<li><a href="#requestexceptionlog">例外メッセージにRequestの状態も一緒に</a>
 			<ul>
 				<li><a href="#actionflowlog">ActionやJSPなどを一発で探せるように</a></li>
@@ -158,6 +163,7 @@
 	</p>
 
 	<h2 id="finalexceptionlog">最後の砦として例外メッセージをログに</h2>
+	<h3 id="throwthrow">アプリでは、基本的に catch せず throw</h3>
 	<p>
 		アプリ内でthrowされた例外は、最後の最後の ServletFilter のところで catch され、ERRORレベルで例外メッセージとスタックトレースが出力されます。
 		HTTPステータスコードは 500 として扱われ、500.html が表示されるような仕組みになっています<span class="freecomment">(単にweb.xmlでそう設定しているだけですが)</span>。
@@ -165,9 +171,25 @@
 	</p>
 	<p>
 		よって、例外が発生しても、アプリ内で自前で catch して ERROR を出す必要はありません。
+		<span class="freecomment">(もちろん、例外が発生しても処理を続行したい場合などは catch します)</span>
 	</p>
 	<p>
 		RequestLoggingFilter にて、このログ出力が行われています。
+	</p>
+	<h3 id="slimerror">本当のエラーだけ 500 に</h3>
+	<p>
+		ユーザーのミスオペや、ちょっとしたいたずらなどで、簡単に500エラーが発生しないような工夫をしています。
+		インクリメンタル開発では、システムエラーはなかなか避けられないため、その分エラーログは重要です。
+		そこにあまり重要ではないエラーが混じっていると本当に緊急性の高いエラーを見逃してしまいます。
+	</p>
+	<ul>
+		<li>GETパラメーターを受け取るFormのプロパティの型違いエラー</li>
+		<li>GETパラメーターを受け取るFormの配列プロパティのindexパースエラー</li>
+		<li>GETパラメーターを受け取るFormのJSONパースエラー</li>
+		<li>などなど</li>
+	</ul>
+	<p>
+		もちろん、開発中はエラー内容がデバッグログでしっかり出力されます。
 	</p>
 
 	<h2 id="requestexceptionlog">例外メッセージにRequestの状態も一緒に</h2>
