@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>SAFluteのJSONハンドリング (Json Handling) | DBFlute</title>
+	<title>SAFluteの国際化対応 (i18n) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,82 +37,114 @@
 </div>
 
 <div id="content">
-	<h1>SAFluteのJSONハンドリング</h1>
+	<h1>SAFluteの国際化対応 (i18n)</h1>
 	<p>
 		SAFluteの特徴の一つです。
 	</p>
 	<div class="relatedpage"><a href="./index.html">SAFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#overview">Ajaxやスマートフォン対応として</a></li>
-		<li><a href="#jsonparameter">JsonParameter</a></li>
-		<li><a href="#jsonresponse">JsonResponse</a></li>
-		<li><a href="#xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></a></li>
-		<li><a href="#streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></a></li>
+		<li><a href="#overview">国際化対応の概要</a></li>
+		<li><a href="#provider">AssistantDirector で Provider 実装</a>
+			<ul>
+				<li><a href="#localeprovider">UserLocaleProcessProvider</a></li>
+				<li><a href="#timezoneprovider">UserTimeZoneProcessProvider</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="overview">Ajaxやスマートフォン対応として</h2>
+	<h2 id="overview">国際化対応の概要</h2>
 	<p>
-		クライアント側とJSONなどでやり取りすることが多くなってきました。
+		様々なアプリの要件に合わせた Locale と Timezone の管理ができるようになっています。
 	</p>
 	<p>
-		RomanticActionCustomizer や GodHandableActionWrapper が連携して実現しています。
-		オブジェクト型でやり取りすることで、JUnitTestもしやすくなります。
+		TODO jflute 書き途中
 	</p>
 
-	<h2 id="jsonparameter">JsonParameter</h2>
+	<h2 id="provider">AssistantDirector で Provider 実装</h2>
+	<h3 id="localeprovider">UserLocaleProcessProvider</h3>
 	<p>
-		ActionFormのプロパティに @JsonParameter
-		を付けると、リクエストパラメーターのJSON文字列をパースして、Beanにマッピングしてくれます。
+		以下のインターフェースを実装して、AssistantDirector にて登録をします。
 	</p>
-<pre><span class="codetitle">e.g. JsonParameterでJSONをBeanで受け取る (ActionFormにて) @Java</span><code>
-<span class="point">@JsonParameter</span>
-<span class="keyword">public</span> FooWebBean <span class="attribute">jsonBean</span>;
-</code></pre>
+<pre><span class="codetitle">UserLocaleProcessProviderインターフェース @Java</span><code>
+/**
+ * The provider of user locale process for current request.
+ * @author jflute
+ */
+public interface UserLocaleProcessProvider {
 
-	<h2 id="jsonresponse">JsonResponse</h2>
-	<p>
-		さらには Action の戻り値で、JSON をオブジェクトとして指定できるようにしています。
-		(自分で Response に write するのではなく、オブジェクト型を戻すだけ)
-	</p>
-	<p>
-		Actionの@Executeメソッドの戻り値の型を JsonResponse にして...
-	</p>
-<pre><span class="codetitle">e.g. JsonResponseを戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/json</span>
-    FooWebBean bean = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> JsonResponse(bean); <span class="comment">// JSONになって欲しいBeanを引数に</span>
+    /**
+     * Does it accept cookie locale? (prevails over session)
+     * @return The determination, true or false.
+     */
+    boolean isAcceptCookieLocale();
+
+    /**
+     * Find business locale. (prevails over cookie)
+     * @param executeMeta The meta of action execution which you can get the calling method. (NotNull)
+     * @param requestManager The manager of request to find your locale. (NotNull)
+     * @return The found locale by your business rule. (NullAllowed: if null, not found)
+     */
+    Locale findBusinessLocale(ActionExecuteMeta executeMeta, RequestManager requestManager);
+
+    /**
+     * Get the requested locale. (for when not found in session or cookie)
+     * @param requestManager The manager of request to find your time-zone. (NotNull)
+     * @return The locale as default by your business rule. (NullAllowed: if null, requested client locale)
+     */
+    Locale getRequestedLocale(RequestManager requestManager);
+
+    /**
+     * Get the fall-back locale. (for no locale everywhere)
+     * @return The fixed instance of locale, might be cached. (NullAllowed: if null, server locale)
+     */
+    Locale getFallbackLocale();
 }
 </code></pre>
-<pre><span class="codetitle">e.g. JSONP形式の JsonResponse を戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">JsonResponse</span> submit() { <span class="comment">// application/javascript</span>
-    FooWebBean bean = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> JsonResponse(bean).asJsonp(<span class="literal">"callback"</span>);
-}
-</code></pre>
-
-	<h2 id="xmlresponse">XmlResponse <span class="freecomment">(XMLも指定できます)</span></h2>
+	<h3 id="timezoneprovider">UserTimeZoneProcessProvider</h3>
 	<p>
-		XMLも指定できます。Actionの@Executeメソッドの戻り値の型を XmlResponse にして...
+		以下のインターフェースを実装して、AssistantDirector にて登録をします。
 	</p>
-<pre><span class="codetitle">e.g. XmlResponseを戻す @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">XmlResponse</span> submit() { <span class="comment">// text/xml</span>
-    String xmlStr = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> XmlResponse(xmlStr);
-}
-</code></pre>
+<pre><span class="codetitle">UserTimeZoneProcessProviderインターフェース @Java</span><code>
+/**
+ * The provider of user time-zone process for current request.
+ * @author jflute
+ */
+public interface UserTimeZoneProcessProvider {
 
-	<h2 id="streamresponse">StreamResponse <span class="freecomment">(というかStreamも)</span></h2>
-	<p>
-		Actionの@Executeメソッドの戻り値の型を StreamResponse にして...
-	</p>
-<pre><span class="codetitle">e.g. StreamResponseを戻す (ダウンロードする) @Java</span><code>
-@Execute(validator = <span class="keyword">false</span>)
-<span class="keyword">public</span> <span class="point">StreamResponse</span> submit() { <span class="comment">// application/octet-stream</span>
-    InputStream ins = <span class="abbreviation">...</span>;
-    <span class="keyword">return new</span> StreamResponse(<span class="literal">"dbflute.pdf"</span>).stream(ins);
+    /**
+     * Does it use time-zone handling? <br />
+     * The time-zone handling is option (not related to Struts) so you need to choose.
+     * @return The determination, true or false.
+     */
+    boolean isUseTimeZoneHandling();
+
+    /**
+     * Does it accept cookie time-zone? (prevails over session)
+     * @return The determination, true or false.
+     */
+    boolean isAcceptCookieTimeZone();
+
+    /**
+     * Find business time-zone. (prevails over cookie)
+     * @param executeMeta The meta of action execution which you can get the calling method. (NotNull)
+     * @param requestManager The manager of request to find your time-zone. (NotNull)
+     * @return The found time-zone by your business rule. (NullAllowed: if null, not found)
+     */
+    TimeZone findBusinessTimeZone(ActionExecuteMeta executeMeta, RequestManager requestManager);
+
+    /**
+     * Get the requested time-zone. (for when not found in session or cookie) <br />
+     * Unfortunately we cannot get time-zone from request, provider needs to provide the default time-zone
+     * @param requestManager The manager of request to find your time-zone. (NotNull)
+     * @return The time-zone as default by your business rule. (NotNull)
+     */
+    TimeZone getRequestedTimeZone(RequestManager requestManager);
+
+    /**
+     * Get the fall-back time-zone. (for no time-zone everywhere)
+     * @return The fixed instance of time-zone, might be cached. (NullAllowed: if null, server time-zone)
+     */
+    TimeZone getFallbackTimeZone();
 }
 </code></pre>
 
