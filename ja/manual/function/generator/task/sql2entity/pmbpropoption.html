@@ -64,7 +64,7 @@
 				<li><a href="#basicclassification">区分値条件の基本</a></li>
 				<li><a href="#listclassification">リスト型の区分値</a></li>
 				<li><a href="#fixedclassification">固定の区分値</a></li>
-				<li><a href="#classificationorigin">本来の区分値のオプション</a></li>
+				<li><a href="#refclassification">参照カラムによる区分値の関連付け</a></li>
 			</ul>
 		</li>
 		<li><a href="#refcolumn">参照カラムのオプション</a>
@@ -329,49 +329,39 @@ pmb.<span class="point">setToFormalizedDate_ToDate</span>(toDate(<span class="li
 	<div class="detailpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
 	<h3 id="basicclassification">区分値条件の基本</h3>
 	<p>
-		対応するカラムを参照カラムのオプション ":ref([table-name].[column-name])"
-		にて指定すると、ParameterBeanにて区分値メソッドが利用できます。対応するカラムが区分値であれば、この紐付けから自動的に区分値が認識されます。(ref オプションと呼びます)
+		対応する区分値を ":cls([classification-name])" (cls オプションと呼びます) にて指定すると、ParameterBeanに区分値メソッドが生成されます。
 	</p>
-	<div class="relatedpage"><a href="#refcolumn">this - 参照カラムのオプション</a></div>
-	<p>
-		また、プロパティ名と対応するカラム名が、FlexibleName (大文字小文字、アンダースコアを無視) として一致する場合は、カラム名の指定は省略できます。
-	</p>
-<pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け (自動判別) @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. paymentCompleteFlg を Flg に関連付け (プロパティの自動判別) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
 <span class="comment">-- !!AutoDetect!!</span>
  <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode:<span class="point">ref(MEMBER)</span>*/</span><span class="literal">'FML'</span>
+ <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteFlg:<span class="point">cls(Flg)</span>*/</span><span class="literal">0</span>
 </code></pre>
-<pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け (明示的宣言) @OutsideSql</span><code>
+<pre><span class="codetitle">e.g. paymentCompleteFlg を Flg に関連付け (プロパティの明示的宣言) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
+<span class="comment">-- !!String paymentCompleteFlg:<span class="point">cls(Flg)</span>!!</span>
  <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
-</code></pre>
-<pre><span class="codetitle">e.g. 会員ステータス(区分値)が正式会員であること(検索条件) @Java</span><code>
-SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
-pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
+ <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteFlg*/</span><span class="literal">0</span>
 </code></pre>
 	<h3 id="listclassification">リスト型の区分値</h3>
 	<p>
 		リスト型に関しては、区分値を関連付けても区分値メソッドは生成されませんので、少なくとも cls オプションを付ける意味はありません。
 		代わりにリストの要素型を対応する CDef の区分値クラスにして、CDef を使って複数の区分値要素を指定するようにすると良いでしょう。
-		(ただし、ref オプション自体はドキュメント上のメリットがあるので、付けておいて損はありません)
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="#cdefpkg"> -->this - プログラム型のパッケージ解決 - CDefのパッケージ解決<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. memberStatusCodeを複数指定するためにリスト型のプロパティを指定 (明示的宣言) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!List&lt;<span class="point">$$CDef$$.MemberStatus</span>&gt; statusList:<span class="point">ref(MEMBER.MEMBER_STATUS_CODE)</span>!!</span>
+<span class="comment">-- !!List&lt;<span class="point">$$CDef$$.MemberStatus</span>&gt; statusList!!</span>
  <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.statusList*/</span>(<span class="literal">'FML'</span>)
 </code></pre>
 	<p>
-		CDef型を自動判別することはできないので、この場合は明示的宣言をお奨めします。
+		CDef型のプロパティを自動判別することはできないので、この場合は明示的宣言をお奨めします。
 		<span class="freecomment">(厳密にはできなくないのですが、バインド変数コメントの宣言がごちゃごちゃしてしまってあまり見た目がよくないので)</span>
 	</p>
 	<h3 id="fixedclassification">固定の区分値</h3>
 	<p>
-		固定の区分値を条件値にするような場合は、(後述の) cls オプションで区分要素まで指定することで固定の区分値を指定することができます<span class="freecomment">(@since 0.9.9.0D)</span>。
+		固定の区分値を条件値にするような場合は、cls オプションで区分要素まで指定することで固定の区分値を指定することができます<span class="freecomment">(@since 0.9.9.0D)</span>。
 		これを利用することで、外だしSQLの中で区分値をハードコードする必要がなくなり、タイプミスによる区分値コードの間違いの心配はなくなります。
 		ハードコードよりも少し書くことが多くなりますが、安全性を優先するならば積極的に利用した方が良いでしょう。
 	</p>
@@ -401,19 +391,38 @@ pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
  <span class="abbreviation">...</span>
  <span class="keyword">where</span> MEMBER_STATUS_CODE <span class="keyword">in</span> <span class="comment">/*pmb.validStatusList*/</span>(<span class="literal">'FML'</span>)
 </code></pre>
-	<h3 id="classificationorigin">本来の区分値のオプション</h3>
+	<h3 id="refclassification">参照カラムによる区分値の関連付け</h3>
 	<p>
-		本来は、":cls([classification-name])"
-		という区分値のオプションがあるのですが(cls オプションと呼びます)、こちらはあまり使いません。
-		区分値を使うのであれば、そのプロパティは何かのカラムに紐付くはずと言え、それならばドキュメント上のメリットがある ref
-		オプションの方が良いので。("固定の区分値" においては利用することがあります)
+		clsオプションではなく、参照カラムのオプションでも、区分値を関連付けることができます。
 	</p>
-<pre><span class="codetitle">e.g. paymentCompleteFlg を Flg に関連付け (明示的宣言) @OutsideSql</span><code>
+	<p>
+		対応するカラムを参照カラムのオプション ":ref([table-name].[column-name])" にて指定すると、ParameterBean
+		にて区分値メソッドが利用できます。対応するカラムが区分値であれば、この紐付けから自動的に区分値が認識されます。(ref オプションと呼びます)
+	</p>
+	<div class="relatedpage"><a href="#refcolumn">this - 参照カラムのオプション</a></div>
+	<p>
+		また、プロパティ名と対応するカラム名が、FlexibleName (大文字小文字、アンダースコアを無視) として一致する場合は、カラム名の指定は省略できます。
+	</p>
+<pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け (自動判別) @OutsideSql</span><code>
 <span class="comment">-- !df:pmb!</span>
-<span class="comment">-- !!String paymentCompleteFlg:<span class="point">cls(Flg)</span>!!</span>
+<span class="comment">-- !!AutoDetect!!</span>
  <span class="abbreviation">...</span>
- <span class="keyword">where</span> PAYMENT_COMPLETE_FLG = <span class="comment">/*pmb.paymentCompleteFlg*/</span><span class="literal">0</span>
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode:<span class="point">ref(MEMBER)</span>*/</span><span class="literal">'FML'</span>
 </code></pre>
+<pre><span class="codetitle">e.g. memberStatusCodeを会員ステータス(区分値)に関連付け (明示的宣言) @OutsideSql</span><code>
+<span class="comment">-- !df:pmb!</span>
+<span class="comment">-- !!String memberStatusCode:<span class="point">ref(MEMBER)</span>!!</span>
+ <span class="abbreviation">...</span>
+ <span class="keyword">where</span> MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+</code></pre>
+<pre><span class="codetitle">e.g. 会員ステータス(区分値)が正式会員であること(検索条件) @Java</span><code>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
+pmb.<span class="point">setMemberStatusCode_Formalized()</span>;
+</code></pre>
+	<p>
+		区分値は、何かしらのカラムに関連付いているはずなので、実は ref オプションを使う方がドキュメント上のメリットがある分だけ得です。
+		(ただし、"固定の区分値" においては必ず cls オプションを使う必要があります)
+	</p>
 
 	<!-- _/_/_/_/_/_/_/_/ -->
 	<!-- Column Reference -->
