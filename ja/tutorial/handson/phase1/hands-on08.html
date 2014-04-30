@@ -178,7 +178,7 @@
 
 	<h2 id="ifyoulikedeadlock">もしよければ、デッドロックを</h2>
 	<p>
-		せっかくなので、ちょっとデッドロックしてみましょう。<span class="freecomment">(講師による小話あり)</span>
+		せっかくなので、ちょっとデッドロックしてみましょう。<span class="freecomment">(講師によるデッドロック話あり)</span>
 	</p>
 	<dl class="textlist">
 		<dt>※ロジックは作らずにテストクラスに直接実装</dt>
@@ -187,32 +187,43 @@
 		<dd>test_IfYouLike_DeadLock()</dd>
 		<dd>
 			<ul class="supplementlist">
-				<li>threadFire()メソッドを使ってデッドロックを発生させてみること</li>
+				<li>cannonball()メソッドを使ってデッドロックを発生させてみること</li>
 				<li>例外メッセージに "Deadlock" という文字が含まれていることをアサート</li>
 			</ul>
 		</dd>
-		<dd>
-			<span class="freecomment">※もしよければ、threadFire()のソースもちょっとだけ追っかけてみてください。</span>
-		</dd>
 	</dl>
-<pre><span class="codetitle">e.g. threadFire()を使ってデッドロックの参考コード @Java</span><code>
-threadFire(<span class="keyword">new</span> ThreadFireExecution&lt;Void&gt;() {
-    <span class="keyword">public</span> Void execute(ThreadFireResource resource) {
-        <span class="keyword">long</span> threadId = resource.getThreadId();
-        <span class="keyword">if</span> (threadId % 2 == 0) { <span class="comment">// thread A</span>
-            updateFoo();
-            log(<span class="attribute">"...Waiting A"</span>);
-            sleep(<span class="attribute">2000</span>);
-            updateBar();
-        } <span class="keyword">else</span> { <span class="comment">// thread B</span>
-            updateBar();
-            log(<span class="attribute">"...Waiting B"</span>);
-            sleep(<span class="attribute">2000</span>);
-            updateFoo();
-        }
-        <span class="keyword">return null</span>;
+	<p>
+		ハンズオンで使っている UTFlute のドキュメントをじっくり読んでから実装してみましょう。
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/helper/utflute/index.html">UTFlute</a></div>
+<pre><span class="codetitle">e.g. cannonball()を使ってデッドロックの参考コード @Java</span><code>
+cannonball(<span class="keyword">new</span> CannonballRun() {
+    <span class="keyword">public</span> void drive(CannonballCar car) {
+        car.projectA(<span class="keyword">new</span> CannonballProjectA() {
+            <span class="keyword">public void</span> plan(CannonballDragon dragon) {
+                dragon.expectNormallyDone();
+                updateFoo();
+            }
+        }, 1);
+        car.projectA(<span class="keyword">new</span> CannonballProjectA() {
+            <span class="keyword">public void</span> plan(CannonballDragon dragon) {
+                dragon.expectNormallyDone();
+                updateBar();
+            }
+        }, 2);
+        car.projectA(<span class="keyword">new</span> CannonballProjectA() {
+            <span class="keyword">public void</span> plan(CannonballDragon dragon) {
+                dragon.expectOvertime();
+                updateBar();
+            }
+        }, 1);
+        car.projectA(<span class="keyword">new</span> CannonballProjectA() {
+            <span class="keyword">public void</span> plan(CannonballDragon dragon) {
+                updateFoo();
+            }
+        }, 2);
     }
-}, <span class="keyword">new</span> ThreadFireOption().threadCount(<span class="attribute">2</span>).expectExceptionAny(<span class="attribute">"Deadlock"</span>));
+}, <span class="keyword">new</span> CannonballOption().threadCount(<span class="attribute">2</span>).expectExceptionAny(<span class="attribute">"Deadlock"</span>));
 </code></pre>
 	<p>
 		さらに、MySQLでは様々なデッドロックが存在します。ブログ記事をご覧下さい。
