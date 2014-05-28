@@ -48,7 +48,12 @@
 				<li><a href="#column">column-name</a></li>
 			</ul>
 		</li>
-		<li><a href="#example">Example</a></li>
+		<li><a href="#example">Example</a>
+			<ul>
+				<li><a href="#egincludeexclude">e.g. 含める、除外する</a></li>
+				<li><a href="#egcolumndriven">e.g. カラムドリブンで指定 <span class="freecomment">@since 1.0.5G</span></a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">includeQueryMapとは？</h2>
@@ -143,7 +148,11 @@
 		<dd>
 			NotEqual, GreaterThan, LessThan, GreaterEqual, LessEqual,
 			InScope, NotInScope, PrefixSearch, LikeSearch, NotLikeSearch,
-			EmptyString, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>, RangeOf<span class="freecomment">(@since 0.9.9.2C)</span>,
+			EmptyString, FromTo, DateFromTo<span class="freecomment">(@since 0.9.7.5)</span>,
+			RangeOf<span class="freecomment">(@since 0.9.9.2C)</span>,
+			IsNull<span class="freecomment">(@since 1.0.5G)</span>,
+			IsNullOrEmpty<span class="freecomment">(@since 1.0.5G)</span>,
+			IsNotNull<span class="freecomment">(@since 1.0.5G)</span>
 		</dd>
 		<dd>
 			Asc, Desc <span class="freecomment">※OrderByで利用可能 (@since 1.0.5B)</span>
@@ -208,6 +217,7 @@
 	</p>
 
 	<h2 id="example">Example</h2>
+	<h3 id="egincludeexclude">e.g. 含める、除外する</h3>
 <pre><span class="codetitle">e.g. 文字列型カラムの大なり小なり比較を生成しない設定例 @includeQueryMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     ; String = <span class="keyword">map:</span>{
@@ -256,19 +266,40 @@
     }
 }
 </code></pre>
+	<h3 id="egcolumndriven">e.g. カラムドリブンで指定 <span class="freecomment">@since 1.0.5G</span></h3>
 	<p>
-		もし、商品テーブルの REGULAR_PRICE は等値以外では使わないぞっ、というときがあったら...
+		もし、商品テーブルの REGULAR_PRICE は等値以外では絶対に使わないぞっ、というか使ってもらっちゃ困る、というときがあったら...
+		<span class="freecomment">@since 1.0.5G</span>
 	</p>
 <pre><span class="codetitle">e.g. 商品テーブルの REGULAR_PRICE は等値以外では使わないぞというときの設定例 @includeQueryMap.dfprop</span><code>
 <span class="keyword">map:</span>{
-    ; Number = map:{
-        ; !GreaterThan = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !LessThan = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !GreaterEqual = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !LessEqual = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !InScope = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !NotInScope = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
-        ; !RangeOf = <span class="keyword">map:</span>{ PRODUCT = <span class="keyword">list:</span>{ REGULAR_PRICE } }
+    ; $Product = map:{
+        ; REGULAR_PRICE(Number) = <span class="keyword">list:</span>{}
+    }
+}
+</code></pre>
+	<p>
+		というか、REGULAR_PRICE は OrderBy でも使わないぞっ、というときがあったら...
+	</p>
+<pre><span class="codetitle">e.g. さらに REGULAR_PRICE は OrderBy でも使わないぞというときの設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; $Product = map:{
+        ; REGULAR_PRICE(Number) = <span class="keyword">list:</span>{}
+        ; REGULAR_PRICE(OrderBy) = <span class="keyword">list:</span>{}
+    }
+}
+</code></pre>
+	<p>
+		そしてさらに、PRODUCT_HANDLE_CODE では曖昧検索は使わないぞっ、というときがあったら...
+	</p>
+<pre><span class="codetitle">e.g. さらに REGULAR_PRICE は OrderBy でも使わないぞというときの設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; $Product = map:{
+        ; REGULAR_PRICE(Number) = <span class="keyword">list:</span>{}
+        ; REGULAR_PRICE(OrderBy) = <span class="keyword">list:</span>{}
+        ; PRODUCT_HANDLE_CODE(String) = <span class="keyword">list:</span>{
+            ; !PrefixSearch ; !LikeSearch ; !NotLikeSearch
+        }
     }
 }
 </code></pre>
