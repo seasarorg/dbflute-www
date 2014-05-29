@@ -47,6 +47,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#uniqueby">ユニークキーで削除 <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -92,6 +93,30 @@ Member member = <span class="keyword">new</span> Member();
 member.setMemberId(<span class="literal">3</span>);
 <span class="attribute">memberBhv</span>.deleteNonstrict(member);
 </code></pre>
+	<h3 id="uniqueby">ユニークキーで削除 <span class="freecomment">@since 1.0.5G</span></h3>
+	<p>
+		主キーではなく、ユニーク制約のキーで削除することもできます。
+	</p>
+	<p>
+		プログラム上でPKは持ってなくて代わりにユニークキーだけを持っているような場合に、PK取得のためだけの無駄な事前検索を省くことができます。
+		<span class="freecomment">(こういったケースはわりと多いと想定されます)</span>
+	</p>
+<pre><span class="codetitle">e.g. ユニークキーである会員アカウントで削除 {MEMBER} @Java</span><code>
+<span class="comment">// PK取得のためだけの無駄な事前検索は不要</span>
+<span class="comment">//Member member = memberBhv.selectEntityWithDeletedCheck(cb);</span>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">uniqueBy</span>(memberAccount); <span class="comment">// ユニークキー (複合キーなら引数が増える)</span>
+<span class="attribute">memberBhv</span>.deleteNonstrict(member);
+</code></pre>
+	<p>
+		細かい仕様は、update()と同じです。
+	</p>
+	<div class="relatedpage"><a href="./update.html#uniqueby">update() - ユニークキーで更新</a></div>
+	<p>
+		排他制御をしないのであれば、queryDelete() で更新するのとやってることはほぼ同じです。
+		<span class="freecomment">(実行して対象のレコードが存在しなかったときに例外になるか素通りするかの違いはあります)</span>
+	</p>
+	<div class="relatedpage"><a href="./querydelete.html">queryDelete()</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>

@@ -47,6 +47,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#uniqueby">ユニークキーで更新 <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -96,20 +97,47 @@
 <span class="attribute">memberBhv</span>.<span class="point">update</span>(member);
 </code></pre>
 	<p>
-		排他制御処理を利用するために、事前に検索されたPKと排他制御カラムの値を設定して更新します。
-		(排他制御対象テーブルの場合)
+		排他制御対象テーブルの場合、排他制御処理のために、PKに加えて排他制御カラムの値を設定します。
 	</p>
 <pre><span class="codetitle">e.g. 事前に検索されたPKと排他制御カラムの値を設定して更新 {MEMBER} @Java</span><code>
 Member member = <span class="keyword">new</span> Member();
-member.<span class="point">setMemberId</span>(memberId); <span class="comment">// 事前に検索されたPK</span>
+member.<span class="point">setMemberId</span>(memberId); <span class="comment">// PK</span>
 member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 業務的な更新値の設定</span>
 member.<span class="point">setVersionNo</span>(versionNo); <span class="comment">// 事前に検索されたバージョン番号</span>
 <span class="attribute">memberBhv</span>.update(member);
 </code></pre>
 	<p>
-		更新対象のカラムに対してのみ、更新値を設定します。
+		Setterが呼び出されたカラムに対してのみ、更新値を設定します。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="modified"> -->this - 設定された値だけ更新<!-- </a> --></span></div>
+	<h3 id="uniqueby">ユニークキーで更新 <span class="freecomment">@since 1.0.5G</span></h3>
+	<p>
+		主キーではなく、ユニーク制約のキーで更新することもできます。
+	</p>
+	<p>
+		プログラム上でPKは持ってなくて代わりにユニークキーだけを持っているような場合に、PK取得のためだけの無駄な事前検索を省くことができます。
+		<span class="freecomment">(こういったケースはわりと多いと想定されます)</span>
+	</p>
+<pre><span class="codetitle">e.g. ユニークキーである会員アカウントで更新 {MEMBER} @Java</span><code>
+<span class="comment">// PK取得のためだけの無駄な事前検索は不要</span>
+<span class="comment">//Member member = memberBhv.selectEntityWithDeletedCheck(cb);</span>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">uniqueBy</span>(memberAccount); <span class="comment">// ユニークキー (複合キーなら引数が増える)</span>
+member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 業務的な更新値の設定</span>
+member.setVersionNo(versionNo); <span class="comment">// 事前に検索されたバージョン番号</span>
+<span class="attribute">memberBhv</span>.update(member);
+</code></pre>
+	<p>
+		そのテーブルにユニーク制約が一つだけの場合は uniqueOf() というメソッド名、二つ以上ある場合は uniqueOf[カラム名の列挙]()
+		というメソッド名になります。
+	</p>
+	<p>
+		このとき、Entityの中の PK は、値が設定されていても更新処理に何も影響しません。PKの値自体を更新することもできません。
+		<span class="freecomment">(そもそもPKの値は更新すべきではなく、更新できない方がよいという考えから)</span>
+	</p>
+	<p>
+		バッチ更新では利用できません。<span class="freecomment">(uniqueByしても無視されます)</span>
+	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>

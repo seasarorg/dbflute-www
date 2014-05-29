@@ -47,6 +47,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#uniqueby">ユニークキーで更新 <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -72,7 +73,6 @@
 	<div class="relatedpage"><a href="./insert.html">insert(entity)</a></div>
 	<p>
 		このメソッドは、登録と更新でよくある利用を定型化して簡易に利用できるようにしたものであり、このメソッドでなければ実現できないこと、というものはありません。
-		また、更新はPKによって実行されるので、(PK以外の)ユニークキーを使った登録or更新処理をする場合には利用できません。
 	</p>
 	<p>
 		会話上では、<em class="keyword">いんさーとおああっぷでーとのんすとりくと</em> と表現します。
@@ -89,6 +89,33 @@
 --
 <span class="attribute">memberBhv</span>.<span class="point">insertOrUpdateNonstrict</span>(member);
 </code></pre>
+	<p>
+		Entity に設定されている PK に該当するレコードがDBにあれば更新、なければ登録します。PKが自動採番のとき、Entity
+		に設定されている PK が null なら問答無用で登録します。
+	</p>
+	<h3 id="uniqueby">ユニークキーで更新 <span class="freecomment">@since 1.0.5G</span></h3>
+	<p>
+		主キーではなく、ユニーク制約のキーで更新することもできます。
+	</p>
+	<p>
+		プログラム上でユニークキーだけを持っていて、そのレコードがDBに存在するかどうかわからない場合に、レコード存在確認のためだけの事前検索を省くことができます。
+		<span class="freecomment">(こういったケースはわりと多いと想定されます)</span>
+	</p>
+<pre><span class="codetitle">e.g. ユニークキーである会員アカウントで更新 {MEMBER} @Java</span><code>
+<span class="comment">// PK取得のためだけの無駄な事前検索は不要</span>
+<span class="comment">//Member member = memberBhv.selectEntityWithDeletedCheck(cb);</span>
+Member member = <span class="keyword">new</span> Member();
+member.<span class="point">uniqueBy</span>(memberAccount); <span class="comment">// ユニークキー (複合キーなら引数が増える)</span>
+member.setMemberName(<span class="literal">"Stojkovic"</span>); <span class="comment">// 業務的な更新値の設定</span>
+<span class="attribute">memberBhv</span>.insertOrUpdateNonstrict(member);
+</code></pre>
+	<p>
+		Entity に設定されている (明示的に指定された) ユニークキーがDBにあれば更新、なければ登録します。この場合、ユニークキーの値は必須です。
+	</p>
+	<p>
+		細かい仕様は、update()と同じです。
+	</p>
+	<div class="relatedpage"><a href="./update.html#uniqueby">update() - ユニークキーで更新</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
