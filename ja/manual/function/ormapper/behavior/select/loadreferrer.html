@@ -216,7 +216,7 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
         cb.<span class="point">setupSelect_Product()</span>; <span class="comment">// 商品も同時に取得</span>
         cb.query().addOrderBy_PurchaseDatetime_Desc();
     }
-})
+});
 
 <span class="keyword">for</span> (Member member : memberList) {
     List&lt;Purchase&gt; purchaseList = member.getPurchaseList();
@@ -228,6 +228,31 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 }
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブルの取得 (one-to-many-to-many)</h3>
+	<h4>withNestedReferrer() <span class="freecomment">@since 1.0.5G</span></h4>
+	<p>
+		1.0.5G より、実装しやすい新たな方法が提供されています。
+	</p>
+<pre><span class="codetitle">e.g. 会員と購入とさらに購入支払を取得 @Java</span><code>
+<span class="comment">// 会員ステータス (基点テーブル)</span>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+<span class="attribute">memberBhv</span>.loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+    <span class="keyword">public void</span> setup(PurchaseCB cb) {
+        cb.query().addOrderBy_PurchaseDatetime_Desc();
+    }
+}).<span class="point">withNestedReferrer</span>(<span class="keyword">new</span> ReferrerListHandler&lt;Purchase&gt;() {
+    <span class="keyword">public void</span> handle(List&lt;Purchase&gt; referrerList) {
+        <span class="attribute">purchaseBhv</span>.loadPurchasePaymentList(referrerList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchasePaymentCB&gt;() {
+            <span class="keyword">public void</span> setup(PurchasePaymentCB cb) {
+                cb.query().addOrderBy_PaymentDatetime_Desc();
+            }
+        });
+    }
+});
+</code></pre>
+	<h4>従来のやり方 <span class="freecomment">@before 1.1</span></h4>
 	<p>
 		ここで、LoadReferrerOption の出番です。ConditionBeanSetupper
 		は、シンプルに一階層までの子テーブルを取得するのに向いています。さらに二階層以上先の子テーブルを取得する場合は、LoadReferrerOption
