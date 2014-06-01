@@ -52,6 +52,7 @@
 			<ul>
 				<li><a href="#egincludeexclude">e.g. 含める、除外する</a></li>
 				<li><a href="#egcolumndriven">e.g. カラムドリブンで指定 <span class="freecomment">@since 1.0.5G</span></a></li>
+				<li><a href="#tablecls">e.g. テーブル区分値のスーパースリム化 <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -123,7 +124,8 @@
 		プロパティ型を指定します。
 	</p>
 	<dl class="textlist">
-		<dt>値候補</dt><dd>String, Number, Date, OrderBy<span class="freecomment">(@since 1.0.5B)</span>, Myself<span class="freecomment">(@since 1.0.5B)</span></dd>
+		<dt>値候補</dt>
+		<dd>String, Number, Date, OrderBy<span class="freecomment">(@since 1.0.5B)</span>, Relation<span class="freecomment">(@since 1.0.5G)</span>, Myself<span class="freecomment">(@since 1.0.5B)</span></dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 		<dt>補足</dt>
 		<dd>
@@ -131,7 +133,9 @@
 				<li>String, Number, Dateと、データ型ごとに指定できる</li>
 				<li>OrderByは、データ型ごとではなくひとまとまりである</li>
 				<li>OrderByは、ConditionKeyとして Asc, Desc が指定できる</li>
-				<li>Myselfは、ScalarConditionやMyselfDerivedなどの単一PKに紐づくものが指定できる</li>
+				<li>Relationは、ExistsReferrer, InScopeRelation などが指定できる</li>
+				<li>Relationは、カラムの指定が意味をなさないのでカラム指定はしない</li>
+				<li>Myselfは、InlineView<span class="freecomment">(@since 1.0.5G)</span>, ScalarCondition などが指定できる</li>
 				<li>Myselfは、カラムの指定が意味をなさないのでカラム指定はしない</li>
 			</ul>
 		</dd>
@@ -301,6 +305,97 @@
             ; !PrefixSearch ; !LikeSearch ; !NotLikeSearch
         }
     }
+}
+</code></pre>
+	<h3 id="tablecls">e.g. テーブル区分値のスーパースリム化 <span class="freecomment">@since 1.0.5G</span></h3>
+	<p>
+		例えば、全てのテーブル区分値のテーブル名が CLS_ で始まっていて、CLS_FOO だと以下のようなカラム構成になっているとして...
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>FOO_CODE</dt><dd>codeに相当。主キーなので、DBFlute内部で色々と使う可能性がある</dd>
+		<dt>FOO_NAME</dt><dd>nameに相当。絞り込み条件やソート条件で使うようなことはない</dd>
+		<dt>FOO_ALIAS</dt><dd>aliasに相当。絞り込み条件やソート条件で使うようなことはない</dd>
+		<dt>DISPLAY_ORDER</dt><dd>ソートで使う。降順で並べることはない</dd>
+		<dt>COMMENT</dt><dd>commentに相当。絞り込み条件やソート条件で使うようなことは絶対にない</dd>
+	</dl>
+	<p>
+		まずは、classificationDefinitionMap.dfpropにて、isSuppressDBAccessClass を true にします。
+		もし、Behaviorが必要なテーブル区分値があったら、その区分値だけ false にします。
+	</p>
+<pre><span class="codetitle">e.g. Foo区分値のBehaviorを生成しない @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; Foo = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{
+            ; topComment=<span class="abbreviation">...</span>; codeType=String
+            <span class="point">; isSuppressDBAccessClass = true</span>
+        }
+        <span class="abbreviation">...</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	そして、ほとんどの絞り込み条件とソート条件を外します。DISPLAY_ORDERは Desc だけを抑制しています。さらに、InlineView
+	も抑制しているので、CIQクラスが生成されません。
+<pre><span class="codetitle">e.g. テーブル区分値のスーパースリム化の設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; $<span class="attribute">prefix:</span>CLS_ = <span class="keyword">map:</span>{
+        ; <span class="attribute">suffix:</span>_CODE(String) = <span class="keyword">list:</span>{}
+        ; <span class="attribute">suffix:</span>_NAME(String) = <span class="keyword">list:</span>{}
+        ; <span class="attribute">suffix:</span>_NAME(OrderBy) = <span class="keyword">list:</span>{}
+        ; <span class="attribute">suffix:</span>_ALIAS(String) = <span class="keyword">list:</span>{}
+        ; <span class="attribute">suffix:</span>_ALIAS(OrderBy) = <span class="keyword">list:</span>{}
+        ; DISPLAY_ORDER(Number) = <span class="keyword">list:</span>{}
+        ; DISPLAY_ORDER(OrderBy) = <span class="keyword">list:</span>{ !Desc }
+        ; <span class="attribute">suffix:</span>_COMMENT(String) = <span class="keyword">list:</span>{}
+        ; <span class="attribute">suffix:</span>_COMMENT(OrderBy) = <span class="keyword">list:</span>{}
+    }
+    ; Relation = <span class="keyword">map:</span>{
+        ; !ExistsReferrer = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !InScopeRelation = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !DerivedReferrer = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !SpecifiedDerivedOrderBy = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+    }
+    ; Myself = <span class="keyword">map:</span>{
+        ; !InlineView = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !ScalarCondition = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !MyselfDerived = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !MyselfExists = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !MyselfInScope = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+    }
+}
+</code></pre>
+	<p>
+		もし、とある区分値だけ DISPLAY_ORDER で降順を使う、というような場合は、OrderByのプロパティ型にて復活指定を追加します。
+		<span class="freecomment">(わりと多くの区分値で使うのであれば、そもそも除外指定の方を削除しましょう)</span>
+	</p>
+<pre><span class="codetitle">e.g. CLS_BAR だけは DISPLAY_ORDER で降順ソートする設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; OrderBy = <span class="keyword">map:</span>{
+        ; %Desc = <span class="keyword">map:</span>{ CLS_BAR = <span class="keyword">list:</span>{ DISPLAY_ORDER } }
+    }
+    ; $<span class="attribute">prefix:</span>CLS_ = <span class="keyword">map:</span>{
+        <span class="abbreviation">...</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		もし、とある区分値だけ DerivedReferrer を使う、というような場合は、Relationのプロパティ型にて復活指定を追加します。
+		<span class="freecomment">(わりと多くの区分値で使うのであれば、そもそも除外指定の方を削除しましょう)</span>
+	</p>
+<pre><span class="codetitle">e.g. CLS_BAR だけは DerivedReferrer する設定例 @includeQueryMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; Relation = <span class="keyword">map:</span>{
+        ; !ExistsReferrer = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !InScopeRelation = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !DerivedReferrer = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; !SpecifiedDerivedOrderBy = <span class="keyword">map:</span>{ <span class="attribute">prefix:</span>CLS_ = <span class="keyword">list:</span>{} }
+        ; %DerivedReferrer = <span class="keyword">map:</span>{ CLS_BAR = list:{} }
+    }
+    <span class="abbreviation">...</span>
 }
 </code></pre>
 
