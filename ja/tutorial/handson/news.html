@@ -39,6 +39,7 @@
 <div id="content">
 	<h1>ハンズオンニュース</h1>
 	<ul class="indexlist">
+		<li><a href="#mysqlscript">MySQLスクリプトを改良</a></li>
 		<li><a href="#payment">PURCHASE_PAYMENT を追加</a>
 			<ul>
 				<li><a href="#paymentuntil3">まだ、セクション３までの人</a></li>
@@ -47,6 +48,63 @@
 			</ul>
 		</li>
 	</ul>
+
+	<h2 id="mysqlscript">MySQLスクリプトを改良</h2>
+	<p>
+		(2014/06/02)
+	</p>
+	<p>
+		MySQL用の起動バッチやログインシェルなどを改良しました。ファイルの中身を以下の内容で置き換えてください。
+	</p>
+	<p>
+		Windowsの場合、Eclipse 上では "右クリック - Open With - Text Editor"
+		で開いて修正します。ただし、その後ダブルクリックしても Text Editor
+		が開いてしまいますので、同じように右クリックから Default Editor で開き直します(実行し直します)。 
+	</p>
+	<p>
+		起動スクリプト
+	</p>
+<pre><span class="codetitle">e.g. boot-mysql.bat @WindowsScript</span><code>
+%~d0
+cd %~p0
+
+start /b cmd /c .\mysql\bin\mysqld --defaults-file=.\my.cnf -nt
+</code></pre>
+<pre><span class="codetitle">e.g. boot-mysql.sh @Shell</span><code>
+#!/bin/bash
+
+cd `dirname $0`
+
+./mysql/bin/mysqld --defaults-file=./my.cnf &
+</code></pre>
+	<p>
+		シャットダウンスクリプト (close-mysql.sh (Macの方) は特に何も変わりません。)
+	</p>
+<pre><span class="codetitle">e.g. close-mysql.bat @WindowsScript</span><code>
+%~d0
+cd %~p0
+
+.\mysql\bin\mysqladmin --defaults-file=.\my.cnf -u root shutdown
+</code></pre>
+	<p>
+		ログインスクリプト
+	</p>
+<pre><span class="codetitle">e.g. login-mysql-root.bat @WindowsScript</span><code>
+%~d0
+cd %~p0
+
+.\mysql\bin\mysql --defaults-file=.\my.cnf --user=root --default-character-set=sjis
+</code></pre>
+<pre><span class="codetitle">e.g. login-mysql-root.sh @Shell</span><code>
+#!/bin/bash
+
+cd `dirname $0`
+
+./mysql/bin/mysql --defaults-file=./my.cnf --user=root --default-character-set=utf8
+</code></pre>
+	<p>
+		そして、my.ini は利用されなくなりました。WindowsでもMacでも my.cnf が利用されますので、my.ini は削除しても構いません。
+	</p>
 
 	<h2 id="payment">PURCHASE_PAYMENT を追加</h2>
 	<p>
@@ -66,6 +124,9 @@
 		<dt><a href="./data/20140601_payment/playsql-loaddata-ut.zip">playsql-loaddata-ut.zip</a></dt>
 		<dd>ReplaceSchemaで登録するテストデータ (30-product.xlsなど)</dd>
 	</dl>
+	<p>
+		したら、ctrl + shift + R の manage で、1番の renewal タスクを実行してください。
+	</p>
 	<h3 id="paymentfinished4">セクション４が終わってて、セクション１０はまだの人</h3>
 	<p>
 		セクション３までの人の zip で DDL やエクセルを差し替えるのは同じです。
@@ -75,6 +136,10 @@
 		新しい区分値である PaymentMethod を追加、そして、PAYMENT_METHOD_CODE に関連付けます。
 	</p>
 	<div class="detailpage"><span class="working"><!-- <a href="./phase1/hands-on03.html#morecls"> -->セクション３ - さらに区分値を活用して実装<!-- </a> --></span></div>
+	<p>
+		セクション８の、排他制御なしの削除のエクササイズが少し変わっています。
+		そのままだと (当然のことながら) 購入削除でFK制約違反になってしまいますので、頑張って削除してみましょう
+	</p>
 	<h3 id="paymentafter10">セクション１０が終わっている人</h3>
 	<p>
 		DB変更が終わっているので、セクション３までの人の zip の内容を差分で反映してください。
