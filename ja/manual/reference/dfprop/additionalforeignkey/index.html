@@ -62,7 +62,8 @@
 		</li>
 		<li><a href="#example">Example</a>
 			<ul>
-				<li><a href="#independent">e.g. とあるテーブルは誰からも一緒に検索されないように <span class="freecomment">@since 1.0.5G</span></a></li>
+				<li><a href="#independent">e.g. とある関連はつながらないように <span class="freecomment">@since 1.0.5G</span></a></li>
+				<li><a href="#independent">e.g. 誰からも参照されないように <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -454,10 +455,32 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 }
 </code></pre>
 	<div class="relatedpage"><a href="../../example/exampledb.html">ExampleDB</a></div>
-	<h3 id="independent">e.g. とあるテーブルは誰からも一緒に検索されないように <span class="freecomment">@since 1.0.5G</span></h3>
+	<h3 id="independent">e.g. とある関連はつながらないように <span class="freecomment">@since 1.0.5G</span></h3>
 	<p>
-		例えば、MAIL というテーブルは、FKで参照されていても、
+		FK制約はあるけど、そのテーブルとそのテーブルは結合やサブクエリでコラボしないようにする。
 	</p>
+<pre><span class="codetitle">e.g. 会員ログインと会員は一緒には過ごせない @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_LOGIN_MEMBER = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER_LOGIN ; foreignTableName  = MEMBER
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; suppressJoin = <span class="keyword">true</span> ; suppressSubQuery = <span class="keyword">true</span>
+}
+</code></pre>
+	<p>
+		実際にFK制約が無い場合でも、SchemaHTMLなどのドキュメント上はリレーションを表現させつつ、でも結合やサブクエリでのコラボを抑制したい場合にも利用できます。
+	</p>
+	<h3 id="independent">e.g. 誰からも参照されないように <span class="freecomment">@since 1.0.5G</span></h3>
+	<p>
+		FK制約はあるけど、そのテーブルが誰からも結合やサブクエリされないようにする。
+		<span class="freecomment">(厳密には、参照元のカラム名に合致するリレーションにおいてのみ適用される。カラム名が違うリレーションは別途定義を追加する必要がある)</span>
+	</p>
+<pre><span class="codetitle">e.g. (MEMBER_ID経由での)会員に対する結合やサブクエリはできない @additionalForeignKeyMap.dfprop</span><code>
+; FK_ALL_MEMBER_ID_MEMBER = <span class="keyword">map:</span>{
+    ; localTableName  = <span class="attribute">$$ALL$$</span> ; foreignTableName  = MEMBER
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; suppressJoin = <span class="keyword">true</span> ; suppressSubQuery = <span class="keyword">true</span>
+}
+</code></pre>
 
 </div>
 </div>
