@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,ディベロッパー,Developer,チュートリアル,Tutorial,使い方,ドキュメント" />
+	<link rel="stylesheet" type="text/css" href="../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>DBFlute on Scala | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html"><img src="../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html"><img src="../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/tutorial/architect.html"><img src="../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../ja/tutorial/developer.html"><img src="../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html"><img src="../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/environment/setup/index.html"><img src="../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../ja/environment/upgrade/index.html"><img src="../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html"><img src="../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>DBFlute on Scala</h1>
+	<p>
+		TODO jflute まだ作り途中です
+	</p>
+	<ul class="indexlist">
+		<li><a href="#select">とにかく検索は？</a>
+			<ul>
+				<li><a href="#selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></a></li>
+				<li><a href="#selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></a></li>
+				<li><a href="#selectpagingcb">ConditionBean でページング検索 <span class="freecomment">*selectPage(cb)</span></a></li>
+				<li><a href="#selectcursorcb">ConditionBean でカーソル検索 <span class="freecomment">*selectCursor(cb)(handler)</span></a></li>
+				<li><a href="#loadreferrer">子テーブルの検索 (LoadReferrer) <span class="freecomment">*selectXxx(cb)(loader)</span></a></li>
+			</ul>
+		</li>
+		<li><a href="#update">そういえば更新とかは？</a>
+			<ul>
+				<li><a href="#insert">一件登録: insert()</a></li>
+				<li><a href="#update">排他制御あり一件更新: update()</a></li>
+				<li><a href="#updatenonstrict">排他制御なし一件更新: updateNonstrict()</a></li>
+				<li><a href="#updatenonstrict">排他制御ありバッチ更新: batchUpdate()</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="select">とにかく検索は？</h2>
+	<h3 id="selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></h3>
+<pre><span class="codetitle">e.g. 会員ID "1" 番で会員を一件検索 (関連テーブルの会員ステータスも一緒に取得) @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 一緒に取得する関連テーブル : 会員ステータス</span>
+<span class="comment">// 絞り込み条件 : 会員IDが "1" 番である</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+<span class="keyword">val</span> member = DBFlutist.memberBhv.<span class="point">selectEntity</span> { cb <span class="attribute">=&gt;</span>
+  cb.setupSelect_MemberStatus
+  cb.query.setMemberId_Equal(<span class="literal">1</span>)
+}
+member.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>          <span class="comment">// 会員: Option[Member] (Immutable)</span>
+  <span class="abbreviation">...</span> = mb.memberId             <span class="comment">// *会員ID       : Int</span>
+  <span class="abbreviation">...</span> = mb.memberName           <span class="comment">// *会員名称      : String</span>
+  <span class="abbreviation">...</span> = mb.memberAccount        <span class="comment">// *会員アカウント : String</span>
+  <span class="abbreviation">...</span> = mb.birthdate            <span class="comment">// 生年月日       : Option[Date]</span>
+  <span class="abbreviation">...</span> = mb.formalizedDatetime   <span class="comment">// 正式会員日時    : Option[Timestamp]</span>
+  <span class="keyword">if</span> (mb.isMemberStatusCode_Formalized) { <span class="comment">// 会員ステータスの区分値判定</span>
+    <span class="abbreviation">...</span>
+  }
+  <span class="abbreviation">...</span> = mb.memberStatus.map(_.memberStatusName) <span class="comment">// 会員ステータス: Option</span>
+  <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></h3>
+<pre><span class="codetitle">e.g. 色々な絞り込み条件で会員をリスト検索 (関連テーブルもいろいろと) @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 一緒に取得する関連テーブル:</span>
+<span class="comment">//  o 会員ステータス</span>
+<span class="comment">//  o 会員サービスと、その親テーブルのサービスランク</span>
+<span class="comment">// 絞り込み条件:</span>
+<span class="comment">//  o 会員名称が "S" で始まる</span>
+<span class="comment">//  o 会員ステータスが "正式会員" である (区分値メソッド)</span>
+<span class="comment">//  o 支払い済みで200円以上の購入をしたことがある会員 (one-to-many)</span>
+<span class="comment">// ソート条件:</span>
+<span class="comment">//  o 生年月日の降順 (でも null は後ろにね)</span>
+<span class="comment">//  o 会員IDの昇順</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="attribute">=&gt;</span>
+  cb.setupSelect_MemberStatus
+  cb.setupSelect_MemberServiceAsOne.withServiceRank
+
+  cb.query.setMemberName_PrefixSearch(<span class="literal">"S"</span>)
+  cb.query.setMemberStatusCode_Equal_Formalized
+
+  cb.query.existsPurchaseList { purchaseCB <span class="attribute">=&gt;</span>
+    purchaseCB.query.setPurchasePrice_GreaterEqual(<span class="literal">200</span>)
+    purchaseCB.query.setPaymentCompleteFlg_Equal_True
+  }
+
+  cb.query.addOrderBy_Birthdate_Desc.withNullsLast
+  cb.query.addOrderBy_MemberId_Asc
+}
+memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+  <span class="abbreviation">...</span> = mb.memberName
+  <span class="abbreviation">...</span> = mb.memberStatus.map(_.memberStatusName)
+  <span class="abbreviation">...</span> = mb.memberServiceAsOne.map(_.serviceRank.map(_.serviceRankName))
+}
+</code></pre>
+
+	<h3 id="selectpagingcb">ConditionBean でページング検索 <span class="freecomment">*selectPage(cb)</span></h3>
+<pre><span class="codetitle">e.g. 会員名称に "vi" が含まれる会員をページング検索 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 一緒に取得する関連テーブル</span>
+<span class="comment">//  o 最終ログイン日時</span>
+<span class="comment">//  o 支払済みである購入の平均購入価格</span>
+<span class="comment">// 絞り込み条件</span>
+<span class="comment">//  o 購入に対する支払で、一回で3000円以上もの金額を支払ったことがある会員</span>
+<span class="comment">// ソート条件 : 最終ログイン日時の降順</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+<span class="keyword">val</span> page = DBFlutist.memberBhv.<span class="point">selectPage</span> { cb <span class="attribute">=&gt;</span>
+  cb.specify.derivedMemberLoginList.max { subCB <span class="attribute">=&gt;</span>
+    subCB.specify.columnLoginDatetime
+  }(Member.ALIAS_lastestLoginDatetime)
+
+  cb.specify.derivedPurchaseList.avg { purchaseCB <span class="attribute">=&gt;</span>
+    purchaseCB.specify.columnPurchasePrice
+    purchaseCB.query.setPaymentCompleteFlg_Equal_True
+  }(Member.ALIAS_purchasePriceAverage)
+
+  cb.query.existsPurchaseList { purchaseCB <span class="attribute">=&gt;</span>
+    purchaseCB.query.existsPurchasePaymentList { paymentCB <span class="attribute">=&gt;</span>
+      paymentCB.query.setPaymentAmount_GreaterEqual(<span class="literal">3000</span>)
+    }
+  }
+
+  cb.query.addSpecifiedDerivedOrderBy_Desc(Member.ALIAS_lastestLoginDatetime)
+}
+page.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+  <span class="abbreviation">...</span> = mb.memberName
+  <span class="abbreviation">...</span> = mb.lastestLoginDatetime
+  <span class="abbreviation">...</span> = mb.averagePurchasePrice
+}
+<span class="keyword">val</span> allRecordCount = page.allRecordCount
+<span class="keyword">val</span> allPageCount = page.allPageCount
+<span class="keyword">if</span> (page.hasPreviousPage) {
+  <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="selectcursorcb">ConditionBean でカーソル検索 <span class="freecomment">*selectCursor(cb)(handler)</span></h3>
+<pre><span class="codetitle">e.g. 会員名称に "vi" が含まれる会員をカーソル検索 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 一緒に取得する関連テーブル</span>
+<span class="comment">//  o 現在の会員住所情報(業務的one-to-one)</span>
+<span class="comment">// 絞り込み条件:</span>
+<span class="comment">//  o 会員名称に "vi" が含まれる</span>
+<span class="comment">//  o 二十歳になってから正式会員になった会員</span>
+<span class="comment">// ソート条件:</span>
+<span class="comment">//  o 会員ステータスの表示順</span>
+<span class="comment">//  o 会員サービスのサービスポイント数の降順</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">selectCursor</span> { cb <span class="attribute">=&gt;</span>
+  cb.setupSelect_MemberAddressAsValid(currentDate)
+
+  cb.query.setMemberName_LikeSearch(<span class="literal">"vi"</span>)(_.likeContain)
+  cb.columnQuery(_.specify.columnFormalizedDatetime)
+    .greaterThan(_.specify.columnBirthdate).convert(_.addYear(<span class="literal">20</span>))
+
+  cb.query.queryMemberStatus.addOrderBy_DisplayOrder_Asc
+  cb.query.queryMemberServiceAsOne.addOrderBy_ServicePointCount_Desc
+} { mb <span class="attribute">=&gt;</span>
+  <span class="abbreviation">...</span> = mb.memberName
+  <span class="abbreviation">...</span> = mb.memberAddressAsOne.map(_.address)
+}
+</code></pre>
+	<h3 id="loadreferrer">子テーブルの検索 (LoadReferrer) <span class="freecomment">*selectXxx(cb)(loader)</span></h3>
+<pre><span class="codetitle">e.g. 会員をリスト検索して、子テーブルもいろいろと @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 一緒に取得する関連テーブル:</span>
+<span class="comment">//  o 会員ステータス (その子テーブルである会員ログインも取得される予定)</span>
+<span class="comment">//  o <span class="point">購入と商品</span> (購入日時の降順で) (one-to-many, one-to-many-to-one)</span>
+<span class="comment">//  o <span class="point">購入支払</span> (支払日時の降順で) (one-to-many-to-many)</span>
+<span class="comment">//  o <span class="point">会員ステータス経由の会員ログイン</span> (ログイン日時の降順で) (many-to-one-to-many)</span>
+<span class="comment">// 絞り込み条件:</span>
+<span class="comment">//  o 会員名称が "S" で始まる</span>
+<span class="comment">// ソート条件:</span>
+<span class="comment">//  o 会員IDの昇順</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="attribute">=&gt;</span>
+  cb.setupSelect_MemberStatus <span class="comment">// 後で pullout されるので必要</span>
+  cb.query.setMemberName_PrefixSearch(<span class="literal">"S"</span>)
+  cb.query.addOrderBy_MemberId_Asc
+} { <span class="point">loader</span> <span class="attribute">=&gt;</span>
+  loader.<span class="point">loadPurchaseList</span> { purchaseCB <span class="attribute">=&gt;</span>
+    purchaseCB.setupSelect_Product
+    purchaseCB.query.addOrderBy_PurchaseDatetime_desc
+  }.<span class="point">withNestedList</span> { loader <span class="attribute">=&gt;</span>
+    loader.loadPurcasePaymentList { paymentCB <span class="attribute">=&gt;</span>
+      paymentCB.query.addOrderBy_PaymentDatetime_desc
+    }
+  }
+  loader.<span class="point">pulloutMemberStatus</span>.loadMemberLoginList { loginCB <span class="attribute">=&gt;</span>
+    loginCB.query.addOrderBy_LoginDatetime_Desc
+  }
+}
+memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+  <span class="abbreviation">...</span> = mb.memberName
+  <span class="abbreviation">...</span> = mb.purchaseList.<span class="attribute">foreach</span> { pc <span class="attribute">=&gt;</span>
+    <span class="abbreviation">...</span> = pc.product
+    <span class="abbreviation">...</span> = pc.purchasePaymentList.<span class="attribute">foreach</span> { pay <span class="attribute">=&gt;</span>
+      <span class="abbreviation">...</span> = pay.paymentAmount
+      <span class="abbreviation">...</span> = pay.paymentDatetime
+    }
+  }
+}
+</code></pre>
+
+	<h2 id="update">そういえば更新とかは？</h2>
+	<h3 id="insert">一件登録: insert()</h3>
+<pre><span class="codetitle">e.g. 会員を一件登録 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// Xavi (シャビ) という名の仮会員を登録</span>
+<span class="comment">//  o PKは自動採番</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o バージョン番号は初期値で自動設定</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">insert</span> { mb <span class="attribute">=&gt;</span>
+  mb.memberName = <span class="literal">"Xavi"</span>
+  mb.memberAccount = <span class="literal">"Passer"</span>
+  mb.birthdate = Option(<span class="abbreviation">...</span>)
+  mb.formalizedDatetime = None
+  mb.memberStatusCode_Provisional
+}
+<span class="comment">// ※設定されたカラムだけinsert文に列挙される</span>
+<span class="comment">// (未設定カラムは null もしくはデフォルト値で登録される)</span>
+</code></pre>
+	<h3 id="update">排他制御あり一件更新: update()</h3>
+<pre><span class="codetitle">e.g. 会員を排他制御ありで一件更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 会員ID "7" 番の会員を、会員名称を Xavi (シャビ) にして正式会員に更新</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
+<span class="comment">//  o バージョン番号は自動インクリメント</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">update</span> { mb <span class="attribute">=&gt;</span>
+  mb.memberId = <span class="literal">7</span>
+  mb.memberName = <span class="literal">"Xavi"</span>
+  mb.memberStatusCode_Formalized
+  mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
+}
+<span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
+</code></pre>
+	<h3 id="updatenonstrict">排他制御なし一件更新: updateNonstrict()</h3>
+<pre><span class="codetitle">e.g. 会員を排他制御なしで一件更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 会員ID "7" 番の会員を、会員名称を Xavi (シャビ) にして正式会員に更新</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o バージョン番号は自動インクリメント</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class="attribute">=&gt;</span>
+  mb.memberId = <span class="literal">7</span>
+  mb.memberName = <span class="literal">"Xavi"</span>
+  mb.memberStatusCode_Formalized
+}
+<span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
+</code></pre>
+	<h3 id="updatenonstrict">排他制御ありバッチ更新: batchUpdate()</h3>
+<pre><span class="codetitle">e.g. 会員を排他制御ありでバッチ更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// いろいろな会員を更新</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
+<span class="comment">//  o バージョン番号は自動インクリメント</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberId = <span class="literal">1</span>
+    mb.memberStatusCode_Formalized
+    mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
+  }
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberId = <span class="literal">3</span>
+    mb.memberStatusCode_Provisinal
+    mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
+  }
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberId = <span class="literal">7</span>
+    mb.memberStatusCode_Withdrawal
+    mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
+  }
+}
+<span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
+<span class="comment">// ※全てのレコードにおいて、設定されたカラムセットが同じである必要がある</span>
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../"><img src="../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+			</ul>
+		</li>
+		<li><a href="../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li><a href="../../ja/tutorial/developer.html#style">実装スタイル</a></li>
+				<li><a href="../../ja/tutorial/developer.html#policy">ディベロッパーの十か条</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/developer.html#faq">ディベロッパーのFAQ</a></li>
+				<li><a href="../../ja/tutorial/developer.html#supplement">補足資料</a></li>
+			</ul>
+		</li>
+		<li><a href="../../ja/tutorial/handson/index.html">DBFluteハンズオン</a>
+			<ul>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on01.html">セクション１</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on02.html">セクション２</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on03.html">セクション３</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/handson/phase1/hands-on04.html">セクション４</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on05.html">セクション５</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/handson/phase1/hands-on06.html">セクション６</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on07.html">セクション７</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on08.html">セクション８</a></li>
+				<li class="upper-space"><a href="../../ja/tutorial/handson/phase1/hands-on09.html">セクション９</a></li>
+				<li><a href="../../ja/tutorial/handson/phase1/hands-on10.html">セクション１０</a></li>
+				<li><a href="../../ja/tutorial/handson/phase2/hands-on11.html">セクション１１</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
