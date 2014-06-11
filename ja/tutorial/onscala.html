@@ -42,6 +42,7 @@
 		TODO jflute まだ作り途中です
 	</p>
 	<ul class="indexlist">
+		<li><a href="#policy">ポリシー、十か条</a></li>
 		<li><a href="#select">とにかく検索は？</a>
 			<ul>
 				<li><a href="#selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></a></li>
@@ -56,10 +57,34 @@
 				<li><a href="#insert">一件登録: insert()</a></li>
 				<li><a href="#update">排他制御あり一件更新: update()</a></li>
 				<li><a href="#updatenonstrict">排他制御なし一件更新: updateNonstrict()</a></li>
-				<li><a href="#updatenonstrict">排他制御ありバッチ更新: batchUpdate()</a></li>
+				<li><a href="#batchinsert">バッチ登録: batchInsert()</a></li>
+				<li><a href="#batchupdate">排他制御ありバッチ更新: batchUpdate()</a></li>
+				<li><a href="#queryupdate">ConditionBeanで更新: queryUpdate(entity, cb)</a></li>
+				<li><a href="#querydelete">ConditionBeanで削除: queryDelete(cb)</a></li>
 			</ul>
 		</li>
 	</ul>
+
+	<h2 id="policy">ポリシー、十か条</h2>
+	<p>
+		<em class="keyword">DB変更に強いO/Rマッパー</em>、というテーマは崩さずに...
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>1.0.x系、1.1系</dt><dd>1.0.xはパイロット版、Java8 (1.1) になってからが本気</dd>
+		<dt>メインターゲット</dt><dd>JavaやC#でDBFluteに親しんでいた人</dd>
+		<dt>サブターゲット</dt><dd>Scalaやりながらもデータモデルを大切にする人</dd>
+		<dt>Javaとの互換</dt><dd>もちろん互換は崩すが、あまりにかけ離れたものにはしない。<span class="freecomment">※1.1仕様が前提</span></dd>
+		<dt>Scalaっぽさ</dt><dd>できる限り追従するが、DBFluteらしさを損ねてまではやらない</dd>
+		<dt>Immutable</dt><dd>アプリに直接戻すものはImmutable, Callback限定スコープでMutable</dd>
+		<dt>DBFluteの環境</dt><dd>自動生成エンジンとランタイムはJavaと共有、自動生成クラスがScala</dd>
+		<dt>ConditionBean</dt><dd>Callbackなどは改善して、他はわりとJavaのまま <span class="freecomment">★要検討</span></dd>
+		<dt>Entity</dt><dd>検索用(Immutable)、更新用(Mutable)。NullableカラムはOption型</dd>
+		<dt>Behavior</dt><dd>GoogleGuice管理。シングルトンからも取得できるように</dd>
+		<dt>プログラム型</dt><dd>ScalaのIntやLongを利用...あれっ、Dateは？ <span class="freecomment">★要検討</span></dd>
+	</dl>
+	<p>
+		というポリシーのもと、リーン・スタートアップ、インクリメンタル開発で進めていきます。
+	</p>
 
 	<h2 id="select">とにかく検索は？</h2>
 	<h3 id="selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></h3>
@@ -234,6 +259,10 @@ memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=
 </code></pre>
 
 	<h2 id="update">そういえば更新とかは？</h2>
+	<p>
+		コンパニオンオブジェクトによる apply() での指定も検討しましたが、ダミー値運用を許容しないと登録カラムや更新カラムの限定化ができないため、
+		Callback限定スコープMutableで実現しました。また、その方が、区分値メソッドの恩恵も受けられるので。
+	</p>
 	<h3 id="insert">一件登録: insert()</h3>
 <pre><span class="codetitle">e.g. 会員を一件登録 @Scala</span><code>
 <span class="abbreviation">...</span>
@@ -285,11 +314,40 @@ DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class=
 }
 <span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
 </code></pre>
-	<h3 id="updatenonstrict">排他制御ありバッチ更新: batchUpdate()</h3>
+	<h3 id="batchinsert">バッチ登録: batchInsert()</h3>
+<pre><span class="codetitle">e.g. 会員をバッチ登録 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// いろいろな会員を一括で登録</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
+<span class="comment">//  o バージョン番号は自動インクリメント</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberName = "Xavi"
+    mb.memberStatusCode_Formalized
+    <span class="abbreviation">...</span>
+  }
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberName = "Iniesta"
+    mb.memberStatusCode_Provisinal
+    <span class="abbreviation">...</span>
+  }
+  batch.add { mb <span class="attribute">=&gt;</span>
+    mb.memberName = "Akagi"
+    mb.memberStatusCode_Withdrawal
+    <span class="abbreviation">...</span>
+  }
+}
+<span class="comment">// ※設定されたカラムの最小公倍数のカラムセットがinsert文のset句に列挙される</span>
+<span class="comment">// (すべてのレコードで未設定カラムは null もしくはデフォルト値で登録される)</span>
+</code></pre>
+	<h3 id="batchupdate">排他制御ありバッチ更新: batchUpdate()</h3>
 <pre><span class="codetitle">e.g. 会員を排他制御ありでバッチ更新 @Scala</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
-<span class="comment">// いろいろな会員を更新</span>
+<span class="comment">// いろいろな会員を一括で更新</span>
 <span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
 <span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
 <span class="comment">//  o バージョン番号は自動インクリメント</span>
@@ -313,6 +371,38 @@ DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="
 }
 <span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
 <span class="comment">// ※全てのレコードにおいて、設定されたカラムセットが同じである必要がある</span>
+</code></pre>
+	<p>
+		※batchUpdateNonstrict() は、排他制御はされないこと以外は同じ
+	</p>
+	<h3 id="queryupdate">ConditionBeanで更新: queryUpdate(entity, cb)</h3>
+<pre><span class="codetitle">e.g. 会員をConditionBeanの条件で一気に更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// すべての仮会員を、正式会員にして、名前もシャビに更新してしまう</span>
+<span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
+<span class="comment">//  o 排他制御はされない、バージョン番号は自動インクリメント</span>
+<span class="comment">//  o 全レコード更新は許されない</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="attribute">=&gt;</span>
+  mb.memberName = <span class="literal">"Xavi"</span>
+  mb.memberStatusCode_Formalized
+} { cb <span class="attribute">=&gt;</span>
+  cb.query.setMemberStatusCode_Provisional
+}
+<span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
+</code></pre>
+	<h3 id="querydelete">ConditionBeanで削除: queryDelete(cb)</h3>
+<pre><span class="codetitle">e.g. 会員をConditionBeanの条件で一気に更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// すべての仮会員を、削除する</span>
+<span class="comment">//  o 排他制御はされない</span>
+<span class="comment">//  o 全レコード削除は許されない</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">queryUpdate</span> { cb <span class="attribute">=&gt;</span>
+  cb.query.setMemberStatusCode_Provisional
+}
 </code></pre>
 
 </div>
