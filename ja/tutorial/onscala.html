@@ -57,6 +57,7 @@
 				<li><a href="#insert">一件登録: insert()</a></li>
 				<li><a href="#update">排他制御あり一件更新: update()</a></li>
 				<li><a href="#updatenonstrict">排他制御なし一件更新: updateNonstrict()</a></li>
+				<li><a href="#update">排他制御あり一件削除: delete()</a></li>
 				<li><a href="#batchinsert">バッチ登録: batchInsert()</a></li>
 				<li><a href="#batchupdate">排他制御ありバッチ更新: batchUpdate()</a></li>
 				<li><a href="#queryupdate">ConditionBeanで更新: queryUpdate(entity, cb)</a></li>
@@ -314,6 +315,27 @@ DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class=
 }
 <span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
 </code></pre>
+	<h3 id="update">排他制御あり一件削除: delete()</h3>
+<pre><span class="codetitle">e.g. 会員を排他制御ありで一件削除 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 会員ID "7" 番の会員を削除</span>
+<span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.memberBhv.<span class="point">delete</span> { mb <span class="attribute">=&gt;</span>
+  mb.memberId = <span class="literal">7</span>
+  mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
+}
+</code></pre>
+	<p>
+		※deleteNonstrict() は、排他制御はされないこと以外は同じ
+	</p>
+	<p>
+		※deleteNonstrictIgnoreDeleted() は、1.1以降はサポートされない
+	</p>
+	<p>
+		<span class="freecomment">★要検討：PKとバージョン番号だけなので、Tupleとか使って指定する方がいいかな？(どうせ検索Entityは突っ込めないので...)</span>
+	</p>
 	<h3 id="batchinsert">バッチ登録: batchInsert()</h3>
 <pre><span class="codetitle">e.g. 会員をバッチ登録 @Scala</span><code>
 <span class="abbreviation">...</span>
@@ -325,17 +347,17 @@ DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class=
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
 DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="attribute">=&gt;</span>
   batch.add { mb <span class="attribute">=&gt;</span>
-    mb.memberName = "Xavi"
+    mb.memberName = <span class="literal">"Xavi"</span>
     mb.memberStatusCode_Formalized
     <span class="abbreviation">...</span>
   }
   batch.add { mb <span class="attribute">=&gt;</span>
-    mb.memberName = "Iniesta"
+    mb.memberName = <span class="literal">"Iniesta"</span>
     mb.memberStatusCode_Provisinal
     <span class="abbreviation">...</span>
   }
   batch.add { mb <span class="attribute">=&gt;</span>
-    mb.memberName = "Akagi"
+    mb.memberName = <span class="literal">"Akagi"</span>
     mb.memberStatusCode_Withdrawal
     <span class="abbreviation">...</span>
   }
@@ -393,14 +415,14 @@ DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="att
 <span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
 </code></pre>
 	<h3 id="querydelete">ConditionBeanで削除: queryDelete(cb)</h3>
-<pre><span class="codetitle">e.g. 会員をConditionBeanの条件で一気に更新 @Scala</span><code>
+<pre><span class="codetitle">e.g. 会員をConditionBeanの条件で一気に削除 @Scala</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
 <span class="comment">// すべての仮会員を、削除する</span>
 <span class="comment">//  o 排他制御はされない</span>
 <span class="comment">//  o 全レコード削除は許されない</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">queryUpdate</span> { cb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">queryDelete</span> { cb <span class="attribute">=&gt;</span>
   cb.query.setMemberStatusCode_Provisional
 }
 </code></pre>
