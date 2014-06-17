@@ -62,6 +62,7 @@
 				<li><a href="#batchupdate">排他制御ありバッチ更新: batchUpdate()</a></li>
 				<li><a href="#queryupdate">ConditionBeanで更新: queryUpdate(entity, cb)</a></li>
 				<li><a href="#querydelete">ConditionBeanで削除: queryDelete(cb)</a></li>
+				<li><a href="#varyingupdate">オプション付き一件更新: update(entity)(option)</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -425,6 +426,21 @@ DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="att
 DBFlutist.memberBhv.<span class="point">queryDelete</span> { cb <span class="attribute">=&gt;</span>
   cb.query.setMemberStatusCode_Provisional
 }
+</code></pre>
+	<h3 id="varyingupdate">オプション付き一件更新: update(entity)(option)</h3>
+<pre><span class="codetitle">e.g. 購入をoption付きで一件更新 @Scala</span><code>
+<span class="abbreviation">...</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment">// 購入ID "7" 番の購入の購入数をインクリメント</span>
+<span class="comment">//  o option でインクリメントするカラムを指定</span>
+<span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
+DBFlutist.purchaseBhv.<span class="point">update</span> { pur <span class="attribute">=&gt;</span>
+  pur.purchaseId = <span class="literal">23</span>
+  pur.versionNo = <span class="abbreviation">...</span>
+} { option <span class="attribute">=&gt;</span>
+  option.self(_.specify.columnPurchaseCount).plus(1)
+}
+<span class="comment">// ※購入数(PurchaseCount)は、"PURCHASE_COUNT = PURCHASE_COUNT + 1" される</span>
 </code></pre>
 
 </div>
