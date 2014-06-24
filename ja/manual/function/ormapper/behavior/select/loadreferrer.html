@@ -54,8 +54,20 @@
 				<li><a href="#manytoonetomany">親テーブルの子テーブルの取得 (many-to-one-to-many)</a></li>
 				<li><a href="#branchreferrer">枝分かれの子テーブルの取得</a></li>
 				<li><a href="#specifycolumn">子テーブルの取得カラムの指定</a></li>
-				<li><a href="#originalcb">独自のCBインスタンス</a></li>
-				<li><a href="#outsidesql">外だしSQLでもLoadReferrer</a></li>
+			</ul>
+		</li>
+		<li><a href="#referrerloader">Loader方式 <span class="freecomment">@since 1.0.5J</span></a>
+			<ul>
+				<li><a href="#newloader">複雑なリレーショナルを辿るのにGood</a></li>
+				<li><a href="#loadmethod">Behavior の load() メソッド</a></li>
+				<li><a href="#loadermechanism">内部的には、通常の LoadReferrer を呼んでいる</a></li>
+				<li><a href="#loadermain">1.1からは、Loaderがメインに</a></li>
+			</ul>
+		</li>
+		<li><a href="#outsidesql">外だしSQLでもLoadReferrer</a>
+			<ul>
+				<li><a href="#osqlpkmark">基点テーブルの主キーをPKマークに</a></li>
+				<li><a href="#osqlcustomize">CustomizeEntity を利用して LoadReferrer</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -326,12 +338,12 @@ List&lt;MemberStatus&gt; statusList = <span class="attribute">memberBhv</span>.<
 	</p>
 <pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
 <span class="abbreviation">...</span>
-cb.query().<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
     <span class="keyword">public void</span> setup(PurchaseCB cb) {
         cb.query().addOrderBy_PurchaseDatetime_Desc();
     }
 })
-cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
+<span class="attribute">memberBhv</span>.<span class="point">loadMemberLoginList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
     <span class="keyword">public void</span> setup(MemberLoginCB cb) {
         cb.query().addOrderBy_LoginDatetime_Desc();
     }
@@ -340,16 +352,65 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
 	<h3 id="specifycolumn">子テーブルの取得カラムの指定</h3>
 	<p>
 		LoadReferrer の中でも SpecifyColumn が利用できます。
+		ただし、基点テーブルに対する子テーブルのFKカラムは暗黙のうちに SpecifyColumn されます。
 	</p>
 	<div class="detailpage"><a href="../../conditionbean/specify/specifycolumn.html#referrer">SpecifyColumn - 子テーブル</a></div>
-	<h3 id="originalcb">独自のCBインスタンス</h3>
+
+	<h2 id="referrerloader">Loader方式 <span class="freecomment">@since 1.0.5J</span></h2>
+	<h3 id="newloader">複雑なリレーショナルを辿るのにGood</h3>
 	<p>
-		通常、子テーブルのための ConditionBean のインスタンスは内部で生成されますが、
-		LoadReferrerOption の setReferrerConditionBean() で設定することで、独自インスタンスを利用することができます。
-		業務的な必要性はあまり想定されていませんが、アプリでの特殊な都合がある場合に有効です。
-		(そういった特殊な状況以外での利用は非推奨です)
+		例えば、one-to-many-to-many, many-to-one-to-many など様々なリレーションを同時に辿るようなとき、様々なテーブルの Behavior
+		をDIしたり、リストを抽出したりと色々な手続きが必要です。ReferrerLoaderでは、そういったリレーションをスムーズに辿れるようになっています。
 	</p>
-	<h3 id="outsidesql">外だしSQLでもLoadReferrer</h3>
+	<h3 id="loadmethod">Behavior の load() メソッド</h3>
+	<p>
+		Behavior の load() メソッドを呼び出し、コールバックで loader を操作します。
+	</p>
+<pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query()<span class="abbreviation">...</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+<span class="attribute">memberBhv</span>.<span class="point">load</span>(memberList, <span class="keyword">new</span> ReferrerLoaderHandler&lt;LoaderOfMember&gt;() {
+    <span class="keyword">public void</span> handle(LoaderOfMember <span class="point">loader</span>) {
+        <span class="comment">// [one-to-many-to-many]</span>
+        <span class="comment">// 会員から購入を取得、さらに、購入支払を取得</span>
+        loader.<span class="point">loadPurchaseList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB>() {
+            <span class="keyword">public void</span> setup(PurchaseCB purchaseCB) {
+                purchaseCB.query()<span class="abbreviation">...</span>
+            }
+        }).withNestedReferrer(<span class="keyword">new</span> ReferrerLoaderHandler&lt;LoaderOfPurchase&gt;() {
+            <span class="keyword">public void</span> handle(LoaderOfPurchase loader) {
+                loader.<span class="point">loadPurchasePaymentList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;PurchasePaymentCB&gt;() {
+                    <span class="keyword">public void</span> setup(PurchasePaymentCB paymentCB) {
+                        paymentCB.query()<span class="abbreviation">...</span>
+                    }
+                });
+            }
+        });
+        <span class="comment">// [many-to-one-to-many]</span>
+        <span class="comment">// 会員から会員ステータスを経由して、会員ログインを取得</span>
+        <span class="comment">// (会員ステータスが setupSelect されていることが前提)</span>
+        loader.<span class="point">pulloutMemberStatus()</span>.<span class="point">loadMemberLoginList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
+            <span class="keyword">public void</span> setup(MemberLoginCB loginCB) {
+                loginCB.query()<span class="abbreviation">...</span>
+            }
+        });
+    }
+});
+</code></pre>
+	<h3 id="loadermechanism">内部的には、通常の LoadReferrer を呼んでいる</h3>
+	<p>
+		内部的には、通常の LoadReferrer を呼び出しています。Behavior の DI
+		や関連テーブルのリストの抽出と引き渡しなどを内部で解決することで、リレーションと検索条件を指定するだけで load できるようにしています。
+	</p>
+	<h3 id="loadermain">1.1からは、Loaderがメインに</h3>
+	<p>
+		DBFlute-1.1 からは、この Loader 方式が LoadReferrer におけるメインになります。
+		これが利用できるバージョン <span class="freecomment">(@since 1.0.5J)</span> であれば、積極的に利用していくとよいでしょう。
+	</p>
+
+	<h2 id="outsidesql">外だしSQLでもLoadReferrer</h2>
 	<p>
 		外だしSQLは、基本的にフラット構造でデータを取り扱います。親テーブル(many-to-one や
 		one-to-one)や子テーブルの導出カラムに関しては、基点テーブルと同じ粒度で扱えるので特に問題ありません。
@@ -357,7 +418,7 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
 		のまま扱うために、外だしSQLで取得するフラットな CustomizeEntity に、LoadReferrer
 		で取得するオブジェクトグラフの DomainEntity を連携させます。<span class="freecomment">@since 0.9.7.5</span>
 	</p>
-	<h4>基点テーブルの主キーをPKマークに</h4>
+	<h3 id="osqlpkmark">基点テーブルの主キーをPKマークに</h3>
 	<p>
 		まず、CustomizeEntity マークにおいて、必ず基点テーブルの主キーを <em class="keyword">PKマーク</em> に設定します。
 	</p>
@@ -384,7 +445,7 @@ cb.query().<span class="point">loadMemberLoginList</span>(memberList, <span clas
     <span class="keyword">left outer join</span> <span class="abbreviation">...</span>
  <span class="keyword">group by</span> MEMBER_ID
 </code></pre>
-	<h4>CustomizeEntity を利用して LoadReferrer</h4>
+	<h3 id="osqlcustomize">CustomizeEntity を利用して LoadReferrer</h3>
 	<p>
 		この設定で Sql2Entity を実行すると、CustomizeEntity に prepareDomain()
 		というメソッドが生成されます。このメソッドを呼ぶと、関連付いている基点テーブルの DomainEntity
