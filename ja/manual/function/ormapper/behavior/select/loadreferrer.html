@@ -409,6 +409,29 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		DBFlute-1.1 からは、この Loader 方式が LoadReferrer におけるメインになります。
 		これが利用できるバージョン <span class="freecomment">(@since 1.0.5J)</span> であれば、積極的に利用していくとよいでしょう。
 	</p>
+<pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 (Lambda) @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.query()<span class="abbreviation">...</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+<span class="attribute">memberBhv</span>.<span class="point">load</span>(memberList, <span class="point">loader</span> -&gt; {
+    <span class="comment">// [one-to-many-to-many]</span>
+    <span class="comment">// 会員から購入を取得、さらに、購入支払を取得</span>
+    loader.<span class="point">loadPurchaseList</span>(purchaseCB -&gt; {
+        purchaseCB.query()<span class="abbreviation">...</span>
+    }).withNestedReferrer(loader -&gt; {
+        loader.<span class="point">loadPurchasePaymentList</span>(paymentCB -&gt; {
+            paymentCB.query()<span class="abbreviation">...</span>
+        });
+    });
+    <span class="comment">// [many-to-one-to-many]</span>
+    <span class="comment">// 会員から会員ステータスを経由して、会員ログインを取得</span>
+    <span class="comment">// (会員ステータスが setupSelect されていることが前提)</span>
+    loader.<span class="point">pulloutMemberStatus()</span>.<span class="point">loadMemberLoginList</span>(loginCB -&gt; {
+        loginCB.query()<span class="abbreviation">...</span>
+    });
+});
+</code></pre>
 
 	<h2 id="outsidesql">外だしSQLでもLoadReferrer</h2>
 	<p>
