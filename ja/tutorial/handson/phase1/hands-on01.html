@@ -40,11 +40,19 @@
 	<h1>ハンズオン セクション 1</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
-		<li><a href="#firstenv">前提環境</a></li>
+		<li><a href="#firstenv">前提環境</a>
+			<ul>
+				<li><a href="#jdk">JDKのインストール</a></li>
+				<li><a href="#maven">Mavenのインストール</a></li>
+				<li><a href="#eclipse">Eclipseの準備</a></li>
+			</ul>
+		</li>
 		<li><a href="#prepare">環境準備</a>
 			<ul>
 				<li><a href="#workspace">ワークスペースの作成</a></li>
 				<li><a href="#checkout">プロジェクトのチェックアウト</a></li>
+				<li><a href="#gitmaster">もし、社内でひな形が用意されてる場合は...</a></li>
+				<li><a href="#quickstage">dbflute-quick-stage で Quick</a></li>
 				<li><a href="#mysql">MySQLのセットアップ</a></li>
 				<li><a href="#plugin">プラグインのセットアップ</a></li>
 			</ul>
@@ -82,27 +90,51 @@
 	</p>
 
 	<h2 id="firstenv">前提環境</h2>
+	<h3 id="jdk">JDKのインストール</h3>
 	<p>
-		Eclipse-3.5 以上が利用できること。
-		幾つかの Eclipse プラグインをインストールするため、ハンズオン専用の Eclipse を用意することが推奨されます。
+		(Java6以上の) JDKがインストールされていること。
 	</p>
 	<p>
-		Maven2 がインストールされていること。(コマンドラインで mvn コマンドが利用できること)
+		<span class="freecomment">※インストール先は任意ですが、特にこだわりなければ C:\java\jdk8 などに</span>
+	</p>
+	<h3 id="maven">Mavenのインストール</h3>
+	<p>
+		Maven がインストールされていること。(コマンドラインで mvn コマンドが利用できること)
+	</p>
+	<p>
+		<span class="freecomment">※インストール先は任意ですが、特にこだわりなければ C:\java\maven などに</span>
+	</p>
+	<h3 id="eclipse">Eclipseの準備</h3>
+	<p>
+		Eclipse-3.7 以上が利用できること。(Java8なら4.4以上)
+	</p>
+	<p>
+		<span class="freecomment">※幾つかの Eclipse プラグインをインストールするため、ハンズオン専用の Eclipse を用意することが推奨</span>
 	</p>
 
 	<h2 id="prepare">環境準備</h2>
 	<h3 id="workspace">ワークスペースの作成</h3>
 	<p>
-		新規でハンズオン専用のワークスペースを任意の場所に作成してください。あらかじめディレクトリを作成し、Eclipse
-		を起動して、そのディレクトリ(ワークスペース)を選んでください。起動直後に既に別のワークスペースが開く場合は、メニューの
-		"File" - "Switch Workspace" からワークスペースを切り替えてください。
-		(ワークスペースの設定もハンズオン内で変更するので、独立したワークスペースが推奨されます)
+		新規でハンズオン専用のワークスペースを任意の場所に作成してください。
 	</p>
 <pre><span class="codetitle">e.g. DBFlute勉強用のワークスペース @Directory</span><code>
-/xxx/yyy/dbflute/workspace
+
+C:\projects      <span class="freecomment">// この辺は任意</span>
+ |-training
+    |-eclipse-training
+    |-workspace  <span class="freecomment">// 例えばこんな感じに</span>
 </code></pre>
 	<p>
-		この時点ではプロジェクトは一つもなく空っぽのワークスペースとなります。
+		あらかじめディレクトリを作成し、Eclipse
+		を起動して、そのディレクトリ(ワークスペース)を選んでください。起動直後に既に別のワークスペースが開いてしまう場合は、メニューの
+		"File" - "Switch Workspace" からワークスペースを切り替えてください。
+		<span class="freecomment">(ワークスペースの設定もハンズオン内で変更するので、独立したワークスペースが推奨されます)</span>
+	</p>
+	<p>
+		この時点ではプロジェクトは一つもなく空っぽのワークスペースとなっています。
+	</p>
+	<p>
+		<span class="freecomment">※Eclipseのworkspaceで利用するJavaは、JREではなくJDK。Preferences の Installed JREs で調整できます。</span>
 	</p>
 	<h3 id="checkout">プロジェクトのチェックアウト</h3>
 	<dl class="valuemainlist">
@@ -123,9 +155,37 @@
 	<p>
 		<span class="freecomment">(<em class="keyword">dbflute-hands-on</em> を選択して右クリック、ってのが大事...あとその後、<em class="keyword">general project</em> ってのがポイント)</span>
 	</p>
-	<p>
-		※他のプロジェクトも Import してしまっても、非常に参考になるのでそれはそれでOKです。ただ、ハンズオン中はプロジェクトを Close しておくと良いでしょう。
-	</p>
+	<div class="inucolumn">
+		<h3 id="gitmaster">もし、社内でひな形が用意されてる場合は...</h3>
+		<p>
+			すでに社内でひな形が用意されてる場合は、そちらを clone してください。
+		</p>
+		<p>
+			チームでハンズオンを行っていく場合は、社内のGitに hands-on
+			なるリポジトリを用意して、master
+			ブランチにプロジェクトのひな形をコミットしておいて、各人masterをもとにそれぞれのブランチを作ってハンズオンを進めていくという形がオススメです。
+		</p>
+		<p>
+			したら、コミットも自由にできてバックアップになりますし、フォローワーがレビューもしやすくなります。
+			各人が、別のPCでハンズオンの続きをやるってこともやりやすくなります。
+		</p>
+		<p>
+			実際に jflute は、コミットされたハンズオンのコードをレビューして、
+			todo形式でレビューコメントを入れてコミットして、実装者に修正してもらってまたこっちで確認して、というような運用でハンズオンを通してプログラミングのフォローを行っています。
+		</p>
+	</div>
+	<div class="inucolumn">
+		<h3 id="quickstage">dbflute-quick-stage で Quick</h3>
+		<p>
+			dbflute-quick-stageというプロジェクトが Import されてしまうかもしれませんが、これはこれで参考になるプロジェクトなのでそのままでOKです。
+			ただ、普段 (ハンズオン中) はプロジェクトを Close しておくと良いでしょう。
+		</p>
+		<p>
+			これは、組み込みデータベース「H2」を使ってすぐにConditionBeanのお試し実装ができるようになっています。
+			ただ、ハンズオンを進めていってセクション２まで終われば、MySQLですぐに実行できる環境ができますので、その後はあまり活躍しないかも。。。
+			もし使ってみたいと思ったら、プロジェクト直下のREADMEを読んでください。
+		</p>
+	</div>
 	<h3 id="mysql">MySQLのセットアップ</h3>
 	<p>
 		MySQLのオフィシャルサイトからローカル環境に対応する MySQL のインストーラー無し版(ZIPアーカイブ版など)をダウンロードし、localdb/mysql に配置します。
