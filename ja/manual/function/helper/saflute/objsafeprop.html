@@ -70,8 +70,8 @@
 		とにかく一番避けたいと思ったのは、diconファイルなどDIコンテナのコンポーネント管理をするファイルに環境依存のコンフィグ値を埋め込んで、ローカル、結合、本番と切り分ける方法です。
 	</p>
 <pre><span class="codetitle">e.g. これはやめたい！Diconファイルに環境依存の値を埋め込んで本番では切り替える @Dicon</span><code>
-&lt;component name="foo" class="Foo"&gt;
-    <span class="point">&lt;property name="key">bar&lt;/property&gt;</span>
+&lt;component name="sea" class="org.dbflute.Sea"&gt;
+    <span class="point">&lt;property name="key">land&lt;/property&gt;</span>
 &lt;/component&gt;
 </code></pre>
 	<p>
@@ -145,10 +145,10 @@ maihama-dockside
  |  |-dockside_config.properties <span class="comment">// サブクラスならぬサブProperties</span>
  |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
 </code></pre>
-<pre><span class="codetitle">e.g. maihama_config.properties に定義されてる foo.bar のプロパティを取得 @Java</span><code>
+<pre><span class="codetitle">e.g. maihama_config.properties に定義されてる sea.land のプロパティを取得 @Java</span><code>
 <span class="comment">// maihama_config のプロパティも docksideConfig インターフェースから取得できる</span>
-<span class="comment">// (ここでは、"foo.bar" というキー値のプロパティを取得している)</span>
-String prop = docksideConfig.getFooBar();
+<span class="comment">// (ここでは、"sea.land" というキー値のプロパティを取得している)</span>
+String prop = docksideConfig.getSeaLand();
 </code></pre>
 	<p>
 		ちなみに、環境依存しないPropertiesと環境依存するPropertiesも継承関係にあるため、移動しても呼び出し側プログラムを修正する必要はありません。
@@ -158,28 +158,28 @@ String prop = docksideConfig.getFooBar();
 		プロパティの一行コメントに、@Overrideというアノテーションを付けるとオーバーライドできます。
 	</p>
 <pre><span class="codetitle">e.g. @Overrideアノテーションを付けて明示的オーバーライド @Properties</span><code>
-<span class="comment"># @Override fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span>
-foo.bar = ABC
+<span class="comment"># @Override seaとかlandとか適当な感じなのでこれはサンプルのプロパティ</span>
+sea.land = IKS
 </code></pre>
 	<p>
 		@Overrideを付けずにオーバーライドすると、例外になります。
 		あくまで設定ファイルですから、暗黙のオーバーライドによるトラブルが発生しないようにしています。
 	</p>
-	
+
 	<h2 id="typesafeprop">タイプセーフな Properties <span class="freecomment">☆</span></h2>
 	<p>
 		そしてこれが一番の特徴です。Javaプログラムの中で、キー値をハードコードせずにプロパティ値を取得することができます。
 		DBFluteのFreeGenを使って、キー値に対応するメソッドを自動生成します。
 	</p>
 <pre><span class="codetitle">e.g. FreeGenを使って Properties のインターフェースを自動生成 @Java</span><code>
-<span class="comment">// "foo.bar" というプロパティがあったら getFooBar()</span>
-String prop = docksideConfig.<span class="point">getFooBar()</span>;
+<span class="comment">// "sea.land" というプロパティがあったら getSeaLand()</span>
+String prop = docksideConfig.<span class="point">getSeaLand()</span>;
 </code></pre>
 <pre><span class="codetitle">e.g. メッセージリソースのインターフェースも自動生成 @Java</span><code>
 DocksideMessages messages = createActionMessages();
 <span class="keyword">if</span> (<span class="abbreviation">...</span>) { <span class="comment">// Formの値をチェックして</span>
-    <span class="comment">// "errors.foo.bar" というプロパティがあったら addErrorsFooBar()</span>
-    messages.<span class="point">addErrorsFooBar</span>(<span class="abbreviation">...</span>); <span class="comment">// 引数はFormのプロパティ名と{0}などのパラメーター</span>
+    <span class="comment">// "errors.sea.land" というプロパティがあったら addErrorsSeaLand()</span>
+    messages.<span class="point">addErrorsSeaLand</span>(<span class="abbreviation">...</span>); <span class="comment">// 引数はFormのプロパティ名と{0}などのパラメーター</span>
 }
 </code></pre>
 	<p>
@@ -188,8 +188,8 @@ DocksideMessages messages = createActionMessages();
 		というメソッドも一緒に自動生成されます。
 	</p>
 <pre><span class="codetitle">e.g. boolean を戻す Properties のメソッド @Java</span><code>
-<span class="comment">// "foo.bar" というプロパティの値が true or false だったら isFooBar()</span>
-<span class="keyword">if</span> (docksideConfig.<span class="point">isFooBar()</span>) {
+<span class="comment">// "sea.land" というプロパティの値が true or false だったら isSeaLand()</span>
+<span class="keyword">if</span> (docksideConfig.<span class="point">isSeaLand()</span>) {
     <span class="abbreviation">...</span>
 }
 </code></pre>
@@ -199,9 +199,9 @@ DocksideMessages messages = createActionMessages();
 	</p>
 <pre><span class="codetitle">e.g. 自動生成された Properties のインターフェースのメソッドのJavaDoc @Java</span><code>
 <span class="comment">/**</span>
-<span class="comment"> * Get the value for the key <span class="point">'foo.bar'</span>. &lt;br /&gt;</span>
-<span class="comment"> * The value is, e.g. <span class="point">ABC</span> &lt;br /&gt;</span>
-<span class="comment"> * comment: <span class="point">fooとかbarとか適当な感じなのでこれはサンプルのプロパティ</span></span>
+<span class="comment"> * Get the value for the key <span class="point">'sea.land'</span>. &lt;br /&gt;</span>
+<span class="comment"> * The value is, e.g. <span class="point">IKS</span> &lt;br /&gt;</span>
+<span class="comment"> * comment: <span class="point">seaとかlandとか適当な感じなのでこれはサンプルのプロパティ</span></span>
 <span class="comment"> * @return The value of found property. (NullAllowed: if null, not found)</span>
 <span class="comment"> */</span>
 String getFooBar();
