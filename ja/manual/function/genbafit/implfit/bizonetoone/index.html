@@ -72,8 +72,19 @@
 				<li><a href="#multiplerelationname">リレーション名のきまぐれ</a></li>
 			</ul>
 		</li>
-		<li><a href="#derivedonetoone">導出的one-to-one</a></li>
-		<li><a href="#manytoone">業務的many-to-one</a></li>
+		<li><a href="#derivedonetoone">導出的one-to-one</a>
+			<ul>
+				<li><a href="#whatisderivedmanytoone">導出的one-to-oneって？</a></li>
+				<li><a href="#derivedmanytoonedfprop">fixedConditionで相関サブクエリ</a></li>
+				<li><a href="#derivedmanytooneinline">インラインビューで実現することもできる</a></li>
+			</ul>
+		</li>
+		<li><a href="#manytoone">業務的many-to-one</a>
+			<ul>
+				<li><a href="#whatisbizmanytoone">業務的many-to-oneって？</a></li>
+				<li><a href="#bizmanytoonedfprop">fixedConditionでmany-to-oneに</a></li>
+			</ul>
+		</li>
 		<li><a href="#schemahtml">SchemaHTMLでの表示</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
@@ -507,10 +518,12 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 	<div class="relatedpage"><a href="../../../ormapper/entity/relation.html">Entity間のリレーションのタイプ</a></div>
 
 	<h2 id="derivedonetoone">導出的one-to-one</h2>
+	<h3 id="whatisderivedmanytoone">導出的one-to-oneって？</h3>
 	<p>
 		何かしら導出した値に一致するレコード(導出レコード)に対する業務的one-to-one(導出的one-to-one)を利用することもできます。
 		例えば、会員を検索する際、同時に会員の最終ログインの情報も取得したい場合など。(会員IDとログイン日時でユニークであることが前提)
 	</p>
+	<h3 id="derivedmanytoonedfprop">fixedConditionで相関サブクエリ</h3>
 	<p>
 		最終ログイン日時だけが欲しいなら (Specify)DerivedReferrer で取得できますが、最終ログインのレコードがまるごと欲しい場合は、それでは取得することはできません。
 		"最終ログインのレコード" に対して業務的one-to-oneのリレーションを設定して SetupSelect(Relation) する必要があります。
@@ -535,6 +548,7 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 	<p>
 		このようにすると、SQLでは left outer join の on 句の条件の中に相関サブクエリが展開され、最終ログインのレコードを取得できます。
 	</p>
+	<h3 id="derivedmanytooneinline">インラインビューで実現することもできる</h3>
 	<p>
 		ただし、このSQLが文法上許されない DBMS も存在します(例えば、Oracle とか PostgreSQL など)。
 		その場合は、この相関サブクエリの固定条件がインラインビューに展開されるように設定することで回避できます。
@@ -564,10 +578,29 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 	</p>
 
 	<h2 id="manytoone">業務的many-to-one</h2>
+	<h3 id="whatisbizmanytoone">業務的many-to-oneって？</h3>
 	<p>
 		業務的one-to-oneではなく、業務的many-to-oneです。とある条件を入れることによって many-to-one
 		の関係になるようなリレーションを示します。本来、複数のテーブルに分かれるべき情報が一つのテーブルにまとまって入っているような構造で発生しやすいです。
 	</p>
+<pre><span class="codetitle">e.g. 業務的many-to-oneのデータ @Model</span><code>
+PK_ID, GENERAL_ID, TARGET_TYPE
+ + = = = = = = = = = +
+ |  1  |  1  |  SEA  |
+ |  2  |  1  |  SEA  |
+ |  3  |  2  |  SEA  |
+ |  4  |  3  |  SEA  |
+ | - - - - - - - - - |
+ |  5  |  1  |  LND  |
+ |  6  |  2  |  LND  |
+ + = = = = = = = = = +
+</code></pre>
+	<ul>
+		<li>PK_ID {1,2,3,4} の GENERAL_ID {1,1,2,3} は、SEA_IDを示す</li>
+		<li>PK_ID {5,6} の GENERAL_ID {1,2} は、LAND_IDを示す</li>
+		<li>TARGET_TYPE次第で、そのIDの指し示すテーブルが変わるのが特徴 (FK制約は貼れない)</li>
+	</ul>
+	<h3 id="bizmanytoonedfprop">fixedConditionでmany-to-oneに</h3>
 	<p>
 		業務的one-to-one比べてあまり発生頻度は多くないと想定されますが、いざ必要になったときは、
 		業務的one-to-oneと同様に、fixedConditionを使ってリレーションを作り上げることができます。
