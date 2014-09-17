@@ -59,7 +59,13 @@
 		<li><a href="#forcedcls">ネイティヴ型メソッドの削除</a></li>
 		<li><a href="#checkimplicitset">暗黙の区分値チェック</a></li>
 		<li><a href="#defaultdilemma">デフォルトのジレンマ</a></li>
-		<li><a href="#groupingmap">グルーピング判定 (GroupingMap)</a></li>
+		<li><a href="#groupingmap">区分値のグルーピング (GroupingMap)</a>
+			<ul>
+				<li><a href="#groupingmapoverview">グルーピングの概要</a></li>
+				<li><a href="#groupingmapsetting">グルーピングの設定方法</a></li>
+				<li><a href="#groupingmapgroupref">グルーピングのグループ参照</a></li>
+			</ul>
+		</li>
 		<li><a href="#sistercode">姉妹コードの利用 (SisterCode)</a></li>
 		<li><a href="#subitemmap">独自の属性を追加 (SubItemMap)</a>
 			<ul>
@@ -396,13 +402,15 @@ cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>; <s
 		</p>
 	</div>
 
-	<h2 id="groupingmap">グルーピング判定 (GroupingMap)</h2>
+	<h2 id="groupingmap">区分値のグルーピング (GroupingMap)</h2>
+	<h3 id="groupingmapoverview">グルーピングの概要</h3>
 	<p>
 		例えば、正式会員と仮会員とで "サービスが利用可能なステータス"
 		というように複数のステータスに対して業務的な意味付けがある場合、プログラム上ではその複数のステータスを使った判定処理が想定されます。
 		その意味付けをあらかじめ定義(グルーピング)しておいて、その複数のステータスを使った判定メソッドを生成することができます。
 		<span class="freecomment">@since 0.9.9.7A</span>
 	</p>
+	<h3 id="groupingmapsetting">グルーピングの設定方法</h3>
 	<p>
 		topComment の map の中の groupingMap プロパティにて、グループ名とそれに属するステータスを列挙すると、Entity
 		や ConditionBean, CDef にてグループ化されたメソッドが生成されます。
@@ -443,9 +451,50 @@ cb.query().<span class="point">setMemberStatusCode_InScope_ServiceAvailable()</s
 	</p>
 	<p>
 		暗黙の区分値でもテーブル区分値でもどちらでも利用可能です。
-		ただ、テーブル区分値の場合は、そもそもテーブル自体にフラグカラムとしてグルーピング情報を保持させておくこともできるので、
-		主には暗黙の区分値で活躍する機能と言えるでしょう。
 	</p>
+	<h3 id="groupingmapgroupref">グルーピングのグループ参照</h3>
+	<p>
+		グルーピングの設定の中で、別のグループを参照することもできます。
+	</p>
+	<p>
+		グループの区分値要素に <em class="keyword">$$ref$$.[group-name]</em>
+		と指定すると、参照したグループの要素をそのまま取り込みます。自分よりも先に(上に)定義されたグループだけ参照できます。
+	</p>
+<pre><span class="codetitle">e.g. グルーピングの設定の中で、別のグループを参照 @classificationDefinitionMap.dfprop</span><code>
+<span class="abbreviation">...</span>
+    ; groupingMap = <span class="keyword">map:</span>{
+        ; serviceAvailable = <span class="keyword">map:</span>{
+            ; groupComment = サービスが利用できる会員
+            ; elementList = <span class="keyword">list:</span>{正式会員;仮会員}
+        }
+        ; afterAll = <span class="keyword">map:</span>{
+            ; groupComment = 結局、全部じゃん
+            ; elementList = <span class="keyword">list:</span>{<span class="attribute">$$ref$$</span>.<span class="point">serviceAvailable</span> ; 退会会員}
+        }
+        <span class="abbreviation">...</span>
+    }
+<span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		また、アプリでは利用せず、ドキュメント利用だけにするグループを作ることもできます。
+		他のグループから参照されるだけのグループを作るときに利用すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. ドキュメント利用だけのグループ @classificationDefinitionMap.dfprop</span><code>
+<span class="abbreviation">...</span>
+    ; groupingMap = <span class="keyword">map:</span>{
+        ; serviceAvailable = <span class="keyword">map:</span>{
+            ; groupComment = すると、CDefやEntityでは生成されない
+            ; elementList = <span class="keyword">list:</span>{正式会員;仮会員}
+            ; isUseDocumentOnly = <span class="keyword">true</span>
+        }
+        ; afterAll = <span class="keyword">map:</span>{
+            ; groupComment = こっちは、プログラムで利用できる
+            ; elementList = <span class="keyword">list:</span>{<span class="attribute">$$ref$$</span>.<span class="point">serviceAvailable</span> ; 退会会員}
+        }
+    }
+<span class="abbreviation">...</span>
+</code></pre>
 
 	<h2 id="sistercode">姉妹コードの利用 (SisterCode)</h2>
 	<p>
