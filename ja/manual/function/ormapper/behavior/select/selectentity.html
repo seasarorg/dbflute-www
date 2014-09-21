@@ -49,6 +49,13 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 			</ul>
 		</li>
+		<li><a href="#optionalentity">Java8 なら OptionalEntity</a>
+			<ul>
+				<li><a href="#optionalhandling">OptionalEntityの使い方</a></li>
+				<li><a href="#optionalname">OptionalEntityの変数名は？</a></li>
+				<li><a href="#withdeletedcheck">selectEntityWithDeletedCheck()もあるよ</a></li>
+			</ul>
+		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#argument">引数</a></li>
@@ -93,6 +100,102 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
     <span class="abbreviation">...</span> <span class="comment">// 存在しなかった場合の処理</span>
 }
 </code></pre>
+
+	<div class="inucolumn">
+		<h2 id="optionalentity">Java8 なら OptionalEntity</h2>
+		<h3 id="optionalhandling">OptionalEntityの使い方</h3>
+		<p>
+			Java8であれば<span class="freecomment">(1.0.xでもisCompatibleBeforeJava8をfalseにしていれば)</span>、
+			selectEntity()の戻り値は OptionalEntity となります。Java8で導入された Optional を Entity に適用したものです。
+		</p>
+		<p>
+			DBFlute独自のクラスではありますが、Optionalと同じメソッド持ち、Entityならではの便利なメソッドが追加されています。
+			また、わかりやすい例外ハンドリングのために、NoSuchElementException の代わりに EntityAlreadyDeletedException が発生します。
+		</p>
+<pre><span class="codetitle">e.g. OptionalEntityの使い方 @Java</span><code>
+<span class="comment">// OptionalEntityで受け取るなら</span>
+OptionalEntity&lt;Member&gt; entity = memberBhv.selectEntity(cb); <span class="comment">// 一件検索</span>
+
+<span class="comment">// 絶対に存在することが前提で、コールバックスタイルなら (なければ例外)</span>
+entity.<span class="point">required</span>(member -&gt; {
+    <span class="abbreviation">...</span> = member.getMemberId();
+    <span class="abbreviation">...</span> = member.getMemberName();
+});
+
+<span class="comment">// 存在しないかもしれなくって、コールバックスタイルなら (なければ素通り)</span>
+entity.<span class="point">ifPresent</span>(member -&gt; {
+    <span class="abbreviation">...</span> = member.getMemberId();
+    <span class="abbreviation">...</span> = member.getMemberName();
+});
+
+<span class="comment">// 存在しないかもしれなくって、存在するときしないときで分岐したいなら</span>
+<span class="keyword">if</span> (member.<span class="point">isPresent()</span>) {
+    entity.<span class="point">required</span>(member -&gt; {
+        <span class="abbreviation">...</span> = member.getMemberId();
+        <span class="abbreviation">...</span> = member.getMemberName();
+    });
+} <span class="keyword">else</span> {
+    <span class="comment">// 存在しないときの処理をする</span>
+}
+
+<span class="comment">// 存在しないかもしれなくって、単に中のEntityを取り出すなら (なければnull)</span>
+<span class="comment">// (基本的には使わない、他のメソッドなどがnullを受け取る仕様の場合など利用する)</span>
+Member member = entity.<span class="point">orElseNull()</span>;
+seaLogic.land(member); <span class="comment">// Entity型で受け取って、null分岐を中でやっている</span>
+
+<span class="comment">// 絶対に存在することが前提で、単に中のEntityを取り出すなら (なければ例外)</span>
+<span class="comment">// (基本的には使わない、他のメソッドなどがEntityを受け取る仕様の場合など利用する)</span>
+<span class="comment">// (というか、これをやるくらいなら、selectEntityWithDeletedCheck()でいい)</span>
+Member member = entity.<span class="point">get()</span>;
+seaLogic.land(member); <span class="comment">// Entity型で受け取って、nullを受け付けない</span>
+</code></pre>
+		<h3 id="optionalname">OptionalEntityの変数名は？</h3>
+		<p>
+			OptionalEntityの変数名に迷います。
+		</p>
+		<p>
+			ctrl+2->Lで補完すると、そのまま entity となります。
+			さすがにアバウト過ぎるということで optMember
+			とかにするかもしれません。optMember の方がユニーク性が高くなり、関連テーブルの OptionalEntity
+			が出てきたときに区別がしやすくなりますが、補完では全く支援されないのでわりと面倒かもしれません。
+		</p>
+		<p>
+			毎度毎度、区別の必要になるわけでもないのでなおさらです。とりあえずは、entityでいいのかもしれません。
+			そもそも Optional を使うときは、あまり変数に受け取られなくてもいいように実装する方がいいでしょう。
+			一発処理でおしまいなら、selectEntity()の戻り値でそのままコールバックスタイルに実装した方が世話ないです。
+		</p>
+<pre><span class="codetitle">e.g. 一発処理でおしまいなら @Java</span><code>
+<span class="comment">// 絶対に存在することが前提で、コールバックスタイルなら (なければ例外)</span>
+memberBhv.selectEntity(cb).<span class="point">required</span>(member -&gt; {
+    <span class="abbreviation">...</span> = member.getMemberId();
+    <span class="abbreviation">...</span> = member.getMemberName();
+});
+
+<span class="comment">// 存在しないかもしれなくって、コールバックスタイルなら (なければ素通り)</span>
+memberBhv.selectEntity(cb).<span class="point">ifPresent</span>(member -&gt; {
+    <span class="abbreviation">...</span> = member.getMemberId();
+    <span class="abbreviation">...</span> = member.getMemberName();
+});
+</code></pre>
+		<h3 id="withdeletedcheck">selectEntityWithDeletedCheck()もあるよ</h3>
+		<p>
+			ただ、絶対に存在することが前提の検索であれば、今まで通り selectEntityWithDeletedCheck(cb)
+			を使うこともできます。その方が Optional
+			のことは考えずに済みますし、可読性としても絶対に存在することが前提であることが一目瞭然で読み手にすぐに伝わります。
+		</p>
+		<p>
+			selectEntityWithDeletedCheck() をうまく活用していきましょう。
+		</p>
+		<div class="relatedpage"><a href="./selectentitywithdeletedcheck.html">selectEntityWithDeletedCheck()</a></div>
+<pre><span class="codetitle">e.g. selectEntityWithDeletedCheck()を使ったら @Java</span><code>
+<span class="comment">// 絶対に存在することが前提なら (なければ例外)</span>
+Member member = memberBhv.<span class="point">selectEntityWithDeletedCheck</span>(cb); <span class="comment">// 一件検索</span>
+
+<span class="comment">// ここでは絶対に存在する</span>
+<span class="abbreviation">...</span> = member.getMemberId();
+<span class="abbreviation">...</span> = member.getMemberName();
+</code></pre>
+	</div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
