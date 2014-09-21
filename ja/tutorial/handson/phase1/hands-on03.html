@@ -41,7 +41,11 @@
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#morebasic">ConditionBeanの基本をさらに</a></li>
+		<li><a href="#morebasic">ConditionBeanの基本をさらに</a>
+			<ul>
+				<li><a href="#handydate">HandyDateが使えます</a></li>
+			</ul>
+		</li>
 		<li><a href="#paging">CBでページングしてみよう</a></li>
 		<li><a href="#cursor">CBでカーソル検索ってみよう</a></li>
 		<li><a href="#innerjoin">InnerJoinAutoDetectってみよう</a></li>
@@ -89,7 +93,11 @@
 			</ul>
 		</dd>
 		<dd>
-			<span class="freecomment">※「以前」の解釈は自由。</span>
+			<span class="freecomment">※"以前" の解釈は、"その日ぴったりも含む" で。</span>
+		</dd>
+		<dd>
+			<span class="freecomment">※もし、よければ HandyDate を使ってみましょう。</span>
+			<div class="relatedpage"><a href="#handydate">this - HandyDateが使えます</a></div>
 		</dd>
 		<!-- SetupSelect as Branch and OneToOne, Several OrderBy -->
 		<dt>[2] 会員ステータスと会員セキュリティ情報も取得して会員を検索</dt>
@@ -98,6 +106,9 @@
 				<li>若い順で並べる。生年月日がない人は会員IDの昇順で並ぶようにする</li>
 				<li>会員ステータスと会員セキュリティ情報が存在することをアサート</li>
 			</ul>
+		</dd>
+		<dd>
+			<span class="freecomment">※カージナリティを意識しましょう</span>
 		</dd>
 		<!-- Query(Relation) to LikeSearch, InScope, ExtractPKList -->
 		<dt>[3] 会員セキュリティ情報のリマインダ質問で2という文字が含まれている会員を検索</dt>
@@ -207,6 +218,34 @@
 			<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20140813/strict11">外部サイト - jfluteの日記 - DBFlute-1.1になったらStrict</a></div>
 		</dd>
 	</dl>
+	<div class="inucolumn">
+		<h3 id="handydate">HandyDateが使えます</h3>
+		<p>
+			java.util.Calendarは、色々と落とし穴があります。
+			ハンズオンでは、ぜひ、HandyDateというクラスを使ってみてください。日付に関する色々な便利メソッドがあります。
+		</p>
+<pre><span class="codetitle">e.g. HandyDateを使ってみる @Java</span><code>
+<span class="comment">// 2006/09/26 の Date 型</span>
+Date targetDate = <span class="keyword">new</span> HandyDate(<span class="literal">"2006/09/26"</span>).getDate();
+
+<span class="comment">// 2006/09/26 12:34:56 の Date 型</span>
+Timestamp targetTime
+    = <span class="keyword">new</span> HandyDate(<span class="literal">"2006/09/26 12:34:56"</span>).getTimestamp();
+
+<span class="comment">// 2006/09/27 の Date 型</span>
+Date targetDate
+    = <span class="keyword">new</span> HandyDate(<span class="literal">"2006/09/26"</span>).addDay(1).getDate();
+
+<span class="comment">// 2006/09/27 00:00:00 の Date 型</span>
+String exp = <span class="literal">"2006/09/26 12:34:56"</span>;
+Date targetDate
+    = <span class="keyword">new</span> HandyDate(exp).addDay(1).moveToDayJust().getDate();
+
+HandyDate handyDate = <span class="keyword">new</span> HandyDate(<span class="literal">"2006/09/26"</span>);
+handyDate.addDay(1); <span class="comment">// HandyDate自体のインスタンスの日付が変わる</span>
+Date targetDate = handyDate.getDate(); <span class="comment">// 2006/09/27 の Date 型</span>
+</code></pre>
+	</div>
 
 	<h2 id="paging">CBでページングしてみよう</h2>
 	<p>

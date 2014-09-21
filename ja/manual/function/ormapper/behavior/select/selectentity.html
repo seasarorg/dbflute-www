@@ -158,20 +158,22 @@ seaLogic.land(member); <span class="comment">// Entity型で受け取って、nu
 			さすがにアバウト過ぎるということで optMember
 			とかにするかもしれません。optMember の方がユニーク性が高くなり、関連テーブルの OptionalEntity
 			が出てきたときに区別がしやすくなりますが、補完では全く支援されないのでわりと面倒かもしれません。
+			毎度毎度、区別の必要になるわけでもないのでなおさらなので、とりあえずは entity
+			でいいのかもしれません。必要になったら、変数名を選択して ctrl+1->Enter で Rename すればいいかと。
 		</p>
 		<p>
-			毎度毎度、区別の必要になるわけでもないのでなおさらです。とりあえずは、entityでいいのかもしれません。
 			そもそも Optional を使うときは、あまり変数に受け取られなくてもいいように実装する方がいいでしょう。
 			一発処理でおしまいなら、selectEntity()の戻り値でそのままコールバックスタイルに実装した方が世話ないです。
+			これを <em class="keyword">一発処理でOKスタイル</em> と呼びます。
 		</p>
-<pre><span class="codetitle">e.g. 一発処理でおしまいなら @Java</span><code>
-<span class="comment">// 絶対に存在することが前提で、コールバックスタイルなら (なければ例外)</span>
+<pre><span class="codetitle">e.g. 一発処理でOKスタイルなら @Java</span><code>
+<span class="comment">// 絶対に存在することが前提で、一発処理でOKスタイル (なければ例外)</span>
 memberBhv.selectEntity(cb).<span class="point">required</span>(member -&gt; {
     <span class="abbreviation">...</span> = member.getMemberId();
     <span class="abbreviation">...</span> = member.getMemberName();
 });
 
-<span class="comment">// 存在しないかもしれなくって、コールバックスタイルなら (なければ素通り)</span>
+<span class="comment">// 存在しないかもしれなくって、一発処理でOKスタイル (なければ素通り)</span>
 memberBhv.selectEntity(cb).<span class="point">ifPresent</span>(member -&gt; {
     <span class="abbreviation">...</span> = member.getMemberId();
     <span class="abbreviation">...</span> = member.getMemberName();
