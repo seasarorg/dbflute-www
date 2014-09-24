@@ -46,41 +46,64 @@
 		することが重要です。
 	</p>
 	<ul class="indexlist">
-		<li><a href="#solution">where句を再利用しよう</a></li>
+		<li><a href="#solution">where句を再利用しよう</a>
+			<ul>
+				<li><a href="#beginning">まとまった条件があったら</a></li>
+				<li><a href="#wholerecycle">まるごと一緒なら...まあいいけど</a></li>
+				<li><a href="#varioustablesort">取得したいテーブルやソートは違うもの</a></li>
+				<li><a href="#cqexclass">ConditionQueryのExクラスにて！</a></li>
+			</ul>
+		</li>
 		<li><a href="#arrange">再利用メソッド (ArrangeQuery)</a>
 			<ul>
+				<li><a href="#methodname">メソッドは arrange !?</a></li>
 				<li><a href="#use">再利用メソッドの利用</a></li>
 				<li><a href="#orderby">order by 句も再利用</a></li>
 				<li><a href="#orscopecolumnquery">OrScoprQuery や ColumnQuery は？</a></li>
 			</ul>
 		</li>
+		<li><a href="#oneword">その条件、ひとことで言うと？</a></li>
 		<li><a href="#example">Exampleのススメ</a></li>
 	</ul>
 
 	<h2 id="solution">where句を再利用しよう</h2>
+	<h3 id="beginning">まとまった条件があったら</h3>
 	<p>
-		例えば、<em class="keyword">ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員をサービス会員</em>
-		として扱うというような業務仕様があったとして、その会員をアプリケーション上で複数の箇所で検索することがある場合に、
+		例えば...
+	</p>
+	<ul>
+		<li>'S'で始まる会員</li>
+		<li>とある商品を購入</li>
+		<li>正式会員</li>
+	</ul>
+	<p>
+		を、"サービス会員" として扱うというような業務仕様があったとして...
 	</p>
 <pre><span class="codetitle">e.g. ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員を検索 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
 cb.query().setMemberStatusCode_Equal_Formalized();
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setProductId_Equal(SPECIAL_PRODUCT_ID);
-    }
+cb.query().existsPurchaseList(purchaseCB -&gt; {
+    purchaseCB.query().setProductId_Equal(SPECIAL_PRODUCT_ID);
 });
 </code></pre>
 	<p>
-		という実装になりますが、これを各ディベロッパーが複数の箇所で同じように実装するのではなく、<em class="keyword">誰か一人が実装してそれを再利用</em>
+		まあ、こんな感じの実装になります。
+	</p>
+	<p>
+		そして、その条件をアプリ上で何度も使うってとき...
+	</p>
+	<p>
+		<em class="keyword">誰か一人が実装して、それをみんなが再利用</em>
 		するのが一番です。
 	</p>
+	<h3 id="wholerecycle">まるごと一緒なら...まあいいけど</h3>
 	<p>
 		もし、このサービス会員の条件を利用する複数箇所において、取得したいテーブル(select句)やソート順までが全く同じ仕様になる、
 		つまり、検索まるごと再利用できるのであれば、Behaviorの "Exクラス" に独自のメソッドを作って再利用するやり方でも問題ありません。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../domainlogicrecycle/index.html"> -->現場フィット - ドメインロジックの再利用<!-- </a> --></span></div>
+	<h3 id="varioustablesort">取得したいテーブルやソートは違うもの</h3>
 	<p>
 		しかし、業務仕様はなかなかそういうものではなく、プロセス毎に "サービス会員"
 		のソートの仕方が違ったり、一緒に取得したい関連テーブルが違ったり、そもそも検索の基点テーブルが違ったり(例えば、"サービス会員"
@@ -89,6 +112,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		なのです。
 	</p>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wp.html#process">Process (プロセス)</a></div>
+	<h3 id="cqexclass">ConditionQueryのExクラスにて！</h3>
 	<p>
 		そのような場合は、<em class="keyword">ConditionQuery の "Exクラス" にまとまった条件を設定するメソッド</em>
 		を作って再利用するのが一番です。そのようにしておくことで、DB変更などでサービス会員の条件が変わった場合も修正は一箇所で済みます。
@@ -97,6 +121,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
 
 	<h2 id="arrange">再利用メソッド (ArrangeQuery)</h2>
+	<h3 id="methodname">メソッドは arrange !?</h3>
 	<p>
 		メソッド名は arrange で始まるのが習慣としてお奨めです。この再利用メソッドを定義する方法、もしくは、そのメソッド自体を
 		<em class="keyword">ArrangeQuery</em> と呼んでいます。
@@ -114,18 +139,13 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
     <span class="abbreviation">...</span>
 
     <span class="comment">/**</span>
-    <span class="comment"> * Arrange the query for selecting service members.</span>
-    <span class="comment"> * o starts 'S'</span>
-    <span class="comment"> * o status 'Formalized'</span>
-    <span class="comment"> * o exists the special product</span>
+    <span class="comment"> * すっごい特別過ぎる会員</span>
     <span class="comment"> */</span>
     <span class="keyword">public void</span> arrangeServiceMember() {
         setMemberName_PrefixSearch(<span class="literal">"S"</span>);
         setMemberStatusCode_Equal_Formalized();
-        existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.query().setProductId_Equal(<span class="attribute">SPECIAL_PRODUCT_ID</span>);
-            }
+        existsPurchaseList(purCB -&gt; {
+            purCB.query().setProductId_Equal(<span class="attribute">SPECIAL_PRODUCT_ID</span>);
         });
     }
 }
@@ -160,6 +180,32 @@ cb.query().addOrderBy_...();
 		からは利用できません。なので、ConditionQueryではなく ConditionBean のExクラスで再利用メソッドを定義する必要があります。
 		<span class="freecomment">(ちょっと残念ですが、ここはAPI設計がうまくいきませんでした)</span>
 	</p>
+
+	<div class="inucolumn">
+		<h2 id="oneword">その条件、ひとことで言うと？</h2>
+		<p>
+			えーっと...
+		</p>
+		<ul>
+			<li>'S'で始まる会員</li>
+			<li>とある商品を購入</li>
+			<li>正式会員</li>
+		</ul>
+		<p>
+			これをひとことで言うと？.........サービス会員！
+		</p>
+		<p>
+			<em class="keyword">業務上の目的を導き出すこと</em>、これが再利用の始まりです。
+		</p>
+		<p>
+			その目的を実現するための手段は、後に変わるかもしれません。他の人も使いたいかもしれません。
+			各プログラムは、できるだけ業務上の目的だけを意識して、手段は一元管理。これは ArrangeQuery
+			だけでなく、プログラミングにおける再利用の基本となります。
+		</p>
+		<p>
+			いかに、抽象度を一つあげた業務概念を見つけるか？...常に目を光らせておきましょう。
+		</p>
+	</div>
 
 	<div class="inucolumn">
 		<h2>new CB は再利用しない!?</h2>
