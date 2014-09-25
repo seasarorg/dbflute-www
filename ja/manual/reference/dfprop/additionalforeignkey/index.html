@@ -60,6 +60,12 @@
 				<li><a href="#suppresssubquery">suppressSubQuery <span class="freecomment">@since 1.0.5G</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#splitdfprop">dfpropファイルの分割</a>
+			<ul>
+				<li><a href="#removeline">ある程度は工夫...</a></li>
+				<li><a href="#dosplit">ファイルを分割しよう</a></li>
+			</ul>
+		</li>
 		<li><a href="#example">Example</a>
 			<ul>
 				<li><a href="#independent">e.g. とある関連はつながらないように <span class="freecomment">@since 1.0.5G</span></a></li>
@@ -413,6 +419,67 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>なし</dd>
 	</dl>
+
+	<h2 id="splitdfprop">dfpropファイルの分割</h2>
+	<h3 id="removeline">ある程度は工夫...</h3>
+	<p>
+		この dfprop は、しっかり使いこなし始めると、かなり大きなファイルになる可能性があります。
+	</p>
+	<p>
+		ある程度は、改行を工夫して、ファイルが長くならないようにしますが...
+	</p>
+<pre><span class="codetitle">e.g. あまり縦長にしないようにいいかんじに @additionalForeignKeyMap.dfprop</span><code>
+; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+    ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+    ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+    ; fixedCondition =
+     <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+ and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+    ; fixedSuffix = AsValid
+    ; comment = <span class="literal">"ここはコメントだよぅ"</span>
+}
+</code></pre>
+	<p>
+		ぜんぜん変わりませんね。。。見やすさをキープするためには、既にこれが限界。
+	</p>
+	<h3 id="dosplit">ファイルを分割しよう</h3>
+	<p>
+		かなり大きくなってきたら、会員系、商品系、レポート系など、カテゴリごとにファイルを分割すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. カテゴリごとにファイルを分割 @Directory</span><code>
+dfprop
+ |-<span class="abbreviation">...</span>
+ |-additionalForeignKeyMap_<span class="point">land</span>.dfprop  <span class="comment">// ランド系</span>
+ |-additionalForeignKeyMap_<span class="point">sea</span>.dfprop   <span class="comment">// シー系</span>
+ |-additionalForeignKeyMap.dfprop       <span class="comment">// 本体</span>
+ |-<span class="abbreviation">...</span>
+</code></pre>
+<pre><span class="codetitle">e.g. ファイル分割の設定を本体のdfpropにて @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$split$$</span> = <span class="keyword">map:</span>{
+        ; <span class="point">land</span> = dummy
+        ; <span class="point">sea</span> = dummy
+    }
+
+    <span class="comment"># 本体の dfprop にも定義はできる</span>
+    ; FK_MEMBER_MEMBER_ADDRESS_AS_VALID = <span class="keyword">map:</span>{
+        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
+        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
+        ; fixedCondition =
+         <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
+     and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
+        ; fixedSuffix = AsValid
+        ; comment = <span class="literal">"ここはコメントだよぅ"</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		dummyは、将来拡張のための固定値です。
+	</p>
+	<p>
+		EMechaによるキー重複チェックが、ファイル間では効かないので設定ミスに注意しましょう。
+	</p>
 
 	<h2 id="example">Example</h2>
 <pre><span class="codetitle">e.g. 会員から会員ステータスへのFK @additionalForeignKeyMap.dfprop</span><code>

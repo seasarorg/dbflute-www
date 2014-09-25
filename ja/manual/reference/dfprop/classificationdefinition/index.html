@@ -68,6 +68,12 @@
 				<li><a href="#exceptCodeList">exceptCodeList</a></li>
 			</ul>
 		</li>
+		<li><a href="#splitdfprop">dfpropファイルの分割</a>
+			<ul>
+				<li><a href="#removeline">ある程度は工夫...</a></li>
+				<li><a href="#dosplit">ファイルを分割しよう</a></li>
+			</ul>
+		</li>
 		<li><a href="#example">Example</a>
 			<ul>
 				<li><a href="#tableexample">テーブル区分値</a></li>
@@ -484,6 +490,66 @@
 		</dd>
 	</dl>
 
+	<h2 id="splitdfprop">dfpropファイルの分割</h2>
+	<h3 id="removeline">ある程度は工夫...</h3>
+	<p>
+		この dfprop は、しっかり使いこなし始めると、かなり大きなファイルになる可能性があります。
+	</p>
+	<p>
+		ある程度は、改行を工夫して、ファイルが長くならないようにしますが...
+	</p>
+<pre><span class="codetitle">e.g. あまり縦長にしないようにいいかんじに @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table = MEMBER_STATUS ; code = MEMBER_STATUS_CODE
+            ; name = MEMBER_STATUS_NAME ; comment = DESCRIPTION
+        }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		焼け石に水です。
+	</p>
+	<h3 id="dosplit">ファイルを分割しよう</h3>
+	<p>
+		かなり大きくなってきたら、会員系、商品系、レポート系など、カテゴリごとにファイルを分割すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. カテゴリごとにファイルを分割 @Directory</span><code>
+dfprop
+ |-<span class="abbreviation">...</span>
+ |-classificationDefinitionMap_<span class="point">land</span>.dfprop  <span class="comment">// ランド系</span>
+ |-classificationDefinitionMap_<span class="point">sea</span>.dfprop   <span class="comment">// シー系</span>
+ |-classificationDefinitionMap.dfprop       <span class="comment">// 本体</span>
+ |-<span class="abbreviation">...</span>
+</code></pre>
+<pre><span class="codetitle">e.g. ファイル分割の設定を本体のdfpropにて @classificationDefinitionMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">$$split$$</span> = <span class="keyword">map:</span>{
+        ; <span class="point">land</span> = dummy
+        ; <span class="point">sea</span> = dummy
+    }
+
+    <span class="comment"># 本体の dfprop にも定義はできる</span>
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table = MEMBER_STATUS ; code = MEMBER_STATUS_CODE
+            ; name = MEMBER_STATUS_NAME ; comment = DESCRIPTION
+        }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		dummyは、将来拡張のための固定値です。
+	</p>
+	<p>
+		EMechaによるキー重複チェックが、ファイル間では効かないので設定ミスに注意しましょう。
+	</p>
+
 	<h2 id="example">Example</h2>
 	<h3 id="tableexample">テーブル区分値</h3>
 <pre><span class="codetitle">e.g. テーブル区分値を利用する例 {会員ステータス} @classificationDefinitionMap.dfprop</span><code>
@@ -492,10 +558,8 @@
         ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
         ; <span class="keyword">map:</span>{
             ; table = MEMBER_STATUS
-            ; code  = MEMBER_STATUS_CODE
-            ; name  = MEMBER_STATUS_NAME
-            <span class="comment">#; alias  = NOT_EXISTS</span>
-            ; comment  = DESCRIPTION
+            ; code  = MEMBER_STATUS_CODE ; name = MEMBER_STATUS_NAME
+            ; alias  = MEMBER_STATUS_ALIAS ; comment  = DESCRIPTION
             ; where = DELETE_FLG != 0 <span class="comment"># 条件で除外</span>
             ; orderBy = DISPLAY_ORDER
             ; exceptCodeList = <span class="keyword">list:</span>{FOO ; BAR} <span class="comment"># 固定で除外</span>
