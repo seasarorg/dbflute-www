@@ -49,7 +49,7 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 			</ul>
 		</li>
-		<li><a href="#optionalentity">Java8 なら OptionalEntity</a>
+		<li><a href="#java8">Java8 なら OptionalEntity</a>
 			<ul>
 				<li><a href="#optionalhandling">OptionalEntityの使い方</a></li>
 				<li><a href="#optionalname">OptionalEntityの変数名は？</a></li>
@@ -102,7 +102,7 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 </code></pre>
 
 	<div class="inucolumn">
-		<h2 id="optionalentity">Java8 なら OptionalEntity</h2>
+		<h2 id="java8">Java8 なら OptionalEntity</h2>
 		<h3 id="optionalhandling">OptionalEntityの使い方</h3>
 		<p>
 			Java8であれば<span class="freecomment">(1.0.xでもisCompatibleBeforeJava8をfalseにしていれば)</span>、
@@ -113,41 +113,69 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 			また、わかりやすい例外ハンドリングのために、NoSuchElementException の代わりに EntityAlreadyDeletedException が発生します。
 		</p>
 <pre><span class="codetitle">e.g. OptionalEntityの使い方 @Java</span><code>
-<span class="comment">// OptionalEntityで受け取るなら</span>
-OptionalEntity&lt;Member&gt; entity = memberBhv.selectEntity(cb); <span class="comment">// 一件検索</span>
+<span class="comment">// 戻り値は OptionalEntity だが...でも実際には変数で受け取るよりも!?</span>
+<span class="comment">OptionalEntity&lt;Member&gt; entity = memberBhv.selectEntity(cb); // 一件検索</span>
 
-<span class="comment">// 絶対に存在することが前提で、コールバックスタイルなら (なければ例外)</span>
-entity.<span class="point">required</span>(member -&gt; {
-    <span class="abbreviation">...</span> = member.getMemberId();
-    <span class="abbreviation">...</span> = member.getMemberName();
+<span class="comment">// - - - - - - - - - - - - - - - - - - 一発処理でOKスタイル！</span>
+
+<span class="comment">// 絶対に存在するはずで、何かしら処理するなら (なければ例外)</span>
+<span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">alwaysPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
 });
 
-<span class="comment">// 存在しないかもしれなくって、コールバックスタイルなら (なければ素通り)</span>
-entity.<span class="point">ifPresent</span>(member -&gt; {
-    <span class="abbreviation">...</span> = member.getMemberId();
-    <span class="abbreviation">...</span> = member.getMemberName();
+<span class="comment">// 存在してるときにだけ、何かしら処理するなら (なければ素通り)</span>
+<span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
 });
 
-<span class="comment">// 存在しないかもしれなくって、存在するときしないときで分岐したいなら</span>
-<span class="keyword">if</span> (member.<span class="point">isPresent()</span>) {
-    entity.<span class="point">required</span>(member -&gt; {
-        <span class="abbreviation">...</span> = member.getMemberId();
-        <span class="abbreviation">...</span> = member.getMemberName();
-    });
-} <span class="keyword">else</span> {
+<span class="comment">// 存在しないかもしれなくって、"存在するかしないか？" で分岐したいなら</span>
+<span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
+}).<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
     <span class="comment">// 存在しないときの処理をする</span>
+});
+
+<span class="comment">// ちなみに、複数条件のConditionBeanと合わせるとこんなイメージ</span>
+<span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> { <span class="comment">// 名前が 'S' で始める一番若い会員</span>
+    cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, op <span class="keyword">-&gt;</span> op.likePrefix());
+    cb.query().addOrderBy_Birthdate_Desc().withNullsLast();
+    cb.fetchFirst(<span class="literal">1</span>);
+}).<span class="point">alwaysPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> { <span class="comment">// 最後の括弧の後からドット(.)と打って続ける</span>
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
+});
+
+<span class="comment">// そのまま他のBeanに詰め替えて戻すなら</span>
+<span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">map</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+    <span class="keyword">return new</span> MemberWebBean(<span class="localvar">member</span>);
+}); <span class="comment">// map()の戻り値は、OptionalObject&lt;MemberWebBean&gt;</span>
+
+<span class="comment">// - - - - - - - - - - - - - - - - - - トラディショナルスタイル！</span>
+
+<span class="comment">// 存在しないかもしれなくって、"存在するかしないか？" で分岐したいなら</span>
+<span class="comment">// (Optionalのメソッドを二回以上呼ぶならやっぱり変数で受け取る)</span>
+OptionalEntity&lt;Member&gt; entity = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>);
+<span class="keyword">if</span> (entity.<span class="point">isPresent()</span>) {
+    Member <span class="localvar">member</span> = entity.<span class="point">get</span>();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
+} <span class="keyword">else</span> {
+    <span class="comment">// 存在しないときの処理をここで</span>
 }
 
 <span class="comment">// 存在しないかもしれなくって、単に中のEntityを取り出すなら (なければnull)</span>
-<span class="comment">// (基本的には使わない、他のメソッドなどがnullを受け取る仕様の場合など利用する)</span>
-Member member = entity.<span class="point">orElseNull()</span>;
-seaLogic.land(member); <span class="comment">// Entity型で受け取って、null分岐を中でやっている</span>
+<span class="comment">// (あまり使わない方向で but 他のメソッドにnullありのEntity渡す必要があるとき)</span>
+Member <span class="localvar">member</span> = entity.<span class="point">orElseNull()</span>;
+seaLogic.land(<span class="localvar">member</span>); <span class="comment">// Entity型で受け取って、null分岐を中でやっているメソッド</span>
 
 <span class="comment">// 絶対に存在することが前提で、単に中のEntityを取り出すなら (なければ例外)</span>
-<span class="comment">// (基本的には使わない、他のメソッドなどがEntityを受け取る仕様の場合など利用する)</span>
+<span class="comment">// (あまり使わない方向で but 他のメソッドにがそのままEntity渡す必要があるとき)</span>
 <span class="comment">// (というか、これをやるくらいなら、selectEntityWithDeletedCheck()でいい)</span>
-Member member = entity.<span class="point">get()</span>;
-seaLogic.land(member); <span class="comment">// Entity型で受け取って、nullを受け付けない</span>
+Member <span class="localvar">member</span> = entity.<span class="point">get()</span>;
+seaLogic.land(<span class="localvar">member</span>); <span class="comment">// Entity型で受け取って、nullを受け付けないメソッド</span>
 </code></pre>
 		<h3 id="optionalname">OptionalEntityの変数名は？</h3>
 		<p>
@@ -168,13 +196,13 @@ seaLogic.land(member); <span class="comment">// Entity型で受け取って、nu
 		</p>
 <pre><span class="codetitle">e.g. 一発処理でOKスタイルなら @Java</span><code>
 <span class="comment">// 絶対に存在することが前提で、一発処理でOKスタイル (なければ例外)</span>
-memberBhv.selectEntity(cb).<span class="point">required</span>(member -&gt; {
+memberBhv.selectEntity(cb).<span class="point">alwaysPresent</span>(member <span class="keyword">-&gt;</span> {
     <span class="abbreviation">...</span> = member.getMemberId();
     <span class="abbreviation">...</span> = member.getMemberName();
 });
 
 <span class="comment">// 存在しないかもしれなくって、一発処理でOKスタイル (なければ素通り)</span>
-memberBhv.selectEntity(cb).<span class="point">ifPresent</span>(member -&gt; {
+memberBhv.selectEntity(cb).<span class="point">ifPresent</span>(member <span class="keyword">-&gt;</span> {
     <span class="abbreviation">...</span> = member.getMemberId();
     <span class="abbreviation">...</span> = member.getMemberName();
 });

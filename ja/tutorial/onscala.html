@@ -96,11 +96,11 @@
 <span class="comment">// 一緒に取得する関連テーブル : 会員ステータス</span>
 <span class="comment">// 絞り込み条件 : 会員IDが "1" 番である</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-<span class="keyword">val</span> member = DBFlutist.memberBhv.<span class="point">selectEntity</span> { cb <span class="attribute">=&gt;</span>
+<span class="keyword">val</span> member = DBFlutist.memberBhv.<span class="point">selectEntity</span> { cb <span class="keyword">=&gt;</span>
   cb.setupSelect_MemberStatus
   cb.query.setMemberId_Equal(<span class="literal">1</span>)
 }
-member.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>          <span class="comment">// 会員: Option[Member] (Immutable)</span>
+member.<span class="attribute">foreach</span> { mb <span class="keyword">=&gt;</span>          <span class="comment">// 会員: Option[Member] (Immutable)</span>
   <span class="abbreviation">...</span> = mb.memberId             <span class="comment">// *会員ID       : Int</span>
   <span class="abbreviation">...</span> = mb.memberName           <span class="comment">// *会員名称      : String</span>
   <span class="abbreviation">...</span> = mb.memberAccount        <span class="comment">// *会員アカウント : String</span>
@@ -128,14 +128,14 @@ member.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;
 <span class="comment">//  o 生年月日の降順 (でも null は後ろにね)</span>
 <span class="comment">//  o 会員IDの昇順</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="attribute">=&gt;</span>
+<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="keyword">=&gt;</span>
   cb.setupSelect_MemberStatus
   cb.setupSelect_MemberServiceAsOne.withServiceRank
 
   cb.query.setMemberName_PrefixSearch(<span class="literal">"S"</span>)
   cb.query.setMemberStatusCode_Equal_Formalized
 
-  cb.query.existsPurchaseList { purchaseCB <span class="attribute">=&gt;</span>
+  cb.query.existsPurchaseList { purchaseCB <span class="keyword">=&gt;</span>
     purchaseCB.query.setPurchasePrice_GreaterEqual(<span class="literal">200</span>)
     purchaseCB.query.setPaymentCompleteFlg_Equal_True
   }
@@ -143,7 +143,7 @@ member.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;
   cb.query.addOrderBy_Birthdate_Desc.withNullsLast
   cb.query.addOrderBy_MemberId_Asc
 }
-memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+memberList.<span class="attribute">foreach</span> { mb <span class="keyword">=&gt;</span>
   <span class="abbreviation">...</span> = mb.memberName
   <span class="abbreviation">...</span> = mb.memberStatus.map(_.memberStatusName)
   <span class="abbreviation">...</span> = mb.memberServiceAsOne.map(_.serviceRank.map(_.serviceRankName))
@@ -161,25 +161,25 @@ memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=
 <span class="comment">//  o 購入に対する支払で、一回で3000円以上もの金額を支払ったことがある会員</span>
 <span class="comment">// ソート条件 : 最終ログイン日時の降順</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-<span class="keyword">val</span> page = DBFlutist.memberBhv.<span class="point">selectPage</span> { cb <span class="attribute">=&gt;</span>
-  cb.specify.derivedMemberLoginList.max { subCB <span class="attribute">=&gt;</span>
+<span class="keyword">val</span> page = DBFlutist.memberBhv.<span class="point">selectPage</span> { cb <span class="keyword">=&gt;</span>
+  cb.specify.derivedMemberLoginList.max { subCB <span class="keyword">=&gt;</span>
     subCB.specify.columnLoginDatetime
   }(Member.ALIAS_lastestLoginDatetime)
 
-  cb.specify.derivedPurchaseList.avg { purchaseCB <span class="attribute">=&gt;</span>
+  cb.specify.derivedPurchaseList.avg { purchaseCB <span class="keyword">=&gt;</span>
     purchaseCB.specify.columnPurchasePrice
     purchaseCB.query.setPaymentCompleteFlg_Equal_True
   }(Member.ALIAS_purchasePriceAverage)
 
-  cb.query.existsPurchaseList { purchaseCB <span class="attribute">=&gt;</span>
-    purchaseCB.query.existsPurchasePaymentList { paymentCB <span class="attribute">=&gt;</span>
+  cb.query.existsPurchaseList { purchaseCB <span class="keyword">=&gt;</span>
+    purchaseCB.query.existsPurchasePaymentList { paymentCB <span class="keyword">=&gt;</span>
       paymentCB.query.setPaymentAmount_GreaterEqual(<span class="literal">3000</span>)
     }
   }
 
   cb.query.addSpecifiedDerivedOrderBy_Desc(Member.ALIAS_lastestLoginDatetime)
 }
-page.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+page.<span class="attribute">foreach</span> { mb <span class="keyword">=&gt;</span>
   <span class="abbreviation">...</span> = mb.memberName
   <span class="abbreviation">...</span> = mb.lastestLoginDatetime
   <span class="abbreviation">...</span> = mb.averagePurchasePrice
@@ -203,7 +203,7 @@ page.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</
 <span class="comment">//  o 会員ステータスの表示順</span>
 <span class="comment">//  o 会員サービスのサービスポイント数の降順</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">selectCursor</span> { cb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">selectCursor</span> { cb <span class="keyword">=&gt;</span>
   cb.setupSelect_MemberAddressAsValid(currentDate)
 
   cb.query.setMemberName_LikeSearch(<span class="literal">"vi"</span>)(_.likeContain)
@@ -212,7 +212,7 @@ DBFlutist.memberBhv.<span class="point">selectCursor</span> { cb <span class="at
 
   cb.query.queryMemberStatus.addOrderBy_DisplayOrder_Asc
   cb.query.queryMemberServiceAsOne.addOrderBy_ServicePointCount_Desc
-} { mb <span class="attribute">=&gt;</span>
+} { mb <span class="keyword">=&gt;</span>
   <span class="abbreviation">...</span> = mb.memberName
   <span class="abbreviation">...</span> = mb.memberAddressAsOne.map(_.address)
 }
@@ -231,28 +231,28 @@ DBFlutist.memberBhv.<span class="point">selectCursor</span> { cb <span class="at
 <span class="comment">// ソート条件:</span>
 <span class="comment">//  o 会員IDの昇順</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="attribute">=&gt;</span>
+<span class="keyword">val</span> memberList = DBFlutist.memberBhv.<span class="point">selectList</span> { cb <span class="keyword">=&gt;</span>
   cb.setupSelect_MemberStatus <span class="comment">// 後で pullout されるので必要</span>
   cb.query.setMemberName_PrefixSearch(<span class="literal">"S"</span>)
   cb.query.addOrderBy_MemberId_Asc
-} { <span class="point">loader</span> <span class="attribute">=&gt;</span>
-  loader.<span class="point">loadPurchaseList</span> { purchaseCB <span class="attribute">=&gt;</span>
+} { <span class="point">loader</span> <span class="keyword">=&gt;</span>
+  loader.<span class="point">loadPurchaseList</span> { purchaseCB <span class="keyword">=&gt;</span>
     purchaseCB.setupSelect_Product
     purchaseCB.query.addOrderBy_PurchaseDatetime_desc
-  }.<span class="point">withNestedList</span> { loader <span class="attribute">=&gt;</span>
-    loader.loadPurcasePaymentList { paymentCB <span class="attribute">=&gt;</span>
+  }.<span class="point">withNestedList</span> { loader <span class="keyword">=&gt;</span>
+    loader.loadPurcasePaymentList { paymentCB <span class="keyword">=&gt;</span>
       paymentCB.query.addOrderBy_PaymentDatetime_desc
     }
   }
-  loader.<span class="point">pulloutMemberStatus</span>.loadMemberLoginList { loginCB <span class="attribute">=&gt;</span>
+  loader.<span class="point">pulloutMemberStatus</span>.loadMemberLoginList { loginCB <span class="keyword">=&gt;</span>
     loginCB.query.addOrderBy_LoginDatetime_Desc
   }
 }
-memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=&gt;</span>
+memberList.<span class="attribute">foreach</span> { mb <span class="keyword">=&gt;</span>
   <span class="abbreviation">...</span> = mb.memberName
-  <span class="abbreviation">...</span> = mb.purchaseList.<span class="attribute">foreach</span> { pc <span class="attribute">=&gt;</span>
+  <span class="abbreviation">...</span> = mb.purchaseList.<span class="attribute">foreach</span> { pc <span class="keyword">=&gt;</span>
     <span class="abbreviation">...</span> = pc.product
-    <span class="abbreviation">...</span> = pc.purchasePaymentList.<span class="attribute">foreach</span> { pay <span class="attribute">=&gt;</span>
+    <span class="abbreviation">...</span> = pc.purchasePaymentList.<span class="attribute">foreach</span> { pay <span class="keyword">=&gt;</span>
       <span class="abbreviation">...</span> = pay.paymentAmount
       <span class="abbreviation">...</span> = pay.paymentDatetime
     }
@@ -274,7 +274,7 @@ memberList.<span class="attribute">foreach</span> { mb <span class="attribute">=
 <span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
 <span class="comment">//  o バージョン番号は初期値で自動設定</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">insert</span> { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">insert</span> { mb <span class="keyword">=&gt;</span>
   mb.memberName = <span class="literal">"Xavi"</span>
   mb.memberAccount = <span class="literal">"Passer"</span>
   mb.birthdate = Option(<span class="abbreviation">...</span>)
@@ -293,7 +293,7 @@ DBFlutist.memberBhv.<span class="point">insert</span> { mb <span class="attribut
 <span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
 <span class="comment">//  o バージョン番号は自動インクリメント</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">update</span> { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">update</span> { mb <span class="keyword">=&gt;</span>
   mb.memberId = <span class="literal">7</span>
   mb.memberName = <span class="literal">"Xavi"</span>
   mb.memberStatusCode_Formalized
@@ -309,7 +309,7 @@ DBFlutist.memberBhv.<span class="point">update</span> { mb <span class="attribut
 <span class="comment">//  o 共通カラムはdfpropの通りに自動設定</span>
 <span class="comment">//  o バージョン番号は自動インクリメント</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class="keyword">=&gt;</span>
   mb.memberId = <span class="literal">7</span>
   mb.memberName = <span class="literal">"Xavi"</span>
   mb.memberStatusCode_Formalized
@@ -323,7 +323,7 @@ DBFlutist.memberBhv.<span class="point">updateNonstrict</span> { mb <span class=
 <span class="comment">// 会員ID "7" 番の会員を削除</span>
 <span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">delete</span> { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">delete</span> { mb <span class="keyword">=&gt;</span>
   mb.memberId = <span class="literal">7</span>
   mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
 }
@@ -346,18 +346,18 @@ DBFlutist.memberBhv.<span class="point">delete</span> { mb <span class="attribut
 <span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
 <span class="comment">//  o バージョン番号は自動インクリメント</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="attribute">=&gt;</span>
-  batch.add { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="keyword">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberName = <span class="literal">"Xavi"</span>
     mb.memberStatusCode_Formalized
     <span class="abbreviation">...</span>
   }
-  batch.add { mb <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberName = <span class="literal">"Iniesta"</span>
     mb.memberStatusCode_Provisinal
     <span class="abbreviation">...</span>
   }
-  batch.add { mb <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberName = <span class="literal">"Akagi"</span>
     mb.memberStatusCode_Withdrawal
     <span class="abbreviation">...</span>
@@ -375,18 +375,18 @@ DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="
 <span class="comment">//  o バージョン番号で排他制御 (楽観的並行性制御)</span>
 <span class="comment">//  o バージョン番号は自動インクリメント</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="attribute">=&gt;</span>
-  batch.add { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="keyword">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberId = <span class="literal">1</span>
     mb.memberStatusCode_Formalized
     mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
   }
-  batch.add { mb <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberId = <span class="literal">3</span>
     mb.memberStatusCode_Provisinal
     mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
   }
-  batch.add { mb <span class="attribute">=&gt;</span>
+  batch.add { mb <span class="keyword">=&gt;</span>
     mb.memberId = <span class="literal">7</span>
     mb.memberStatusCode_Withdrawal
     mb.versionNo = <span class="abbreviation">...</span> <span class="comment">// 編集画面表示時に検索されたバージョン番号</span>
@@ -407,10 +407,10 @@ DBFlutist.memberBhv.<span class="point">batchUpdate</span> { batch <span class="
 <span class="comment">//  o 排他制御はされない、バージョン番号は自動インクリメント</span>
 <span class="comment">//  o 全レコード更新は許されない</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="keyword">=&gt;</span>
   mb.memberName = <span class="literal">"Xavi"</span>
   mb.memberStatusCode_Formalized
-} { cb <span class="attribute">=&gt;</span>
+} { cb <span class="keyword">=&gt;</span>
   cb.query.setMemberStatusCode_Provisional
 }
 <span class="comment">// ※設定されたカラムだけupdate文のset句に列挙される (未設定カラムは何も更新されない)</span>
@@ -423,7 +423,7 @@ DBFlutist.memberBhv.<span class="point">queryUpdate</span> { mb <span class="att
 <span class="comment">//  o 排他制御はされない</span>
 <span class="comment">//  o 全レコード削除は許されない</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.memberBhv.<span class="point">queryDelete</span> { cb <span class="attribute">=&gt;</span>
+DBFlutist.memberBhv.<span class="point">queryDelete</span> { cb <span class="keyword">=&gt;</span>
   cb.query.setMemberStatusCode_Provisional
 }
 </code></pre>
@@ -434,10 +434,10 @@ DBFlutist.memberBhv.<span class="point">queryDelete</span> { cb <span class="att
 <span class="comment">// 購入ID "7" 番の購入の購入数をインクリメント</span>
 <span class="comment">//  o option でインクリメントするカラムを指定</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-DBFlutist.purchaseBhv.<span class="point">update</span> { pur <span class="attribute">=&gt;</span>
+DBFlutist.purchaseBhv.<span class="point">update</span> { pur <span class="keyword">=&gt;</span>
   pur.purchaseId = <span class="literal">23</span>
   pur.versionNo = <span class="abbreviation">...</span>
-} { option <span class="attribute">=&gt;</span>
+} { option <span class="keyword">=&gt;</span>
   option.self(_.specify.columnPurchaseCount).plus(1)
 }
 <span class="comment">// ※購入数(PurchaseCount)は、"PURCHASE_COUNT = PURCHASE_COUNT + 1" される</span>
