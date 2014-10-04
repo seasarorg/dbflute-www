@@ -47,6 +47,7 @@
 			<ul>
 				<li><a href="#selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></a></li>
 				<li><a href="#selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></a></li>
+				<li><a href="#optionalmessage">Optionalの例外メッセージをどうにかしたかった</a></li>
 				<li><a href="#selectothers">その他のConditionBeanによる検索</a></li>
 				<li><a href="#derivedreferrer">さくっと (Specify)DerivedReferrer</a></li>
 				<li><a href="#optionlambda">Option がもろもろ Lambda</a></li>
@@ -103,20 +104,20 @@
 <span class="comment">// 一緒に取得する関連テーブル : なし</span>
 <span class="comment">// 絞り込み条件 : 会員IDが "1" 番である => 絶対に存在する</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</span> <span class="keyword">-&gt;</span> <span class="localvar">cb</span>.acceptPK(1)).<span class="point">alwaysPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</span> <span class="keyword">-&gt;</span> <span class="localvar">cb</span>.acceptPK(<span class="literal">1</span>)).<span class="point">alwaysPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
     Integer memberId = <span class="localvar">member</span>.getMemberId();
     String memberName = <span class="localvar">member</span>.getMemberName();
     String memberAccount = <span class="localvar">member</span>.getMemberAccount();
     LocalDate birthdate = <span class="localvar">member</span>.getBirthdate(); <span class="comment">// *Java TimeAPI</span>
     LocalDateTime formalizedDatetime = <span class="localvar">member</span>.getFormalizedDatetime();
-);
+); <span class="comment">// なければ例外 (エラーメッセージでSQLが表示される)</span>
 
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
 <span class="comment">// 一緒に取得する関連テーブル : なし</span>
 <span class="comment">// 絞り込み条件 : 会員IDが "1" 番である => 存在しないかもしれない</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/</span>
-<span class="attribute">memberBhv</span>.<span class="point">selectEntity</span>(<span class="localvar">cb</span> <span class="keyword">-&gt;</span> <span class="localvar">cb</span>.acceptPK(1)).<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
+<span class="attribute">memberBhv</span>.<span class="point">selectEntity</span>(<span class="localvar">cb</span> <span class="keyword">-&gt;</span> <span class="localvar">cb</span>.acceptPK(<span class="literal">1</span>)).<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
     Integer memberId = <span class="localvar">member</span>.getMemberId();
     String memberName = <span class="localvar">member</span>.getMemberName();
     <span class="abbreviation">...</span>
@@ -131,6 +132,7 @@ memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</spa
 		<li>絶対に存在することが前提なら、alwaysPresent() <span class="freecomment">※selectEntityWithDeletedCheck()と同じ</span></li>
 		<li>存在しないかもしれないなら、ifPresent() に続いて orElse() <span class="freecomment">※ifPresent()だけでもOK</span></li>
 		<li>Entityの変数名は、Member なら member、MemberWithdrawal なら withdrawal という感じで</li>
+		<li>alwaysPresent() と orElse() (ifPresent()の戻り値) はDBFlute独自のメソッド</li>
 	</ul>
 	<div class="relatedpage"><a href="./../manual/function/ormapper/behavior/select/selectentity.html#java8">selectEntity(cb) - Java8 なら OptionalEntity</a></div>
 	<h3 id="selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></h3>
@@ -190,6 +192,34 @@ memberList.<span class="point">forEach</span>(<span class="localvar">member</spa
 		<li>関連テーブルが OptionalEntity になっていて、nullは戻さない</li>
 	</ul>
 	<div class="relatedpage"><span class="working"><!-- <a href="./../manual/function/ormapper/behavior/select/selectlist.html#java8"> -->selectList(cb) - Java8 になったら Lambda祭り<!-- </a> --></span></div>
+	<div class="inucolumn">
+		<h3 id="optionalmessage">Optionalの例外メッセージをどうにかしたかった</h3>
+		<p>
+			Entity の Optional はJava8標準ではなく、DBFlute独自の OptionalEntity というクラスです。
+			もちろん、できれば標準のものを使いたかったのですが、大きなきっかけは例外メッセージです。
+		</p>
+		<p>
+			データベースの検索結果は、絞り込み条件や業務状況が変われば、"存在する/しない"
+			が変わります。あらかじめ "存在するからそのまま、nullがありえるからOptional" というような static
+			な作りはできません。 
+		</p>
+		<p>
+			なので、絶対に存在するケースでも Optional のままで受け取ることがあります。そのときは、ノーチェックで alwaysPresent() か get()
+			するでしょう。とはいえ、データベースに絶対はありません。そう、DBの世界で "絶対に存在する"
+			というのは、業務的に存在するという意味であり、業務上の例外(すれ違い)や、データバグなどがありえるのです。開発中でも本番でも。そのときに単なる
+			NoSuchElementException ではつらいなと。
+			<span class="freecomment">(ifPresent()で素通りして全然違う例外が出てもつらいし、orElseThrow()で毎度毎度チェックロジックを書くのもつらい...し、なかなかやってもらえないでしょう)</span>
+		</p>
+		<p>
+			ということで、selectEntity() の OptionalEntity では、EntityAlreadyDeletedException で発行した SQL
+			がエラーメッセージに載るようにしています。
+			その他の場面でも、いい感じの例外が出るようにして、不意の状況が発生したときにでもできるだけデバッグがしやすいようにしています。
+		</p>
+		<p>
+			一方で、標準の Optional とほぼ同じメソッドを用意しているので、全く同じように使えます。
+			さらに、Entityを取り扱うのに適したメソッドをちょっとだけ追加しています。alwaysPresent()がまさしくそうですね。
+		</p>
+	</div>
 	<h3 id="selectothers">その他のConditionBeanによる検索</h3>
 	<p>
 		同じような感じで Lambda になるだけで、そんなに変わりません。
@@ -308,7 +338,7 @@ memberBhv.selectCursor(<span class="localvar">cb</span> <span class="keyword">-&
         <span class="localvar">mob</span>.when_FromTo(fromDate, toDate, <span class="localvar">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.compareAsDate());
     });
     <span class="localvar">cb</span>.query().queryMemberServiceAsOne().addOrderBy_ServicePointCount_Desc();
-}, <span class="localvar">member</span> <span class="attribute">-&gt;</span> { <span class="comment">// 第二引数でCursorHandler</span>
+}, <span class="localvar">member</span> <span class="keyword">-&gt;</span> { <span class="comment">// 第二引数でCursorHandler</span>
     <span class="comment">// 検索された Entity が一件ずつ落ちてくる</span>
     String memberName = <span class="localvar">member</span>.getMemberName();
     <span class="localvar">member</span>.getMemberAddressAsOne().map(<span class="abbreviation">...</span>);
