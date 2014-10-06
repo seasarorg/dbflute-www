@@ -73,6 +73,7 @@
 			<ul>
 				<li><a href="#defaulteclipse">デフォルトの Eclipse なら</a></li>
 				<li><a href="#jflutableeclipse">DBFlute補完テンプレートを入れたEclipse</a></li>
+				<li><a href="#triclipse">裏技あります</a></li>
 				<li><a href="#intellij">IntelliJ IDEA なら</a></li>
 			</ul>
 		</li>
@@ -464,6 +465,9 @@ memberList.forEach(<span class="localvar">member</span> <span class="keyword">-&
 	<p>
 		まずは、デフォルトの Eclipse (執筆時点で4.4.1) の補完で書くなら...
 	</p>
+	<p>
+		ひとことで言うと... <em class="keyword">"Lambda" 部分を消して矢印！</em>
+	</p>
 <pre><span class="codetitle">e.g. 色々な絞り込み条件で会員をリスト検索 (関連テーブルもいろいろと) @Java8</span><code>
 <span class="comment">// まず、ConditionBeanをnewするじゃなくて、基点テーブルのBehaviorを選ぶのがコツ</span>
 <span class="comment">// まず、sel まで打って、大文字を狙って...キャメルケースコード補完</span>
@@ -545,9 +549,9 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span>
 		ということで、Eclipseで補完テンプレート (Java Editor Templates) を用意しています。
 	</p>
 	<dl class="keymainlist">
-		<dt>_arrow <span class="freecomment">(_a)</span></dt><dd>-&gt; var <span class="freecomment">※var部分は近くの変数に置き換わる</span></dd>
-		<dt>_li <span class="freecomment">(えるあい)</span></dt><dd>var -&gt; var <span class="freecomment">※Lambda Inline: LikeSearch など一行スタイルのもの</span></dd>
-		<dt>_ll <span class="freecomment">(えるえる)</span></dt><dd>var -&gt; {改行} <span class="freecomment">※Lambda Linefeed: CB や Entity など複数行スタイルのもの</span></dd>
+		<dt>_arrow <span class="freecomment">(_a)</span></dt><dd>-&gt; <span class="freecomment">※単なる矢印</span></dd>
+		<dt>_li <span class="freecomment">(えるあい)</span></dt><dd>var -&gt; var.xxx <span class="freecomment">※Lambda Inline: LikeSearch などの一行スタイル</span></dd>
+		<dt>_ll <span class="freecomment">(えるえる)</span></dt><dd>var -&gt; {改行var.xxx改行} <span class="freecomment">※Lambda Linefeed: CB などの複数行スタイル</span></dd>
 		<dt>_foreach <span class="freecomment">(_fo)</span></dt><dd>var.forEach(newName -&gt; {改行}); <span class="freecomment">※var部分は近くの変数に置き換わる</span></dd>
 		<dt>_smap <span class="freecomment">(_sm)</span></dt><dd>var.stream().map(object -&gt; {改行 return object; 改行});</dd>
 		<dt>_sfilter <span class="freecomment">(_sf)</span></dt><dd>var.stream().filter(object -&gt; {改行 return object; 改行});</dd>
@@ -567,21 +571,16 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span>
 <span class="comment">// 補足: L (える) を薬指で二回、ちょちょんと押すとスムーズに</span>
 --
 <span class="attribute">memberBhv</span>.selectList(<span class="subpoint">var -&gt; {</span> <span class="comment">// var が選択状態に</span>
-    
+    var.object
 }) <span class="comment">// セミコロンないんだけど後でね</span>
 --
-<span class="attribute">memberBhv</span>.selectList(<span class="subpoint">cb -&gt; {</span> <span class="comment">// そのまま cb と打って enter</span>
-    
+<span class="attribute">memberBhv</span>.selectList(<span class="subpoint">cb -&gt; {</span> <span class="comment">// そのまま cb と打って tab ボタン！</span>
+    <span class="subpoint">cb</span>.object <span class="comment">// ちなみに、こっちの変数も一緒に cb になってるはず</span>
 })
 --
 <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
-    
-}) <span class="comment">// するとここにカーソルが...くぅ、selectList()の方の入力モードに引きづられるようだ</span>
---
-<span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
-    <span class="comment">// 2. すると、ここにカーソルがきて、普通に cb の実装を始めるべし</span> 
-}); <span class="comment">// 1. えーい、セミコロン入れて、上ボタンでカーソル戻す</span>
-<span class="comment">// 補足: セミコロンを人差し指、上ボタンを小指で流れるように押すとスムーズに</span>
+    cb.<span class="subpoint">object</span> <span class="comment">// (tabの後) すると object が選択状態に</span>
+})
 --
 <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -> {
     <span class="comment">// ここはいつも通りの補完 cb.q => cb.query() => cb.query().setMNLS という流れ</span>
@@ -607,22 +606,22 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span>
 --
 <span class="attribute">memberBhv</span>.selectList(cb -> {
     <span class="comment">// varが選択状態に</span>
-    cb.query().setLikeSearch_LikeSearch("S", <span class="subpoint">var -&gt; var</span>);
+    cb.query().setLikeSearch_LikeSearch("S", <span class="subpoint">var -&gt; var.object</span>);
 })
 --
 <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -> {
     <span class="comment">// そのまま op と入力すると、両方とも op に</span>
-    <span class="localvar">cb</span>.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="subpoint">op -&gt; op</span>);
+    <span class="localvar">cb</span>.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="subpoint">op -&gt; op.object</span>);
 })
 --
 <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -> {
-    <span class="comment">// tab 押すよ！すると、右側のopの直後にカーソルが飛ぶから、ドット(.)押して！</span>
-    <span class="localvar">cb</span>.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="subpoint">op -&gt; op.</span>);
+    <span class="comment">// tab 押すよ！すると、右側のobjectにカーソルが飛ぶから...</span>
+    <span class="localvar">cb</span>.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="subpoint">object</span>);
 })
 --
 <span class="attribute">memberBhv</span>.selectList(cb -> {
-    <span class="comment">// "li" と打って likePrefix() を選択 (enterすれば一番右にカーソルが飛ぶ)</span>
-    cb.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> <span class="subpoint">-&gt; op.likePrefix()</span>);
+    <span class="comment">// "li" と打って ctrl+space して likePrefix() を選択 (enterすれば一番右にカーソルが飛ぶ)</span>
+    cb.query().setLikeSearch_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="subpoint">likePrefix()</span>);
 })
 --
 <span class="comment">// さて、書き終わったら...</span>
@@ -675,6 +674,18 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 	<p>
 		<span class="freecomment">(本当は、Eclipseのバージョンが上がって、こういった補完でデフォルトでできるようになったらいいなと...)</span>
 	</p>
+	<div class="inucolumn">
+	<h3 id="triclipse">裏技あります</h3>
+		<p>
+			これは上級者向け、補完テンプレートを入れたら...
+		</p>
+		<p>
+			<em class="keyword">selectList(cbLambda) を補完後に、右押してctrl+space！</em>
+		</p>
+		<p>
+			<span class="freecomment">"右"って、cbLambdaの選択状態を解除して、cbLambdaの右側にカーソルを確定させているだけです。</span>
+		</p>
+	</div>
 	<h3 id="intellij">IntelliJ IDEA なら</h3>
 	<p>
 		TODO jflute まだ、研究中です...
