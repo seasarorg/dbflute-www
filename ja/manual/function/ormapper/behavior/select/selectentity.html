@@ -113,11 +113,23 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 			DBFlute独自のクラスではありますが、Optionalと同じメソッド持ち、Entityならではの便利なメソッドが追加されています。
 			また、わかりやすい例外ハンドリングのために、NoSuchElementException の代わりに EntityAlreadyDeletedException が発生します。
 		</p>
+		<p>
+			スタイルごとにうまく使い分けるといいでしょう。
+		</p>
+		<dl class="keymainlist">
+			<dt>一発処理でOKスタイル</dt><dd>その場で利用しておしまいなケース</dd>
+			<dt>なんども登場スタイル</dt><dd>そのあと何度も利用するようなケース</dd>
+			<dt>みんなで勢ぞろいスタイル</dt><dd>入り乱れて利用するようなケース</dd>
+			<dt>トラディショナルスタイル</dt><dd>いざとなったら or 迷って手が止まるくらいだったら</dd>
+		</dl>
 <pre><span class="codetitle">e.g. OptionalEntityの使い方 @Java</span><code>
-<span class="comment">// 戻り値は OptionalEntity だが...でも実際には変数で受け取るよりも!?</span>
+<span class="comment">// 戻り値は OptionalEntity だが、単純に受け取るのではなく...</span>
 <span class="comment">OptionalEntity&lt;Member&gt; entity = memberBhv.selectEntity(cb); // 一件検索</span>
+<span class="abbreviation">...</span>
 
 <span class="comment">// - - - - - - - - - - - - - - - - - - 一発処理でOKスタイル！</span>
+<span class="comment">// (その場で利用しておしまいなケース)</span>
+<span class="comment">//</span>
 
 <span class="comment">// 業務的に必ず存在するなら (なければ例外)</span>
 <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">alwaysPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
@@ -153,8 +165,11 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> cb.acceptPK(<span class="literal">1</span>)).<span class="point">map</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
     <span class="keyword">return new</span> MemberWebBean(<span class="localvar">member</span>);
 }); <span class="comment">// map()の戻り値は、OptionalObject&lt;MemberWebBean&gt;</span>
+<span class="abbreviation">...</span>
 
-<span class="comment">// - - - - - - - - - - - - - - - - - - 何度も登場スタイル！</span>
+<span class="comment">// - - - - - - - - - - - - - - - - - - なんども登場スタイル！</span>
+<span class="comment">// (そのあと何度も利用するようなケース)</span>
+<span class="comment">//</span>
 
 <span class="comment">// 業務的に必ず存在して、そのあと何度も登場するなら (なければ例外)</span>
 Member <span class="localvar">member</span> = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>).<span class="point">get()</span>;
@@ -190,6 +205,8 @@ OptionalEntity&lt;Member&gt; <span class="localvar">entity</span> = <span class=
 <span class="abbreviation">...</span>
 
 <span class="comment">// - - - - - - - - - - - - - - - - - - みんなで勢ぞろいスタイル！</span>
+<span class="comment">// (入り乱れて利用するようなケース)</span>
+<span class="comment">//</span>
 
 <span class="comment">// 業務的に必ず存在するものは、get()で取っちゃって</span>
 <span class="comment">// 存在しないこともあるものは、Optionalのまま取っちゃって</span>
@@ -197,13 +214,26 @@ Member <span class="localvar">member</span> = <span class="attribute">memberBhv<
 Product <span class="localvar">product</span> = <span class="attribute">productBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>).<span class="point">get()</span>;
 OptionalEntity&lt;MemberAddress&gt; <span class="localvar">optAddress</span> = <span class="attribute">memberAddressBhv</span>.selectEnt<span class="abbreviation">...</span>;
 
-<span class="attribute">seaLogic</span>.land(member.getMemberName()
-    , product.getProductName()
-    , optAddress.<span class="point">map</span>(address <span class="keyword">-&gt;</span> address.getRegionId()));
-
+<span class="comment">// いりみだれー</span>
+LocalDate birthdate = member.getBirthdate();
+String productName = product.getProductName();
+<span class="keyword">if</span> (birthdate != null && product.isProductStatusCodeOnSale()) {
+    optAddress.<span class="point">ifPresent</span>(address <span class="keyword">-&gt;</span> {
+        <span class="attribute">seaLogic</span>.land(member.getMemberName(), productName, address);
+    }.orElse(() -> {
+        <span class="attribute">seaLogic</span>.iks(birthdate, productName);
+    }
+} <span class="keyword">else</span> {
+    optAddress.<span class="point">ifPresent</span>(address <span class="keyword">-&gt;</span> {
+        <span class="attribute">seaLogic</span>.amphi(member.getMemberAccount(), productName, address);
+    }
+    <span class="attribute">seaLogic</span>.miraco(member.getFormalizedDatetime());
+}
 <span class="abbreviation">...</span>
 
-<span class="comment">// - - - - - - - - - - - - - - - - - - トラディショナルでなんでもありスタイル！</span>
+<span class="comment">// - - - - - - - - - - - - - - - - - - トラディショナルスタイル！</span>
+<span class="comment">// (いざとなったら or 迷って手が止まるくらいだったら)</span>
+<span class="comment">//</span>
 
 <span class="comment">// 存在しないこともあって、"あり、なし" で分岐したり</span>
 <span class="comment">// (Optionalのメソッドを二回以上呼ぶならやっぱり変数で受け取る)</span>
@@ -257,7 +287,7 @@ memberBhv.selectEntity(cb).<span class="point">ifPresent</span>(member <span cla
 });
 </code></pre>
 		<p>
-			ただ、<em class="keyword">何度も登場スタイル</em> や <em class="keyword">みんなで勢ぞろいスタイル</em>
+			ただ、<em class="keyword">なんども登場スタイル</em> や <em class="keyword">みんなで勢ぞろいスタイル</em>
 			においては、業務的に存在するものは普通に get()
 			してしまえばいいですが、存在しないこともあるものは Optional
 			のまま受け取る必要がありそうです。みんなで勢ぞろいするときは optMember など区別できる名前にしないとですね。
