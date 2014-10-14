@@ -41,6 +41,7 @@
 	<ul class="indexlist">
 		<li><a href="#about">業務的one-to-oneとは？</a>
 			<ul>
+				<li><a href="#forexample">例えば、現在の住所</a></li>
 				<li><a href="#noauto">自動解決はできない</a></li>
 			</ul>
 		</li>
@@ -91,20 +92,39 @@
 
 	<h2 id="about">業務的one-to-oneとは？</h2>
 	<p>
-		構造的には one-to-many でも、固定の(業務的な)条件を加えることによって one-to-one
+		構造的には one-to-many でも、(業務的な)固定の条件を加えることによって one-to-one
 		として扱うことのできるリレーションのことです。biz-one-to-one(びずわんとぅわん)とも表現します。
+	</p>
+	<h3 id="forexample">例えば、現在の住所</h3>
+	<p>
 		ExampleDBでは、会員と会員住所情報の関係が該当します。
-		有効期間を指定することで、会員と住所が one-to-one になります。リレーションをSQLで表現すると以下のようになります。
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/example/exampledb.html">ExampleDB</a></div>
+<pre><span class="codetitle">e.g. 業務的one-to-oneの検索SQL {MEMBER, MEMBER_ADDRESS} @Java</span><code>
+| 会員          | | 会員住所                       |
+| 1: Stojkovic | | 茂原: 2007-01-13 - 2007-01-13 |
+| 1: Stojkovic | | 市原: 2007-01-14 - 2011-07-21 |
+| 1: Stojkovic | | 長柄: 2011-07-21 - 2016-07-31 | <span class="comment">// ここ現在 (2014/10/14時点)</span>
+| 1: Stojkovic | | 東金: 2016-08-01 - 9999-12-31 |
+| 2: Savicevic | | 鴨川: 2002-02-22 - 2011-11-16 |
+| 2: Savicevic | | 館山: 2011-11-17 - 9999-12-31 | <span class="comment">// ここ現在</span>
+| <span class="abbreviation">...</span>          | | <span class="abbreviation">...</span>                           |
+</code></pre>
+	<p>
+		物理的には one-to-many ですが、<em class="keyword">業務的には会員と現在の会員住所でone-to-one</em>
+		として扱うことが多く、このパターンのカージナリティを <em class="keyword">業務的one-to-one</em> と呼んでいます。
+	</p>
+	<p>
+		有効期間を指定することで、現在住所という概念のビューと結合することができます。
+	</p>
 <pre><span class="codetitle">e.g. 業務的one-to-oneの検索SQL {MEMBER, MEMBER_ADDRESS} @Java</span><code>
 <span class="keyword">select</span> MEMBER.*
      , MEMBER_ADDRESS.* <span class="comment">-- ONE member has ONE address at the date</span>
   <span class="keyword">from</span> MEMBER
     <span class="keyword">left outer join</span> MEMBER_ADDRESS
       <span class="keyword">on</span> MEMBER.MEMBER_ID = MEMBER_ADDRESS.MEMBER_ID
-     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_BEGIN_DATE &lt;= <span class="literal">'2010-05-02'</span>
-     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_END_DATE &gt;= <span class="literal">'2010-05-02'</span>
+     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_BEGIN_DATE &lt;= <span class="literal">'2014-10-14'</span>
+     <span class="keyword">and</span> MEMBER_ADDRESS.VALID_END_DATE &gt;= <span class="literal">'2014-10-14'</span>
 </code></pre>
 	<h3 id="noauto">自動解決はできない</h3>
 	<p>
