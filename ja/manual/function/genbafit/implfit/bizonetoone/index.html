@@ -42,6 +42,7 @@
 		<li><a href="#about">業務的one-to-oneとは？</a>
 			<ul>
 				<li><a href="#forexample">例えば、現在の住所</a></li>
+				<li><a href="#problem">間違えそうだし、変更もつらい</a></li>
 				<li><a href="#noauto">自動解決はできない</a></li>
 			</ul>
 		</li>
@@ -126,6 +127,16 @@
      <span class="keyword">and</span> MEMBER_ADDRESS.VALID_BEGIN_DATE &lt;= <span class="literal">'2014-10-14'</span>
      <span class="keyword">and</span> MEMBER_ADDRESS.VALID_END_DATE &gt;= <span class="literal">'2014-10-14'</span>
 </code></pre>
+	<h3 id="problem">間違えそうだし、変更もつらい</h3>
+	<p>
+		結合条件で書けば済みますが、バグの温床になりやすいところでもあります。
+		複数の箇所でこれを書くことになるので、誰か一人くらい比較条件のイコール(=)が抜けたり、条件が片方落ちたりってやりそうです。
+		さらに、つらいところが、テストデータの精度によってはそれなりにうまく動いてしまうので、バグの発見に時間がかかってしまうところです。
+	</p>
+	<p>
+		また、DB変更でその固定条件が変わったとき、この固定条件を複数の箇所で書かれていると、その影響範囲の特定が至難の業となります。
+		もともと、staticに決まったものでありますから、その固定条件自体を一元管理したいものです。
+	</p>
 	<h3 id="noauto">自動解決はできない</h3>
 	<p>
 		このリレーションは、一般にリレーショナルデータベースの仕組みとしては表現されないもので(制約を掛けることはできない)、
