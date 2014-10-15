@@ -190,6 +190,9 @@ C:\projects      <span class="freecomment">// この辺は任意</span>
 	</div>
 	<h3 id="mysql">MySQLのセットアップ</h3>
 	<p>
+		ハンズオンでは、3306ポートのMySQLではなく、専用のMySQLインスタンスを起動して利用します。
+	</p>
+	<p>
 		MySQLのオフィシャルサイトからローカル環境に対応する MySQL のインストーラー無し版(ZIPアーカイブ版など)をダウンロードし、localdb/mysql に配置します。
 		そして、localdb/boot-mysql.bat|sh を実行し、MySQL を起動してください。
 	</p>
@@ -214,9 +217,14 @@ PROJECT_ROOT
 		今後、ハンズオンを中断する場合は、localdb/close-mysql.bat|sh
 		を実行し、MySQLをシャットダウンし、そして、またハンズオンを再開するときは、boot-mysql.bat|sh を実行してください。
 	</p>
+	<p>
+		ちなみに Mac の人は、ダウンロードした後に mysql_install_db
+		を実行する必要があるかもしれません。<span class="freecomment">(起動に失敗したら、その可能性があります。エラーメッセージでググってみたりしてみましょう)</span>
+	</p>
 	<h3 id="plugin">プラグインのセットアップ</h3>
 	<p>
 		以下のプラグインをそれぞれの更新サイトからインストールしてください。
+		<span class="freecomment">(既に入っているのであれば、スキップしてしまってOKです)</span>
 	</p>
 	<dl class="textlist">
 		<dt>EMecha</dt>
@@ -383,9 +391,14 @@ PROJECT_ROOT
 			で表示されたコンソール上で右クリックして Preferences... で、"Console buffer size" を 800000 (八十万) に。
 			コンソールはそのままバッテンを押して消してOK(テスト実行に自動的に表示されるので)。 
 		</dd>
+		<dd>
+			ただ、こちらの設定、コンソールに何も表示されていないと右クリックしても Preferences
+			が出てきません。何かしらの方法でコンソールに文字が表示できれば設定できますが、特に急ぐものではないので、セクション２でテストを実行したときにコンソールが出てくるので、(忘れずに)そのときにやりましょう。
+		</dd>
 		<dt>ビューの配置</dt>
 		<dd>
-			利用しているPCの画面の大きさに合わせて、いい感じに調整。Problems を Fast View にしたりなど。
+			利用しているPCの画面の大きさに合わせて、いい感じに調整。Problems を Fast View (Minimize)
+			にしたりなど。通常は横長で縦が短いディスプレイが多いので、コードができるだけ縦に見通せるようにするといいでしょう。
 		</dd>
 		<dt>ショートカットキーの設定</dt>
 		<dd>
@@ -537,8 +550,12 @@ PROJECT_ROOT
 	<div class="relatedpage"><a href="../../../manual/reference/example/exampledb.html">ExampleDB</a></div>
 	<h4>ReplaceSchemaを叩く！</h4>
 	<p>
-		DBFluteタスクである、ReplaceSchemaタスクを実行してください。Windows であれば、リソースの検索(ctrl + shift + R)で
-		"replace-schema.bat" を検索してそのまま実行すればOKです。
+		DBFluteタスクである、ReplaceSchemaタスクを実行してください。
+	</p>
+	<p>
+		Windows であれば、リソースの検索 <em class="keyword">(ctrl + shift + R)</em> で
+		"manage.bat" を検索してそのまま実行、メニューが出ますので 0 番 (replace-schema) を押して Enter すればOKです。
+		<span class="freecomment">(Macの人はターミナルから manage.sh を...)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/index.html">DBFluteタスク</a></div>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
@@ -554,7 +571,7 @@ PROJECT_ROOT
 		まず、DBFluteクライアントの schema 配下には、readme しかないことを確認してください。
 	</p>
 	<p>
-		DBFluteタスクである、JDBCタスク(jdbc.bat|sh)を実行してください。実行の仕方は、ReplaceSchemaを実行したときと同じ要領で、
+		DBFluteタスクである、JDBCタスク (manage.bat|sh で21番) を実行してください。実行の仕方は、ReplaceSchemaを実行したときと同じ要領で、
 		リソースの検索から実行すると良いでしょう。今後、DBFluteタスクの実行をする時はこの方法を使っていきましょう。
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/index.html">DBFluteタスク</a></div>
@@ -568,7 +585,7 @@ PROJECT_ROOT
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/doc/index.html">Docタスク</a></div>
 	<p>
-		Docタスク(doc.bat|sh)を実行してください。DBFluteクライアントの output/doc 配下に、テーブル構造の情報(スキーマのメタデータ)が HTML
+		Docタスク (manage.bat|sh で22番) を実行してください。DBFluteクライアントの output/doc 配下に、テーブル構造の情報(スキーマのメタデータ)が HTML
 		形式で出力されているはずです(Eclipse上でリフレッシュ必要)。
 	</p>
 	<h3 id="generate">Generateタスクの実行</h3>
@@ -577,7 +594,7 @@ PROJECT_ROOT
 	</p>
 	<div class="relatedpage"><a href="../../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
 	<p>
-		そして、Generateタスク(generate.bat|sh)を実行してください。src/main/java 配下にテーブル対応のクラスが自動生成されているはずです。
+		そして、Generateタスク (manage.bat|sh で23番) を実行してください。src/main/java 配下にテーブル対応のクラスが自動生成されているはずです。
 		ResourceSynchronizer が有効であれば自動でリフレッシュされます。コンパイルが正常に通っていることを確認してください。
 	</p>
 	<p>
