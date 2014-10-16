@@ -49,9 +49,13 @@
 				<li><a href="#implflow">実装の流れ</a></li>
 			</ul>
 		</li>
-		<li><a href="#java8">Java8 なら Relation も Optional</a>
+		<li><a href="#java8">Java8 ならリレーションも Optional</a>
 			<ul>
 				<li><a href="#optionalhandling">OptionalEntityの使い方</a></li>
+				<li><a href="#relationoptname">さすがに関連テーブルのOptionalの変数名は...</a></li>
+				<li><a href="#onetimeokstyle">すぐに詰め替えるなら一発処理でOKスタイル</a></li>
+				<li><a href="#smalltogetherstyle">スタイル入りみだれスタイル</a></li>
+				<li><a href="#overrule">ルールじゃなくて見やすさと安心</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -134,51 +138,60 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 </code></pre>
 
 	<div class="inucolumn">
-		<h2 id="java8">Java8 なら Relation も Optional</h2>
+		<h2 id="java8">Java8 ならリレーションも Optional</h2>
 		<h3 id="optionalhandling">OptionalEntityの使い方</h3>
 		<p>
 			Java8であれば<span class="freecomment">(1.0.xでもisCompatibleBeforeJava8をfalseにしていれば)</span>、
 			関連テーブルの Entity を get するときの戻り値 "も" OptionalEntity となります。
 		</p>
 		<p>
-			<em class="keyword">この関連テーブルが、このとき必ず存在するのかどうか？</em>
-			という感じで、カージナリティを意識しながら実装することができます。存在しないかもしれないデータを get()
+			<em class="keyword">この関連テーブル、必ず存在するかな？</em>
+			という風にカージナリティを自然に意識することができます。また、存在しないかもしれないデータを get()
 			してしまったり、SetupSelectし忘れて get() してしまったりしたときの例外が NullPo ではなく、専用の例外となってデバッグしやすいようになっています。
 		</p>
 		<p>
-			要領は、selectEntity()の方とほぼ同じで、スタイルごとにうまく使い分けるといいでしょう。
+			要領は、selectEntity()の方とほぼ同じで、スタイルごとにうまく使い分けるとよいでしょう。
+			ただ、関連テーブルならではの特徴もあるので、このあとのExampleコードにぜひ注目を！
 		</p>
 		<div class="relatedpage"><a href="../../behavior/select/selectentity.html#java8">selectEntity(cb) - Java8 なら OptionalEntity</a></div>
 		<dl class="keymainlist">
 			<dt>一発処理でOKスタイル</dt><dd>その場で利用しておしまいなケース</dd>
 			<dt>なんども登場スタイル</dt><dd>そのあと何度も利用するようなケース</dd>
-			<dt>みんなで勢ぞろいスタイル</dt><dd>入り乱れて利用するようなケース</dd>
+			<dt>みんなで勢ぞろいスタイル</dt><dd>入りみだれて利用するようなケース</dd>
 			<dt>トラディショナルスタイル</dt><dd>いざとなったら or 迷って手が止まるくらいだったら</dd>
+			<dt>スタイル入りみだれスタイル</dt><dd>(後で登場します)</dd>
 		</dl>
-<pre><span class="codetitle">e.g. OptionalEntityの使い方 @Java</span><code>
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb <span class="keyword">-&gt;</span> {
-    cb.setupSelect_MemberStatus(); <span class="comment">// 会員ステータスの取得</span>
-    cb.setupSelect_MemberSecurityAsOne(); <span class="comment">// 会員セキュリティの取得</span>
+<pre><span class="codetitle">e.g. 関連テーブルにおける OptionalEntity の使い方 @Java</span><code>
+Member <span class="localvar">member</span> = <span class="attribute">memberBhv</span>.selectEntity(<span class="localvar">cb</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">cb</span>.setupSelect_MemberStatus(); <span class="comment">// 会員ステータス</span>
 
-    <span class="comment">// 会員サービス情報は要らないので、取らない</span>
-    <span class="comment">//cb.setupSelect_MemberServiceAsOne();</span>
+    <span class="comment">// 会員セキュリティ情報: 要らなければ取らない</span>
+    <span class="comment">//cb.setupSelect_MemberSecurityAsOne();</span>
 
-    <span class="comment">// 会員退会情報＆退会理由</span>
-    cb.setupSelect_MemberWithdrawalAsOne().withWithdrawalReason();
-});
+    <span class="comment">// 会員サービス ＆ サービスランク (必須 =&gt; 必須)</span>
+    <span class="localvar">cb</span>.setupSelect_MemberServiceAsOne().withServiceRank();
+
+    <span class="comment">// 会員退会情報 ＆ 退会理由 (非必須 =&gt; 非必須)</span>
+    <span class="localvar">cb</span>.setupSelect_MemberWithdrawalAsOne().withWithdrawalReason();
+
+    <span class="comment">// 会員住所の業務的one-to-one ＆ 地域 (非必須 =&gt; 必須)</span>
+    <span class="localvar">cb</span>.setupSelect_MemberAddressAsValid(current).withRegion();
+
+    <span class="localvar">cb</span>.query().setMemberId_Equal(<span class="literal">1</span>);
+}).<span class="subpoint">get()</span>; <span class="comment">// わかりやすくするために、基点テーブルは素のEntityにしちゃいますね</span>
 
 <span class="comment">// - - - - - - - - - - - - - - - - - - 一発処理でOKスタイル！</span>
 <span class="comment">// (その場で利用しておしまいなケース)</span>
 <span class="comment">//</span>
 
 <span class="comment">// 業務的に必ず存在するなら (なければ例外)</span>
-member.getMemberStatus().<span class="point">alwaysPresent</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
+<span class="localvar">member</span>.getMemberStatus().<span class="point">alwaysPresent</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
     <span class="abbreviation">...</span> = <span class="localvar">status</span>.getMemberStatusName();
     <span class="abbreviation">...</span> = <span class="localvar">status</span>.getDisplayOrder();
 });
 
 <span class="comment">// 存在しないこともあるなら (なければ素通り)</span>
-member.getMemberStatus().<span class="point">ifPresent</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
+<span class="localvar">member</span>.getMemberStatus().<span class="point">ifPresent</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
     <span class="abbreviation">...</span> = <span class="localvar">status</span>.getMemberStatusName();
     <span class="abbreviation">...</span> = <span class="localvar">status</span>.getDisplayOrder();
 });
@@ -192,45 +205,64 @@ member.getMemberStatus().<span class="point">ifPresent</span>(<span class="local
 });
 
 <span class="comment">// そのまま他のBeanに詰め替えてインスタンス変数に設定するなら</span>
-member.getMemberStatus().<span class="point">map</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
-    <span class="keyword">return new</span> MemberStatusWebBean(<span class="localvar">member</span>);
-}).<span class="point">alwaysPresent</span>(bean <span class="keyword">-&gt;</span> { <span class="comment">// map()の戻り値がまたOptionalなので</span>
-    <span class="attribute">statusWebBean</span> = bean;
+<span class="comment">// (業務的に必ず存在するなら)</span>
+<span class="localvar">member</span>.getMemberStatus().<span class="point">map</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
+    StatusWebBean <span class="localvar">bean</span> = <span class="keyword">new</span> StatusWebBean();
+    <span class="localvar">bean</span>.setStatusCode(<span class="localvar">status</span>.getMemberStatusCode());
+    <span class="localvar">bean</span>.setStatusName(<span class="localvar">status</span>.getMemberStatusName());
+    <span class="localvar">bean</span>.setOrder(<span class="localvar">status</span>.getDisplayOrder());
+    <span class="keyword">return </span>bean;
+}).<span class="point">alwaysPresent</span>(<span class="localvar">bean</span> <span class="keyword">-&gt;</span> { <span class="comment">// map()の戻り値がまたOptionalなので...</span>
+    <span class="attribute">statusWebBean</span> = <span class="localvar">bean</span>;
 });
 <span class="abbreviation">...</span>
+
+<span class="comment">// それぞれの項目を直接インスタンス変数に設定するなら</span>
+<span class="comment">// (存在しないこともあるなら)</span>
+<span class="localvar">member</span>.getMemberWithdrawal().<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+    <span class="attribute">withdrawalDatetime</span> = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
+    <span class="attribute">withdrawalInputText</span> = <span class="localvar">withdrawal</span>.getWithdrawalReasonInputText();
+    <span class="localvar">withdrawal</span>.<span class="point">ifPresent</span>(<span class="localvar">reason</span> <span class="keyword">-&gt;</span> {
+        <span class="attribute">withdrawalSelectedText</span> = <span class="localvar">reason</span>.getWithdrawalReasonText());
+    }
+});
 
 <span class="comment">// - - - - - - - - - - - - - - - - - - なんども登場スタイル！</span>
 <span class="comment">// (そのあと何度も利用するようなケース)</span>
 <span class="comment">//</span>
 
 <span class="comment">// 業務的に必ず存在して、そのあと何度も登場するなら (なければ例外)</span>
-Member <span class="localvar">member</span> = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>).<span class="point">get()</span>;
-<span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
+MemberStatus <span class="localvar">status</span> = <span class="localvar">member</span>.getMemberStatus().<span class="point">get()</span>;
+<span class="abbreviation">...</span> = <span class="localvar">status</span>.getMemberStatusCode();
 <span class="abbreviation">...</span>
 <span class="keyword">if</span> (<span class="abbreviation">...</span>) {
-    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
+    <span class="abbreviation">...</span> = <span class="localvar">status</span>.getMemberStatusName();
 }
 <span class="abbreviation">...</span>
-<span class="attribute">seaLogic</span>.land(<span class="localvar">member</span>.getBirthdate());
-<span class="keyword">if</span> (<span class="localvar">member</span>.isMemberStatusCodeFormalized()) {
+<span class="attribute">seaLogic</span>.land(<span class="localvar">status</span>.getDisplayOrder());
+<span class="keyword">if</span> (<span class="localvar">status</span>.isMemberStatusCodeFormalized()) {
     <span class="abbreviation">...</span>
 } <span class="keyword">else</span> {
     <span class="keyword">for</span> (<span class="abbreviation">...</span>) {
-        <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberAccount();
+        <span class="abbreviation">...</span> = <span class="localvar">status</span>.getDescription();
     }
 }
 <span class="abbreviation">...</span>
 
 <span class="comment">// 存在しないこともあって、そのあと何度も登場するなら</span>
 <span class="comment">// (Optionalのメソッドを二回以上呼ぶなら、Optionalのまま変数で受けとる)</span>
-OptionalEntity&lt;Member&gt; <span class="localvar">entity</span> = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>);
-<span class="localvar">entity</span>.<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
-    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId()
+OptionalEntity&lt;MemberAddress&gt; <span class="localvar">optAddress</span>
+                        = <span class="localvar">member</span>.getMemberAddressAsValid();
+<span class="localvar">optAddress</span>.<span class="point">ifPresent</span>(<span class="localvar">address</span> <span class="keyword">-&gt;</span> {
+    <span class="abbreviation">...</span> = <span class="localvar">address</span>.getValidBeginDate()
 };
 <span class="abbreviation">...</span>
 <span class="attribute">seaLogic</span>.land(<span class="abbreviation">...</span>);
-<span class="localvar">entity</span>.<span class="point">ifPresent</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> {
-    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getBirthdate();
+<span class="localvar">optAddress</span>.<span class="point">ifPresent</span>(<span class="localvar">address</span> <span class="keyword">-&gt;</span> {
+    <span class="abbreviation">...</span> = <span class="localvar">address</span>.getValidEndDate();
+    <span class="localvar">address</span>.getRegion().<span class="point">alwaysPresent</span>(<span class="localvar">region</span> <span class="keyword">-&gt;</span> {
+        <span class="abbreviation">...</span> = region.getRegionName();
+    });
 }.<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
     <span class="abbreviation">...</span>
 }
@@ -242,24 +274,31 @@ OptionalEntity&lt;Member&gt; <span class="localvar">entity</span> = <span class=
 
 <span class="comment">// 業務的に必ず存在するものは、get()で取っちゃって</span>
 <span class="comment">// 存在しないこともあるものは、Optionalのまま取っちゃって</span>
-Member <span class="localvar">member</span> = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>).<span class="point">get()</span>;
-Product <span class="localvar">product</span> = <span class="attribute">productBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>).<span class="point">get()</span>;
-OptionalEntity&lt;MemberAddress&gt; <span class="localvar">optAddress</span> = <span class="attribute">memberAddressBhv</span>.selectEnt<span class="abbreviation">...</span>;
+MemberStatus <span class="localvar">status</span> = <span class="localvar">member</span>.getMemberStatus().<span class="point">get()</span>;
+MemberService <span class="localvar">service</span> = <span class="localvar">member</span>.getMemberServiceAsOne().<span class="point">get()</span>;
+ServiceRank <span class="localvar">rank</span> = <span class="localvar">service</span>.getServiceRank().<span class="point">get()</span>;
+OptionalEntity&lt;MemberWithdrawal&gt; <span class="localvar">optWithdrawal</span>
+                        = <span class="localvar">member</span>.getMemberWithdrawal();
 
 <span class="comment">// いりみだれー</span>
-LocalDate birthdate = member.getBirthdate();
-String productName = product.getProductName();
-<span class="keyword">if</span> (birthdate != null && product.isProductStatusCodeOnSale()) {
-    optAddress.<span class="point">ifPresent</span>(address <span class="keyword">-&gt;</span> {
-        <span class="attribute">seaLogic</span>.land(member.getMemberName(), productName, address);
-    }.orElse(() <span class="keyword">-&gt;</span> {
+Integer <span class="localvar">displayOrder</span> = <span class="localvar">status</span>.getDisplayOrder();
+Integer <span class="localvar">pointCount</span> = <span class="localvar">service</span>.getServicePointCount();
+<span class="keyword">if</span> (displayOrder >= 2 && pointCount < 1000) {
+    optWithdrawal.<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+        <span class="attribute">seaLogic</span>.land(<span class="localvar">status</span>.getDescription()
+                , pointCount, <span class="localvar">withdrawal</span>.getWithdrawalDatetime());
+    }.<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
         <span class="attribute">seaLogic</span>.iks(birthdate, productName);
     }
 } <span class="keyword">else</span> {
-    optAddress.<span class="point">ifPresent</span>(address <span class="keyword">-&gt;</span> {
-        <span class="attribute">seaLogic</span>.amphi(member.getMemberAccount(), productName, address);
-    }
-    <span class="attribute">seaLogic</span>.miraco(member.getFormalizedDatetime());
+    optWithdrawal.<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">withdrawal</span>.getWithdrawalReason().<span class="point">ifPresent</span>(<span class="localvar">reason</span> <span class="keyword">-&gt;</span> {
+            <span class="attribute">seaLogic</span>.amphi(<span class="localvar">displayOrder</span>, <span class="localvar">pointCount</span>, <span class="localvar">reason</span>);
+        }).<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
+            <span class="attribute">seaLogic</span>.ambassa(<span class="localvar">displayOrder</span>, <span class="localvar">rank</span>);
+        });
+    });
+    <span class="attribute">seaLogic</span>.miraco(<span class="localvar">status</span>.getMemberStatusName());
 }
 <span class="abbreviation">...</span>
 
@@ -269,25 +308,146 @@ String productName = product.getProductName();
 
 <span class="comment">// 存在しないこともあって、"あり、なし" で分岐したり</span>
 <span class="comment">// (Optionalのメソッドを二回以上呼ぶならやっぱり変数で受け取る)</span>
-OptionalEntity&lt;Member&gt; <span class="localvar">entity</span> = <span class="attribute">memberBhv</span>.selectEntity(cb <span class="keyword">-&gt;</span> <span class="abbreviation">...</span>);
-<span class="keyword">if</span> (<span class="localvar">entity</span>.<span class="point">isPresent()</span>) {
-    Member <span class="localvar">member</span> = <span class="localvar">entity</span>.<span class="point">get</span>();
-    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberId();
-    <span class="abbreviation">...</span> = <span class="localvar">member</span>.getMemberName();
+OptionalEntity&lt;MemberWithdrwal&gt; <span class="localvar">optWithdrwal</span>
+                        = <span class="localvar">member</span>.getMemberWithdrawal();
+<span class="keyword">if</span> (<span class="localvar">optWithdrwal</span>.<span class="point">isPresent()</span>) {
+    MemberWithdrwal <span class="localvar">withdrwal</span> = <span class="localvar">optWithdrwal</span>.<span class="point">get</span>();
+    <span class="abbreviation">...</span> = <span class="localvar">withdrwal</span>.getMemberId();
+    <span class="abbreviation">...</span> = <span class="localvar">withdrwal</span>.getWithdrawalDatetime();
 } <span class="keyword">else</span> {
     <span class="comment">// 存在しないときの処理をここで</span>
 }
 
 <span class="comment">// 業務的に必ず存在して、単に中のEntityを取り出すなら (なければ例外)</span>
 <span class="comment">// (他のメソッドにがそのままEntity渡す必要があるときなど)</span>
-Member <span class="localvar">member</span> = <span class="localvar">entity</span>.<span class="point">get()</span>;
-<span class="attribute">seaLogic</span>.land(<span class="localvar">member</span>); <span class="comment">// Entity型で受け取って、nullを受け付けないメソッド</span>
+MemberStatus <span class="localvar">status</span> = <span class="localvar">member</span>.getMemberStatus().<span class="point">get()</span>;
+<span class="attribute">seaLogic</span>.land(<span class="localvar">status</span>); <span class="comment">// Entity型で受け取って、nullを受け付けないメソッド</span>
 
 <span class="comment">// 存在しないかもしれなくって、単に中のEntityを取り出すなら (なければnull)</span>
 <span class="comment">// (他のメソッドにnullありのEntity渡す必要があるとき)</span>
-Member <span class="localvar">member</span> = <span class="localvar">entity</span>.<span class="point">orElseNull()</span>;
-<span class="attribute">seaLogic</span>.land(<span class="localvar">member</span>); <span class="comment">// Entity型で受け取って、null分岐を中でやっているメソッド</span>
+MemberWithdrwal <span class="localvar">withdrwal</span> = <span class="localvar">member</span>.getMemberWithdrawal().<span class="point">orElseNull()</span>;
+<span class="attribute">seaLogic</span>.land(<span class="localvar">withdrwal</span>); <span class="comment">// Entity型で受け取って、null分岐を中でやっているメソッド</span>
 </code></pre>
+		<h3 id="relationoptname">さすがに関連テーブルのOptionalの変数名は...</h3>
+		<p>
+			関連テーブルの Optional を変数に受け取るときの変数名は、さすがに entity
+			のままではつらいでしょう。他のテーブルも登場する可能性大だし、そこに優劣があまり付けづらいので。
+			<span class="freecomment">(entityというアバウトな名前を付けていいのは、基点テーブルだけと考えた方がよいでしょう。もちろん、そもそも基点テーブルもちゃんとした名前をつける方がGoodです)</span>
+		</p>
+		<p>
+			素直に optStatus とか optWithdrawal とか。もちろん、逆 (statusOpt, withdrawalOpt)
+			でもOKです。jfluteは、その後 status とか withdrawal とか Lambda
+			式の中で宣言することを考えると、補完のノイズを無くすために opt はどちらかといえば前に付けるかもですね。
+		</p>
+		<p>
+			Java8の文法では、Lambdaの中で変数の宣言が必ず必要です。Scalaのアンスコドット "_." やGroovyのような "it"
+			があれば、Optional自体に status や withdrawal を付けてもいいかもというところですが、それはできないので Optional
+			と中身のEntityで名前を区別できるようにした方が現時点では安心かもしれません。
+		</p>
+		<h3 id="onetimeokstyle">すぐに詰め替えるなら一発処理でOKスタイル</h3>
+		<p>
+			検索した後すぐに別のクラスに詰め替えてしまうのであれば、そもそも Optional
+			の変数として受け取らず、<em class="keyword">一発処理でOKスタイル</em> で書くとよいでしょう。
+		</p>
+<pre><span class="codetitle">e.g. すぐに別のクラスに詰め替えてしまうのであれば、一発処理でOKスタイル！ @Java</span><code>
+<span class="comment">// そのまま他のBeanに詰め替えてインスタンス変数に設定するなら</span>
+<span class="comment">// (業務的に必ず存在するなら)</span>
+<span class="localvar">member</span>.getMemberStatus().<span class="point">map</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
+    StatusWebBean <span class="localvar">bean</span> = <span class="keyword">new</span> StatusWebBean();
+    <span class="localvar">bean</span>.setStatusCode(<span class="localvar">status</span>.getMemberStatusCode());
+    <span class="localvar">bean</span>.setStatusName(<span class="localvar">status</span>.getMemberStatusName());
+    <span class="localvar">bean</span>.setOrder(<span class="localvar">status</span>.getDisplayOrder());
+    <span class="keyword">return </span>bean;
+}).<span class="point">alwaysPresent</span>(<span class="localvar">bean</span> <span class="keyword">-&gt;</span> { <span class="comment">// map()の戻り値がまたOptionalなので...</span>
+    <span class="attribute">statusWebBean</span> = <span class="localvar">bean</span>;
+});
+
+<span class="comment">// それぞれの項目を直接インスタンス変数に設定するなら</span>
+<span class="comment">// (存在しないこともあるなら)</span>
+<span class="localvar">member</span>.getMemberWithdrawal().<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+    <span class="attribute">withdrawalDatetime</span> = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
+    <span class="attribute">withdrawalInputText</span> = <span class="localvar">withdrawal</span>.getWithdrawalReasonInputText();
+    <span class="localvar">withdrawal</span>.<span class="point">ifPresent</span>(<span class="localvar">reason</span> <span class="keyword">-&gt;</span> {
+        <span class="attribute">withdrawalSelectedText</span> = <span class="localvar">reason</span>.getWithdrawalReasonText());
+    }
+});
+</code></pre>
+		<p>
+			詰め替えをするときは、他のテーブルもたくさん出てきて "変数カオス"
+			になりやすいので、Lambdaのコールバックを使うことで自然とスコープを限定されるので、安全性と可読性の向上が期待できます。
+			<span class="freecomment">(会員ステータスの詰め替え、退会情報系の詰め替えと自然とスコープで分かれる)</span>
+		</p>
+		<h3 id="smalltogetherstyle">スタイル入りみだれスタイル</h3>
+		<p>
+			もし、詰め替えの処理の中で、他の関連テーブルの情報が必要であっても、ちょっとだけなら関連テーブルの Optional を二回呼んでもOKかと思います。
+			<span class="freecomment">(よほどの "いりみだれ" でなければ)</span>
+		</p>
+<pre><span class="codetitle">e.g. Optionalを二回 get してもまあ、ちょっとくらいならOK @Java</span><code>
+<span class="comment">// 会員ステータス情報の詰め替え</span>
+<span class="localvar">member</span>.getMemberStatus().<span class="subpoint">alwaysPresent</span>(<span class="localvar">status</span> <span class="keyword">-&gt;</span> {
+    <span class="attribute">statusCode</span> = <span class="localvar">status</span>.getMemberStatusCode());
+
+    <span class="comment">// e.g. 会員退会情報があれば、会員ステータスの付加情報も詰め替える</span>
+    <span class="comment">// (別に退会情報自体を使わないのであれば、isPresent()で普通のif文でOK)</span>
+    <span class="keyword">if</span> (<span class="localvar">member</span>.<span class="point">getMemberWithdrawal()</span>.<span class="subpoint">isPresent()</span>) {
+        <span class="attribute">statusOrder</span> = <span class="localvar">status</span>.getDisplayOrder();
+        <span class="attribute">statusDesc</span> = <span class="localvar">status</span>.getDescription();
+    }
+});
+
+<span class="comment">// 会員退会情報の詰め替え</span>
+<span class="localvar">member</span>.getMemberWithdrawal().<span class="subpoint">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+    <span class="attribute">withdrawalDatetime</span> = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
+    <span class="attribute">withdrawalInputText</span> = <span class="localvar">withdrawal</span>.getWithdrawalReasonInputText();
+
+    <span class="comment">// e.g. 新規受け入れ可能なサービスランクなら理由テキストを詰め替える</span>
+    <span class="localvar">member</span>.<span class="point">getMemberServiceAsOne()</span>.<span class="subpoint">alwaysPresent</span>(<span class="localvar">service</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">service</span>.<span class="point">getServiceRank()</span>.<span class="subpoint">alwaysPresent</span>(<span class="localvar">rank</span> <span class="keyword">-&gt;</span> {
+            <span class="keyword">if</span> (<span class="localvar">rank</span>.isNewAcceptableFlgTrue()) { <span class="comment">// 新規受け入れ可能</span>
+                <span class="localvar">withdrawal</span>.<span class="subpoint">ifPresent</span>(<span class="localvar">reason</span> <span class="keyword">-&gt;</span> {
+                    <span class="attribute">withdrawalSelectedText</span> = <span class="localvar">reason</span>.getWithd<span class="abbreviation">...</span>();
+                });
+            }
+        });
+    });
+});
+</code></pre>
+		<p>
+			とはいえ、特に後半は、さすがに少しネストが深くなり過ぎてる感があります。
+		</p>
+		<p>
+			ネストが深い関連テーブルで "カージナリティ的に必須のもの" であれば、alwaysPresent()
+			を無理に続けるのではなく、サクッと get() してしまってもいいでしょう。
+		</p>
+<pre><span class="codetitle">e.g. ネストが深過ぎるなら、サクッと get() もあり @Java</span><code>
+<span class="comment">// 会員退会情報の詰め替え</span>
+<span class="localvar">member</span>.getMemberWithdrawal().<span class="subpoint">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+    <span class="attribute">withdrawalDatetime</span> = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
+    <span class="attribute">withdrawalInputText</span> = <span class="localvar">withdrawal</span>.getWithdrawalReasonInputText();
+
+    <span class="comment">// e.g. 新規受け入れ可能なサービスランクなら理由テキストを詰め替える</span>
+    <span class="localvar">member</span>.getMemberServiceAsOne().<span class="subpoint">alwaysPresent</span>(<span class="localvar">service</span> <span class="keyword">-&gt;</span> {
+    <span class="keyword">if</span> (<span class="localvar">service</span>.getServiceRank().<span class="point">get()</span>.isNewAcceptableFlgTrue()) {
+        <span class="localvar">withdrawal</span>.<span class="subpoint">ifPresent</span>(<span class="localvar">reason</span> <span class="keyword">-&gt;</span> {
+            <span class="attribute">withdrawalSelectedText</span> = <span class="localvar">reason</span>.getWithd<span class="abbreviation">...</span>();
+        });
+    });
+});
+</code></pre>
+		<p>
+			一方で、会員サービス情報やサービスランクが他のところでも利用するならあらかじめ変数にしてもいいかもしれませんが、
+			詰め替え処理全体の規模や複雑度からあまり変数を増やしたくないと思ったら、こういった <em class="keyword">その場ちょいget()</em>
+			でもいいかと思います。
+		</p>
+		<p>
+			関連テーブルの場合は、こういった感じで "一発処理でOKスタイル" と "みんなで勢ぞろいスタイル" との間、グレーゾーンあたりの <em class="keyword">スタイル入りみだれスタイル</em>
+			が多いと考えられます。
+		</p>
+		<h3 id="overrule">ルールじゃなくて見やすさと安心</h3>
+		<p>
+			結局は、"ルール" ではなく、<em class="keyword">そのとき何が見やすい方がうれしいのか？どう書いたら安心するか？</em>
+			という観点から "じゃあ、今回はこういう感じで書くかなー" って考えながらプログラミングしていくことが大切だということには何も変わりませんね。
+		</p>
 	</div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
