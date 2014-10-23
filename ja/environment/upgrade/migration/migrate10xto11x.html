@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,移行時の注意,Migration,Attention" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>移行 1.0.x to 1.1 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-upgrade">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>移行 1.0.x to 1.1</h1>
+	<ul class="indexlist">
+		<li><a href="#basic">お約束の注意点</a></li>
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#precondition">大前提</a></li>
+		<li><a href="#upgrade">DBFlute-1.1.xをセットアップ</a>
+			<ul>
+				<li><a href="#engineruntime"></a></li>
+				<li><a href="#slf4jlog4j">Log4jを使っていたらSlf4jのブリッジを</a></li>
+			</ul>
+		</li>
+		<li><a href="#opencompatible">まず、互換モードを全開にする</a>
+			<ul>
+				<li><a href="#littleopen">littleAdjustmentの互換オプション</a></li>
+				<li><a href="#openrenewal">互換モード全開で renewal</a></li>
+				<li><a href="#importdokadoka">importの編成を一気に</a></li>
+			</ul>
+		</li>
+		<li><a href="#noncompatible">互換のないコンパイルエラーを直す</a>
+			<ul>
+				<li><a href="#grepokgo">grepの一括置換でOKなやつ</a></li>
+				<li><a href="#manualgogo">地道に直す</a></li>
+				<li><a href="#firsttest">いったんテスト</a></li>
+			</ul>
+		</li>
+		<li><a href="#nextmigration">もう少し攻める</a>
+			<ul>
+				<li><a href="#realitycompilesafe">現実的なコンパイルレベルでの検知</a></li>
+				<li><a href="#realityruntimesafe">現実的な実行レベルでの検知</a></li>
+			</ul>
+		</li>
+		<li><a href="#challenge">チャレンジな世界へ...はちょい待って</a>
+			<ul>
+				<li><a href="#lambdaoptional">Optional や Lambda への移行は大変</a></li>
+				<li><a href="#littlebylittle">ちょっとずつ移行</a></li>
+				<li><a href="#compileerrorfes">それでもコンパイルエラー検知ではあるので...</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="basic">お約束の注意点</h2>
+	<dl class="textlist">
+		<dt>古いバージョンの削除</dt>
+		<dd>古いバージョンのDBFluteランタイム(JAR)が[WEB-INF/lib]の下などに残らないように</dd>
+		<dt>タスクを実行し忘れないように</dt>
+		<dd>Generateタスクだけでなく、(外だしSQLがある場合は)Sql2Entityタスクも実行</dd>
+	</dl>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		1.0.x から 1.1 に移行するのは、かなりの強者(つわもの)です。
+	</p>
+	<p>
+		移行のレベルが大きく三つあります。
+	</p>
+	<dl class="keymainlist">
+		<dt>ひとまず 1.1 にするだけ</dt><dd>互換モードを全開にして、できるだけ修正を少なく移行</dd>
+		<dt>とにかく 1.1 に合わせる</dt><dd>互換モードをOFFにして、方式もすべて移行</dd>
+		<dt>その中間くらい</dt><dd>ひとまず 1.1 にして、簡単に移行できそうなものだけ移行</dd>
+	</dl>
+	<p>
+		まずは、"ひとまず 1.1 にするだけ" を目標に、現実的に "その中間くらい"
+		に短い時間でチャレンジしてキリのいいところで落ち着くのがよいでしょう。
+	</p>
+	<p>
+		互換モードも、すべての機能に対応しているわけではありません。
+		メジャーな機能は互換を保てるようにしていて、マイナー(と思われる)機能に関してはちょっと手を動かせば移行できるだろうということで、バランスをとっています。
+		また、互換を保っていない機能の多くが、コンパイルレベルで検知できるものになっています。
+	</p>
+
+	<h2 id="precondition">大前提</h2>
+	<dl class="keymainlist">
+		<dt>Java8であること</dt><dd>Java8でなければ、とりあえず1.0.xのままJava8へ移行してから</dd>
+		<dt>1.0.xの最新であること</dt><dd>1.0.xの最新版でなければ、まずは最新版へ移行してから</dd>
+		<dt>テストすること</dt><dd>特に運用中のシステムなら、しっかりシナリオテストすること</dd>
+		<dt>聞くこと</dt><dd>わからなければ、ML や Twitter などで遠慮なく jflute に聞くこと</dd>
+	</dl>
+	<p>
+
+	<h2 id="upgrade">DBFlute-1.1.xをセットアップ</h2>
+	<h3 id="engineruntime"></h3>
+	<p>
+		1.1.xのDBFluteエンジン(モジュール)と、1.1.xのDBFluteランタイムを用意します。
+	</p>
+	<p>
+		<em class="keyword">TODO jflute 正式リリースしたら、インストールの仕方と、pomでの設定について書く</em>
+	</p>
+	<p>
+		自動生成はまだです。ランタイムを1.1.xにすると、ことごとくコンパイルエラーになるかと。
+	</p>
+	<h3 id="slf4jlog4j">Log4jを使っていたらSlf4jのブリッジを</h3>
+	<p>
+		ブログの通りです。
+	</p>
+	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20141020/slf4j">外部サイト - jfluteの日記 - DBFlute-1.1からは slf4j を使う</a></div>
+
+	<h2 id="opencompatible">まず、互換モードを全開にする</h2>
+	<h3 id="littleopen">littleAdjustmentの互換オプション</h3>
+	<p>
+		大きく二種類あります。
+	</p>
+	<dl class="keymainlist">
+		<dt>compile compatible</dt><dd>コンパイルレベルで移行できてるか検知できる</dd>
+		<dt>runtime compatible</dt><dd>アプリを実行しないと大丈夫かどうかわからないもの</dd>
+	</dl>
+	<p>
+		厳密には、"compile compatible" の中には、sql2entity や outside-sql-test
+		タスクを実行すれば検知できるものも含まれています。要は、アプリの実行前に検知できるものと考えるとよいでしょう。
+	</p>
+	<p>
+		以下の "赤い部分" を littleAdjustmentMap.dfprop にコピーして、manage の renewal
+		をします。すべての互換オプションをONにしています。
+	</p>
+<pre><span class="codetitle">e.g. 互換モード全開 @littleAdjustmentMap.dfprop</span><code>
+<span class="abbreviation">...</span>
+<span class="comment"># o relationalNullObjectMap: (NotRequired - Default map:{})</span>
+<span class="comment">#</span>
+<span class="comment"># *The line that starts with '#' means comment-out.</span>
+<span class="comment">#</span>
+<span class="keyword">map:</span>{
+    <span class="subpoint"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    # Migration to Java8 DBFlute
+    # http://d.hatena.ne.jp/jflute/20140530/java8
+    # _/_/_/_/_/_/_/_/_/
+    # compile compatible (true if compatible)
+    ; isCompatibleSelectByPKOldStyle = true
+    ; isCompatibleSelectByPKPlainReturn = true
+    ; isCompatibleSelectByPKWithDeletedCheck = true
+    ; isMakeConditionQueryExistsReferrerToOne = true
+    ; isMakeConditionQueryInScopeRelationToOne = true
+    ; isMakeConditionQueryPlainListManualOrder = true
+    ; isMakeDirectConditionBeanSetup = true
+    ; isMakeBatchUpdateSpecifyColumn = true
+    ; isAvailableSelectEntityPlainReturn = true
+    ; isAvailableRelationPlainEntity = true
+    ; isMakeConditionQueryPrefixSearch = true
+    ; isMakeConditionQueryDateFromTo = true
+    ; isMakeDirectConditionOptionSetup = true
+    ; isMakeDirectConditionManualOrder = true
+    ; isMakeClassificationNativeTypeSetter = true
+    ; isCompatibleNewMyEntityConditionBean = true
+    ; isCompatibleDeleteNonstrictIgnoreDeleted = true
+    ; isCompatibleLoadReferrerOldOption = true
+    ; isCompatibleConditionBeanAcceptPKOldStyle = true
+    ; isCompatibleConditionBeanOldNamingCheckInvalid = true
+    ; isCompatibleConditionBeanOldNamingOption = true
+    ; isCompatibleBizOneToOneImplicitReverseFkAllowed = true
+    ; isCompatibleReferrerCBMethodIdentityNameListSuffix = true
+    ; isCompatibleOutsideSqlFacadeChainOldStyle = true
+    ; isCompatibleOutsideSqlSqlCommentCheckDefault = true
+
+    # compile compatible (false if compatible)
+    ; isMakeCallbackConditionBeanSetup = false
+    ; isEntityDerivedMappable = false
+    ; isMakeCallbackConditionOptionSetup = false
+    ; isMakeCallbackConditionManualOrder = false
+    ; isAvailableJava8TimeLocalDateEntity = false
+
+    # runtime compatible (true if compatible)
+    ; isNullOrEmptyQueryAllowed = true
+    ; isOverridingQueryAllowed = true
+    ; isNonSpecifiedColumnAccessAllowed = true
+    ; isCompatibleConditionBeanFromToOneSideAllowed = true
+    ; isCompatibleOrScopeQueryPurposeNoCheck = true
+    ; isSuppressDefaultCheckClassificationCode = true
+
+    # runtime compatible (false if compatible)
+    ; isThatsBadTimingDetect = false</span>
+
+    # /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o isAvailableAddingSchemaToTableSqlName: (NotRequired - Default false)
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="openrenewal">互換モード全開で renewal</h3>
+	<p>
+		manage の renewal をします。
+	</p>
+	<h3 id="importdokadoka">importの編成を一気に</h3>
+	<p>
+		自動生成クラス、アプリのクラス、もろもろすべてのクラスに対して、importの編成
+		(Eclipseにて) を実行します。org.seasar.dbfluteの参照が、org.dbfluteに "どかどか" 変わっていくかと思います。
+	</p>
+	<p>
+		クラス名だけでユニークに解決できないクラスは、個別個別にソースを開いて、ctrl+shift+O をやらないといけないかもしれません。
+		どのクラスが解決できていないのかはこの時点で判断できないので、次のステップへ進んで一緒にやっていきます。
+	</p>
+
+	<h2 id="noncompatible">互換のないコンパイルエラーを直す</h2>
+	<p>
+		importの編成をやってもコンパイルエラーになっているものは、互換性のない機能変更によるもの、もしくは、importが解決できなかったものです。
+	</p>
+	<h3 id="grepokgo">grepの一括置換でOKなやつ</h3>
+	<p>
+		Eclipseなら ctrl+H で一括置換してもよいものです。
+	</p>
+	<dl class="valuemainlist">
+		<dt>ManualOrderBean を</dt><dd>ManualOrderOption に</dd>
+	</dl>
+	<p>
+		ただし、アプリで全然違う機能の同名クラスを自作している場合はダメです(ありえないと思いますが)。
+	</p>
+	<h3 id="manualgogo">地道に直す</h3>
+	<p>
+		地道に直すものです。
+	</p>
+	<dl class="keymainlist">
+		<dt>DerivedReferrerOption</dt><dd>DerivedReferrer のオプション指定は Lambda に</dd>
+		<dt>ColumnConversionOption</dt><dd>ColumnQuery のオプション指定は Lambda に</dd>
+		<dt>ScalarSelectOption</dt><dd>ScalarSelect のオプション指定は Lambda に</dd>
+		<dt>ManualOrderOption</dt><dd>ManualOrderOption の when の FromTo 指定は Lambda に</dd>
+	</dl>
+	<p>
+		実は、これは全部ではありません。その理由は二つ。
+	</p>
+	<ul>
+		<li>通常、ユーザーが利用しないものは省略している</li>
+		<li>というか、そういった細かいものは、さすがに忘れました</li>
+	</ul>
+	<p>
+		アプリがDBFluteの内部的なクラスをどれだけさわっているかによります。
+		もし、どういう修正をすればよいのか判断の付かないコンパイルエラーがあったら、そこは遠慮なく jflute
+		に聞いてください。
+	</p>
+	<h3 id="firsttest">いったんテスト</h3>
+	<p>
+		コンパイルエラーが取れたら、アプリのテストをしてみましょう。
+	</p>
+	<p>
+		すんなり動けば、とりあえず 1.1 への移行は最低限できたことになります。
+		時間がなければ、ここで終わってもOKでしょう。
+	</p>
+
+	<h2 id="nextmigration">もう少し攻める</h2>
+	<p>
+		少ない時間でちょっとやれそうだったらやってみるとよいものです。
+	</p>
+	<h3 id="realitycompilesafe">現実的なコンパイルレベルでの検知</h3>
+	<p>
+		まずは、true から false にして自動生成し直してみて、コンパイルエラーがでるかどうか？
+		もし、エラーの数が少なく、すぐに直せそうなら直してしまいましょう。
+	</p>
+	<p>
+		一個ずつ false にして自動生成して直して、また次を一個 false にして...を繰り返すとよいでしょう。
+	</p>
+	<dl class="textlist">
+		<dt>isCompatibleSelectByPKOldStyle</dt>
+		<dd>selectByPKValue() から selectByPK() に</dd>
+		<dd>利用箇所は少ないと想定され、一括置換でも修正できそうなのでやれたらやってみるとよい</dd>
+		<dt>isMakeConditionQueryExistsReferrerToOne</dt>
+		<dd>one-to-one への ExistsReferrer を生成しないように</dd>
+		<dd>相手側PKによる IsNotNull もしくは IsNull で代用</dd>
+		<dt>isMakeConditionQueryInScopeRelationToOne</dt>
+		<dd>many-to-one への InScopeRelation を生成しないように</dd>
+		<dd>普通のQueryRelationによる条件付与で代用</dd>
+		<dt>isMakeConditionQueryPlainListManualOrder</dt>
+		<dd>ManualOrder の List 受け取りメソッドを生成しないように</dd>
+		<dd>ManualOrderOption の acceptOrderValueList() で代用</dd>
+		<dt>isMakeBatchUpdateSpecifyColumn</dt>
+		<dd>batchUpdate()のSpecifyするオーバーロードを生成しないように</dd>
+		<dd>そもそもbatchUpdate()がSetter呼び出し方式なので、プログラムを見て同じupdateになるならOK</dd>
+		<dd>もし、Setter呼び出しじゃないようにする互換オプションを使っていたら、ちょっとやめておきましょう</dd>
+		<dt>isMakeConditionQueryPrefixSearch</dt>
+		<dd>PrefixSearchを生成しないように、LikeSearchOption の likePrefix() で代用</dd>
+		<dt>isMakeConditionQueryDateFromTo</dt>
+		<dd>DateFromToを生成しないように、FromToOption の compareAsDate() で代用</dd>
+		<dt>isMakeClassificationNativeTypeSetter</dt>
+		<dd>区分値カラムのネイティヴ型引数のメソッドを作らないように</dd>
+		<dd>もともと isForced... を使っている場合は false にして問題ないはず</dd>
+		<dt>isCompatibleNewMyEntityConditionBean</dt>
+		<dd>Behavior の newMyCondition() が newConditionBean() が変わった (Entityも)</dd>
+		<dt>isCompatibleDeleteNonstrictIgnoreDeleted</dt>
+		<dd>Behavior の deleteNonstrictIgnoreDeleted() を生成しないように</dd>
+		<dd>try catch で代用</dd>
+		<dt>isCompatibleLoadReferrerOldOption</dt>
+		<dd>LoadReferrer の LoadReferrerOption を使うオーバーロードメソッドを生成しないように</dd>
+		<dd>ネストした LoadReferrer は、loader方式で代用</dd>
+		<dt>isCompatibleConditionBeanAcceptPKOldStyle</dt>
+		<dd>cb.acceptPrimaryKey() が cb.acceptPK() に変わった</dd>
+		<dt>isCompatibleConditionBeanOldNamingCheckInvalid</dt>
+		<dd>cb.checkInvalidQuery() が cb.checkNullOrEmptyQuery() に変わった</dd>
+		<dt>isCompatibleConditionBeanOldNamingOption</dt>
+		<dd>cb の細かいオプションたちのメソッド名が cb.enableXxx() or cb.disableXxx() に変わった</dd>
+		<dt>isCompatibleBizOneToOneImplicitReverseFkAllowed</dt>
+		<dd>暗黙の逆参照FKを生成しないように、もし必要なら普通に additionalForeignKey で定義</dd>
+	</dl>
+	<p>
+		逆に false から true にするやつは、こちらです。
+	</p>
+	<dl class="textlist">
+		<dt>isEntityDerivedMappable</dt>
+		<dd>DerivedReferrer で derived() が使えるようにする</dd>
+		<dd>別に互換を損なうことはないので、問答無用で true にしてしまってもいいかと</dd>
+		<dd>アプリのポリシーとして、いまさらこっちは使わないとかであればそのままで</dd>
+	</dl>
+	<h3 id="realityruntimesafe">現実的な実行レベルでの検知</h3>
+	<p>
+		実行しないとわからないものはそもそも現実的ではないのですが、それでもまあいけるんじゃないかな？
+		っていうのと、あとそんな実装があったらそもそも困るみたいなものです。
+		開発中なのか、既に運用中なのかでだいぶニュアンスが変わってくると思います。
+	</p>
+	<p>
+		true から false にして自動生成し直してみて、テストしてみましょう。
+		あとで、一括テストするのであれば、とりあえず設定しておくだけでもいいかもです。
+	</p>
+	<dl class="textlist">
+		<dt>isNonSpecifiedColumnAccessAllowed</dt>
+		<dd>SpecifyColumnしたのに、Specifyされていないカラムをgetするのを許す</dd>
+		<dd>そもそもバグかもしれないので false に。どうしても必要なら、cb.disableNonSpec...()</dd>
+		<dt>isCompatibleOrScopeQueryPurposeNoCheck</dt>
+		<dd>OrScopeQueryのコールバックの中でSetupSelectやOrderByしているのを許す</dd>
+		<dd>許したくないので false に</dd>
+		<dt>isSuppressDefaultCheckClassificationCode</dt>
+		<dd>区分値に定義されているもの以外の区分値をsetしたりgetしたりを許す</dd>
+		<dd>許したくないので false に (隠れ区分値がなければ)</dd>
+	</dl>
+	<p>
+		そして、逆に false から true にするやつです。
+	</p>
+	<dl class="textlist">
+		<dt>isThatsBadTimingDetect</dt>
+		<dd>例えば、ExistsReferrerのコールバックの中で外側の cb を呼び出してるとか</dd>
+		<dd>Lambdaになるとこの間違いによるバグが増えそうなので、ぜひ true にしたい</dd>
+	</dl>
+
+	<h2 id="challenge">チャレンジな世界へ...はちょい待って</h2>
+	<h3 id="lambdaoptional">Optional や Lambda への移行は大変</h3>
+	<p>
+		残ったプロパティは、Optional や Lambda の導入などが絡んでくるなど、かなりチャレンジです。
+	</p>
+	<p>
+		開発初期段階であれば、いっせーのでできるかもですが、開発終盤では厳しいでしょう。
+		運用中のものであれば移行祭りが必要です。なので、ここまでできていれば十分ではあるでしょう。
+	</p>
+	<h3 id="littlebylittle">ちょっとずつ移行</h3>
+	<p>
+		徐々に移行していきたいのであれば、Lambdaのコールバックのメソッドは生成しておいて、
+		新しいプログラムはオーバーロードのLambda方式のメソッドを使って、既存のコードは修正が入ったときにつどつどリファクタリングするというやり方もできます。
+	</p>
+	<p>
+		ただ、補完すると selectList() や selectEntity() が全部オーバーロードで二つに分身するので、ちょっとうっとおしいかもしれません。
+		やるなら本当に徐々に直していって、最終的には全部 Lambda に直す意気込みが必要でしょう。
+	</p>
+	<h3 id="compileerrorfes">それでもコンパイルエラー検知ではあるので...</h3>
+	<p>
+		Optionalの方は、こういった器用なことができないので、移行するときや "えいやっ"
+		とみんなで一斉に直すしかないでしょう。ただ、Lambdaもそうですが、コンパイルエラーの検知のできるものではありますので、"すごい頑張ればできる"
+		という感じでしょうか。<span class="freecomment">(でも、リフレクション詰め替えを使っていたらアウト)</span>
+	</p>
+	<p>
+		Optionalにすると実装の安全性は格段に上がります。Lambdaは別に...明確なメリットが得られるかというとそうではないかもしれませんが、
+		実は Optional は多少苦労しても一番移行したいと思えるものかもしれません。
+	</p>
+	<p>
+		java.util.Date を LocalDate にするのも、Optionalほどのインパクトはないので、無理することはないでしょう。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/environment/newest.html">最新バージョン</a></li>
+		<li><a href="../../../../ja/environment/license.html">ライセンス</a></li>
+		<li><a href="../../../../ja/environment/supported.html">サポート情報</a></li>
+		<li><a href="../../../../ja/environment/changelog/index.html">ChangeLog</a></li>
+		<li><a href="../../../../ja/environment/setup/index.html">セットアップ</a>
+			<ul>
+				<li><a href="../../../../ja/environment/setup/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/setup/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/setup/runtime.html">DBFluteランタイムの準備</a></li>
+				<li><a href="../../../../ja/environment/setup/jdbcdriver.html">JDBCドライバの準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/firstprop.html">特定環境適用プロパティ</a></li>
+				<li><a href="../../../../ja/environment/setup/generate.html">クラスの自動生成</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/injection.html">DI環境の調整</a></li>
+				<li><a href="../../../../ja/environment/setup/thenafter.html">その後の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/environment/upgrade/index.html">アップグレード</a>
+			<ul>
+				<li><a href="../../../../ja/environment/upgrade/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/upgrade/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/upgrade/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/upgrade/migration/index.html">移行情報</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
