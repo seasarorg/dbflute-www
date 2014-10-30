@@ -56,8 +56,18 @@
 			</ul>
 		</li>
 		<li><a href="#changecls">区分値の追加と変更</a></li>
-		<li><a href="#forcedcls">ネイティヴ型メソッドの削除</a></li>
-		<li><a href="#checkimplicitset">暗黙の区分値チェック</a></li>
+		<li><a href="#forcedcls">ネイティヴ型メソッドの削除</a>
+			<ul>
+				<li><a href="#java6cls">Java6,7 (1.0.x) では</a></li>
+				<li><a href="#java8cls">Java8 (1.1) からは</a></li>
+			</ul>
+		</li>
+		<li><a href="#checkimplicitset">暗黙の区分値チェック</a>
+			<ul>
+				<li><a href="#java6impcheck">Java6,7 (1.0.x) では</a></li>
+				<li><a href="#java8impcheck">Java8 (1.1) からは</a></li>
+			</ul>
+		</li>
 		<li><a href="#grouping">グルーピング判定</a></li>
 		<li><a href="#sistercode">姉妹コードの利用</a></li>
 		<li><a href="#subitemmap">独自の属性を追加</a></li>
@@ -333,6 +343,7 @@
 	<div class="relatedpage"><a href="../../../manual/topic/programming/shortcut/codejustcut.html#comment">コード調整ショートカット - コメント周り</a></div>
 
 	<h2 id="forcedcls">ネイティヴ型メソッドの削除</h2>
+	<h3 id="java6cls">Java6,7 (1.0.x) では</h3>
 	<p>
 		区分値メソッドを生成しても、ネイティヴ型の設定メソッドはデフォルトの設定では残っています。
 		その理由はドキュメントに書いてある通りです。さっと目を通してみましょう。<span class="freecomment">(講師によるお話あり)</span>
@@ -349,8 +360,23 @@
 		また、隠れ区分値を検索したときに明示的な例外になるような設定もしておきましょう。
 	</p>
 	<div class="detailpage"><a href="../../../manual/reference/dfprop/littleadjustment/index.html#ischeckselectedclassification">dfprop - isCheckSelectedClassification</a></div>
+	<h3 id="java8cls">Java8 (1.1) からは</h3>
+	<p>
+		ネイティヴ型の設定メソッドはデフォルトの設定で生成されないようになっています。
+	</p>
+	<p>
+		ですが、dfpropで区分値に定義していない "隠れ区分値" を検索してしまったりsetしてしまったりしても、デフォルトではエラーにはなりません。
+	</p>
+	<p>
+		littleAdjustmentMap.dfprop にて、classificationUndefinedHandlingType
+		を EXCEPTION に設定すると、例外になるようになります。そもそも set
+		できないから気軽に動作確認はできませんが、気合いのある人は "なにかしらの方法で" 無理やり protected になっている Member#setMemberStatusCode()
+		を呼び出しても、止めはしません。 
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/reference/dfprop/littleadjustment/index.html#classificationundefinedhandlingtype"> -->dfprop - classificationUndefinedHandlingType<!-- </a> --></span></div>
 
 	<h2 id="checkimplicitset">暗黙の区分値チェック</h2>
+	<h3 id="java6impcheck">Java6,7 (1.0.x) では</h3>
 	<p>
 		暗黙の区分値は、データ登録時には何の制約もありません。
 		アプリ実装ではDBFluteの区分値メソッドを使ってタイプセーフにできますが、ReplaceSchemaのエクセルデータ作成ではケアレスミスが簡単に起きてしまいます。
@@ -360,6 +386,11 @@
 	<p>
 		ハンズオンで追加した暗黙の区分値の中に、一つだけ "暗黙の区分値チェック"
 		が付いていないものがありますので、付けてみて ReplaceSchema でチェックがされることを確認してみてください。
+	</p>
+	<h3 id="java8impcheck">Java8 (1.1) からは</h3>
+	<p>
+		先ほどの classificationUndefinedHandlingType
+		で既にチェックされるようになっています。そのままReplaceSchemaのエクセルデータを一時的に修正してチェックされることを確認してみましょう。
 	</p>
 
 	<h2 id="grouping">グルーピング判定</h2>
