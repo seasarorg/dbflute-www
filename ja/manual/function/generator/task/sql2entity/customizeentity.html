@@ -354,7 +354,7 @@ select sum(PURCHASE_PERCENT) as PURCHASE_PERCENT
 		<em class="keyword">DBFluteプロパティの設定にて区分値と関連付けられているカラムの条件に一致するカラム</em>
 		をSQLの構造として含んでいる場合、自動的に区分値メソッドを持ったCustomizeEntityとなります。
 		Sql2Entityのメタデータとしてカラムの参照先カラムが判明している場合は、
-		その参照先カラムの情報をもとに一致するかどうか判定されます(但し、これはJDBCドライバ次第)。
+		その参照先カラムの情報をもとに一致するかどうか判定されます(ただし、これはJDBCドライバ次第)。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/entity/index.html#classification">Entity - 区分値</a></div>
 	<div class="relatedpage"><a href="../../../genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
@@ -371,6 +371,20 @@ select MEMBER_ID
 select MEMBER_ID
      , 0 as DELETE_FLG <span class="comment">-- treated as classification</span>
      , 0 as DELETE_NOFLG <span class="comment">-- NOT treated as classification</span>
+  from MEMBER
+</code></pre>
+	<p>
+		JDBCドライバがどうしてもカラムのメタデータを提供できないケースがあります。
+		例えば、インラインビューでunionを使っているなど、ケースはDMBSによってさまざまです。
+	</p>
+	<p>
+		そこで、強制的に区分値の関連付けヒントを指定することができます。
+		検索カラムのコメントの中で <em class="keyword">cls([区分値名])</em> と指定すると、指定された区分値が関連付きます。<span class="freecomment">@since 1.0.5M</span>
+	</p>
+<pre><span class="codetitle">e.g. _FLGで終わるカラムが区分値として関連付けられている場合 @OutsideSql</span><code>
+<span class="comment">-- #df:entity#</span>
+select MEMBER_ID
+     , MEMBER_STATUS_CODE <span class="comment">-- // コメントの中であればどこでもOK cls(MemberStatus)</span>
   from MEMBER
 </code></pre>
 
