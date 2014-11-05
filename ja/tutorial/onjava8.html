@@ -112,7 +112,7 @@ memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</spa
     String memberAccount = <span class="localvar">member</span>.getMemberAccount();
     LocalDate birthdate = <span class="localvar">member</span>.getBirthdate(); <span class="comment">// *Java TimeAPI</span>
     LocalDateTime formalizedDatetime = <span class="localvar">member</span>.getFormalizedDatetime();
-); <span class="comment">// なければ例外 (エラーメッセージでSQLが表示される)</span>
+}); <span class="comment">// なければ例外 (エラーメッセージでSQLが表示される)</span>
 
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
@@ -123,7 +123,7 @@ memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</spa
     Integer memberId = <span class="localvar">member</span>.getMemberId();
     String memberName = <span class="localvar">member</span>.getMemberName();
     <span class="abbreviation">...</span>
-).<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
+}).<span class="point">orElse</span>(() <span class="keyword">-&gt;</span> {
     <span class="comment">// 存在しないときの処理をここで</span>
 });
 </code></pre>
@@ -158,16 +158,16 @@ ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</spa
     <span class="localvar">cb</span>.setupSelect_MemberServiceAsOne().withServiceRank();
 
     <span class="comment">// LikeSearchOptionだって、Lambdaコールバック</span>
-    <span class="localvar">cb</span>.query.setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.likePrefix());
-    <span class="localvar">cb</span>.query.setMemberStatusCode_Equal_Formalized();
+    <span class="localvar">cb</span>.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.likePrefix());
+    <span class="localvar">cb</span>.query().setMemberStatusCode_Equal_Formalized();
 
-    <span class="localvar">cb</span>.query.existsPurchaseList(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">cb</span>.query().existsPurchase(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
         <span class="localvar">purchaseCB</span>.query().setPurchasePrice_GreaterEqual(<span class="literal">200</span>);
         <span class="localvar">purchaseCB</span>.query().setPaymentCompleteFlg_Equal_True();
     });
 
-    <span class="localvar">cb</span>.query.addOrderBy_Birthdate_Desc().withNullsLast();
-    <span class="localvar">cb</span>.query.addOrderBy_MemberId_Asc();
+    <span class="localvar">cb</span>.query().addOrderBy_Birthdate_Desc().withNullsLast();
+    <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
 }); <span class="comment">// そのまま回すだけなら、ここから forEach() や stream() しちゃってもOK</span>
 
 memberList.<span class="point">forEach</span>(<span class="localvar">member</span> <span class="keyword">-&gt;</span> { <span class="comment">// でもまあ、とりあえず変数に受け取ってから回してみる</span>
@@ -180,7 +180,7 @@ memberList.<span class="point">forEach</span>(<span class="localvar">member</spa
         String statusName = <span class="localvar">status</span>.getMemberStatusName();
         <span class="abbreviation">...</span>
     });
-    <span class="localvar">member</span>.getMemberWithdrawal().<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">member</span>.getMemberWithdrawalAsOne().<span class="point">ifPresent</span>(<span class="localvar">withdrawal</span> <span class="keyword">-&gt;</span> {
         LocalDateTime withdrawalDatetime = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
         <span class="abbreviation">...</span>
     });
@@ -259,11 +259,11 @@ PagingResultBean&lt;Member&gt; page = <span class="attribute">memberBhv</span>.s
     <span class="localvar">cb</span>.specify().<span class="point">derivedMemberLoginList()</span>.max(<span class="localvar">loginCB</span> <span class="keyword">-&gt;</span> {
         <span class="localvar">loginCB</span>.specify().columnLoginDatetime()
     }, <span class="localvar">keyOfLatestLoginDatetime</span>);
-    <span class="localvar">cb</span>.specify().<span class="point">derivedPurchaseList()</span>.avg(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">cb</span>.specify().<span class="point">derivedPurchase()</span>.avg(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
         <span class="localvar">purchaseCB</span>.specify().columnPurchasePrice();
         <span class="localvar">purchaseCB</span>.query().setPaymentCompleteFlg_Equal_True();
     }, <span class="localvar">keyOfPurchasePriceAverage</span>);
-    <span class="localvar">cb</span>.query().existsPurchaseList(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">cb</span>.query().existsPurchase(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
         <span class="localvar">purchaseCB</span>.query().existsPurchasePaymentList(<span class="localvar">paymentCB</span> <span class="keyword">-&gt;</span> {
             <span class="localvar">paymentCB</span>.query().setPaymentAmount_GreaterEqual(<span class="literal">3000</span>);
         });
@@ -376,7 +376,7 @@ ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(<span class="loca
     <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
 });
 memberBhv.load(memberList, <span class="localvar">loader</span> <span class="keyword">-&gt;</span> {
-    <span class="localvar">loader</span>.<span class="point">loadPurchaseList</span>(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">loader</span>.<span class="point">loadPurchase</span>(<span class="localvar">purchaseCB</span> <span class="keyword">-&gt;</span> {
         <span class="localvar">purchaseCB</span>.setupSelect_Product();
         <span class="localvar">purchaseCB</span>.query().addOrderBy_PurchaseDatetime_desc();
     }).<span class="point">withNestedList</span>(<span class="localvar">purchaseLoader</span> <span class="keyword">-&gt;</span> { <span class="comment">// "loader" と名前がかぶらないように</span>
