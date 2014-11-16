@@ -90,8 +90,8 @@ cb.query().setMemberName_Equal(<span class="literal">"Stojkovic"</span>);
 Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 </code></pre>
 	<p>
-		もし、開発中にDB変更が発生して、会員テーブルの会員名称のカラム名が "MEMBER_NAME" から、"MEM_NAME"
-		に変わったとしたらどうしましょう？真っ先にやらなければならないのは、プログラムへの影響範囲の特定です。古い "MEMBER_NAME"
+		もし、開発中にDB変更が発生して、会員テーブルの会員名称のカラム名が "MEMBER_NAME" から、"LAST_NAME" と "FIRST_NAME"
+		に分割されるとしたらどうしましょう？真っ先にやらなければならないのは、プログラムへの影響範囲の特定です。古い "MEMBER_NAME"
 		というカラム名に依存している箇所を見つけて、新しい名前に直す必要があります。それが一つでも抜けてしまったら、"DB変更によるデグレ"
 		となってしまいます。この影響範囲の特定が、実はかなり骨の折れる作業であり、また、マネジメント的にも予期せぬ工数になりがちです。
 	</p>
@@ -113,9 +113,9 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 	</p>
 <pre><span class="codetitle">e.g. 再自動生成した後に新しいカラムを利用するように修正 {MEMBER, MEM_NAME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().<span class="point">setMemName_Equal</span>(<span class="literal">"Stojkovic"</span>);
+cb.query().<span class="point">setLastName_Equal</span>(<span class="literal">"Stojkovic"</span>);
 Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
-<span class="abbreviation">...</span> = member.<span class="point">getMemName()</span>;
+<span class="abbreviation">...</span> = member.<span class="point">getLastName()</span>;
 </code></pre>
 	<h3>外だしSQLでもDB変更に強い</h3>
 	<p>
@@ -137,7 +137,7 @@ Member member = <span class="attribute">memberBhv</span>.selectEntity(cb);
 </code></pre>
 <pre><span class="codetitle">e.g. 古いカラムを直して、再実行(実行エラーなし) {MEMBER, MEM_NAME} @OutsideSql</span><code>
 <span class="keyword">select</span> member.MEMBER_ID
-     , member.<span class="point">MEM_NAME</span> <span class="comment">-- OK</span>
+     , member.<span class="point">LAST_NAME</span> <span class="comment">-- OK</span>
   <span class="keyword">from</span> MEMBER member
  <span class="keyword">where</span> member.BIRTHDATE = <span class="comment">/*pmb.birthdate*/</span><span class="literal">'1960-04-12'</span>
 </code></pre>
@@ -154,7 +154,7 @@ List&lt;SimpleMember&gt; memberList = memberBhv.outsideSql().selectList(...);
 <pre><span class="codetitle">e.g. 外だしSQLの結果を利用しているプログラム(新しいカラム) {MEMBER, MEM_NAME} @Java</span><code>
 List&lt;SimpleMember&gt; memberList = memberBhv.outsideSql().selectList(...);
 <span class="keyword">for</span> (SimpleMember member : memberList) {
-    <span class="abbreviation">...</span> = member.<span class="point">getMemName()</span>;
+    <span class="abbreviation">...</span> = member.<span class="point">getLastName()</span>;
 }
 </code></pre>
 	<div class="inucolumn">
