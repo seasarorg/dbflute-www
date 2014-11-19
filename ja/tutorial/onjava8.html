@@ -78,6 +78,12 @@
 				<li><a href="#intellij">IntelliJ IDEA なら</a></li>
 			</ul>
 		</li>
+		<li><a href="#naming">たかが変数名、されど変数名</a>
+			<ul>
+				<li><a href="#recommendedrule">推奨される命名ルール</a></li>
+				<li><a href="#ruledexample">推奨ルールでの実装Example</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="policy">ポリシー、七か条</h2>
@@ -713,6 +719,64 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 	<p>
 		TODO jflute まだ、研究中です...
 	</p>
+
+	<h2 id="naming">たかが変数名、されど変数名</h2>
+	<p>
+		Lambdaを使うとスッキリする分、型宣言がなくなるため、名前がより重要になります。
+	</p>
+	<h3 id="recommendedrule">推奨される命名ルール</h3>
+	<p>
+		DBFluteとしては、以下のようなルールで名前を付けることを推奨しています。
+		みんなが同じようなルールで命名すれば、プログラムの可読性は圧倒的に高くなるはずです。
+	</p>
+	<dl class="keymainlist">
+		<dt>基点テーブルのCB</dt><dd>cb で OK</dd>
+		<dt>ExistsReferrer</dt><dd>[entity名]CB: <em class="keyword">独立した世界のCBなら、テーブルを識別しやすく</em></dd>
+		<dt>DerivedReferrer</dt><dd>[entity名]CB: 上に同じ</dd>
+		<dt>LoadReferrer</dt><dd>[entity名]CB: 上に同じ <span class="freecomment">※Loaderは [entity名]Loader</span></dd>
+		<dt>ScalarCondition</dt><dd>[entity名]CB: 上に同じ <span class="freecomment">※PartitionByは colCB</span></dd>
+		<dt>OrScopeQuery</dt><dd>orCB: <em class="keyword">一時的な役割を担うCBなら、役割prefixを</em></dd>
+		<dt>ColumnQuery</dt><dd>colCB: 上に同じ <span class="freecomment">※その他、カラムだけを指定するものはこれと同じ</span></dd>
+		<dt>UnionQuery</dt><dd>unionCB: 上に同じ</dd>
+		<dt>Option系</dt><dd>op: もうお約束で <span class="freecomment">※名前がバッティングするときは、アドリブで短い役割名を</span></dd>
+		<dt>alwaysPresent()など</dt><dd>[entity名]: Entity名のイメージ (わかれば短くしてもOK)</dd>
+		<dt>その他いろいろ</dt><dd>これらを踏まえて、応用していい感じの名前を</dd>
+	</dl>
+	<h3 id="ruledexample">推奨ルールでの実装Example</h3>
+<pre><span class="codetitle">e.g. 色々な絞り込み条件で会員をリスト検索 (関連テーブルもいろいろと) @Java8</span><code>
+ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="point">cb</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">cb</span>.setupSelect_MemberStatus();
+    <span class="localvar">cb</span>.setupSelect_MemberServiceAsOne().withServiceRank();
+
+    <span class="comment">// LikeSearchOptionだって、Lambdaコールバック</span>
+    <span class="localvar">cb</span>.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="point">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.likePrefix());
+    <span class="localvar">cb</span>.query().setMemberStatusCode_Equal_Formalized();
+
+    <span class="localvar">cb</span>.query().existsPurchase(<span class="point">purchaseCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">purchaseCB</span>.query().setPurchasePrice_GreaterEqual(<span class="literal">200</span>);
+        <span class="localvar">purchaseCB</span>.query().setPaymentCompleteFlg_Equal_True();
+    });
+
+    <span class="localvar">cb</span>.query().addOrderBy_Birthdate_Desc().withNullsLast();
+    <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
+}); <span class="comment">// そのまま回すだけなら、ここから forEach() や stream() しちゃってもOK</span>
+
+memberList.forEach(<span class="point">member</span> <span class="keyword">-&gt;</span> { <span class="comment">// でもまあ、とりあえず変数に受け取ってから回してみる</span>
+    Integer memberId = <span class="localvar">member</span>.getMemberId();
+    String memberName = <span class="localvar">member</span>.getMemberName();
+    <span class="abbreviation">...</span>
+
+    <span class="comment">// 関連テーブルの Entity も OptionalEntity (カージナリティを見てメソッド選ぶべし)</span>
+    <span class="localvar">member</span>.getMemberStatus().alwaysPresent(<span class="point">status</span> <span class="keyword">-&gt;</span> {
+        String statusName = <span class="localvar">status</span>.getMemberStatusName();
+        <span class="abbreviation">...</span>
+    });
+    <span class="localvar">member</span>.getMemberWithdrawalAsOne().ifPresent(<span class="point">withdrawal</span> <span class="keyword">-&gt;</span> {
+        LocalDateTime withdrawalDatetime = <span class="localvar">withdrawal</span>.getWithdrawalDatetime();
+        <span class="abbreviation">...</span>
+    });
+});
+</code></pre>
 
 </div>
 </div>
