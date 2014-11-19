@@ -80,7 +80,7 @@
 		</li>
 		<li><a href="#naming">たかが変数名、されど変数名</a>
 			<ul>
-				<li><a href="#recommendedrule">推奨される命名ルール</a></li>
+				<li><a href="#recommendedrule">命名の推奨ルール</a></li>
 				<li><a href="#ruledexample">推奨ルールでの実装Example</a></li>
 			</ul>
 		</li>
@@ -722,9 +722,9 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 
 	<h2 id="naming">たかが変数名、されど変数名</h2>
 	<p>
-		Lambdaを使うとスッキリする分、型宣言がなくなるため、名前がより重要になります。
+		Lambdaを使うとスッキリする分、型宣言がなくなるため、<em class="keyword">名前がより重要</em> になります。
 	</p>
-	<h3 id="recommendedrule">推奨される命名ルール</h3>
+	<h3 id="recommendedrule">命名の推奨ルール</h3>
 	<p>
 		DBFluteとしては、以下のようなルールで名前を付けることを推奨しています。
 		みんなが同じようなルールで命名すれば、プログラムの可読性は圧倒的に高くなるはずです。
@@ -744,11 +744,15 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 	</dl>
 	<h3 id="ruledexample">推奨ルールでの実装Example</h3>
 <pre><span class="codetitle">e.g. 色々な絞り込み条件で会員をリスト検索 (関連テーブルもいろいろと) @Java8</span><code>
-ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="point">cb</span> <span class="keyword">-&gt;</span> {
+ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(<span class="point">cb</span> <span class="keyword">-&gt;</span> {
     <span class="localvar">cb</span>.setupSelect_MemberStatus();
     <span class="localvar">cb</span>.setupSelect_MemberServiceAsOne().withServiceRank();
 
-    <span class="comment">// LikeSearchOptionだって、Lambdaコールバック</span>
+    <span class="localvar">cb</span>.specify().derivedMemberLogin().max(<span class="point">loginCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">loginCB</span>.specify().setLoginDatetime();
+        <span class="localvar">loginCB</span>.query().setMobileLoginFlg_Equal_False();
+    }, <span class="literal">"$latestLoginDatetime"</span>);
+
     <span class="localvar">cb</span>.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="point">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.likePrefix());
     <span class="localvar">cb</span>.query().setMemberStatusCode_Equal_Formalized();
 
@@ -757,16 +761,40 @@ ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</spa
         <span class="localvar">purchaseCB</span>.query().setPaymentCompleteFlg_Equal_True();
     });
 
+    <span class="localvar">cb</span>.orScopeQuery(<span class="point">orCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">orCB</span>.query().setBirthdate_IsNull(<span class="literal">200</span>);
+        <span class="localvar">orCB</span>.query().setMemberId_GreaterEqual(<span class="literal">3</span>);
+    });
+
+    <span class="localvar">cb</span>.columnQuery(<span class="point">colCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">colCB</span>.specify().setBirthdate();
+    }).lessThan(<span class="point">colCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">colCB</span>.specify().setFormalizedDatetime();
+    }).convert(<span class="point">op</span> <span class="keyword">-&gt;</span> <span class="localvar">op</span>.addDay(<span class="literal">7</span>));
+
     <span class="localvar">cb</span>.query().addOrderBy_Birthdate_Desc().withNullsLast();
     <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
-}); <span class="comment">// そのまま回すだけなら、ここから forEach() や stream() しちゃってもOK</span>
+});
 
-memberList.forEach(<span class="point">member</span> <span class="keyword">-&gt;</span> { <span class="comment">// でもまあ、とりあえず変数に受け取ってから回してみる</span>
+<span class="attribute">memberBhv</span>.load(<span class="localvar">memberList</span>, <span class="point">memberLoader</span> <span class="keyword">-&gt;</span> {
+    <span class="localvar">memberLoader</span>.loadPurchase(<span class="point">purchaseCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">purchaseCB</span>.query().setPurchasePrice_GreaterEqual(200);
+        <span class="localvar">purchaseCB</span>.query().addOrderBy_PurchaseDatetime_Desc();
+    }).withNestedReferrer(<span class="point">purchaseLoader</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">purchaseLoader</span>.loadPayment(<span class="point">paymentCB</span> <span class="keyword">-&gt;</span> {
+            <span class="localvar">paymentCB</span>.query().addOrderBy_PaymentDatetime_Desc();
+        });
+    });
+    <span class="localvar">memberLoader</span>.pulloutMemberStatus().loadMemberLogin(<span class="point">loingCB</span> <span class="keyword">-&gt;</span> {
+        <span class="localvar">loginCB</span>.query().addOrderBy_LoginDatetime_Desc();
+    });
+});
+
+<span class="localvar">memberList</span>.forEach(<span class="point">member</span> <span class="keyword">-&gt;</span> {
     Integer memberId = <span class="localvar">member</span>.getMemberId();
     String memberName = <span class="localvar">member</span>.getMemberName();
     <span class="abbreviation">...</span>
 
-    <span class="comment">// 関連テーブルの Entity も OptionalEntity (カージナリティを見てメソッド選ぶべし)</span>
     <span class="localvar">member</span>.getMemberStatus().alwaysPresent(<span class="point">status</span> <span class="keyword">-&gt;</span> {
         String statusName = <span class="localvar">status</span>.getMemberStatusName();
         <span class="abbreviation">...</span>
