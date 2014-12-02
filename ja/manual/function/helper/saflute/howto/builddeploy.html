@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,SAStruts,SAFlute,Maihama,Dockside" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>SAFluteでビルドデプロイするやり方 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html"><img src="../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html"><img src="../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html"><img src="../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html"><img src="../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html"><img src="../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html"><img src="../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html"><img src="../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>SAFluteでビルドデプロイするやり方</h1>
+	<p>
+		SAFluteにおけるビルドデプロイのやり方です。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./index.html"> -->SAFlute<!-- </a> --></span></div>
+	<ul class="indexlist">
+		<li><a href="#mavenwar">Mavenでwarファイル作成</a>
+			<ul>
+				<li><a href="#mvnpackage">installとpackageの順序</a></li>
+				<li><a href="#mvnprofile">環境ごとに切り替えデプロイ</a></li>
+			</ul>
+		</li>
+		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
+			<ul>
+				<li><a href="#addprofile">1. pom.xml にて profile を追加</a></li>
+				<li><a href="#addpropertieshtml">2. propertiesHtmlMap にて env を追加</a></li>
+				<li><a href="#addresources">3. src/sea/resources を追加</a></li>
+				<li><a href="#addproperties">4. resources にその他環境依存設定ファイルを追加</a></li>
+				<li><a href="#addoriginal">5. resources にその他環境依存設定ファイルを追加</a></li>
+				<li><a href="#addreplaceschema">6. ReplaceSchemaの環境設定を追加</a></li>
+			</ul>
+		</li>
+		<li><a href="#newwebproj">新しいWebプロジェクトつくる</a></li>
+	</ul>
+
+	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
+	<h3 id="mvnpackage">installとpackageの順序</h3>
+	<p>
+		継承や依存などの Maven の構成を把握していることを前提として...
+	</p>
+	<div class="relatedpage"><a href="../projstructure.html#maven">SAFluteのプロジェクト構成 - Mavenの構成</a></div>
+	<p>
+		依存の順序通りに maven を実行していきます。
+	</p>
+	<ol>
+		<li>saflute で mvn -e install</li>
+		<li>xxx-base で mvn -e install</li>
+		<li>xxx-common で mvn -e install <span class="freecomment">(profileの切り替えが必要なら -P オプション)</span></li>
+		<li>xxx-dockside で mvn -e package <span class="freecomment">(profileの切り替えが必要なら -P オプション)</span></li>
+	</ol>
+	<h3 id="mvnprofile">環境ごとに切り替えデプロイ</h3>
+	<p>
+		環境切り替え設定などの構成を把握していることを前提として...
+	</p>
+	<div class="relatedpage"><a href="../projstructure.html#envswitch">SAFluteのプロジェクト構成 - 環境切り替えの構成</a></div>
+	<p>
+		環境ごとに設定を切り替え場合は、commonとwebプロジェクトにて、profileを指定します。
+	</p>
+<pre><span class="codetitle">e.g. 結合環境(integration)用のcommonプロジェクトをビルド @Command</span><code>
+mvn -e install <span class="point">-P integration</span>
+</code></pre>
+<pre><span class="codetitle">e.g. 結合環境(integration)用のwebプロジェクトをビルド @Command</span><code>
+mvn -e package <span class="point">-P integration</span>
+</code></pre>
+	<p>
+		すると、warファイルの中の xxx_env.properties などが指定された環境のものになっています。
+	</p>
+	<p>
+		<span class="freecomment">※一方で、環境情報をwarに含めたくない場合は、propertiesの扱い方を工夫する必要があるでしょう</span>
+	</p>
+	
+	<h2 id="newdeployenv">新しいデプロイ環境をつくる</h2>
+	<p>
+		新しいデプロイ環境 (profile) をつくる場合は、いくつかの設定ファイルを修正していく必要があります。
+	</p>
+	<p>
+		まずは、Mavenの構成、および、環境切り替えの構成を把握していることを前提として...
+	</p>
+	<div class="relatedpage"><a href="../projstructure.html#maven">Mavenの構成</a></div>
+	<div class="relatedpage"><a href="../projstructure.html#envswitch">環境切り替えの構成</a></div>
+	<p>
+		例えば、sea という名前の環境を新たに作るとします。
+	</p>
+	<h3 id="addprofile">1. pom.xml にて profile を追加</h3>
+	<p>
+		common, webプロジェクトの pom.xml の profile で新しい環境の設定を追加します。
+	</p>
+	<p>
+		<span class="freecomment">※profileの設定場所を変更している場合は、そちらを修正</span>
+	</p>
+	<h3 id="addpropertieshtml">2. propertiesHtmlMap にて env を追加</h3>
+	<p>
+		documentDefinitionMap.dfprop の propertiesHtmlMap のそれぞれの environmentMap
+		にて、新しい環境の設定を追加します。<span class="freecomment">(PropertiesHTMLで比較ができるようにするため)</span>
+	</p>
+	<h3 id="addresources">3. src/sea/resources を追加</h3>
+	<p>
+		common, webプロジェクトの src/sea/resources フォルダを作成します。
+	</p>
+	<h3 id="addproperties">4. resources にその他環境依存設定ファイルを追加</h3>
+	<p>
+		独自に作ったばかりの src/なんとか/resources フォルダに xxx_env.properties
+		を追加します。別の環境の xxx_env.properties をコピーして作るとよいです。
+		が、修正漏れだけには厳重注意しましょう。
+	</p>
+	<p>
+		プロパティ値だけでなく、コメントの中も新しい環境に合わせましょう。<span class="freecomment">(環境名とか書いてあるかも)</span>
+	</p>
+	<h3 id="addoriginal">5. resources にその他環境依存設定ファイルを追加</h3>
+	<p>
+		もし、アプリで環境依存設定ファイルを作っていれば、それを作成します。
+	</p>
+	<h3 id="addreplaceschema">6. ReplaceSchemaの環境設定を追加</h3>
+	<p>
+		これは、もし新しい環境のDBを ReplaceSchema 管理するときだけです。
+	</p>
+	<p>
+		ReplaceSchemaの環境切り替えの構成について把握していることを前提として...
+	</p>
+	<div class="relatedpage"><a href="../projstructure.html#envreps">ReplaceSchemaの環境切り替え</a></div>
+	<ol>
+		<li>DBFluteクライアント/dfprop/sea フォルダを作成</li>
+		<li>そこに、databaseInfoMap+.dfprop と replaceSchemaDefinitionMap+.dfprop を作成</li>
+		<li>databaseInfoMap+.dfprop の設定</li>
+		<li>replaceSchemaDefinitionMap+.dfprop の設定</li>
+		<li>DBFluteクライアント/_sea_replace-schema.sh を作成 (環境変数をseaに)</li>
+	</ol>
+	<p>
+		_sea_replace-schema.sh を叩けば、sea環境用の設定で ReplaceSchema できるようになります。
+	</p>
+
+	<h2 id="newwebproj">新しいWebプロジェクトつくる</h2>
+	<p>
+		TODO jflute
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../"><img src="../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/module/index.html">DBFluteモジュール</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/manage/index.html">Manage</a></li>
+				<li><a href="../../../../../../ja/manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/function/helper/emecha/index.html">EMecha (Eclipse Plugin)</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/intro/index.html">DBFlute Intro</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/saflute/index.html">SAFlute</a></li>
+				<li><a href="../../../../../../ja/manual/function/helper/utflute/index.html">UTFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
