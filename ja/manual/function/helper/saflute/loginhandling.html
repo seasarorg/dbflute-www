@@ -51,7 +51,12 @@
 		</li>
 		<li><a href="#loginaction">ログインのAction</a></li>
 		<li><a href="#godhandbefore">ログインチェック</a></li>
-		<li><a href="#loginlogic">ログインのLogic</a></li>
+		<li><a href="#loginlogic">ログインのLogic</a>
+			<ul>
+				<li><a href="#logichierarchy">Logicクラスの階層構造</a></li>
+				<li><a href="#logicmethod">Logicクラスのメソッド</a></li>
+			</ul>
+		</li>
 		<li><a href="#auth">権限チェックの実装</a>
 			<ul>
 				<li><a href="#authextpoint">拡張ポイントが用意されている</a></li>
@@ -153,6 +158,53 @@
 	</p>
 
 	<h2 id="loginlogic">ログインのLogic</h2>
+	<p>
+		ログインのAction や ActionCallback でのログインチェックから呼び出される、ログインの Logic
+		が存在します。こちらに、認証処理やセッションの設定、クッリーの設定、ログイン履歴など、ログインに必要な処理が詰め込まれています。
+	</p>
+	<h3 id="logichierarchy">Logicクラスの階層構造</h3>
+	<p>
+		それぞれのWebプロジェクトに LoginLogic があり、例えば Maihama プロジェクトの Dockside
+		Webアプリであれば、DocksideLoginLogic となります。
+	</p>
+<pre><span class="codetitle">e.g. LoginLogic の階層構造、Maihamaプロジェクトなら @Structure</span><code>
+LoginManager <span class="comment">// フレームワーク用インターフェース</span>
+ |-TypicalLoginBaseLogic <span class="comment">// フレームワーク提供の典型的なベースクラス</span>
+    |-MaihamaLoginBaseLogic <span class="comment">// プロジェクト共通のベースクラス</span>
+       |-<span class="point">DocksideLoginLogic</span> <span class="comment">// Webプロジェクトのロジッククラス (スマートデプロイ対象)</span>
+</code></pre>
+	<p>
+		SAFluteが提供する TypicalLoginBaseLogic に、おおよそのロジックが組み込まれていて、それぞれのプロジェクトにフィットさせる部分を、
+		サブクラスで実装していくような形です。
+	</p>
+	<p>
+		なので、DocksideLoginLogic にはあまりロジックはたくさんありません。
+		どのテーブルにアクセスするのか？どこに履歴を残すのか？など、ピンポイントで必要な情報をスーパークラスに渡してあげるだけになります。
+		もちろん、とある処理だけをオーバーライドして独自の挙動にすることもできます(権限チェックなどはそのように)。
+	</p>
+	<h3 id="logicmethod">Logicクラスのメソッド</h3>
+	<p>
+		大きくは以下の二つ：
+	</p>
+	<dl class="keymainlist">
+		<dt>login()</dt><dd>ログイン処理を行う (ログインのActionから呼ばれる想定)</dd>
+		<dt>checkLoginRequired()</dt><dd>ログイン必須チェックを行う (ActionCallbackから呼ばれる想定)</dd>
+	</dl>
+	<p>
+		実際には、引数が違うだけのオーバーロードのメソッドや、多種多様なログイン処理を行うメソッド、
+		ログイン処理やチェック処理の一部だけを行う部品的なメソッドなどがあります。
+	</p>
+	<p>
+		メソッドの一覧が見たければ、LoginManager のソースを読むとよいでしょう。
+	</p>
+	<p>
+		詳しい処理に関しては、TypicalLoginBaseLogic を読んでみましょう。
+	</p>
+	<p>
+		厳密には、TypicalLoginBaseLogic を使わなければならないわけではありません。基本的に Typical
+		と付いているものは、もし現場にフィットするなら使ってみてください、というニュアンスのものです。
+		ですが、多くの処理をオーバーライドなどで拡張できるようにしているので、よほど特殊でなければフィットさせることができるのではないかと想定しています。
+	</p>
 
 	<h2 id="auth">権限チェックの実装</h2>
 	<h3 id="authextpoint">拡張ポイントが用意されている</h3>
@@ -190,6 +242,7 @@
 	</p>
 <pre><span class="codetitle">e.g. processAuthority()のそのままのコード @Java</span><code>
 <span class="comment">/** {@inheritDoc} */</span>
+@Override
 <span class="keyword">protected</span> String processAuthority(LoginHandlingResource resource, USER_BEAN userBean) {
     if (この画面で、この人が権限もっていなければ) {
         <span class="attribute">sessionManager</span>.saveErrors(DocksideMessages.ERRORS_AUTHORITY_VIOLATION);
@@ -200,7 +253,23 @@
 </code></pre>
 	<h3 id="authsettings">どの画面がどんな権限？</h3>
 	<p>
-		
+		ここは様々な方法がありますが、一例として、アノテーションに付けるやり方があります。
+	</p>
+<pre><span class="codetitle">e.g. LoginRequiredのアノテーションにロールを指定 @Java</span><code>
+<span class="subpoint">@DocksideLoginRequired</span>({ <span class="point">CDef.OperationRole.Sea</span>, <span class="point">CDef.OperationRole.Land</span> })
+@Execute(validator = <span class="keyword">false</span>, urlPattern = "{ikspiari}")
+<span class="keyword">public</span> String index() {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		ロールはテーブル区分値として定義しておきます。自動生成された CDef をアノテーションで指定できるようにして、
+		processAuthority()の中でそのアノテーションの値を取得して、ログインユーザーのロールと照らし合わせてアクセス可能かどうかを判定します。
+	</p>
+	<p>
+		必ずこのやり方である必要はありません。データベースに画面と必要なロールを紐づけるテーブルを作ってもよいでしょう。
+		ただ、画面が増えたときにそのテーブルのデータもメンテナンスしてあげないといけないので、アノテーションであればプログラム作成時に自然と権限が付与されるので、
+		定義し忘れのトラブルは少ないでしょう。
 	</p>
 
 </div>
