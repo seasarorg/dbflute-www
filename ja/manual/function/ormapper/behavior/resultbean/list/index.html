@@ -50,8 +50,9 @@
 		<li><a href="#property">プロパティ</a></li>
 		<li><a href="#method">メソッド</a>
 			<ul>
-				<li><a href="#grouping">グルーピング</a></li>
-				<li><a href="#mapping">マッピング</a></li>
+				<li><a href="#groupinglist">グルーピングMap</a></li>
+				<li><a href="#groupingmap">グルーピングMap</a></li>
+				<li><a href="#mappinglist">マッピングList</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -100,7 +101,7 @@
 	</p>
 
 	<h2 id="method">メソッド</h2>
-	<h3 id="grouping">グルーピング</h3>
+	<h3 id="groupinglist">グルーピングMap</h3>
 	<p>
 		例えば、リストの中身が <em class="keyword">{A, B, C, D, E, F, G, H, I, J}</em>
 		とあった場合に、<em class="keyword">{[A, B, C], [D, E, F], [G, H, I], [J]}</em>
@@ -108,40 +109,49 @@
 		ListResultBeanのメソッドを使ってこれを実現できます。
 	</p>
 	<p>
-		ListResultBeanの <em class="keyword">groupingList(groupingRowSetupper, groupingOption)</em>
-		を利用します。groupingRowSetupper にて、一つのグループの row を作成するコールバックを指定して、groupingOption
-		にて、グルーピングの規則などのオプション情報を指定します。
+		ListResultBeanの <em class="keyword">groupingList(GroupingListDeterminer)</em>
+		を利用します。GroupingListDeterminer にて、一つのグループを区切る判定をします。
 	</p>
 <pre><span class="codetitle">e.g. 3 件ずつでグルーピング(row の型は ArrayList) @Java</span><code>
 ListResultBean&lt;Member> memberList = <span class="attribute">memberBhv</span>.selectList(cb);
 
-GroupingOption&lt;Member&gt; groupingOption = <span class="keyword">new</span> GroupingOption&lt;Member&gt;(<span class="literal">3</span>);
-List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingRowSetupper&lt;List&lt;Member&gt, Member&gt() {
-    <span class="keyword">public</span> List&lt;Member> setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
-        <span class="keyword">return new</span> ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
+List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingListDeterminer&lt;Member&gt() {
+    <span class="keyword">int</span> count = 0;
+    <span class="keyword">public boolean</span> isBreakRow(GroupingListRowResource&lt;Member&gt; rowResource, Member nextEntity) {
+        ++count;
+        <span class="keyword">return</span> count % 3 == 0;
     }
-}, groupingOption);
+});
 </code></pre>
 <pre><span class="codetitle">e.g. 会員名称の先頭文字でグルーピング(row の型は ArrayList) @Java</span><code>
 ListResultBean&lt;Member> memberList = <span class="attribute">memberBhv</span>.selectList(cb);
 
-GroupingOption&lt;Member&gt; groupingOption = <span class="keyword">new</span> GroupingOption&lt;Member&gt;();
-groupingOption.setGroupingRowEndDeterminer(new GroupingRowEndDeterminer&lt;Member&gt;() {
-    <span class="keyword">public boolean</span> determine(GroupingRowResource&lt;Member&gt; rowResource, Member nextEntity) {
+List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingListDeterminer&lt;Member&gt() {
+    <span class="keyword">public boolean</span> isBreakRow(GroupingListRowResource&lt;Member&gt; rowResource, Member nextEntity) {
         Member currentEntity = rowResource.getCurrentEntity();
         String currentInitChar = currentEntity.getMemberName().substring(0, 1);
         String nextInitChar = nextEntity.getMemberName().substring(0, 1);
         <span class="keyword">return</span> !currentInitChar.equalsIgnoreCase(nextInitChar);
     }
 });
-List&lt;List&lt;Member&gt;&gt; groupingList = memberList.<span class="point">groupingList</span>(<span class="keyword">new</span> GroupingRowSetupper&lt;List&lt;Member&gt, Member&gt() {
-    <span class="keyword">public</span> List&lt;Member> setup(GroupingRowResource&lt;Member&gt; groupingRowResource) {
-        <span class="keyword">return new</span> ArrayList&lt;Member&gt;(groupingRowResource.getGroupingRowList());
-    }
-}, groupingOption);
 </code></pre>
-	<h3 id="mapping">マッピング</h3>
-<p>TODO jflute now writing</p>
+	<h3 id="groupingmap">グルーピングMap</h3>
+	<p>
+		とあるキーでグルーピングする Map を戻す
+		<em class="keyword">groupingMap(GroupingMapDeterminer)</em>
+		もあります。例えば、会員リストを、会員ステータスコードをキーにしたMapに分割することができます。
+	</p>
+<pre><span class="codetitle">e.g. 会員ステータスコードでグルーピング @Java</span><code>
+ListResultBean&lt;Member> memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+
+Map&lt;String, List&lt;Member&gt;&gt; groupingMap = memberList.<span class="point">groupingMap</span>(<span class="keyword">new</span> GroupingMapDeterminer&lt;Member&gt() {
+    <span class="keyword">public</span> String provideKey(Member entity) {
+        <span class="keyword">return</span> entity.getMemberStatusCode();
+    }
+});
+</code></pre>
+	<h3 id="mappinglist">マッピングList</h3>
+	<p>TODO jflute now writing</p>
 
 </div>
 </div>
