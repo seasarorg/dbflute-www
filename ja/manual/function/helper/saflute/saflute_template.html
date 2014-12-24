@@ -84,6 +84,12 @@
 				<li><a href="#freegen">FreeGenを実行してみましょう</a></li>
 			</ul>
 		</li>
+		<li><a href="#letsboot">画面を起動してみましょう</a>
+			<ul>
+				<li><a href="#jetty">Run Jetty Run で起動</a></li>
+				<li><a href="#firstlogin">ログイン画面を表示してみましょう</a></li>
+			</ul>
+		</li>
 		<li><a href="#letsdbflute">DB設計して、自分用で再自動生成</a>
 			<ul>
 				<li><a href="#ermasterbinstall">ERMaster-b をインストール</a></li>
@@ -96,7 +102,8 @@
 		</li>
 		<li><a href="#welcome">そして、SAFluteの世界へ</a>
 			<ul>
-				<li><a href="#secretkey">秘密鍵を設定</a></li>
+				<li><a href="#secretkey">秘密鍵をどうにか</a></li>
+				<li><a href="#loginpassword">ログインパスワードの暗号化</a></li>
 				<li><a href="#multilang">他言語対応しますか？</a></li>
 			</ul>
 		</li>
@@ -352,7 +359,30 @@
 		<span class="freecomment">(ここでは既存のConfigクラスやMessagesクラスが上書きされるだけ)</span>
 	</p>
 
+	<h2 id="letsboot">画面を起動してみましょう</h2>
+	<h3 id="jetty">Run Jetty Run で起動</h3>
+	<p>
+		Eclipse の Run Jetty Run の設定をして、Webプロジェクトを起動してしてみましょう。
+		<span class="freecomment">(Run Jetty Run がインストールされてなければ、Eclipse Marketplace からインストール)</span>
+	</p>
+	<p>
+		Webプロジェクトを右クリックして、Run As - Run Jetty で起動できます。
+		デフォルトでは8080で起動するかと思います。Run Configurationで細かくカスタマイズできます。
+		ただし、コンテキストパスは jetty-web.xml にて設定されています。<span class="freecomment">(後で好きなようにカスタマイズしてOK)</span>
+	</p>
+	<h3 id="firstlogin">ログイン画面を表示してみましょう</h3>
+	<p>
+		/[context-path]/login/ でログイン画面にアクセスすることができます。
+		placeholderに表示されている通りのパスワードでログインできます。ログイン後に会員一覧画面を動かすことができるはずです。
+	</p>
+	<p>
+		参考実装としてMaihamaプロジェクトと同じ画面が組み込まれています。<span class="freecomment">(後で削除してもOK)</span>
+	</p>
+
 	<h2 id="letsdbflute">DB設計して、自分用で再自動生成</h2>
+	<p>
+		さて、ここから、自分用にどんどんカスタマイズしていきます。まずは、DB設計。
+	</p>
 	<h3 id="ermasterbinstall">ERMaster-b をインストール</h3>
 	<p>
 		maihama-base の environment/eclipse/dropins の中の ERMaster-b.zip
@@ -370,6 +400,7 @@
 	<p>
 		baseプロジェクトの document/erd/xxxdb.erm を ERMaster-b
 		で開くと、Maimahaプロジェクトのテーブルが存在しています。自分のプロジェクト用に修正しましょう。
+		<span class="freecomment">(がっつり削除してもいいでしょうし、土台にして修正していってもいいでしょう)</span>
 	</p>
 	<p>
 		※ermファイルが開けない場合は、ERMaster-b のインストールに失敗しています。
@@ -399,16 +430,18 @@
 		Manageタスクの renewal (1番) を実行します。
 	</p>
 	<p>
-		Manageタスクが失敗している場合は、それ以前に設定か何か環境がおかしいです。
-		DBFluteのログをみて直していきましょう。<span class="freecomment">(dfpropを直し忘れてないですか？)</span>
+		Maihamaの会員テーブルたちを削除しているときは、DBFlute の dfprop
+		から削除されたテーブルの設定を消されないとDBFluteタスクが落ちます。主に、classificationDefinitionMap.dfprop や
+		additionalForeignKeyMap.dfprop たちです。エラー内容を見て適宜消していってください。
+	</p>
+	<p>
+		それでもなお Manage タスクが失敗している場合は、それ以前に設定か何か環境がおかしいです。
+		DBFluteのログをみて直していきましょう。
 	</p>
 	<h3 id="adjust">いい感じに修正していきましょう</h3>
 	<p>
-		リニューアルが成功すれば、Exampleとして存在している既存の会員一覧画面のクラスなどがコンパイルエラーになるかと思います。
+		Maihamaのテーブルを削除した後にリニューアルすると、Exampleとして用意されている会員一覧画面のクラスなどがコンパイルエラーになります。
 		ここからは、もう自分の世界ですので、いい感じに修正していきましょう。
-	</p>
-	<p>
-		<span class="freecomment">※会員一覧画面はすっきり削除してしまってもいいか。ログインのロジックは、適切に直していきましょう。</span>
 	</p>
 
 	<h2 id="welcome">そして、SAFluteの世界へ</h2>
@@ -418,9 +451,16 @@
 	<p>
 		とりあえずは...
 	</p>
-	<h3 id="secretkey">秘密鍵を設定</h3>
+	<h3 id="secretkey">秘密鍵をどうにか</h3>
 	<p>
-		秘密鍵を設定しましょう。TODOコメントを探しましょう。
+		秘密鍵を設定しましょう。TODOコメントを探してください。<span class="freecomment">(Eclipseであれば、Tasksビューで探せます)</span>
+	</p>
+	<p>
+		いますぐでなくてもOKですが、管理方法などアプリで独自にカスタマイズしましょう。
+	</p>
+	<h3 id="loginpassword">ログインパスワードの暗号化</h3>
+	<p>
+		仮の実装になっています。OneWayCryptoLogicをアプリに合わせた形でカスタマイズしましょう。
 	</p>
 	<h3 id="multilang">他言語対応しますか？</h3>
 	<p>
