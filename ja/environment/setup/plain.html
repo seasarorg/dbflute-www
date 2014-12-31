@@ -47,13 +47,16 @@
 		</li>
 		<li><a href="#procedure">セットアップ手順</a>
 			<ul>
-				<li><a href="#client">DBFluteクライアントの作成(+ モジュール配置)</a></li>
-				<li><a href="#runtime">DBFluteランタイムの準備</a></li>
-				<li><a href="#driver">JDBCドライバの準備</a></li>
-				<li><a href="#property">特定環境適用プロパティ</a></li>
-				<li><a href="#generate">クラスの自動生成</a></li>
-				<li><a href="#injection">DI環境の調整</a></li>
-				<li><a href="#thenafter">その後の設定</a></li>
+				<li><a href="#engine">1. DBFluteエンジンの配置</a></li>
+				<li><a href="#client">2. DBFluteクライアントの作成</a></li>
+				<li><a href="#basicprop">3. 基本プロパティの設定</a></li>
+				<li><a href="#databaseprop">4. データベース接続プロパティの設定</a></li>
+				<li><a href="#runtime">5. DBFluteランタイムの準備</a></li>
+				<li><a href="#driver">6. JDBCドライバの準備</a></li>
+				<li><a href="#firstprop">7. 特定環境適用プロパティ</a></li>
+				<li><a href="#generate">8. クラスの自動生成</a></li>
+				<li><a href="#injection">9. DI環境の調整</a></li>
+				<li><a href="#thenafter">x. その後の設定</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -80,71 +83,64 @@
 	<div class="detailpage"><a href="../../manual/function/genbafit/projectfit/multipledb/index.html">複数DBの利用</a></div>
 
 	<h2 id="procedure">セットアップ手順</h2>
-	<h3 id="client">DBFluteクライアントの作成(+ モジュール配置)</h3>
-	<h4>DBFluteモジュールの配置</h4>
+	<h3 id="engine">1. DBFluteエンジンの配置</h3>
 	<p>
-		最新バージョンのDBFluteモジュールをダウンロードし、ZIPを解凍してプロジェクト直下の ./mydbflute/dbflute-x.x.x
+		最新バージョンのDBFluteエンジンをダウンロードし、ZIPを解凍してプロジェクト直下の ./mydbflute/dbflute-x.x.x
 		ディレクトリ配下に配置して下さい。
 	</p>
 	<div class="detailpage"><span class="working"><!-- <a href="../newest"> -->DBFluteの最新バージョン<!-- </a> --></span></div>
-<pre><span class="codetitle">e.g. foo-logicプロジェクトにDBFluteモジュール(1.0.0)を配置</span><code>
-foo-logic
+<pre><span class="codetitle">e.g. maihamaプロジェクトにDBFluteエンジン(1.1.0)を配置</span><code>
+maihama
  |-src/main/java
  |-src/main/resources
- |-Referenced Libraries
  |-...
  |-mydbflute
-    |-<span class="point">dbflute-1.0.0</span>
+    |-<span class="point">dbflute-1.1.0</span>
        |-ant
        |-...
        |-templates
        |-build-torque.xml
-       |-product-is-dbflute-1.0.0
-</code>
-</pre>
-	<h4>DBFluteクライアントの配置</h4>
+       |-product-is-dbflute-1.1.0
+</code></pre>
+	<h3 id="client">2. DBFluteクライアントの作成</h3>
 	<p>
 		配置したDBFluteモジュールの etc/client-template/dbflute_dfclient.zip
 		を解凍してプロジェクト直下に配置して下さい。
 	</p>
-<pre><span class="codetitle">e.g. foo-logicプロジェクトにDBFluteクライアントを作成</span><code>
-foo-logic
+<pre><span class="codetitle">e.g. maihamaプロジェクトにDBFluteクライアントを作成</span><code>
+maihama
  |-src/main/java
  |-...
  |-<span class="point">dbflute_dfclient</span>
     |-dfprop
     |-...
  |-mydbflute
-    |-dbflute-1.0.0
+    |-dbflute-1.1.0
 </code></pre>
-	<h4>クライアントプロジェクト名の設定</h4>
 	<p>
 		以下の箇所を任意のクライアントプロジェクト名に変更して下さい(全て同名の必要があります)。
 	</p>
 	<ul>
-		<li>dbflute_dfclientディレクトリ名の dfclient 部分</li>
-		<li>dbflute_dfclient/_project.bat(sh) の MY_PROJECT_NAME の値</li>
+		<li>dbflute_dfclient ディレクトリ名の dfclient 部分</li>
 		<li>dbflute_dfclient/build.properties の torque.project の値</li>
 	</ul>
 	<p>
-		クライアントプロジェクト名は対象とするデータベースを識別できる名前が好ましいです。もし思いつかないでのあればデフォルトの
-		dfclient のままでも構いません。
+		クライアントプロジェクト名は対象とするデータベースを識別できる名前 (例えばスキーマ名)
+		が好ましいです。もし思いつかないでのあればデフォルトの dfclient のままでも構いません。
 	</p>
-<pre><span class="codetitle">e.g. クライアントプロジェクト名を foodb に</span><code>
-foo-logic
+<pre><span class="codetitle">e.g. クライアントプロジェクト名を maihamadb に</span><code>
+maihama
  |-src/main/java
  |-...
- |-dbflute_foodb       <span class="comment">// ディレクトリ名を dbflute_foodb に</span>
+ |-dbflute_maihamadb       <span class="comment">// ディレクトリ名を dbflute_maihamadb に</span>
     |-dfprop
     |-...
-    |-_project.bat     <span class="comment">// MY_PROJECT_NAME の値をfoodbに</span>
-    |-_project.sh      <span class="comment">// MY_PROJECT_NAME の値をfoodbに</span>
-    |-build.properties <span class="comment">// torque.project の値をfoodbに</span>
+    |-build.properties <span class="comment">// torque.project の値をmaihamadbに</span>
     |-...
  |-mydbflute
-    |-dbflute-1.0.0
+    |-dbflute-1.1.0
 </code></pre>
-	<h4>基本プロパティの設定</h4>
+	<h3 id="basicprop">3. 基本プロパティの設定</h3>
 	<p>
 		DBFluteプロパティ basicInfoMap.dfprop を参考に以下の項目を設定して下さい。
 	</p>
@@ -154,7 +150,7 @@ foo-logic
 		<dt>targetContainer</dt><dd>DIコンテナの種類(SeasarやSpringなど)</dd>
 		<dt>packageBase</dt><dd>自動生成されるクラスの基底パッケージ</dd>
 	</dl>
-	<h4>データベース接続プロパティの設定</h4>
+	<h3 id="databaseprop">4. データベース接続プロパティの設定</h3>
 	<p>
 		DBFluteプロパティ databaseInfoMap.dfprop を参考に以下の項目を設定して下さい。
 	</p>
@@ -176,33 +172,33 @@ foo-logic
 	<dl class="compactlist">
 		<dt></dt>
 	</dl>
-	<h3 id="runtime">DBFluteランタイムの準備</h3>
+	<h3 id="runtime">5. DBFluteランタイムの準備</h3>
 	<p>
 		アプリケーションのクラスパスにDBFluteランタイム(JAR)を追加して下さい。
 	</p>
 	<div class="detailpage"><a href="./runtime.html">セットアップ - DBFluteランタイムの準備</a></div>
-	<h3 id="driver">JDBCドライバの準備</h3>
+	<h3 id="driver">6. JDBCドライバの準備</h3>
 	<p>
 		DBFluteにJDBCドライバが同梱されていないデータベースを利用する場合は、そのデータベースのJDBCドライバを配置する必要があります。
 	</p>
 	<div class="detailpage"><a href="./jdbcdriver.html">セットアップ - JDBCドライバの準備</a></div>
-	<h3 id="property">特定環境適用プロパティ</h3>
+	<h3 id="firstprop">7. 特定環境適用プロパティ</h3>
 	<p>
 		最初の自動生成の前に考慮すべき特定の環境に適用するためのプロパティを設定して下さい。
 		<span class="freecomment">(ほとんどのケースで不要であると想定され、特殊な環境でなければ、もしくは、よくわからなければとりあえずスキップでもOK)</span>
 	</p>
 	<div class="detailpage"><a href="./firstprop.html">セットアップ - 特定環境適用プロパティ</a></div>
-	<h3 id="generate">クラスの自動生成</h3>
+	<h3 id="generate">8. クラスの自動生成</h3>
 	<p>
 		それでは、自動生成をしてみましょう。
 	</p>
 	<div class="detailpage"><a href="./generate.html">セットアップ - クラスの自動生成</a></div>
-	<h3 id="injection">DI環境の調整</h3>
+	<h3 id="injection">9. DI環境の調整</h3>
 	<p>
 		アプリケーションで利用しているDIコンテナの環境にDBFluteのクラスを認識させて下さい。
 	</p>
 	<div class="detailpage"><a href="./injection.html">セットアップ - DI環境の調整</a></div>
-	<h3 id="thenafter">その後の設定</h3>
+	<h3 id="thenafter">x. その後の設定</h3>
 	<p>
 		ひとまず、アプリケーション上でDBFluteのクラスを利用することができるようになりました。
 		しかし、ディベロッパーに横展開するまでには、まだあともうちょい頑張りが必要です。

@@ -44,10 +44,15 @@
 	<div class="relatedpage"><a href="./emecha.html">EMechaによるセットアップ</a></div>
 	<ul class="indexlist">
 		<li><a href="#precondition">DIコンテナとの連携</a></li>
-		<li><a href="#seasar">Seasar(S2Container)</a></li>
-		<li><a href="#spring">Spring Framework</a></li>
+		<li><a href="#spring">Spring Framework</a>
+			<ul>
+				<li><a href="#springjavaconfig">JavaConfig <span class="freecomment">(1.1.xからデフォルト)</span></a></li>
+				<li><a href="#springxmlconfig">XmlConfig <span class="freecomment">(1.0.xのデフォルト)</span></a></li>
+			</ul>
+		</li>
 		<li><a href="#guice">Google Guice</a></li>
-		<li><a href="#lucy">T2 Lucy</a></li>
+		<li><a href="#seasar">Seasar(S2Container)</a></li>
+		<li><a href="#cdi">CDI</a></li>
 	</ul>
 
 	<h2 id="precondition">DIコンテナとの連携</h2>
@@ -55,29 +60,26 @@
 		DBFluteは、<em class="keyword">DIコンテナと連携して利用されることを前提</em>
 		としています。アプリでDIコンテナを利用しない場合でも、DBFlute内部での管理用としてDIコンテナが必要となります。
 	</p>
-	<div class="detailpage"><a href="../../manual/reference/diway/index.html#nodiapp">アプリでDIコンテナを利用しない場合</a></div>
-
-	<h2 id="seasar">Seasar(S2Container)</h2>
-	<p>
-		Genreateタスクで自動生成されるDI設定ファイル <em class="keyword">dbflute.dicon</em>
-		を、アプリケーションのDI設定ファイル(app.diconなど)でインクルードするようにして下さい。
-	</p>
-	<div class="detailpage"><a href="../../manual/reference/diway/seasar/index.html#disetting">Seasar(S2Container) - DI設定ファイル</a></div>
-<pre><span class="codetitle">e.g. app.dicon にて dbfluteBeans.xml をインクルード @app.dicon</span><code>
-&lt;components&gt;
-    &lt;include path="convention.dicon"/&gt;
-    &lt;include path="aop.dicon"/&gt;
-    <span class="point">&lt;include path="dbflute.dicon"/&gt;</span>
-    ...
-&lt;/components&gt;
-</code></pre>
+	<div class="relatedpage"><a href="../../manual/reference/diway/index.html#nodiapp">アプリでDIコンテナを利用しない場合</a></div>
 
 	<h2 id="spring">Spring Framework</h2>
+	<h3 id="springjavaconfig">JavaConfig <span class="freecomment">(1.1.xからデフォルト)</span></h3>
+	<p>
+		Genreateタスクで自動生成されるDI設定クラス <em class="keyword">DBFluteBeansJavaConfig</em>
+		を、アプリケーションでコンポーネントを初期化するときに、一緒にこのクラスを組み込みます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../manual/reference/diway/spring/index.html#diclass"> -->Spring Framework - DI設定クラス<!-- </a> --></span></div>
+	<p>
+		データソース (javax.sql.DataSource) のコンポーネントが dataSource という名前で別途登録されていることが前提です。
+		クラス名やコンポーネント名などは dependencyInjectionMap.dfprop にて微調整できます。
+	</p>
+	<div class="relatedpage"><a href="../../manual/reference/dfprop/dependencyinjection/index.html">dependencyInjectionMap.dfprop</a></div>
+	<h3 id="springxmlconfig">XmlConfig <span class="freecomment">(1.0.xのデフォルト)</span></h3>
 	<p>
 		Genreateタスクで自動生成されるDI設定ファイル <em class="keyword">dbfluteBeans.xml</em>
 		を、アプリケーションのDI設定ファイル(Beans定義)から参照するようにして下さい。
 	</p>
-	<div class="detailpage"><a href="../../manual/reference/diway/spring/index.html#disetting">Spring Framework - DI設定ファイル</a></div>
+	<div class="relatedpage"><a href="../../manual/reference/diway/spring/index.html#difile">Spring Framework - DI設定ファイル</a></div>
 <pre><span class="codetitle">e.g. beanRefContext.xml にて dbfluteBeans.dicon を参照 @app.dicon</span><code>
 &lt;beans>
     &lt;bean id="context" class="<span class="abbreviation">...</span>context.support.ClassPathXmlApplicationContext"&gt;
@@ -90,14 +92,21 @@
     &lt;/bean&gt;
 &lt;/beans&gt;
 </code></pre>
+	<p>
+		データソース (javax.sql.DataSource) のコンポーネントが dataSource という名前で別途登録されていることが前提です。
+		クラス名やコンポーネント名などは dependencyInjectionMap.dfprop にて微調整できます。
+	</p>
+	<div class="relatedpage"><a href="../../manual/reference/dfprop/dependencyinjection/index.html">dependencyInjectionMap.dfprop</a></div>
 
 	<h2 id="guice">Google Guice</h2>
 	<p>
 		Genreateタスクで自動生成されるDI設定クラス <em class="keyword">DBFluteModule</em>
-		を、アプリケーションでコンポーネントを初期化するときに、一緒にこのクラスを組み込んで下さい。
-		コンストラクタの必須パラメータとして対象となるデータソースの指定します。
+		を、アプリケーションでコンポーネントを初期化するときに、一緒にこのクラスを組み込みます。
 	</p>
-	<div class="detailpage"><a href="../../manual/reference/diway/guice/index.html#disetting">Google Guice - DI設定クラス</a></div>
+	<div class="relatedpage"><a href="../../manual/reference/diway/guice/index.html#diclass">Google Guice - DI設定クラス</a></div>
+	<p>
+		コンストラクタでデータソース (javax.sql.DataSource) の指定します。
+	</p>
 <pre><span class="codetitle">e.g. DBFluteモジュールの初期化 @Java</span><code>
 List&lt;Module&gt; moduleList = <span class="abbreviation">...</span>
 DataSource dataSource = <span class="abbreviation">...</span>
@@ -105,12 +114,32 @@ moduleList.add(<span class="point">new DBFluteModule(dataSource)</span>);
 Injector injector = Guice.createInjector(moduleList.toArray(<span class="keyword">new</span> Module[]{}));
 </code></pre>
 
-	<h2 id="lucy">T2 Lucy</h2>
+	<h2 id="seasar">Seasar(S2Container)</h2>
 	<p>
-		Genreateタスクで自動生成されるDI設定ファイル <em class="keyword">dbfluteBeans.xml</em>
-		を、アプリケーションのDI環境から参照されるようにして下さい。
+		Genreateタスクで自動生成されるDI設定ファイル <em class="keyword">dbflute.dicon</em>
+		を、アプリケーションのDI設定ファイル(app.diconなど)でインクルードするようにして下さい。
 	</p>
-	<div class="relatedpage"><a href="../../manual/reference/diway/lucy/index.html#disetting">T2 Lucy - DI設定ファイル</a></div>
+	<div class="relatedpage"><a href="../../manual/reference/diway/seasar/index.html#difile">Seasar(S2Container) - DI設定ファイル</a></div>
+<pre><span class="codetitle">e.g. app.dicon にて dbfluteBeans.xml をインクルード @app.dicon</span><code>
+&lt;components&gt;
+    &lt;include path="convention.dicon"/&gt;
+    &lt;include path="aop.dicon"/&gt;
+    <span class="point">&lt;include path="dbflute.dicon"/&gt;</span>
+    ...
+&lt;/components&gt;
+</code></pre>
+	<p>
+		データソース (javax.sql.DataSource) のコンポーネントが dataSource という名前で別途登録されていることが前提です。
+		クラス名やコンポーネント名などは dependencyInjectionMap.dfprop にて微調整できます。
+	</p>
+	<div class="relatedpage"><a href="../../manual/reference/dfprop/dependencyinjection/index.html">dependencyInjectionMap.dfprop</a></div>
+
+	<h2 id="cdi">CDI</h2>
+	<p>
+		Genreateタスクで自動生成されるDI設定クラス <em class="keyword">DBFluteModule</em>
+		を、アプリケーションでコンポーネントを初期化するときに、一緒にこのクラスを組み込みます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../manual/reference/diway/cide/index.html#diclass"> -->CDI - DI設定クラス<!-- </a> --></span></div>
 
 </div>
 </div>

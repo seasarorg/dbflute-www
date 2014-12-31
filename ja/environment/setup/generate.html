@@ -43,50 +43,92 @@
 	</p>
 	<div class="relatedpage"><a href="./emecha.html">EMechaによるセットアップ</a></div>
 	<ul class="indexlist">
-		<li><a href="#replaceschema">スキーマの作成 (ReplaceSchema)</a></li>
-		<li><a href="#jdbc">メタ情報の取得 (JDBC)</a></li>
-		<li><a href="#doc">スキーマ情報の可視化 (DOC)</a></li>
-		<li><a href="#generate">クラスファイルの自動生成 (Generate)</a></li>
+		<li><a href="#replaceschema">1. DBスキーマの作成 <span class="freecomment">(ReplaceSchema)</span></a>
+			<ul>
+				<li><a href="#whatisreps">ReplaceSchemaとは？</a></li>
+				<li><a href="#dbuserreps">DBユーザーを作成</a></li>
+				<li><a href="#ddlreps">DDLを配置 <span class="freecomment">(create table など)</span></a></li>
+				<li><a href="#execreps">ReplaceSchema を叩く</a></li>
+				<li><a href="#anywayreps">細かい設定は後、とにかくスキーマがあればOK</a></li>
+			</ul>
+		</li>
+		<li><a href="#regenerate">2. DBスキーマができたら regenerate</a>
+			<ul>
+				<li><a href="#execmanage">Manage を叩く</a></li>
+				<li><a href="#execregenerate">regenerate を選ぶ</a></li>
+			</ul>
+		</li>
 	</ul>
 
-	<h2 id="replaceschema">スキーマの作成 (ReplaceSchema)</h2>
+	<h2 id="replaceschema">1. DBスキーマの作成 <span class="freecomment">(ReplaceSchema)</span></h2>
+	<h3 id="whatisreps">ReplaceSchemaとは？</h3>
 	<p>
-		ReplaceSchemaを使ってスキーマを管理する場合は、この時点で設定をしてスキーマを作成します。(既にスキーマがある場合は後でも構いません)
+		そもそも ReplaceSchema とはなんぞや？というのであれば、ReplaceSchemaのページを。
+	</p>
+	<div class="detailpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
+	<p>
+		ReplaceSchemaを使って開発環境のスキーマを管理する場合は、この時点でReplaceSchema環境を整えましょう。
+		<span class="freecomment">(既にスキーマがある場合は後でも構いません)</span>
+	</p>
+	<h3 id="dbuserreps">DBユーザーを作成</h3>
+	<p>
+		まずは、DBユーザーと空っぽDBスキーマを作成します。
+		DBMSによっては ReplaceSchema で作ることもできますが、この時点では手動で行う方がよいでしょう。
+		<span class="freecomment">(すっかり慣れている人は、ReplaceSchema のシステムユーザの機能を使ってOKです)</span>
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/systemuser.html">ReplaceSchema - システムユーザでの実行</a></div>
+	<h3 id="ddlreps">DDLを配置 <span class="freecomment">(create table など)</span></h3>
+	<p>
+		ERDツールなどから生成したDDL文 (Drop文は不要) を <em class="keyword">[DBFluteクライアント]/playsql/replace-schema.sql</em>
+		に (上書き) コピーします。<span class="freecomment">(すっかり慣れている人は、ReplaceSchema のシステムユーザの機能を使う場合は、replace-schema-10-basic.sql を作成してそこにコピーするでOKです)</span>
 	</p>
 	<p>
-		ERDツールなどから生成したDDL文(Drop文なし)を <em class="keyword">[DBFluteクライアント]/playsql/replace-schema.sql</em>
-		に(上書き)コピーして、ReplaceSchemaタスクを実行すると、そのDDL文が実行されスキーマが作成されます。
-		もし、データベース接続文字列などに間違いがあった場合は、このタスクが例外が発生して中断します(コンソールのログを確認すること)。
+		まだテーブルがまったく存在しないのであれば、シンプルな仮のテーブルでもいいので、ひとつだけ create 文を replace-schema.sql に書きましょう。
 	</p>
-	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
+	<h3 id="execreps">ReplaceSchema を叩く</h3>
+	<p>
+		まずは、DBFluteクライアント配下の manage.bat(sh) を叩きます。
+	</p>
+	<p>
+		Windowsであれば、エクスプローラで manage.bat をダブルクリックして実行、もしくは、Eclipse でリソースの検索 (ctrl+shift+R) で manage.bat を選択して実行します。
+		Mac や Linux であれば、コマンドラインから manage.sh を実行します。
+	</p>
+<pre><span class="codetitle">e.g. dbflute:download ゴールを叩く！ @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh
+</code></pre>
+	<p>
+		すると、コンソールにメニューが表示されます。
+		ReplaceSchemaを単独で実行するDBFluteタスク replace-schema は 0 番です。
+		0 を押して enter してみましょう。なんだか、いろいろとログが流れて、最後に BUILD SUCCESSFUL ならスキーマが作成されているはずです。
+		もし、データベース接続文字列などに間違いがあった場合は、このタスクが例外が発生して中断します(コンソールのログを確認)。
+	</p>
+	<h3 id="anywayreps">細かい設定は後、とにかくスキーマがあればOK</h3>
 	<p>
 		テストデータの登録やその他細かい設定などは、最初の自動生成が終わってからでも構いません。
 		この時点では最低限、テーブルがスキーマ上に作成されてさえいればOKです。
 	</p>
 
-	<h2 id="jdbc">メタ情報の取得 (JDBC)</h2>
+	<h2 id="regenerate">2. DBスキーマができたら regenerate</h2>
+	<h3 id="execmanage">Manage を叩く</h3>
 	<p>
-		JDBCタスクを実行すると、<em class="keyword">データベースに接続してスキーマ情報(メタデータ)</em> を取得します。DBFluteクライアント配下の
-		schema ディレクトリ配下に project-schema-[project].xml という形式の名前のXMLファイルが出力されます。
+		まずは、DBFluteクライアント配下の manage.bat(sh) を叩きます。
+	</p>
+	<p>
+		Windowsであれば、エクスプローラで manage.bat をダブルクリックして実行、もしくは、Eclipse でリソースの検索 (ctrl+shift+R) で manage.bat を選択して実行します。
+		Mac や Linux であれば、コマンドラインから manage.sh を実行します。
+	</p>
+<pre><span class="codetitle">e.g. dbflute:download ゴールを叩く！ @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh
+</code></pre>
+	<h3 id="execregenerate">regenerate を選ぶ</h3>
+	<p>
+		すると、コンソールにメニューが表示されます。
+		メタデータの取得からクラスの自動生成まで一括で実行するDBFluteタスク regenerate は 2 番です。
+		2 を押して enter してみましょう。なんだか、いろいろとログが流れて、最後に BUILD SUCCESSFUL ならクラスが自動生成されているはずです。
+		<span class="freecomment">(デフォルト設定なら src/main/java 配下に)</span>
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
-
-	<h2 id="doc">スキーマ情報の可視化 (DOC)</h2>
-	<p>
-		DOCタスクを実行すると、<em class="keyword">取得したスキーマ情報を閲覧できるHTML(SchemaHTML)</em> が生成されます。
-		DBFluteクライアント配下の output/doc 配下に project-schema-[project].html という形式名前のHTMLファイルが出力されます。
-		ブラウザで開いてみて、想定しているテーブル情報が取得できているか(簡単に)ご確認下さい。
-	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/index.html">DOCタスク</a></div>
-	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></div>
-
-	<h2 id="generate">クラスファイルの自動生成 (Generate)</h2>
-	<p>
-		Generateタスクを実行すると、<em class="keyword">パッケージ構成と共にクラスファイル</em> が生成されます。
-		Eclipseのプロジェクトを更新(F5)して自動生成されたクラスがコンパイル対象にしてコンパイルが通ることをご確認下さい。
-		コンパイルエラーになる場合は、この時点で前提となる環境が整っていない可能性があります。また、同時にDI設定ファイル(dbflute.dicon
-		や dbfluteBeans.xml など)も自動生成されます。
-	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
 
 </div>
