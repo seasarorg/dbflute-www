@@ -59,6 +59,7 @@
 				<li><a href="#generate">8. クラスの自動生成 <span class="freecomment">(ReplaceSchema & Generate)</span></a></li>
 				<li><a href="#injection">9. DI設定の調整</a></li>
 				<li><a href="#thenafter">x. その後の設定</a></li>
+				<li><a href="#versionerror">UnsupportedClassVersionErrorが発生したら</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -279,6 +280,12 @@
 		それでは、自動生成をしてみましょう。
 	</p>
 	<div class="detailpage"><a href="./generate.html">セットアップ - クラスの自動生成</a></div>
+	<p>
+		DBFluteタスク実行時に、
+		java.lang.UnsupportedClassVersionError, Unsupported major.minor version 52.0
+		のエラーが発生したときは、JAVA_HOME の設定を確認してみましょう。
+	</p>
+	<div class="relatedpage"><a href="#versionerror">this - UnsupportedClassVersionErrorが発生したら</a></div>
 	<h3 id="injection">9. DI設定の調整</h3>
 	<p>
 		アプリケーションで利用しているDIコンテナの環境にDBFluteのクラスを認識させて下さい。
@@ -291,6 +298,28 @@
 		より良い環境で実装してもらうために、現場フィットな機能を整えましょう！
 	</p>
 	<div class="detailpage"><a href="./thenafter.html">セットアップ - その後</a></div>
+	<div class="inucolumn">
+		<h3 id="versionerror">UnsupportedClassVersionErrorが発生したら</h3>
+		<p>
+			ReplaceSchema や Regenerate などのDBFluteタスク実行時に、UnsupportedClassVersionError,
+			Unsupported major.minor version 52.0 のエラーが発生した場合は、環境変数の JAVA_HOME
+			の設定が、Java8 ではなく Java6,7 になっている可能性があります。
+			<span class="freecomment">(もしかしたら、JAVA_HOMEが設定されていないときでも発生するかもしれません)</span>
+		</p>
+		<p>
+			JAVA_HOME を JDK8 に合わせて試してみましょう。
+		</p>
+<pre><span class="codetitle">e.g. Macで .bash_profile に JAVA_HOME を設定 @.bash_profile</span><code>
+#!/bin/bash
+
+<span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=<span class="literal">/Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home</span>
+<span class="abbreviation">...</span>
+</code></pre>
+		<p>
+			ちょっとずつこういった問題はなくなっていくと思いますが、Java6,7,8
+			と環境が混じる時期では、まだ少し注意が必要です。
+		</p>
+	</div>
 
 </div>
 </div>
