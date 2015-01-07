@@ -44,7 +44,8 @@
 		<li><a href="#precondition">大前提</a></li>
 		<li><a href="#upgrade">DBFlute-1.1.xをセットアップ</a>
 			<ul>
-				<li><a href="#engineruntime"></a></li>
+				<li><a href="#engine">DBFluteエンジンのダウンロード</a></li>
+				<li><a href="#runtime">DBFluteランタイムの準備</a></li>
 				<li><a href="#slf4jlog4j">Log4jを使っていたらSlf4jのブリッジを</a></li>
 			</ul>
 		</li>
@@ -60,6 +61,16 @@
 				<li><a href="#grepokgo">grepの一括置換でOKなやつ</a></li>
 				<li><a href="#manualgogo">地道に直す</a></li>
 				<li><a href="#firsttest">いったんテスト</a></li>
+			</ul>
+		</li>
+		<li><a href="#dfprop">dfpropの移行</a>
+			<ul>
+				<li><a href="#basicinfocomment">basicInfoのコメント</a></li>
+				<li><a href="#clsdefcomment">classificationDefinitionのコメント</a></li>
+				<li><a href="#littleadjcomment">littleAdjustmentのコメント</a></li>
+				<li><a href="#outdefcomment">outsideSqlDefinitionのコメント</a></li>
+				<li><a href="#addedpropertycomment">追加されたプロパティは？</a></li>
+				<li><a href="#undefinedcls">がらっと変わった未定義区分値のプロパティ</a></li>
 			</ul>
 		</li>
 		<li><a href="#nextmigration">もう少し攻める</a>
@@ -117,15 +128,37 @@
 	<p>
 
 	<h2 id="upgrade">DBFlute-1.1.xをセットアップ</h2>
-	<h3 id="engineruntime"></h3>
+	<h3 id="engine">DBFluteエンジンのダウンロード</h3>
 	<p>
-		1.1.xのDBFluteエンジン(モジュール)と、1.1.xのDBFluteランタイムを用意します。
+		1.1.xのDBFluteエンジンをダウンロードします。
 	</p>
 	<p>
-		<em class="keyword">TODO jflute 正式リリースしたら、インストールの仕方と、pomでの設定について書く</em>
+		manageタスクの upgrade (94) をバージョン指定で実行します。
+		Windowsであっても必ずコマンドラインから実行する必要があります。
 	</p>
+<pre><span class="codetitle">e.g. manage にて、バージョン指定で upgrade @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> manage.sh 94 <span class="point">1.1.0</span>
+</code></pre>
 	<p>
-		自動生成はまだです。ランタイムを1.1.xにすると、ことごとくコンパイルエラーになるかと。
+		この時点では、自動生成はまだやりません。
+	</p>
+	<h3 id="runtime">DBFluteランタイムの準備</h3>
+	<p>
+		1.1.xのDBFluteランタイムを用意します。
+	</p>
+<pre><span class="codetitle">e.g. DBFluteランタイム-1.1.0のdependencyを定義 @pom.xml</span><code>
+&lt;dependencies&gt;
+    <span class="abbreviation">...</span>
+    <span class="subpoint">&lt;dependency&gt;</span>
+        &lt;groupId&gt;<span class="literal">org.dbflute</span>&lt;/groupId&gt;
+        &lt;artifactId&gt;<span class="literal">dbflute-runtime</span>&lt;/artifactId&gt;
+        &lt;version&gt;<span class="literal">1.1.0</span>&lt;/version&gt;
+    <span class="subpoint">&lt;/dependency&gt;</span>
+    <span class="abbreviation">...</span>
+&lt;/dependencies&gt;
+</code></pre>
+	<p>
+		この時点で、ことごとくコンパイルエラーになるはずです。
 	</p>
 	<h3 id="slf4jlog4j">Log4jを使っていたらSlf4jのブリッジを</h3>
 	<p>
@@ -255,7 +288,7 @@
 	</p>
 	<ul>
 		<li>通常、ユーザーが利用しないものは省略している</li>
-		<li>というか、そういった細かいものは、さすがに忘れました</li>
+		<li>というか、そういった細かいものは、さすがに忘れてしまいました...ごめんなさい</li>
 	</ul>
 	<p>
 		アプリがDBFluteの内部的なクラスをどれだけさわっているかによります。
@@ -271,6 +304,143 @@
 		時間がなければ、ここで終わってもOKでしょう。
 	</p>
 
+	<h2 id="dfprop">dfpropの移行</h2>
+	<p>
+		dfpropのコメントなど、1.1.xから変わっているものもあるので、間違い防止のためにも修正しておくとよいでしょう。
+	</p>
+	<h3 id="basicinfocomment">basicInfoのコメント</h3>
+	<p>
+		まずは、basicInfoMap.dfprop のヘッダーコメント、まるごとコピーして上書きしてしまいましょう。
+	</p>
+<pre><span class="codetitle">e.g. basicInfoMap.dfprop のヘッダーコメント @basicInfoMap.dfprop</span><code>
+# /---------------------------------------------------------------------------
+# basicInfoMap: (Required)
+#
+# The basic information for the tasks of DBFlute.
+# You should specify before your first generating.
+#
+# Core Properties:
+# o database: (Required)
+# o targetLanguage: (Required)
+# o targetContainer: (Required)
+# o packageBase: (Required)
+#
+# Adjustment Properties:
+# o generateOutputDirectory: (NotRequired - Default Java:'../src/main/java' CSharp:'../source')
+# o resourceOutputDirectory: (NotRequired - Default '../resources')
+# o isTableNameCamelCase: (NotRequired - Default false)
+# o isColumnNameCamelCase: (NotRequired - Default false)
+# o projectPrefix: (NotRequired - Default '')
+# o classAuthor: (NotRequired - Default 'DBFlute(AutoGenerator)')
+# o sourceFileEncoding: (NotRequired - Default 'UTF-8')
+# o sourceCodeLineSeparator: (NotRequired - Default no setting)
+# o applicationBehaviorMap: (NotRequired - Default map:{})
+# o outputPackageAdjustmentMap: (NotRequired - Default map:{})
+# o dbfluteSystemFinalTimeZone: (NotRequired - Default null)
+#
+# *The line that starts with '#' means comment-out.
+#
+</code></pre>
+	<h3 id="clsdefcomment">classificationDefinitionのコメント</h3>
+	<p>
+		まずは、classificationDefinitionMap.dfprop のヘッダーコメント、まるごとコピーして上書きしてしまいましょう。
+	</p>
+<pre><span class="codetitle">e.g. classificationDefinitionMap.dfprop のヘッダーコメント @classificationDefinitionMap.dfprop</span><code>
+# /---------------------------------------------------------------------------
+# classificationDefinitionMap: (NotRequired - Default map:{})
+#
+# The definition of classification.
+#
+# Specification:
+# map: {
+#     [classification-name] = list:{
+#         ; map:{
+#             ; topComment=[comment]; codeType=[String(default) or Number or Boolean]}
+#             ; undefinedHandlingType=[EXCEPTION or LOGGING(default) or ALLOWED]
+#             ; isUseDocumentOnly=[true or false(default)]
+#             ; isSuppressAutoDeploy=[true or false(default)]
+#             ; groupingMap = map:{
+#                 ; [group-name] = map:{
+#                     ; groupComment=[comment]
+#                     ; elementList=list:{[the list of classification element's name]}
+#                 }
+#             }
+#         }
+#         # classification elements for implicit classification
+#         ; map:{
+#             ; code=[code]; name=[name]; alias=[alias]; comment=[comment]
+#             ; sisterCode=[code or code-list]; subItemMap=map:{[free-map]}
+#         }
+#         # settings for table classification
+#         ; map:{
+#             ; table=[table-name]
+#             ; code=[column-name for code]; name=[column-name for name]
+#             ; alias=[column-name for alias]; comment=[column-name for comment]}
+#             ; where=[condition for select]; orderBy=[column-name for ordering]
+#             ; exceptCodeList=[the list of except code]
+#         }
+#     }
+# }
+#
+# *The line that starts with '#' means comment-out.
+#
+</code></pre>
+	<h3 id="littleadjcomment">littleAdjustmentのコメント</h3>
+	<p>
+		まずは、littleAdjustmentMap.dfprop のヘッダーコメント、まるごとコピーして上書きしてしまいましょう。
+	</p>
+<pre><span class="codetitle">e.g. littleAdjustmentMap.dfprop のヘッダーコメント @littleAdjustmentMap.dfprop</span><code>
+# /---------------------------------------------------------------------------
+# littleAdjustmentMap: (NotRequired - Default map:{})
+#
+# The various settings about a little adjustment.
+#
+# o isAvailableAddingSchemaToTableSqlName: (NotRequired - Default false)
+# o isAvailableAddingCatalogToTableSqlName: (NotRequired - Default false)
+# o isAvailableDatabaseDependency: (NotRequired - Default false)
+# o isAvailableDatabaseNativeJDBC: (NotRequired - Default false)
+# o isAvailableNonPrimaryKeyWritable: (NotRequired - Default false)
+# o classificationUndefinedHandlingType: (NotRequired - Default LOGGING)
+# o isEntityConvertEmptyStringToNull: (NotRequired - Default false)
+# o isMakeConditionQueryEqualEmptyString: (NotRequired - Default false)
+# o isTableDispNameUpperCase: (NotRequired - Default false)
+# o isTableSqlNameUpperCase: (NotRequired - Default false)
+# o isColumnSqlNameUpperCase: (NotRequired - Default false)
+# o isMakeDeprecated: (NotRequired - Default false)
+# o isMakeRecentlyDeprecated: (NotRequired - Default true)
+# o extendedDBFluteInitializerClass: (NotRequired - Default null)
+# o extendedImplementedInvokerAssistantClass: (NotRequired - Default null)
+# o extendedImplementedCommonColumnAutoSetupperClass: (NotRequired - Default null)
+# o shortCharHandlingMode: (NotRequired - Default NONE)
+# o quoteTableNameList: (NotRequired - Default list:{})
+# o quoteColumnNameList: (NotRequired - Default list:{})
+# o columnNullObjectMap: (NotRequired - Default map:{})
+# o relationalNullObjectMap: (NotRequired - Default map:{})
+# o cursorSelectFetchSize: (NotRequired - Default null)
+#
+# *The line that starts with '#' means comment-out.
+#
+</code></pre>
+	<h3 id="outdefcomment">outsideSqlDefinitionのコメント</h3>
+	<p>
+		outsideSqlDefinitionMap.dfprop は、isRequiredSqlTitle と isRequiredSqlDescription のデフォルト値が true
+		に変わっているので、ヘッダーコメントと、プロパティ定義部分のコメントを修正しましょう。
+	</p>
+	<h3 id="addedpropertycomment">追加されたプロパティは？</h3>
+	<p>
+		この状態では、追加されているプロパティの雛形はありませんが、使わないのであればそのままでもよいでしょう。
+		とりあえずヘッダーにさえあれば、それに気付いて設定しようとしたときに、mydbfluteのDBFluteクライアントの雛形からコピーして持ってくればOKです。
+	</p>
+	<p>
+		ちなみに、追加されているのは、dbfluteSystemFinalTimeZone や classificationUndefinedHandlingType, columnNullObjectMap などです。
+	</p>
+	<h3 id="undefinedcls">がらっと変わった未定義区分値のプロパティ</h3>
+	<p>
+		未定義区分値のプロパティががらっと変わっています。
+		無理することはありませんが、もしよければ移行という感じで。
+	</p>
+	<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20140823/forcecls">DBFlute-1.1の区分値強制のお話</a></div>
+
 	<h2 id="nextmigration">もう少し攻める</h2>
 	<p>
 		少ない時間でちょっとやれそうだったらやってみるとよいものです。
@@ -284,53 +454,61 @@
 		一個ずつ false にして自動生成して直して、また次を一個 false にして...を繰り返すとよいでしょう。
 	</p>
 	<dl class="textlist">
-		<dt>isCompatibleSelectByPKOldStyle</dt>
+		<dt>isCompatibleSelectByPKOldStyle <span class="freecomment">(to false)</span></dt>
 		<dd>selectByPKValue() から selectByPK() に</dd>
 		<dd>利用箇所は少ないと想定され、一括置換でも修正できそうなのでやれたらやってみるとよい</dd>
-		<dt>isMakeConditionQueryExistsReferrerToOne</dt>
+		<dt>isMakeConditionQueryExistsReferrerToOne <span class="freecomment">(to false)</span></dt>
 		<dd>one-to-one への ExistsReferrer を生成しないように</dd>
 		<dd>相手側PKによる IsNotNull もしくは IsNull で代用</dd>
-		<dt>isMakeConditionQueryInScopeRelationToOne</dt>
+		<dt>isMakeConditionQueryInScopeRelationToOne <span class="freecomment">(to false)</span></dt>
 		<dd>many-to-one への InScopeRelation を生成しないように</dd>
 		<dd>普通のQueryRelationによる条件付与で代用</dd>
-		<dt>isMakeConditionQueryPlainListManualOrder</dt>
+		<dt>isMakeConditionQueryPlainListManualOrder <span class="freecomment">(to false)</span></dt>
 		<dd>ManualOrder の List 受け取りメソッドを生成しないように</dd>
 		<dd>ManualOrderOption の acceptOrderValueList() で代用</dd>
-		<dt>isMakeBatchUpdateSpecifyColumn</dt>
+		<dt>isMakeBatchUpdateSpecifyColumn <span class="freecomment">(to false)</span></dt>
 		<dd>batchUpdate()のSpecifyするオーバーロードを生成しないように</dd>
 		<dd>そもそもbatchUpdate()がSetter呼び出し方式なので、プログラムを見て同じupdateになるならOK</dd>
 		<dd>もし、Setter呼び出しじゃないようにする互換オプションを使っていたら、ちょっとやめておきましょう</dd>
-		<dt>isMakeConditionQueryPrefixSearch</dt>
+		<dt>isMakeConditionQueryPrefixSearch <span class="freecomment">(to false)</span></dt>
 		<dd>PrefixSearchを生成しないように、LikeSearchOption の likePrefix() で代用</dd>
-		<dt>isMakeConditionQueryDateFromTo</dt>
+		<dt>isMakeConditionQueryDateFromTo <span class="freecomment">(to false)</span></dt>
 		<dd>DateFromToを生成しないように、FromToOption の compareAsDate() で代用</dd>
-		<dt>isMakeClassificationNativeTypeSetter</dt>
+		<dt>isMakeClassificationNativeTypeSetter <span class="freecomment">(to false)</span></dt>
 		<dd>区分値カラムのネイティヴ型引数のメソッドを作らないように</dd>
 		<dd>もともと isForced... を使っている場合は false にして問題ないはず</dd>
-		<dt>isCompatibleNewMyEntityConditionBean</dt>
+		<dt>isCompatibleNewMyEntityConditionBean <span class="freecomment">(to false)</span></dt>
 		<dd>Behavior の newMyCondition() が newConditionBean() が変わった (Entityも)</dd>
-		<dt>isCompatibleDeleteNonstrictIgnoreDeleted</dt>
+		<dt>isCompatibleDeleteNonstrictIgnoreDeleted <span class="freecomment">(to false)</span></dt>
 		<dd>Behavior の deleteNonstrictIgnoreDeleted() を生成しないように</dd>
 		<dd>try catch で代用</dd>
-		<dt>isCompatibleLoadReferrerOldOption</dt>
+		<dt>isCompatibleLoadReferrerOldOption <span class="freecomment">(to false)</span></dt>
 		<dd>LoadReferrer の LoadReferrerOption を使うオーバーロードメソッドを生成しないように</dd>
 		<dd>ネストした LoadReferrer は、loader方式で代用</dd>
-		<dt>isCompatibleConditionBeanAcceptPKOldStyle</dt>
+		<dt>isCompatibleConditionBeanAcceptPKOldStyle <span class="freecomment">(to false)</span></dt>
 		<dd>cb.acceptPrimaryKey() が cb.acceptPK() に変わった</dd>
-		<dt>isCompatibleConditionBeanOldNamingCheckInvalid</dt>
+		<dt>isCompatibleConditionBeanOldNamingCheckInvalid <span class="freecomment">(to false)</span></dt>
 		<dd>cb.checkInvalidQuery() が cb.checkNullOrEmptyQuery() に変わった</dd>
-		<dt>isCompatibleConditionBeanOldNamingOption</dt>
+		<dt>isCompatibleConditionBeanOldNamingOption <span class="freecomment">(to false)</span></dt>
 		<dd>cb の細かいオプションたちのメソッド名が cb.enableXxx() or cb.disableXxx() に変わった</dd>
-		<dt>isCompatibleBizOneToOneImplicitReverseFkAllowed</dt>
+		<dt>isCompatibleBizOneToOneImplicitReverseFkAllowed <span class="freecomment">(to false)</span></dt>
 		<dd>暗黙の逆参照FKを生成しないように、もし必要なら普通に additionalForeignKey で定義</dd>
-		<dt>isCompatibleSelectScalarOldName</dt>
+		<dt>isCompatibleReferrerCBMethodIdentityNameListSuffix <span class="freecomment">(to false)</span></dt>
+		<dd>例えば、existsPurchaseList() が existsPurchase() に、だいぶスッキリします</dd>
+		<dt>isCompatibleOutsideSqlFacadeChainOldStyle <span class="freecomment">(to false)</span></dt>
+		<dd>例えば、outsideSql().cursorHandling().selectCursor() が outsideSql().selectCursor() に</dd>
+		<dd>TypedParameterBeanじゃないものは、outsideSql().traditionalStyle().select... に</dd>
+		<dd>外だしSQLの数次第で、移行が現実的かどうか決まるかと</dd>
+		<dt>isCompatibleOutsideSqlSqlCommentCheckDefault <span class="freecomment">(to false)</span></dt>
+		<dd>外だしSQLのコメントを必須に(OutsideSqlTestなどでチェック)、こちらも外だしSQLの数次第</dd>
+		<dt>isCompatibleSelectScalarOldName <span class="freecomment">(to false)</span></dt>
 		<dd>Behaviorのメソッド、scalarSelect() ではなく selectScalar()に</dd>
 	</dl>
 	<p>
 		逆に false から true にするやつは、こちらです。
 	</p>
 	<dl class="textlist">
-		<dt>isEntityDerivedMappable</dt>
+		<dt>isEntityDerivedMappable <span class="freecomment">(to true)</span></dt>
 		<dd>DerivedReferrer で derived() が使えるようにする</dd>
 		<dd>別に互換を損なうことはないので、問答無用で true にしてしまってもいいかと</dd>
 		<dd>アプリのポリシーとして、いまさらこっちは使わないとかであればそのままで</dd>
@@ -346,13 +524,13 @@
 		あとで、一括テストするのであれば、とりあえず設定しておくだけでもいいかもです。
 	</p>
 	<dl class="textlist">
-		<dt>isNonSpecifiedColumnAccessAllowed</dt>
+		<dt>isNonSpecifiedColumnAccessAllowed <span class="freecomment">(to false)</span></dt>
 		<dd>SpecifyColumnしたのに、Specifyされていないカラムをgetするのを許す</dd>
 		<dd>そもそもバグかもしれないので false に。どうしても必要なら、cb.disableNonSpec...()</dd>
-		<dt>isCompatibleOrScopeQueryPurposeNoCheck</dt>
+		<dt>isCompatibleOrScopeQueryPurposeNoCheck <span class="freecomment">(to false)</span></dt>
 		<dd>OrScopeQueryのコールバックの中でSetupSelectやOrderByしているのを許す</dd>
 		<dd>許したくないので false に</dd>
-		<dt>isSuppressDefaultCheckClassificationCode</dt>
+		<dt>isSuppressDefaultCheckClassificationCode <span class="freecomment">(to false)</span></dt>
 		<dd>区分値に定義されているもの以外の区分値をsetしたりgetしたりを許す</dd>
 		<dd>許したくないので false に (隠れ区分値がなければ)</dd>
 	</dl>
@@ -360,7 +538,7 @@
 		そして、逆に false から true にするやつです。
 	</p>
 	<dl class="textlist">
-		<dt>isThatsBadTimingDetect</dt>
+		<dt>isThatsBadTimingDetect <span class="freecomment">(to true)</span></dt>
 		<dd>例えば、ExistsReferrerのコールバックの中で外側の cb を呼び出してるとか</dd>
 		<dd>Lambdaになるとこの間違いによるバグが増えそうなので、ぜひ true にしたい</dd>
 	</dl>
@@ -383,6 +561,17 @@
 		ただ、補完すると selectList() や selectEntity() が全部オーバーロードで二つに分身するので、ちょっとうっとおしいかもしれません。
 		やるなら本当に徐々に直していって、最終的には全部 Lambda に直す意気込みが必要でしょう。
 	</p>
+	<p>
+		ConditionBean の new 方式 (isMakeDirectConditionBeanSetup)
+		をテーブル単位で互換させるオプションが用意されています。
+		これを使って少しずつ互換テーブルを消していくとよいでしょう。
+	</p>
+<pre><span class="codetitle">e.g. テーブル単位でCBを互換モードにする @littleAdjustmentMap.dfprop</span><code>
+    ; isMakeDirectConditionBeanSetup = <span class="keyword">true</span>
+    ; <span class="point">makeDirectConditionBeanSetupTableList</span> = <span class="keyword">list:</span>{
+        ; <span class="attribute">prefix:</span>MEMBER ; PURCHASE ; <span class="attribute">prefix:</span>Vendor ; <span class="attribute">prefix:</span>White
+    }
+</code></pre>
 	<h3 id="compileerrorfes">それでもコンパイルエラー検知ではあるので...</h3>
 	<p>
 		Optionalの方は、こういった器用なことができないので、移行するときや "えいやっ"
@@ -394,7 +583,7 @@
 		実は Optional は多少苦労しても一番移行したいと思えるものかもしれません。
 	</p>
 	<p>
-		java.util.Date を LocalDate にするのも、Optionalほどのインパクトはないので、無理することはないでしょう。
+		java.util.Date を LocalDate への移行は、さらにしんどいと思うので無理することはないでしょう。
 	</p>
 
 </div>
