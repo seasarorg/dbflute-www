@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Maven DBFlute Plugin | DBFlute</title>
+	<title>DBFlute Maven Plugin | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,54 +37,140 @@
 </div>
 
 <div id="content">
-	<h1>Maven DBFlute Plugin</h1>
+	<h1>DBFlute Maven Plugin</h1>
 	<ul class="indexlist">
-		<li><a href="#about">Maven DBFlute Pluginとは？</a></li>
-		<li><a href="#goallist">Maven DBFlute Pluginのゴール</a></li>
-		<li><a href="#howto">Maven DBFlute Pluginの使い方</a>
+		<li><a href="#about">DBFlute Maven Pluginとは？</a></li>
+		<li><a href="#install">Pluginのインストール</a>
 			<ul>
-				<li><a href="#setup">プラグインを利用するための環境構築</a></li>
+				<li><a href="#install11x">1.1.x なら <span class="freecomment">*Java8</span></a></li>
+				<li><a href="#install10x">1.0.x なら <span class="freecomment">*Java6,7</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#goallist">Mavenゴールたち</a>
+			<ul>
+				<li><a href="#goalhowto">ゴールの実行の仕方</a></li>
+				<li><a href="#goaloverview">それぞれのゴールの概要</a></li>
+			</ul>
+		</li>
+		<li><a href="#config">コンフィグたち</a></li>
 	</ul>
 
-	<h2 id="about">Maven DBFlute Pluginとは？</h2>
+	<h2 id="about">DBFlute Maven Pluginとは？</h2>
 	<p>
-		Maven DBFlute Plugin は Apache Maven 2.x で利用可能なプラグインです。
-		Maven DBFlute Plugin を利用することで、DBFlute のセットアップなどの処理を Maven の mvn コマンドを通して実行することができます。
+		DBFlute Maven Plugin は Apache Maven 2.x, 3.x で利用可能なプラグインです。
+		DBFlute のセットアップなどの処理を Maven の mvn コマンドを通して実行することができます。
 	</p>
-	<div class="relatedpage"><a href="http://dbflute.sandbox.seasar.org/maven/plugin/ja/index.html">Maven DBFlute Plugin 本家</a></div>
 
-	<h2 id="goallist">Maven DBFlute Pluginのゴール</h2>
+	<h2 id="install">Pluginのインストール</h2>
+	<h3 id="install11x">1.1.x なら <span class="freecomment">*Java8</span></h3>
 	<p>
-		Maven DBFlute Plugin では、以下のゴールを提供します。
+		pom.xml の plugins に、dbflute-maven-plugin を設定します。
+	</p>
+<pre><span class="codetitle">e.g. プラグイン情報の追加 (実行のための基本的な設定) {1.1.0-RC2} @pom.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+<span class="abbreviation">...</span>
+    &lt;build&gt;
+        &lt;plugins&gt;
+            <span class="abbreviation">...</span>
+            <span class="subpoint">&lt;plugin&gt;</span>
+                &lt;groupId&gt;<span class="literal">org.dbflute</span>&lt;/groupId&gt;
+                &lt;artifactId&gt;<span class="literal">dbflute-maven-plugin</span>&lt;/artifactId&gt;
+                &lt;version&gt;<span class="literal">1.1.0-RC2</span>&lt;/version&gt; <span class="comment">&lt;!-- (2015/01/04時点ではRC2) --&gt;</span>
+                &lt;configuration&gt;
+                    &lt;clientProject&gt;<span class="literal">xxxdb</span>&lt;/clientProject&gt;
+                    &lt;packageBase&gt;<span class="literal">com.xxx.dbflute</span>&lt;/packageBase&gt;
+                &lt;/configuration&gt;
+            <span class="subpoint">&lt;/plugin&gt;</span>
+            <span class="abbreviation">...</span>
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+<span class="abbreviation">...</span>
+&lt;/project&gt;
+</code></pre>
+	<h3 id="install10x">1.0.x なら <span class="freecomment">*Java6,7</span></h3>
+	<p>
+		1.0.x用の方は、Seasarのリポジトリに入っているので、pluginRepositoryの設定が必要です。
+	</p>
+<pre><span class="codetitle">e.g. プラグインのリポジトリを追加 @pom.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+<span class="abbreviation">...</span>
+    &lt;pluginRepositories&gt;
+        &lt;pluginRepository&gt;
+            &lt;id&gt;<span class="literal">maven.seasar.org</span>&lt;/id&gt;
+            &lt;name&gt;<span class="literal">The Seasar Foundation Maven2 Repository</span>&lt;/name&gt;
+            &lt;url&gt;<span class="literal">http://maven.seasar.org/maven2/</span>&lt;/url&gt;
+        &lt;/pluginRepository&gt;
+    &lt;/pluginRepositories&gt;
+<span class="abbreviation">...</span>
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;<span class="literal">org.seasar.dbflute</span>&lt;/groupId&gt;
+                &lt;artifactId&gt;<span class="literal">dbflute-maven-plugin</span>&lt;/artifactId&gt;
+                &lt;version&gt;<span class="literal">1.0.0</span>&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;dbfluteVersion&gt;<span class="literal">1.0.5N</span>&lt;/dbfluteVersion&gt;
+                    &lt;clientProject&gt;<span class="literal">xxxdb</span>&lt;/clientProject&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+<span class="abbreviation">...</span>
+&lt;/project&gt;
+</code></pre>
+
+	<h2 id="goallist">Mavenゴールたち</h2>
+	<h3 id="goalhowto">ゴールの実行の仕方</h3>
+	<p>
+		コマンドラインにて、mvnコマンドで dbflute:xxx という形式で実行します。
+	</p>
+<pre><span class="codetitle">e.g. dbflute:download ゴールを叩く！ @Command</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">mvn</span> -e dbflute:download
+</code></pre>
+	<h3 id="goaloverview">それぞれのゴールの概要</h3>
+	<p>
+		DBFlute Maven Plugin では、以下のゴール (goal) を提供します。
 	</p>
 	<dl class="textlist">
-		<dt>download</dt><dd>指定されたバージョンをダウンロードして、展開します。</dd>
-		<dt>create-client</dt><dd>ダウンロードした、指定したバージョンのdbflute_dfclient.zipを展開して、データベースのパラメータなどを更新します。</dd>
-		<dt>upgrade</dt><dd>指定されたバージョンをダウンロードして、展開し、_project.[sh|bat]を更新します。</dd>
-		<dt>jdbc</dt><dd>jdbc.[sh|bat]を実行します。</dd>
-		<dt>generate</dt><dd>generate.[sh|bat]を実行します。</dd>
-		<dt>doc</dt><dd>doc.[sh|bat]を実行します。</dd>
-		<dt>outside-sql-test</dt><dd>outside-sql-test.[sh|bat]を実行します。</dd>
-		<dt>replace-schema</dt><dd>replace-schema.[sh|bat]を実行します。</dd>
-		<dt>sql2entity</dt><dd>sql2entity.[sh|bat]を実行します。</dd>
-		<dt>generate-crud</dt><dd>テーブルごとにSAStrutsのCRUDページを生成します。</dd>
+		<dt>download</dt>
+		<dd>
+			指定されたバージョンをダウンロードして、展開。
+		</dd>
+		<dd>
+			既存のDBFluteクライアントの参照を変更したりはせずダウンロード展開だけなので、
+			アップグレード目的の場合はDBFluteクライアントの_project.bat(sh)を手動で修正する必要あり。
+		</dd>
+		<dt>create-client</dt>
+		<dd>
+			ダウンロードした、指定したバージョンのdbflute_dfclient.zipを展開して、データベースのパラメータなどを更新。
+			コンフィグ設定を必要とするので、設定内容を確認してから。
+		</dd>
+		<dd>
+			1.1.x (Java8) を前提のセットアップドキュメントを参考に。
+			<div class="detailpage"><a href="../../../../environment/setup/maven.html">Mavenによるセットアップ</a></div>
+		</dd>
+		<dt>manage</dt><dd>manage.[sh|bat]を実行。実行後にメニューから実行するタスクを選ぶ</dd>
+		<dt>jdbc</dt><dd>jdbc.[sh|bat]を実行。DBスキーマのメタデータを取得</dd>
+		<dt>doc</dt><dd>doc.[sh|bat]を実行。ドキュメントなどを自動生成</dd>
+		<dt>generate</dt><dd>generate.[sh|bat]を実行。クラスを自動生成</dd>
+		<dt>outside-sql-test</dt><dd>outside-sql-test.[sh|bat]を実行。外だしSQLを一括テスト</dd>
+		<dt>sql2entity</dt><dd>sql2entity.[sh|bat]を実行。外だしSQL対応のクラスを自動生成</dd>
+		<dt>replace-schema</dt><dd>replace-schema.[sh|bat]を実行。開発用DBスキーマを再構築</dd>
 	</dl>
+	<p>
+		DBFluteクライアントが二つ存在する場合、DBFluteタスク実行ゴールは clientProject で指定されているDBFluteクライアントのものを実行します。
+	</p>
 
-	<h2 id="howto">Maven DBFlute Pluginの使い方</h2>
+	<h2 id="config">コンフィグたち</h2>
 	<p>
-		Maven DBFlute Plugin で提供しているゴールは、mvn コマンドで指定して実行します。たとえば、download
-		ゴールは以下のように実行します。
+		
 	</p>
-<pre><span class="codetitle">e.g. DBFluteモジュールをダウンロード @Command</span><code>
-<span class="keyword">mvn</span> dbflute:<span class="attribute">download</span>
-</code></pre>
-	<h3 id="setup">プラグインを利用するための環境構築</h3>
-	<p>
-		プラグインを利用するための環境が構築されていることが前提です。
-	</p>
-	<div class="detailpage"><a href="./install.html">Maven DBFlute Pluginのインストール</a></div>
+	<dl class="keymainlist">
+		<dt>clientProject</dt><dd>DBFluteクライアントの名前、dbflute_xxx の xxx 部分に相当</dd>
+		<dt></dt>
+	</dl>
 
 </div>
 </div>
