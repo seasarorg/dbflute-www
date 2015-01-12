@@ -37,68 +37,83 @@
 </div>
 
 <div id="content">
-	<h1>Friends - SAStruts</h1>
+	<h1>SAStrutsのバリデーション</h1>
 	<p>
 		DBFluteとは直接無関係ながらも、親和性の高いフレームワークを紹介します。
+		ここでは、SAStrutsのバリデーションについて。
 	</p>
+	<div class="relatedpage"><a href="./index.html">Friends - SAStruts</a></div>
 	<ul class="indexlist">
-		<li><a href="#about">SAStrutsとは？</a></li>
-		<li><a href="#validation">SAStrutsのバリデーション</a></li>
-		<li><a href="#blank">Enhanced SAStruts Blank</a>
+		<li><a href="#overview">バリデーションの概要</a>
 			<ul>
-				<li><a href="#overview">Blank概要</a></li>
-				<li><a href="#downloadhowto">ダウンロード＆利用方法</a></li>
-				<li><a href="#flexible">Jetty や DBFlute でなくても</a></li>
+				<li><a href="#bigtwo">大きくは二つ</a></li>
+				<li><a href="#hybridway">ハイブリッドway</a></li>
+				<li><a href="#simpleway">割り切りway</a></li>
+			</ul>
+		</li>
+		<li><a href="#howtoanno">アノテーション方式のやり方</a>
+			<ul>
+				<li><a href="#validatortrue">Executeでvalidator=true</a></li>
+				<li><a href="#formanno">Formのフィールドにアノテーションを</a></li>
 			</ul>
 		</li>
 	</ul>
 
-	<h2 id="about">SAStrutsとは？</h2>
+	<h2 id="overview">バリデーションの概要</h2>
+	<h3 id="bigtwo">大きくは二つ</h3>
 	<p>
-		詳しくは本家サイトにて。フォロー的な内容だけここでは書いておきます。
-	</p>
-	<div class="detailpage"><a href="http://sastruts.sandbox.seasar.org/">SAStruts本家サイト</a></div>
-
-	<h2 id="validation">SAStrutsのバリデーション</h2>
-	<p>
-		ちょっと書いてみました。
-	</p>
-	<div class="detailpage"><a href="./validation.html">SAStrutsのバリデーション</a></div>
-
-	<h2 id="blank">Enhanced SAStruts Blank</h2>
-	<h3 id="overview">Blank概要</h3>
-	<p>
-		(一応) <em class="keyword">Maven + Jetty + DBFlute</em> を前提とした必要最低限のクラスと設定などが用意されている、わりと良い感じの Blank
-		プロジェクトをここでは提供しています。<span class="freecomment">(たいした依存じゃないので Jetty や DBFlute じゃなくて活用できます)</span>
+		大きく分けると二種類のバリデーション方式があります。
 	</p>
 	<dl class="keymainlist">
-		<dt>Maven</dt><dd>ある程度の pom.xml に定義、M2E用の .classpath を組み込み</dd>
-		<dt>Jetty</dt><dd>既に jetty-web.xml を用意、Run Jetty Run さえあればOK</dd>
-		<dt>ロギングやエラー処理</dt><dd>リクエスト情報などのデバッグログ、エラーロギング <span class="freecomment">(web.xmlで設定済み)</span></dd>
-		<dt>S2起動エラー捕捉</dt><dd>Seasarの起動時エラーをLog4j出力(web.xmlで設定済み)</dd>
-		<dt>ページング</dt><dd>ページングナビゲーションの実践的ひな形を用意 <span class="freecomment">(ここだけDBFlute依存)</span></dd>
-		<dt>設定ファイル見た目綺麗に</dt><dd>.properties や .dicon や web.xml などの中身の見た目を綺麗に</dd>
-		<dt>設定ファイル実践的ひな形</dt><dd>.properties や .dicon や web.xml などに実践的なひな形を用意</dd>
+		<dt>アノテーション方式</dt><dd>Formのプロパティにアノテーションを付与してお手軽チェック</dd>
+		<dt>メソッドベタ方式</dt><dd>バリデーションメソッドの中で自分でなんでもチェック</dd>
 	</dl>
+	<h3 id="hybridway">ハイブリッドway</h3>
 	<p>
-		※DBFlute自体はインストールされていません。
-	</p>
-	<h3 id="downloadhowto">ダウンロード＆利用方法</h3>
-	<p>
-		以下のリンクからダウンロードできます。
-	</p>
-	<p>
-		<a href="http://dbflute.seasar.org/download/misc/friends/enhanced-sastruts-blank.zip">enhanced-sastruts-blank.zip</a>
+		アノテーション方式は表現に限界があります。
+		厳密には、独自のバリデーションアノテーションを作るなどすればそうではないですが、
+		用意されているものだけでとなると業務で求められる複雑な条件のバリデーションはなかなか難しくなってきます。
 	</p>
 	<p>
-		まずはZIPを解凍して、Eclipseのプロジェクトとして import します。README_ja.txt
-		に詳しいことが書いてありますので、そこでの手順を元に自分のプロジェクトに適用していきます。
+		なので、アノテーション方式だけで済ませるというのではなく、現実的にはメソッドベタ方式も織り交ぜていくことが想定されます。
+		ハイブリッドなやり方です。
 	</p>
-	<h3 id="flexible">Jetty や DBFlute でなくても</h3>
+	<h3 id="simpleway">割り切りway</h3>
 	<p>
-		別に Jetty じゃなくても利用できます。単に jetty-web.xml を消せばいいだけですし、消すの忘れても特に問題はないはずです。
-		また、同様に DBFlute でなくても利用できます。一部の DBFlute 依存を削除すれば良いだけですし、そのまま残ってても特に問題はありません<span class="freecomment">(便利なクラスが利用できます)</span>。
+		ただ、ハイブリッドだと、バリデーションのロジックが分散してしまいます。
+		ある項目のチェックがどのようなものなのか？を調べるには、Formの定義とメソッドを見ないといけません。
 	</p>
+	<p>
+		また、SAStrutsのデフォルトでは、アノテーションによるバリデーションでエラーになったらメソッドのバリデーションは呼ばれません。
+		これだと二段階バリデーションになってしまい、UI的にはあまり良いものにはなりません。
+		Executeアノテーションの属性で挙動を変更できますが、それぞれのActionで毎回定義しないといけないので、設定漏れで二段階バリデーションになってしまうかもしません。
+	</p>
+	<p>
+		なので、アノテーションは一切使わずに、バリデーションメソッドだけでやるというやり方もアリかもしれません。
+		簡単なバリデーションもロジックで書くのはちょっと面倒かもしれませんが、それはうまくユーティリティを作るなどして、楽に実装できるようにすればいいかと。
+	</p>
+
+	<h2 id="howtoanno">アノテーション方式のやり方</h2>
+	<h3 id="validatortrue">Executeでvalidator=true</h3>
+	<p>
+		Executeアノテーションにて validator属性を true にて、input属性にバリデーションエラー発生時に表示するJSPを指定します。
+	</p>
+<pre><span class="codetitle">e.g. Executeアノテーションでバリデーションの指定 @Java</span><code>
+@Execute(<span class="point">validator</span>=true, input="index.jsp")
+<span class="keyword">public</span> String index() {
+}
+</code></pre>
+	<h3 id="formanno">Formのフィールドにアノテーションを</h3>
+	<p>
+		そして、ActionFormのpublicフィールドに、バリデーション用のアノテーションを定義します。
+		すると、リクエストが来たときにバリデーションが実行され、エラーがひとつでもある場合は Action のメソッドは呼ばれずに、input属性で指定されたJSPを表示します。
+	</p>
+<pre><span class="codetitle">e.g. ActionFormでバリデーションのアノテーション @Java</span><code>
+<span class="point">@Required</span>
+<span class="keyword">public</span> String memberName;
+</code></pre>
+
+	<div class="detailpage"><a href="http://sastruts.sandbox.seasar.org/">SAStruts本家サイト</a></div>
 
 </div>
 </div>
