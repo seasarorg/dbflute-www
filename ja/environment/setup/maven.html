@@ -82,37 +82,54 @@
 	<p>
 		まずは pom.xml の dependencies に "DBFluteランタイム" の dependency を入れます。
 	</p>
+	<p>
+		propertiesタグに dbflute.version を定義して、それを参照するようにするとよいでしょう。
+		後に設定する dbflute-maven-plugin もこれを参照するので DBFlute のバージョンを合わせることができます。
+	</p>
 	<div class="relatedpage"><a href="../newest.html">DBFluteの最新バージョン</a></div>
 	<div class="relatedpage"><a href="../../manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></div>
 <pre><span class="codetitle">e.g. DBFluteランタイム-1.1.0のdependencyを定義 @pom.xml</span><code>
-&lt;dependencies&gt;
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project&gt;
+<span class="abbreviation">...</span>
+    &lt;properties&gt;
+        <span class="abbreviation">...</span>
+        <span class="subpoint">&lt;dbflute.version&gt;<span class="literal">1.1.0</span>&lt;/dbflute.version&gt;</span>
+        <span class="abbreviation">...</span>
+    &lt;/properties&gt;
+    
     <span class="abbreviation">...</span>
-    <span class="subpoint">&lt;dependency&gt;</span>
-        &lt;groupId&gt;<span class="literal">org.dbflute</span>&lt;/groupId&gt;
-        &lt;artifactId&gt;<span class="literal">dbflute-runtime</span>&lt;/artifactId&gt;
-        &lt;version&gt;<span class="literal">1.1.0</span>&lt;/version&gt;
-    <span class="subpoint">&lt;/dependency&gt;</span>
-    <span class="abbreviation">...</span>
-&lt;/dependencies&gt;
+
+    &lt;dependencies&gt;
+        <span class="abbreviation">...</span>
+        <span class="subpoint">&lt;dependency&gt;</span>
+            &lt;groupId&gt;<span class="literal">org.dbflute</span>&lt;/groupId&gt;
+            &lt;artifactId&gt;<span class="literal">dbflute-runtime</span>&lt;/artifactId&gt;
+            &lt;version&gt;<span class="literal">${dbflute.version}</span>&lt;/version&gt;
+        <span class="subpoint">&lt;/dependency&gt;</span>
+        <span class="abbreviation">...</span>
+    &lt;/dependencies&gt;
+<span class="abbreviation">...</span>
+&lt;/project&gt;
 </code></pre>
 	<p>
 		まだ、利用する DBMS に対応する "JDBCドライバ" の dependency
 		を設定していないのであれば、この時点で入れておきましょう。以下は MySQL の例。
 	</p>
 <pre><span class="codetitle">e.g. MySQL のJDBCドライバのdependencyを定義 @pom.xml</span><code>
-&lt;dependencies&gt;
-    <span class="abbreviation">...</span>
-    &lt;dependency&gt;
-        <span class="comment">(いまさっき設定したDBFluteランタイムのdependency)</span>
-    &lt;/dependency&gt;
-    <span class="subpoint">&lt;dependency&gt;</span>
-        &lt;groupId&gt;<span class="literal">mysql</span>&lt;/groupId&gt;
-        &lt;artifactId><span class="literal">mysql-connector-java</span>&lt;/artifactId&gt;
-        &lt;version><span class="literal">5.1.33</span>&lt;/version&gt;
-        &lt;scope><span class="literal">runtime</span>&lt;/scope&gt;
-    <span class="subpoint">&lt;/dependency&gt;</span>
-    <span class="abbreviation">...</span>
-&lt;/dependencies&gt;
+    &lt;dependencies&gt;
+        <span class="abbreviation">...</span>
+        &lt;dependency&gt;
+            <span class="comment">(いまさっき設定したDBFluteランタイムのdependency)</span>
+        &lt;/dependency&gt;
+        <span class="subpoint">&lt;dependency&gt;</span>
+            &lt;groupId&gt;<span class="literal">mysql</span>&lt;/groupId&gt;
+            &lt;artifactId><span class="literal">mysql-connector-java</span>&lt;/artifactId&gt;
+            &lt;version><span class="literal">5.1.33</span>&lt;/version&gt;
+            &lt;scope><span class="literal">runtime</span>&lt;/scope&gt;
+        <span class="subpoint">&lt;/dependency&gt;</span>
+        <span class="abbreviation">...</span>
+    &lt;/dependencies&gt;
 </code></pre>
 
 	<h3 id="mavenplugin">2. DBFlute Maven Plugin のインストール</h3>
@@ -146,6 +163,9 @@
 <span class="abbreviation">...</span>
 &lt;/project&gt;
 </code></pre>
+	<p>
+		<span class="freecomment">※DBFluteランタイムの設定のところで、propertiesタグに dbflute.version を指定していれば dbfluteVersion 設定を省略してもOK</span>
+	</p>
 	<h3 id="engine">3. DBFluteエンジンのダウンロード</h3>
 	<p>
 		コマンドラインで dbflute:download ゴールを叩きます。
