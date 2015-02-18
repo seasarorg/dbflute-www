@@ -52,7 +52,12 @@
 				<li><a href="#slimerror">本当のエラーだけ 500 に</a></li>
 			</ul>
 		</li>
-		<li><a href="#requestexceptionlog">例外メッセージにRequestの状態も一緒に</a></li>
+		<li><a href="#requestexceptionlog">例外メッセージにRequestの状態も</a>
+			<ul>
+				<li><a href="#requestsnapshot">Request状態のSNAPSHOT</a></li>
+				<li><a href="#transactionlist">SQL例外のときはトランザクション一覧も</a></li>
+			</ul>
+		</li>
 		<li><a href="#actionflowlog">ActionやJSPなどを一発で探せるように</a></li>
 		<li><a href="#calllersqllog">SQLに呼び出しActionを埋め込み</a></li>
 		<li><a href="#sqlcountlog">RequestごとのSQLの発行回数</a></li>
@@ -189,11 +194,12 @@
 		もちろん、開発中はエラー内容がデバッグログでしっかり出力されます。
 	</p>
 
-	<h2 id="requestexceptionlog">例外メッセージにRequestの状態も一緒に</h2>
+	<h2 id="requestexceptionlog">例外メッセージにRequestの状態も</h2>
 	<p>
 		通常、本番環境ではデバッグログは出力しません。ですが、インクリメンタル開発では、本番環境でも基本的な例外が発生する可能性を想定する必要があります。
 		そのとき、例えば NullPointerException だけでは原因を追求するのはとても厳しいです。その例外が発生したときの Request のもろもろの情報が欲しいものです。
 	</p>
+	<h3 id="requestsnapshot">Request状態のSNAPSHOT</h3>
 	<p>
 		ということで、例外メッセージに Request の状態が一緒に出力されます。
 	</p>
@@ -221,7 +227,7 @@
   <span class="abbreviation">...</span>
   [session] org.apache.struts.action.LOCALE=ja
   [session] org.dbflute.maihama.domainfw.action.DocksideUserBean={userId=1, sync=2014/04/06 19:34:29, locale=null, timeZone=null}
-= = = = = = = = = =/
+= = = = = = = = = =/ [00m01s851ms] #2bbe82a4
 java.lang.NullPointerException
     at org.dbflute.maihama.app.web.member.MemberListAction.doSearch(MemberListAction.java:89)
 	at org.dbflute.maihama.app.web.member.MemberListAction$$EnhancedByS2AOP$$73795327.$$doSearch$$invokeSuperMethod$$(MemberListAction$$EnhancedByS2AOP$$73795327.java)
@@ -234,7 +240,54 @@ java.lang.NullPointerException
     <span class="abbreviation">...</span>
 </code></pre>
 	<p>
+		例外として終わった処理が、リクエストの時点から何秒くらいかかって落ちたのかもわかるようになっています。
+		DBのロックを長く持っていたとか、通信で時間がかかったとか、例外で落ちたリクエストが起因して別のリクエストに影響を与えたかどうかなどを推測しやすいように。
+	</p>
+	<p>
 		RequestLoggingFilter にて、このログ出力が行われています。
+	</p>
+	<h3 id="transactionlist">SQL例外のときはトランザクション一覧も</h3>
+	<p>
+		SQL例外が発生したときに、一緒に "その瞬間のトランザクション一覧"
+		が、warningログとして出力されます。これにより、DBのロック待ち例外とかのとき、どの処理が起因になっているのかの推測がしやすくなります。
+	</p>
+<pre><span class="codetitle">e.g. SQL例外のときのトランザクション一覧 @Log</span><code>
+2015-02-18 16:10:16,919 [1685538367@qtp-186276003-0]-WARN  (ExceptionTranslator#warnSQLFailureState():90) - Look! Read the message below.
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SQL Failure State, here!
+
+[Advice]
+This state is for the SQL failure exception: #1553847
+
+[ConnectionPool View]
+org.dbflute.saflute.db.dbcp.HookedConnectionPool@7cfba6c5
+freePool=0, activePool=0, txActivePool=10
+{00m01s643ms, [FormatId=4360, GlobalId=1424243415266/1, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s633ms, [FormatId=4360, GlobalId=1424243415266/7, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s631ms, [FormatId=4360, GlobalId=1424243415266/10, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s639ms, [FormatId=4360, GlobalId=1424243415266/2, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s632ms, [FormatId=4360, GlobalId=1424243415266/9, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s636ms, [FormatId=4360, GlobalId=1424243415266/4, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s634ms, [FormatId=4360, GlobalId=1424243415266/5, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s637ms, [FormatId=4360, GlobalId=1424243415266/3, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s632ms, [FormatId=4360, GlobalId=1424243415266/8, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+{00m01s633ms, [FormatId=4360, GlobalId=1424243415266/6, BranchId=], org.dbflute.maihama.app.web.login.LoginIndexAction#index(), {userId=null}, /login/}
+* * * * * * * * * */
+</code></pre>
+	<p>
+		それぞれのトランザクションが、開始されてからどのくらい経過しているのか？どのActionから呼ばれたものなのか？どのログインユーザーで実行されているものなのか？
+		などなどがわかります。
+		ただ、Tomcatが複数台構成になっている場合は、その例外が発生したインスタンス内でのトランザクションに限りますが、
+		それでも、原因を追及する上での貴重な情報になるかと思います。
+	</p>
+	<p>
+		Adviceの欄に、ハッシュ値が表示されていますが、これは対応するエラーログとリンクしています。
+		このハッシュ値でエラーログを探すと、このWarningログを出すきっかけとなった例外メッセージが参照できます。
+	</p>
+	<p>
+		こちらは、後から追加された機能です<span class="freecomment">(2015/02/17)</span>。SAFluteの src/main/resources に jta+TransactionManager.dicon
+		が存在すること、jdbc.diconで ConnectionPoolImpl の代わりに HookedConnectionPool が設定されていることが前提です。
+		<span class="freecomment">(なければ、最新のSAFluteを参考に)</span>
 	</p>
 
 	<h2 id="actionflowlog">ActionやJSPなどを一発で探せるように</h2>
