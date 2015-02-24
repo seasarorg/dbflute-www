@@ -261,18 +261,16 @@ This state is for the SQL failure exception: #1553847
 
 [ConnectionPool View]
 org.dbflute.saflute.db.dbcp.HookedConnectionPool@7cfba6c5
-<span class="keyword">freePool=0, activePool=0, txActivePool=10</span>
+<span class="keyword">freePool=2, activePool=0, txActivePool=8</span>
 {00m03s243ms, <span class="point">1424243415266/1</span>, web.mypage.MypageIndexAction#index(), {userId=3}, <span class="subpoint">map:{MEMBER = list:{selectCount} ; PURCHASE = list:{selectCount}}</span>, /mypage/}
-{00m00s633ms, <span class="point">1424243415266/7</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{}</span>, /login/}
-{00m01s131ms, <span class="point">1424243415266/10</span>, web.product.ProductListAction#index(), {userId=null}, <span class="subpoint">map:{}</span>, /product/list/}
-{00m00s239ms, <span class="point">1424243415266/2</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{}</span>, /login/}
+{00m01s131ms, <span class="point">1424243415266/10</span>, web.product.ProductListAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectList}}</span>, /product/list/}
+{00m00s239ms, <span class="point">1424243415266/2</span>, web.login.LoginIndexAction#doLogin(), {userId=null}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /login/doLogin}
 {00m01s632ms, <span class="point">1424243415266/9</span>, web.mypage.MypageIndexAction#index(), {userId=22}, <span class="subpoint">map:{PURCHASE = list:{selectCount}}</span>, /mypage/}
 <span class="literal">/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - (SQL now: PURCHASE#selectCount [00m00s003ms])
 select count(*)
   from PURCHASE dfloc
 -- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$8/1635799099)
 - - - - - - - - - -/</span>
-{00m01s636ms, <span class="point">1424243415266/4</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{}</span>, /login/}
 {00m01s634ms, <span class="point">1424243415266/5</span>, web.product.ProductListAction#index(), {userId=83}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /product/}
 {00m07s637ms, <span class="point">1424243415266/3</span>, web.purchase.PurchaseIndexAction#index(), {userId=9}, <span class="subpoint">map:{MEMBER = list:{selectList ; selectCount}}</span>, /purchase/}
 {00m01s632ms, <span class="point">1424243415266/8</span>, web.profile.ProfileEditAction#index(), {userId=732}, <span class="subpoint">map:{MEMBER = list:{updateNonstrict}}</span>, /profile/edit/}
@@ -281,7 +279,7 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
  where MEMBER_ID = 3
 -- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$12/475753501)
 - - - - - - - - - -/</span>
-{00m01s633ms, <span class="point">1424243415266/6</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{}</span>, /login/}
+{00m01s633ms, <span class="point">1424243415266/6</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectCount}}</span>, /login/}
 * * * * * * * * * */
 </code></pre>
 	<ul>
@@ -291,22 +289,19 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 		<li>その瞬間、どんなSQLが実行されていたのか？ (どのくらい時間がかかっているのか？)</li>
 	</ul>
 	<p>
-		などなどがわかります。ただ、Tomcatが複数台構成になっている場合は、その例外が発生したインスタンス内でのトランザクションに限りますが、
-		それでも、原因を追及する上での貴重な情報になるかと。
-	</p>
-	<p>
-		Adviceの欄に、ハッシュ値が表示されていますが、これは対応するエラーログとリンクしていて、
+		...がわかります。ただ、Tomcatが複数台構成になっていると、その例外が発生したインスタンス内のトランザクションだけに限りますが、
+		それでも原因を追及する上での貴重な情報になるかと。また、Adviceの欄に、ハッシュ値が表示されていますが、これは対応するエラーログとリンクしていて、
 		このハッシュ値でエラーログを探すと、このWarningログのきっかけとなった例外メッセージが参照できます。
 	</p>
 	<p>
-		こちらは、後から追加された機能です<span class="freecomment">(2015/02/17)</span>。SAFluteの src/main/resources に jta+TransactionManager.dicon
-		が存在すること、jdbc.diconで ConnectionPoolImpl の代わりに HookedConnectionPool が設定されていることが前提です。
-		<span class="freecomment">(なければ、最新のSAFluteを参考に)</span>
+		その瞬間実行されているSQLの表示用SQL (DisplaySql)
+		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません<span class="freecomment">(その辺のパフォーマンス考慮、最大限しているつもり)</span>。
+		また、トランザクションが開始されていても、まだ一度もDBアクセスしていないトランザクションは表示されません<span class="freecomment">(ConnectionPoolに乗ってないため)</span>。
 	</p>
 	<p>
-		その瞬間実行されているSQLの表示用SQL (DisplaySql)
-		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません。
-		<span class="freecomment">(その辺のパフォーマンス考慮、最大限しているつもりです)</span>
+		こちらは、後から追加された機能です<span class="freecomment">(2015/02/24)</span>。SAFluteの src/main/resources に jta+TransactionManager.dicon
+		が存在すること、jdbc.diconで ConnectionPoolImpl の代わりに HookedConnectionPool が設定されていることが前提です。
+		<span class="freecomment">(なければ、最新のSAFluteを参考に)</span>
 	</p>
 
 	<h2 id="actionflowlog">ActionやJSPなどを一発で探せるように</h2>
