@@ -262,30 +262,32 @@ This state is for the SQL failure exception: #1553847
 [ConnectionPool View]
 org.dbflute.saflute.db.dbcp.HookedConnectionPool@7cfba6c5
 <span class="keyword">freePool=2, activePool=0, txActivePool=8</span>
-{00m03s243ms, <span class="point">1424243415266/1</span>, web.mypage.MypageIndexAction#index(), {userId=3}, <span class="subpoint">map:{MEMBER = list:{selectCount} ; PURCHASE = list:{selectCount}}</span>, /mypage/}
-{00m01s131ms, <span class="point">1424243415266/10</span>, web.product.ProductListAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectList}}</span>, /product/list/}
-{00m00s239ms, <span class="point">1424243415266/2</span>, web.login.LoginIndexAction#doLogin(), {userId=null}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /login/doLogin}
-{00m01s632ms, <span class="point">1424243415266/9</span>, web.mypage.MypageIndexAction#index(), {userId=22}, <span class="subpoint">map:{PURCHASE = list:{selectCount}}</span>, /mypage/}
+{00m03s243ms, <span class="point">1424243415266/1(21)</span>, web.mypage.MypageIndexAction#index(), {userId=3}, <span class="subpoint">map:{MEMBER = list:{selectCount} ; PURCHASE = list:{selectCount}}</span>, /mypage/}
+{00m01s131ms, <span class="point">1424243415266/10(7)</span>, web.product.ProductListAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectList}}</span>, /product/list/}
+{00m00s239ms, <span class="point">1424243415266/2(34)</span>, web.login.LoginIndexAction#doLogin(), {userId=null}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /login/doLogin}
+{00m01s632ms, <span class="point">1424243415266/9(75)</span>, web.mypage.MypageIndexAction#index(), {userId=22}, <span class="subpoint">map:{PURCHASE = list:{selectCount}}</span>, /mypage/}
 <span class="literal">/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - (SQL now: PURCHASE#selectCount [00m00s003ms])
 select count(*)
   from PURCHASE dfloc
 -- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$8/1635799099)
 - - - - - - - - - -/</span>
-{00m01s634ms, <span class="point">1424243415266/5</span>, web.product.ProductListAction#index(), {userId=83}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /product/}
-{00m07s637ms, <span class="point">1424243415266/3</span>, web.purchase.PurchaseIndexAction#index(), {userId=9}, <span class="subpoint">map:{MEMBER = list:{selectList ; selectCount}}</span>, /purchase/}
-{00m01s632ms, <span class="point">1424243415266/8</span>, web.profile.ProfileEditAction#index(), {userId=732}, <span class="subpoint">map:{MEMBER = list:{updateNonstrict}}</span>, /profile/edit/}
+{00m01s634ms, <span class="point">1424243415266/5(26)</span>, web.product.ProductListAction#index(), {userId=83}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /product/}
+{00m07s637ms, <span class="point">1424243415266/3(31)</span>, web.purchase.PurchaseIndexAction#index(), {userId=9}, <span class="subpoint">map:{MEMBER = list:{selectList ; selectCount}}</span>, /purchase/}
+{00m01s632ms, <span class="point">1424243415266/8(41)</span>, web.profile.ProfileEditAction#index(), {userId=732}, <span class="subpoint">map:{MEMBER = list:{updateNonstrict}}</span>, /profile/edit/}
 <span class="literal">/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - (SQL now: MEMBER#updateNonstrict [00m00s016ms])
 update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205', UPDATE_USER = 'M:-1,DCK,LoginIndexAction', VERSION_NO = VERSION_NO + 1
  where MEMBER_ID = 3
 -- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$12/475753501)
 - - - - - - - - - -/</span>
-{00m01s633ms, <span class="point">1424243415266/6</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectCount}}</span>, /login/}
+{00m01s633ms, <span class="point">1424243415266/6(3)</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectCount}}</span>, /login/}
 * * * * * * * * * */
 </code></pre>
 	<ul>
-		<li>それぞれのトランザクションが、開始されてからどのくらい経過しているのか？</li>
-		<li>どのActionから呼ばれたものなのか？</li>
-		<li>どのログインユーザーで実行されているものなのか？</li>
+		<li>それぞれのトランザクションが、開始されてからどのくらい経過しているのか？ <span class="freecomment"> e.g. 00m01s634ms</span></li>
+		<li>DBMS側のどのプロセスと紐づいているか？ <span class="freecomment">e.g. xxx/x(21) ※2015/02/26時点でMySQLのみ</span></li>
+		<li>どのActionから呼ばれたものなのか？ <span class="freecomment"> e.g. MypageIndexAction#index()</span></li>
+		<li>どのログインユーザーで実行されているものなのか？ <span class="freecomment"> e.g. {userId=83}</span></li>
+		<li>そのトランザクションがどのテーブルにどんな操作をしたか？ <span class="freecomment"> e.g. map:{MEMBER = ...}</span></li>
 		<li>その瞬間、どんなSQLが実行されていたのか？ (どのくらい時間がかかっているのか？)</li>
 	</ul>
 	<p>
