@@ -37,188 +37,16 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 7</h1>
+	<h1>(旧ページ)ハンズオン セクション 7</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#insert">データの登録</a>
-			<ul>
-				<li><a href="#commoncolumn">共通カラムの設定</a></li>
-				<li><a href="#versionno">バージョンNOも設定不要</a></li>
-			</ul>
-		</li>
-		<li><a href="#notcurrentfromjava">現在日時は、Javaから取らない</a>
-			<ul>
-				<li><a href="#changecurrent">現在日時は差し替えたい</a></li>
-				<li><a href="#currentinterface">統一した現在日時インターフェース</a></li>
-				<li><a href="#buthandsoncurrent">気持ち</a></li>
-			</ul>
-		</li>
-		<li><a href="#morelogic">さらに登録してみましょう</a></li>
-		<li><a href="#nextsection">次のセクション</a></li>
+		<li><a href="#migration">ページが移動しました</a></li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
+	<h2 id="migration">ページが移動しました</h2>
 	<p>
-		さて、ハンズオンの続きです。
+		絶賛ハンズオンリファクタリング中です。
 	</p>
-	<div class="relatedpage"><a href="./hands-on06.html">ハンズオン セクション 6</a></div>
-	<p>
-		"Behaviorで登録 (+ 自動採番、共通カラム)" を学んでいきましょう。
-	</p>
-
-	<h2 id="ready">事前準備</h2>
-	<p>
-		<em class="keyword">src/main/java</em> 配下に org.dbflute.handson.logic.HandsOn07Logic
-		クラスを作成してください。この時点では空っぽで構いません。また、ERDを開いておくと良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../manual/reference/example/exampledb.html">ExampleDB</a></div>
-
-	<h2 id="insert">データの登録</h2>
-	<p>
-		今までひたすら検索をやってきましたが、ここでようやく登録です。
-		Behavior から Entity をもらうのではなく、Entity を渡してみましょう。
-		<span class="freecomment">(講師によるお話あり)</span>
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/ormapper/behavior/update/insert.html">Behavior - insert()</a></div>
-	<p>
-		以下のロジックを作成してみましょう。
-	</p>
-	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>Member insertMyselfMember()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>自分自身の会員を登録</li>
-			</ul>
-		</dd>
-		<dt>対応テストメソッド</dt>
-		<dd>test_insertMyselfMember_会員が登録されていること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>登録後の Entity から主キーの値を使って検索すること</li>
-				<li>とりあえず、会員名称と生年月日だけアサート</li>
-			</ul>
-		</dd>
-	</dl>
-	<div class="relatedpage"><a href="../../../manual/function/genbafit/implfit/autoincrement/index.html">現場フィット - 自動採番</a></div>
-	<h3 id="commoncolumn">共通カラムの設定</h3>
-	<p>
-		先ほどのロジックで、登録日時や更新日時はどうしたでしょうか？
-		個別個別に設定しないと登録できなかったかと思います。
-	</p>
-	<p>
-		ですが DBFlute には、データ登録・更新時に発生する共通カラムへの定型的な設定処理、これを自動で行う機能があります。
-		<span class="freecomment">(講師によるお話あり)</span>
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/commoncolumn/index.html">現場フィット - 共通カラム</a></div>
-	<p>
-		commonColumnMap.dfprop に、以下の内容を設定して再自動生成(DocとGenerate)してください。
-	</p>
-	<p>
-		<span class="freecomment">※Java8 (DBFlute-1.1) なら getAccessTimestampOnThread() は getAccessLocalDateTimeOnThread()
-		に変更</span>
-	</p>
-<pre><span class="codetitle">e.g. DBFluteプロパティでの共通カラムの設定 @commonColumnMap.dfprop</span><code>
-<span class="abbreviation">...</span>
-    ; commonColumnMap = <span class="keyword">map:</span>{
-        ; REGISTER_DATETIME=TIMESTAMP ; REGISTER_USER=VARCHAR
-        ; UPDATE_DATETIME=TIMESTAMP   ; UPDATE_USER=VARCHAR
-    }
-    ; beforeInsertMap = <span class="keyword">map:</span>{
-        ; REGISTER_DATETIME = <span class="attribute">$$AccessContext$$</span>.getAccessTimestampOnThread()
-        ; REGISTER_USER     = <span class="attribute">$$AccessContext$$</span>.getAccessUserOnThread()
-        ; UPDATE_DATETIME   = entity.getRegisterDatetime()
-        ; UPDATE_USER       = entity.getRegisterUser()
-    }
-    ; beforeUpdateMap = <span class="keyword">map:</span>{
-        ; UPDATE_DATETIME   = <span class="attribute">$$AccessContext$$</span>.getAccessTimestampOnThread()
-        ; UPDATE_USER       = <span class="attribute">$$AccessContext$$</span>.getAccessUserOnThread()
-    }
-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		SchemaHTMLを確認し、先ほどのロジックから共通カラムの設定をコメントアウトして再実行してみてください。
-		ログで共通カラムの登録された値を確認してみてください。
-	</p>
-	<h3 id="versionno">バージョンNOも設定不要</h3>
-	<p>
-		バージョンNOに関しては次のセッションで詳しく説明がありますが、
-		とりあえず登録時にバージョンNOは明示的に設定する必要はないということだけ覚えておいてください。
-	</p>
-
-	<div class="inucolumn">
-		<h2 id="notcurrentfromjava">現在日時は、Javaから取らない</h2>
-		<h3 id="changecurrent">現在日時は差し替えたい</h3>
-		<p>
-			Testクラスなら currentDate() でOKですが、Logicで現在日時を取得するのはどうしましょう？
-		</p>
-		<p>
-			ハンズオンでは特に用意していないので、JavaのAPIから直接取得してください。
-			ただ、それは通常のアプリではあまりやらないことです。現在日時は、Javaから取らないのが流儀です。
-		</p>
-		<p>
-			アプリには、月初、月末、年末など時間限定でないと動かないプログラムもよくあります。
-			それらをテストするのにはどうしたらいいでしょう？
-			PCのシステム日付を変える方法もありますが、ファイル更新日時などがひっくり返って戻したときに予期せぬ挙動をしたり、ライセンス周りの挙動がおかしくなったりと、
-			あまりやりたいことではありません。
-		</p>
-		<h3 id="currentinterface">統一した現在日時インターフェース</h3>
-		<p>
-			そこでよく利用されるのが、アプリで "現在日時を提供するインターフェース"
-			を用意して、その実装をちょっとだけ差し替えることで自由に "アプリ内の現在日時" を変更する方法です。
-			実際には、実装の差し替えというよりかは設定ファイルで変更できるするようにします。
-		</p>
-		<p>
-			そのためには、Javaから現在日時を取ってはいけないのです。
-		</p>
-		<p>
-			新しい開発プロジェクトに入って現在日時を取得する場面に遭遇したら、まずは聞いてみましょう。
-			現在日時を取得する統一的なインターフェースがありますでしょうか？
-		</p>
-		<h3 id="buthandsoncurrent">気持ち</h3>
-		<p>
-			でも、ハンズオンでは用意してないので、申し訳なさそうな気持ち一杯でJavaから取ってください。
-		</p>
-		<p>
-			せめて、Logicクラス内でメソッド化するなどして統一しておくと良いでしょう。
-			Javaからの取得方法は、他のプログラムに埋もれやすい見た目(特にDateさん)をしていますので、どこで取ってるか明確にしておくだけでも、あとで修正するときに見つけやすくなります。
-		</p>
-	</div>
-
-	<h2 id="morelogic">さらに登録してみましょう</h2>
-	<p>
-		では、エクササイズです。さらに登録してみましょう。
-	</p>
-	<p>
-		※ExampleDB の ERD と、この時点で利用している実際のテーブル構造(主にカラム名やカラムの構造)では、<em class="keyword">明らかにおかしいカラム名</em>
-		があったりなど、一部食い違っているのでご注意ください。
-	</p>
-	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>Member insertYourselfMember()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>誰かを正式会員として登録</li>
-				<li>業務的に必須の関連テーブルも登録</li>
-			</ul>
-		</dd>
-		<dt>テストメソッド</dt>
-		<dd>test_insertYourselfMember_会員が登録されていること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>登録されていることを代表的なカラムを利用してアサート</li>
-				<li>関連テーブルの登録もアサート</li>
-				<li>登録していない関連テーブルが登録されていないこともアサート</li>
-			</ul>
-		</dd>
-	</dl>
-
-	<h2 id="nextsection">次のセクション</h2>
-	<p>
-		さて、次のセクションへ
-	</p>
-	<div class="detailpage"><a href="./hands-on08.html">ハンズオン セクション 8</a></div>
+	<div class="detailpage"><a href="../section07.html">ハンズオントレーニング Section 7</a></div>
 
 </div>
 </div>
@@ -243,17 +71,17 @@
 		</li>
 		<li><a href="../../../../ja/tutorial/handson/index.html">DBFluteハンズオン</a>
 			<ul>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on01.html">セクション１</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on02.html">セクション２</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on03.html">セクション３</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on04.html">セクション４</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on05.html">セクション５</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on06.html">セクション６</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on07.html">セクション７</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on08.html">セクション８</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on09.html">セクション９</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on10.html">セクション１０</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase2/hands-on11.html">セクション１１</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on01.html">Section 1</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on02.html">Section 2</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on03.html">Section 3</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on04.html">Section 4</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on05.html">Section 5</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on06.html">Section 6</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on07.html">Section 7</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on08.html">Section 8</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on09.html">Section 9</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on10.html">Section 10</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on11.html">Section 11</a></li>
 			</ul>
 		</li>
 	</ul>

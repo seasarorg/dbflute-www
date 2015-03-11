@@ -1,0 +1,531 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,チュートリアル,ハンズオン,hands-on" />
+	<link rel="stylesheet" type="text/css" href="../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ハンズオンセクション 4 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html"><img src="../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html"><img src="../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html"><img src="../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html"><img src="../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html"><img src="../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html"><img src="../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html"><img src="../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html"><img src="../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ハンズオンセクション 4</h1>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#ready">事前準備</a></li>
+		<li><a href="#plainway">ベタベタのやり方</a></li>
+		<li><a href="#classification">区分値メソッドの生成と活用</a>
+			<ul>
+				<li><a href="#preparedfprop">DBFluteプロパティの設定</a></li>
+				<li><a href="#regenerate">再自動生成 (Doc and Generate)</a></li>
+				<li><a href="#fixplain">ベタベタなやり方を修正</a></li>
+			</ul>
+		</li>
+		<li><a href="#morecls">さらに区分値を活用して実装</a>
+			<ul>
+				<li><a href="#othercls">他の区分値も定義して再自動生成</a></li>
+				<li><a href="#clsimpl">区分値メソッドを使って実装</a></li>
+			</ul>
+		</li>
+		<li><a href="#changecls">区分値の追加と変更</a></li>
+		<li><a href="#forcedcls">ネイティヴ型メソッドの削除</a>
+			<ul>
+				<li><a href="#java6cls">Java6,7 (DBFlute-1.0.x) では</a></li>
+				<li><a href="#java8cls">Java8 (DBFlute-1.1) からは</a></li>
+			</ul>
+		</li>
+		<li><a href="#checkimplicitset">暗黙の区分値チェック</a>
+			<ul>
+				<li><a href="#java6impcheck">Java6,7 (DBFlute-1.0.x) では</a></li>
+				<li><a href="#java8impcheck">Java8 (DBFlute-1.1) からは</a></li>
+			</ul>
+		</li>
+		<li><a href="#grouping">グルーピング判定</a></li>
+		<li><a href="#sistercode">姉妹コードの利用</a></li>
+		<li><a href="#subitemmap">独自の属性を追加</a></li>
+		<li><a href="#nextsection">次のセクション</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		さて、ハンズオンの続きです。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./hands-on03.html"> -->(ひとつまえ) ハンズオンセクション 3<!-- </a> --></span></div>
+	<p>
+		"ConditionBeanでタイプセーフ区分値" を学んでいきましょう。
+	</p>
+
+	<h2 id="ready">事前準備</h2>
+	<p>
+		org.docksidestage.handson.exercise.HandsOn04Test クラスを作成してください。
+		このクラスは UnitContainerTestCase を継承します。また、ERDを開いておくと良いでしょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/reference/example/maihamadb.html"> -->MaihamaDB<!-- </a> --></span></div>
+	<p>
+		【事務連絡】org.dbflute.handson から、org.docksidestage.handson に変わりました。
+		org.dbfluteで開始した人は、そのまま org.dbflute で続けてOKです。もし、移行するなら log4j.properties と basicInfoMap.dfprop
+		の該当箇所を修正してください。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../news.html#20150311"> -->ハンズオンニュース - org.docksidestageに変更<!-- </a> --></span></div>
+
+	<h2 id="plainway">ベタベタのやり方</h2>
+	<p>
+		以下のテストを作成してください。
+	</p>
+	<dl class="textlist">
+		<!-- Equal as Non Classification  -->
+		<dt>退会会員の未払い購入を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>退会会員のステータスコードは "WDL"。ひとまずベタで</li>
+				<li>支払完了フラグは "0" で未払い。ひとまずベタで</li>
+				<li>購入日時の降順で並べる</li>
+				<li>会員名称と商品名と一緒にログに出力</li>
+				<li>購入が未払いであることをアサート</li>
+			</ul>
+		</dd>
+		<!-- Determination as Non Classification, SetupSelect as NotRequired  -->
+		<dt>会員退会情報も取得して会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>退会会員でない会員は、会員退会情報を持っていないことをアサート</li>
+				<li>退会会員のステータスコードは "WDL"。ひとまずベタで</li>
+				<li>不意のバグや不意のデータ不備でもテストが(できるだけ)成り立つこと</li>
+			</ul>
+		</dd>
+	</dl>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/conditionbean/index.html"> -->ConditionBean<!-- </a> --></span></div>
+
+	<h2 id="classification">区分値メソッドの生成と活用</h2>
+	<p>
+		DBFluteでは、区分値に対してタイプセーフなアプローチができます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/classification/index.html"> -->現場フィット - 区分値<!-- </a> --></span></div>
+	<h3 id="preparedfprop">DBFluteプロパティの設定</h3>
+	<p>
+		まずは、区分値を定義してみましょう。DBFluteプロパティである classificationDefinitionMap.dfprop (DBFluteクライアント/dfprop配下)
+		に、以下の定義を設定してください。現場フィットの区分値のページを参考にすると良いでしょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/reference/dfprop/index.html"> -->DBFluteプロパティ<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. フラグと会員ステータスの区分値を定義 @classificationDefinitionMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; Flg = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=フラグを示す; codeType=Number}
+        ; <span class="keyword">map:</span>{code=1; name=True ; alias=はい  ; comment=有効を示す}
+        ; <span class="keyword">map:</span>{code=0; name=False; alias=いいえ; comment=無効を示す}
+    }
+    ; MemberStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=入会から退会までの会員のステータスを示す; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=MEMBER_STATUS
+            ; code=MEMBER_STATUS_CODE; name=MEMBER_STATUS_NAME
+            ; comment=DESCRIPTION; orderBy=DISPLAY_ORDER
+        }
+    }
+ <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		暗黙の区分値であるフラグ(Flg)は、どのテーブルのどのカラムに関連付けるのかを定義する必要があります。
+		同じくDBFluteプロパティである classificationDeploymentMap.dfprop に、以下の定義を設定してください。
+	</p>
+<pre><span class="codetitle">e.g. フラグ(Flg)を "_FLG" で終わるカラム全てに関連付け @classificationDeploymentMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{<span class="attribute">suffix:</span>_FLG=Flg}
+ <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="regenerate">再自動生成 (Doc and Generate)</h3>
+	<p>
+		では、DocタスクとGenerateタスクを実行してください。SchemaHTMLにて、関連付いたカラムの Classification
+		欄に区分値の名前がリンクになって表示されているはずです。
+		そのようになっていれば設定がうまくいった証拠で、プログラム上でも区分値情報を利用した実装ができるようになります。
+	</p>
+	<h3 id="fixplain">ベタベタなやり方を修正</h3>
+	<p>
+		それでは、先ほど実装したベタベタなやり方を修正してみましょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/conditionbean/howto.html#classification"> -->ConditionBeanの使い方 - 区分値<!-- </a> --></span></div>
+
+	<h2 id="morecls">さらに区分値を活用して実装</h2>
+	<p>
+		それではさらに区分値メソッドに慣れていきましょう。
+	</p>
+	<h3 id="othercls">他の区分値も定義して再自動生成</h3>
+	<p>
+		以下の他の区分値も定義して再自動生成してください。(生成後、SchemaHTMLを確認)
+	</p>
+<pre><span class="codetitle">その他の区分値の定義 @classificationDefinitionMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; ServiceRank = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=会員が受けられるサービスのランクを示す; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=SERVICE_RANK
+            ; code=SERVICE_RANK_CODE; name=SERVICE_RANK_NAME
+            ; comment=DESCRIPTION; orderBy=DISPLAY_ORDER
+        }
+    }
+    ; Region = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=主に会員の住んでいる地域を示す; codeType=Number}
+        ; <span class="keyword">map:</span>{
+            ; table=REGION
+            ; code=REGION_ID; name=REGION_NAME
+            ; orderBy=REGION_ID
+        }
+    }
+    ; WithdrawalReason = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=会員の退会理由。なのでちょっとねがてぃぶ; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=WITHDRAWAL_REASON
+            ; code=WITHDRAWAL_REASON_CODE; name=WITHDRAWAL_REASON_CODE
+            ; comment=WITHDRAWAL_REASON_TEXT; orderBy=DISPLAY_ORDER
+        }
+    }
+    ; ProductCategory = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=商品のカテゴリ。階層構造である; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=<span class="attribute">$sql:</span>
+ PRODUCT_CATEGORY loc left outer join PRODUCT_CATEGORY rel on loc.PARENT_CATEGORY_CODE = rel.PRODUCT_CATEGORY_CODE
+            ; code=<span class="attribute">$sql:</span> loc.PRODUCT_CATEGORY_CODE
+            ; name=<span class="attribute">$sql:</span> loc.PRODUCT_CATEGORY_NAME
+            ; comment=<span class="attribute">$sql:</span> 'of ' || rel.PRODUCT_CATEGORY_NAME
+            ; orderBy=loc.PARENT_CATEGORY_CODE is not null, loc.PARENT_CATEGORY_CODE
+        }
+    }
+    ; ProductStatus = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{topComment=商品ステータス。あんまり面白みのないステータス; codeType=String}
+        ; <span class="keyword">map:</span>{
+            ; table=PRODUCT_STATUS
+            ; code=PRODUCT_STATUS_CODE; name=PRODUCT_STATUS_NAME
+        }
+    }
+    ; PaymentMethod = <span class="keyword">list:</span>{
+        ; <span class="keyword">map:</span>{
+            ; topComment=支払方法; codeType=String
+            ; isCheckImplicitSet=<span class="keyword">true</span>
+            ; groupingMap = <span class="keyword">map:</span>{
+                ; recommended = <span class="keyword">map:</span>{
+                    ; groupComment = 最も推奨されている方法
+                    ; elementList = <span class="keyword">list:</span>{ByHand}
+                }
+            }
+        }
+        ; <span class="keyword">map:</span>{code=HAN; name=ByHand; alias=手渡し; comment=Face-to-Faceの手渡しで商品と交換}
+        ; <span class="keyword">map:</span>{code=BAK; name=BankTransfer; alias=銀行振込; comment=銀行振込で確認してから商品発送}
+        ; <span class="keyword">map:</span>{code=CRC; name=CreditCard; alias=クレジットカード; comment=クレジットカードの番号を教えてもらう}
+    }
+ <span class="abbreviation">...</span>
+</code></pre>
+<pre><span class="codetitle">その他の区分値の関連付け @classificationDeploymentMap.dfprop</span><code>
+ <span class="abbreviation">...</span>
+    ; PURCHASE_PAYMENT = <span class="keyword">map:</span>{PAYMENT_METHOD_CODE=PaymentMethod}
+ <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="clsimpl">区分値メソッドを使って実装</h3>
+	<p>
+		それでは、区分値メソッドを大いに活用して、以下のテストを作成してください。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/entity/index.html#classification"> -->Entity - 区分値<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/conditionbean/howto.html#classification"> -->ConditionBeanの使い方 - 区分値<!-- </a> --></span></div>
+	<dl class="textlist">
+		<!-- Equal as Classification for MemberStatus, FirstFirst or ScalarCondition -->
+		<dt>一番若い仮会員の会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>区分値メソッドの JavaDoc コメントを確認する</li>
+				<li>会員ステータス名称も取得する(ログに出力)</li>
+				<li>会員が仮会員であることをアサート</li>
+			</ul>
+		</dd>
+		<dd>
+			<span class="freecomment">
+				※できれば、テストメソッド内の検索回数は一回で...
+			</span>
+		</dd>
+		<!-- Equal as Classification for Flg, ScalarCondition, ExistsReferrer  -->
+		<dt>支払済みの購入の中で一番若い正式会員のものだけ検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員ステータス名称も取得する(ログに出力)</li>
+				<li>購入日時の降順で並べる</li>
+				<li>購入の紐づいている会員が正式会員であることをアサート</li>
+			</ul>
+		</dd>
+		<dd>
+			<span class="freecomment">
+				※これ難しい...かも!? (解釈に "曖昧さ" あり、実際にデータが存在している方を優先)
+			</span>
+		</dd>
+		<!-- Equal as Classification for ProductStatus  -->
+		<dt>生産販売可能な商品の購入を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>商品ステータス名称も取得する(ログに出力)</li>
+				<li>購入価格の降順で並べる</li>
+				<li>購入の紐づいている商品が生産販売可能であることをアサート</li>
+			</ul>
+		</dd>
+		<!-- InScope as Classification for MemberStatus  -->
+		<dt>正式会員と退会会員の会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員ステータスの表示順で並べる</li>
+				<li>会員が正式会員と退会会員であることをアサート</li>
+				<li>両方とも存在していることをアサート</li>
+				<li>Entity上だけで正式会員を退会会員に変更する</li>
+				<li>変更した後、退会会員に変更されていることをアサート</li>
+			</ul>
+		</dd>
+		<dt>銀行振込で購入を支払ったことのある、会員ステータスごとに一番若い会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>正式会員で一番若い、仮会員で一番若い、という風にそれぞれのステータスで若い会員を検索</li>
+				<li>一回の ConditionBean による検索で会員たちを検索すること <span class="freecomment">(PartitionBy...)</span></li>
+				<li>ログのSQLを見て、検索が妥当であることを目視で確認すること</li>
+				<li>検索結果がステータスの件数以上であることをアサート</li>
+			</ul>
+		</dd>
+		<dd>
+			<span class="freecomment">
+				※"where句の再利用"のドキュメントをよく読んで、MemberCQクラスに arrangeExistsBankTransferPayment() というメソッドを <em class="keyword">作ってみたいと思ったら</em> 作ってみましょう。
+			</span>
+			<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/whererecycle/index.html"> -->現場フィット - where句の再利用<!-- </a> --></span></div>
+		</dd>
+	</dl>
+
+	<h2 id="changecls">区分値の追加と変更</h2>
+	<p>
+		実際に、区分値を追加して再自動生成してみましょう。DBFluteクライアント/playsql/data/common/xls/10-master.xls
+		の MEMBER_STATUS にレコードを追加してください。
+	</p>
+	<dl class="keymainlist">
+		<dt>会員ステータスコード</dt><dd>HAN</dd>
+		<dt>会員ステータス名称</dt><dd>ハンズオン</dd>
+		<dt>説明</dt><dd>好きなこと書いて</dd>
+		<dt>表示順</dt><dd>9</dd>
+	</dl>
+	<p>
+		そして、ReplaceSchema を再実行し、JDBCタスク、Docタスク、Generateタスクと連続で実行してください。
+		まずは、SchemaHTML の区分値一覧を確認し、追加ステータスが追加されていることを確認。
+		そして、テストメソッドを一つ作成して、追加したステータスを使って ConditionBean
+		の条件を(適当に)組み立ててみてください。(JavaDocコメントに "説明" の内容が表示されていることも確認) 
+	</p>
+	<p>
+		それができたら、今度はエクセルでそのレコードを削除して、同じように ReplaceSchemaからGenerateタスクまで実行して、
+		SchemaHTML の区分値一覧から消えて、かつ、そのテストメソッドがコンパイルエラーになることを確認してください。
+		(元の状態に戻ります)
+	</p>
+	<p>
+		そうしたら、そのテストメソッドはコメントアウトして、どういう確認を行ってどういう経緯でコメントアウトしたのかを説明するコメントを書いておいてください。
+		コメントアウトの理由を書くこと自体が大事なことです<span class="freecomment">(講師による小話あり)</span>。
+		ちなみに、コメントアウトは該当行を選択して "ctrl + /"。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/topic/programming/shortcut/codejustcut.html#comment"> -->コード調整ショートカット - コメント周り<!-- </a> --></span></div>
+
+	<h2 id="forcedcls">ネイティヴ型メソッドの削除</h2>
+	<h3 id="java6cls">Java6,7 (DBFlute-1.0.x) では</h3>
+	<p>
+		区分値メソッドを生成しても、ネイティヴ型の設定メソッドはデフォルトの設定では残っています。
+		その理由はドキュメントに書いてある通りです。さっと目を通してみましょう。<span class="freecomment">(講師によるお話あり)</span>
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/entity/index.html#classification"> -->Entity - 区分値<!-- </a> --></span></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../manual/function/ormapper/conditionbean/howto.html#classification"> -->ConditionBeanの使い方 - 区分値<!-- </a> --></span></div>
+	<p>
+		その理由を割り切って、区分値メソッドでの設定の強制力を高めたい場合は、
+		DBFluteプロパティでネイティヴ型の設定メソッドを不可視(protected)にすることが可能です。
+		プロパティを設定して再自動生成し、ネイティヴ型の設定メソッドがいなくなったことを確認してみてください。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/reference/dfprop/littleadjustment/index.html#isforceclassificationsetting"> -->dfprop - isForceClassificationSetting<!-- </a> --></span></div>
+	<p>
+		また、隠れ区分値を検索したときに明示的な例外になるような設定もしておきましょう。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/reference/dfprop/littleadjustment/index.html#ischeckselectedclassification"> -->dfprop - isCheckSelectedClassification<!-- </a> --></span></div>
+	<h3 id="java8cls">Java8 (DBFlute-1.1) からは</h3>
+	<p>
+		ネイティヴ型の設定メソッドはデフォルトの設定で生成されないようになっています。
+	</p>
+	<p>
+		ですが、dfpropで区分値に定義していない "隠れ区分値" を検索してしまったりsetしてしまったりしても、デフォルトではエラーにはなりません。
+	</p>
+	<p>
+		littleAdjustmentMap.dfprop にて、classificationUndefinedHandlingType
+		を EXCEPTION に設定すると、例外になるようになります。そもそも set
+		できないから気軽に動作確認はできませんが、気合いのある人は "なにかしらの方法で" 無理やり protected になっている Member#setMemberStatusCode()
+		を呼び出しても、止めはしません。 
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/reference/dfprop/littleadjustment/index.html#classificationundefinedhandlingtype"> -->dfprop - classificationUndefinedHandlingType<!-- </a> --></span></div>
+
+	<h2 id="checkimplicitset">暗黙の区分値チェック</h2>
+	<h3 id="java6impcheck">Java6,7 (DBFlute-1.0.x) では</h3>
+	<p>
+		暗黙の区分値は、データ登録時には何の制約もありません。
+		アプリ実装ではDBFluteの区分値メソッドを使ってタイプセーフにできますが、ReplaceSchemaのエクセルデータ作成ではケアレスミスが簡単に起きてしまいます。
+		DBFluteのオプションで登録時に自動チェックすることができます。<span class="freecomment">(講師によるお話あり)</span>
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/classification/index.html#checkimplicitset"> -->現場フィット - 区分値 - 暗黙の区分値チェック<!-- </a> --></span></div>
+	<p>
+		ハンズオンで追加した暗黙の区分値の中に、一つだけ "暗黙の区分値チェック"
+		が付いていないものがありますので、付けてみて ReplaceSchema でチェックがされることを確認してみてください。
+	</p>
+	<h3 id="java8impcheck">Java8 (DBFlute-1.1) からは</h3>
+	<p>
+		先ほどの classificationUndefinedHandlingType
+		で既にチェックされるようになっています。そのままReplaceSchemaのエクセルデータを一時的に修正してチェックされることを確認してみましょう。
+	</p>
+
+	<h2 id="grouping">グルーピング判定</h2>
+	<p>
+		正式会員と仮会員で "サービスが利用できる会員"
+		というグルーピングを設定をして再自動生成し、以下のエクササイズをやってみましょう。<span class="freecomment">(講師によるお話あり)</span>
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/classification/index.html#groupingmap"> -->現場フィット - 区分値 - 区分値のグルーピング<!-- </a> --></span></div>
+	<dl class="textlist">
+		<!-- GroupingClassification -->
+		<dt>サービスが利用できる会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>グルーピングの設定によって生成されたメソッドを利用</li>
+				<li>会員ステータスの表示順で並べる</li>
+				<li>会員が "サービスが利用できる会員" であることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		※SchemaHTMLの区分値の欄もぜひ確認してみてください。
+	</p>
+	<p>
+		※実は既にグルーピングを利用している区分値もありますので、ぜひ確認してみてください。
+	</p>
+
+	<h2 id="sistercode">姉妹コードの利用</h2>
+	<p>
+		フラグ区分値に true と false の姉妹コードを設定して再自動生成し、以下のエクササイズをやってみましょう。<span class="freecomment">(講師によるお話あり)</span>
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/classification/index.html#sistercode"> -->現場フィット - 区分値 - 姉妹コードの利用<!-- </a> --></span></div>
+	<dl class="textlist">
+		<!-- SisterCode, ExistsReferrer, LoadReferrer -->
+		<dt>未払い購入のある会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>姉妹コードの設定によって生成されたメソッドを利用</li>
+				<li>正式会員日時の降順(nullを後に並べる)、会員IDの昇順で並べる</li>
+				<li>会員が未払いの購入を持っていることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="subitemmap">独自の属性を追加</h2>
+	<p>
+		会員ステータス区分値に、displayOrderという独自の属性(SubItem)を追加して再自動生成して、以下のエクササイズをやってみましょう。<span class="freecomment">(講師によるお話あり)</span>
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../../manual/function/genbafit/implfit/classification/index.html#subitemmap"> -->現場フィット - 区分値 - 独自の属性を追加<!-- </a> --></span></div>
+	<dl class="textlist">
+		<!-- SubItemMap -->
+		<dt>会員ステータスの表示順カラムで会員を並べて検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>会員ステータスの "表示順" カラムの昇順で並べる</li>
+				<li>会員ステータスのデータ自体は要らない</li>
+				<li>その次には、会員の会員IDの降順で並べる</li>
+				<li>会員ステータスのデータが取れていないことをアサート</li>
+				<li>会員が会員ステータスの表示順ごとに並んでいることをアサート</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h2 id="nextsection">次のセクション</h2>
+	<p>
+		さて、次のセクションへ
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./hands-on05.html"> -->ハンズオンセクション 5<!-- </a> --></span></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../"><img src="../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../ja/tutorial/architect.html">アーキテクトのチュートリアル</a>
+			<ul>
+				<li><a href="../../../ja/tutorial/architect.html#knowledge">必要な知識</a></li>
+				<li><a href="../../../ja/tutorial/architect.html#action">開発時にやるべきこと</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../ja/tutorial/developer.html">ディベロッパーのチュートリアル</a>
+			<ul>
+				<li><a href="../../../ja/tutorial/developer.html#about">DBFluteとは？</a></li>
+				<li><a href="../../../ja/tutorial/developer.html#style">実装スタイル</a></li>
+				<li><a href="../../../ja/tutorial/developer.html#policy">ディベロッパーの十か条</a></li>
+				<li class="upper-space"><a href="../../../ja/tutorial/developer.html#faq">ディベロッパーのFAQ</a></li>
+				<li><a href="../../../ja/tutorial/developer.html#supplement">補足資料</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../ja/tutorial/handson/index.html">DBFluteハンズオン</a>
+			<ul>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on01.html">Section 1</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on02.html">Section 2</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on03.html">Section 3</a></li>
+				<li class="upper-space"><a href="../../../ja/tutorial/handson/training/hands-on04.html">Section 4</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on05.html">Section 5</a></li>
+				<li class="upper-space"><a href="../../../ja/tutorial/handson/training/hands-on06.html">Section 6</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on07.html">Section 7</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on08.html">Section 8</a></li>
+				<li class="upper-space"><a href="../../../ja/tutorial/handson/training/hands-on09.html">Section 9</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on10.html">Section 10</a></li>
+				<li><a href="../../../ja/tutorial/handson/training/hands-on11.html">Section 11</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>

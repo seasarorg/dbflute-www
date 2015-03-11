@@ -37,204 +37,16 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 5</h1>
+	<h1>(旧ページ)ハンズオン セクション 5</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#about">業務的one-to-oneとは？</a></li>
-		<li><a href="#setting">業務的one-to-oneの関連付け</a></li>
-		<li><a href="#impl">業務的one-to-oneを利用した実装</a></li>
-		<li><a href="#impl">導出的one-to-oneを利用した実装</a></li>
-		<li><a href="#checkbiz">テストデータの登録時チェック</a>
-			<ul>
-				<li><a href="#morecheck">さらにチェック</a></li>
-				<li><a href="#omakecheck">おまけチェック</a></li>
-			</ul>
-		</li>
-		<li><a href="#nextsection">次のセクション</a></li>
+		<li><a href="#migration">ページが移動しました</a></li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
+	<h2 id="migration">ページが移動しました</h2>
 	<p>
-		さて、ハンズオンの続きです。
+		絶賛ハンズオンリファクタリング中です。
 	</p>
-	<div class="relatedpage"><a href="./hands-on04.html">ハンズオン セクション 4</a></div>
-	<p>
-		"業務的one-to-oneとデータチェック" を学んでいきましょう。
-	</p>
-
-	<h2 id="ready">事前準備</h2>
-	<p>
-		org.dbflute.handson.exercise.HandsOn05Test クラスを作成してください。
-		このクラスは UnitContainerTestCase を継承します。また、ERDを開いておくと良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../manual/reference/example/exampledb.html">ExampleDB</a></div>
-
-	<h2 id="about">業務的one-to-oneとは？</h2>
-	<p>
-		まずは、以下のテストを作成してください。
-	</p>
-	<dl class="textlist">
-		<dt>会員住所情報を検索</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>会員名称、有効開始日、有効終了日、住所、地域名称をログに出して確認する</li>
-				<li>会員IDの昇順、有効開始日の降順で並べる</li>
-			</ul>
-		</dd>
-	</dl>
-	<p>
-		会員住所情報は、会員から見て "業務的one-to-one" と言えます。<span class="freecomment">(講師によるお話あり)</span>
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/bizonetoone/index.html">現場フィット - 業務的one-to-one</a></div>
-
-	<h2 id="setting">業務的one-to-oneの関連付け</h2>
-	<p>
-		additionalForeignKeyMap.dfprop に、以下の定義を設定してください。
-	</p>
-<pre><span class="codetitle">e.g. 会員と会員住所情報に業務的one-to-oneを定義 @additionalForeignKeyMap.dfprop</span><code>
- <span class="abbreviation">...</span>
-    ; FK_MEMBER_MEMBER_ADDRESS_VALID = <span class="keyword">map:</span>{
-        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_ADDRESS
-        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-        ; fixedCondition = 
-         <span class="attribute">$$foreignAlias$$</span>.VALID_BEGIN_DATE &lt;= <span class="comment">/*targetDate(Date)*/</span>null
-     and <span class="attribute">$$foreignAlias$$</span>.VALID_END_DATE &gt;= <span class="comment">/*targetDate(Date)*/</span>null
-        ; fixedSuffix = AsValid
-        ; comment = 有効な会員住所 (現在日時を入れれば現在住所)
-    }
- <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		そして、再自動生成(DocとGenerate)をし、SchemaHTMLにて関連付いていることを確認してください。
-		AdditionalForeignKeyの場合は、普通のFKとはちょっとだけ表示が異なっています。
-	</p>
-
-	<h2 id="impl">業務的one-to-oneを利用した実装</h2>
-	<p>
-		それでは、業務的one-to-oneを利用して、以下のテストを作成してください。
-	</p>
-	<dl class="textlist">
-		<!-- BizOneToOne -->
-		<dt>会員と共に現在の住所を取得して検索</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>SetupSelectのJavaDocにcommentがあることを確認すること</li>
-				<li>会員名称と住所をログに出して確認すること</li>
-				<li>現在日付はスーパークラスのメソッドを利用 ("c" 始まりのメソッド)</li>
-				<li>会員住所情報が取得できていることをアサート</li>
-			</ul>
-		</dd>
-		<!-- BizOneToOne, SetupSelect as NestedBranch -->
-		<dt>千葉に住んでいる会員の支払済み購入を検索</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>会員ステータス名称と住所をログに出して確認すること</li>
-				<li>購入に紐づいている会員の住所の地域が千葉であることをアサート</li>
-			</ul>
-		</dd>
-	</dl>
-	<p>
-		<span class="freecomment">(講師による現在日時取得についての小話あり)</span>
-	</p>
-
-	<h2 id="impl">導出的one-to-oneを利用した実装</h2>
-	<p>
-		それでは、以下の導出的one-to-oneの関連を設定して、エクササイズをやってみましょう。
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/bizonetoone/index.html#derivedonetoone">現場フィット - 導出的one-to-one</a></div>
-<pre><span class="codetitle">e.g. 会員と会員住所情報に業務的one-to-oneを定義 @additionalForeignKeyMap.dfprop</span><code>
- <span class="abbreviation">...</span>
-    ; FK_MEMBER_MEMBER_LOGIN_LATEST  = <span class="keyword">map:</span>{
-        ; localTableName  = MEMBER    ; foreignTableName  = MEMBER_LOGIN
-        ; localColumnName = MEMBER_ID ; foreignColumnName = MEMBER_ID
-        ; fixedCondition  = 
-<span class="attribute">$$foreignAlias$$</span>.LOGIN_DATETIME = (<span class="attribute">$$sqbegin$$</span>
-select max(login.LOGIN_DATETIME)
-  from MEMBER_LOGIN login
- where login.MEMBER_ID = <span class="attribute">$$foreignAlias$$</span>.MEMBER_ID
-)<span class="attribute">$$sqend$$</span>
-        ; fixedSuffix = AsLatest
-    }
- <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		commentは、いい感じになんか入れてみましょう。
-	</p>
-	<dl class="textlist">
-		<!-- DerivedOneToOne -->
-		<dt>最終ログイン時の会員ステータスを取得して会員を検索</dt>
-		<dd>
-			<ul class="supplementlist">
-				<li>SetupSelectのJavaDocに自分で設定したcommentが表示されることを目視確認</li>
-				<li>会員名称と最終ログイン日時と最終ログイン時の会員ステータス名称をログに出す</li>
-				<li>最終ログイン日時が取得できてることをアサート</li>
-			</ul>
-		</dd>
-	</dl>
-
-	<h2 id="checkbiz">テストデータの登録時チェック</h2>
-	<p>
-		このような業務的な制約はどうしても存在してしまいます。
-		プログラム上では、不整合なデータが発生しないように気をつけて実装テストされますが、テストデータ自体の作成でのチェックは意外に忘れられがちです。
-		<span class="freecomment">(講師によりお話あり)</span>
-	</p>
-	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/takefinally.html">ReplaceSchema - 最終チェック</a></div>
-	<p>
-		DBFluteクライアント/playsql配下の 20-member.xls
-		にて、<em class="keyword">とある有効終了日が一つ後の有効期間の有効開始日を超える日</em>
-		を指定して、ReplaceSchemaを実行してみましょう。
-		当然のことながら、正常に登録されてしまうはずです。
-	</p>
-	<p>
-		今度は、以下のSQLをDBFluteクライアント/playsql/take-finally.sql
-		に記述して再実行してみましょう。ログに注目です。じっくり読んでみましょう。
-	</p>
-<pre><span class="codetitle">ex) 会員住所情報で同時点で住所が重複しないようにチェック @take-finally.sql</span><code>
-<span class="comment">-- #df:assertListZero#</span>
-<span class="comment">-- /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
-<span class="comment">-- Member addresses should be only one at any time.</span>
-<span class="comment">-- - - - - - - - - - -/</span>
-<span class="keyword">select</span> adr.MEMBER_ADDRESS_ID, adr.MEMBER_ID
-     , adr.VALID_BEGIN_DATE, adr.VALID_END_DATE
-     , adr.ADDRESS
-  <span class="keyword">from</span> MEMBER_ADDRESS adr
- <span class="keyword">where exists</span> (<span class="keyword">select</span> subadr.MEMBER_ADDRESS_ID
-                 <span class="keyword">from</span> MEMBER_ADDRESS subadr
-                <span class="keyword">where</span> subadr.MEMBER_ID = adr.MEMBER_ID
-                  <span class="keyword">and</span> subadr.VALID_BEGIN_DATE &gt; adr.VALID_BEGIN_DATE
-                  <span class="keyword">and</span> subadr.VALID_BEGIN_DATE &lt; adr.VALID_END_DATE
-       )
-;
-</code></pre>
-	<h3 id="morecheck">さらにチェック</h3>
-	<p>
-		それでは、チェックするSQLを作成して、実際にチェックしてみましょう。
-	</p>
-	<p>
-		まず、そのチェックに引っ掛かるようなデータに修正してください。
-		そして、以下をアサートするSQLを書いて、take-finally.sql
-		に登録し、ReplaceSchemaでチェックされることを確認しましょう。データを元に戻し、再度 ReplaceSchema
-		を実行して正常なデータが入ったことを確信しましょう。
-	</p>
-	<ul>
-		<li>正式会員日時を持ってる仮会員がいないこと</li>
-		<li>まだ生まれていない会員がいないこと</li>
-		<li>退会会員が退会情報を持っていることをアサート</li>
-	</ul>
-	<div class="relatedpage"><a href="../../../manual/function/generator/task/replaceschema/takefinally.html#assert">最終チェック - データの整合性チェック</a></div>
-	<h3 id="omakecheck">おまけチェック</h3>
-	<p>
-		実は、先ほどの会員住所情報の重複チェックのSQLは、有効期間が一日だけ重複しているパターンを検出することはできません。
-		時間が余った場合は、このSQLをどのように直せばそのパターンが検出できるのか試してみましょう。
-		また、様々なパターンに挑戦してみるのも良いでしょう。
-	</p>
-
-	<h2 id="nextsection">次のセクション</h2>
-	<p>
-		さて、次のセクションへ
-	</p>
-	<div class="detailpage"><a href="./hands-on06.html">ハンズオン セクション 6</a></div>
+	<div class="detailpage"><a href="../section05.html">ハンズオントレーニング Section 5</a></div>
 
 </div>
 </div>
@@ -259,17 +71,17 @@ select max(login.LOGIN_DATETIME)
 		</li>
 		<li><a href="../../../../ja/tutorial/handson/index.html">DBFluteハンズオン</a>
 			<ul>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on01.html">セクション１</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on02.html">セクション２</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on03.html">セクション３</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on04.html">セクション４</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on05.html">セクション５</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on06.html">セクション６</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on07.html">セクション７</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on08.html">セクション８</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on09.html">セクション９</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on10.html">セクション１０</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase2/hands-on11.html">セクション１１</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on01.html">Section 1</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on02.html">Section 2</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on03.html">Section 3</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on04.html">Section 4</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on05.html">Section 5</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on06.html">Section 6</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on07.html">Section 7</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on08.html">Section 8</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on09.html">Section 9</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on10.html">Section 10</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on11.html">Section 11</a></li>
 			</ul>
 		</li>
 	</ul>

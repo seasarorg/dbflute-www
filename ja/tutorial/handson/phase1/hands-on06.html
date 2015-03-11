@@ -37,210 +37,16 @@
 </div>
 
 <div id="content">
-	<h1>ハンズオン セクション 6</h1>
+	<h1>(旧ページ)ハンズオン セクション 6</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#ready">事前準備</a></li>
-		<li><a href="#debuglog">デバッグログ設定</a></li>
-		<li><a href="#aliasdef">別名(和名)の利用</a>
-			<ul>
-				<li><a href="#checkdbcomment">DBコメントの確認</a></li>
-				<li><a href="#makelogic">ロジックの作成</a></li>
-				<li><a href="#dfpropsetting">DBFluteプロパティの設定</a></li>
-				<li><a href="#genereatedoc">再自動生成して確認</a></li>
-			</ul>
-		</li>
-		<li><a href="#uppercase">ちょっと大文字にしてみましょうか</a></li>
-		<li><a href="#emptystring">空文字をDBに入れたくない</a></li>
-		<li><a href="#nextsection">次のセクション</a></li>
+		<li><a href="#migration">ページが移動しました</a></li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
+	<h2 id="migration">ページが移動しました</h2>
 	<p>
-		さて、ハンズオンの続きです。
+		絶賛ハンズオンリファクタリング中です。
 	</p>
-	<div class="relatedpage"><a href="./hands-on05.html">ハンズオン セクション 5</a></div>
-	<p>
-		"デバッグログ設定と別名(和名)の利用" を学んでいきましょう。
-	</p>
-
-	<h2 id="ready">事前準備</h2>
-	<p>
-		<em class="keyword">src/main/java</em> 配下に org.dbflute.handson.logic.HandsOn06Logic
-		クラスを作成してください。この時点では空っぽで構いません。また、ERDを開いておくと良いでしょう。
-	</p>
-	<div class="relatedpage"><a href="../../../manual/reference/example/exampledb.html">ExampleDB</a></div>
-
-	<h2 id="debuglog">デバッグログ設定</h2>
-	<p>
-		既に何度もデバッグログにはお世話になっているかと思います。
-		EclipseコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
-		これは、既に src/test/resources 配下に log4j.properties
-		が(最初から)配置されているからです。ここでは簡単ではありますが、この設定ファイルを修正すると出力されるログが変更されることを学びましょう。
-		<span class="freecomment">(講師によるLog4jのお話あり)</span>
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/debuglog/index.html">現場フィット - デバッグログ</a></div>
-	<p>
-		試しに、log4j.properties の log4j.logger.org.seasar を "#"
-		でコメントアウトして、今まで作った任意のテストを実行し、コンソールのログを確認してみてください。変化があるはずです。
-		変化を確認したら、元に戻してもう一度テストを実行して確認しましょう。
-	</p>
-	<p>
-		また、log4j.appender.console.layout.ConversionPattern を "%d [%t]-%-5p - %m%n"
-		に変更してみてください。変化を確認したら、元に戻してもう一度テストを実行して確認しましょう。
-	</p>
-
-	<h2 id="aliasdef">別名(和名)の利用</h2>
-	<h3 id="checkdbcomment">DBコメントの確認</h3>
-	<p>
-		replace-schema-10-basic.sql をご覧ください。
-		たくさんのDBコメントが定義されています。そして、DBコメントには、そのテーブルやカラムの別名(和名)と説明が "別名 : 説明"
-		という形式で記載されています。<span class="freecomment">(講師によるお話あり)</span>
-	</p>
-	<p>
-		まず、SchemaHTML を開いて、DBコメントが "別名 : 説明"
-		の形式であることを確認してください。(ただし、全てのコメントが必ずこの形式とは限りません)
-	</p>
-	<h3 id="makelogic">ロジックの作成</h3>
-	<p>
-		それでは唐突ですが、JavaDoc上にDBコメントがあるかどうかを確認するために実装してみましょう。
-		以下のロジックを作成してテストしてみてください。実装しながら、それぞれのカラムに対応するメソッドの
-		JavaDoc コメントを確認してみてください。特に別名は表示されていないはずです。
-	</p>
-	<dl class="textlist">
-		<dt>ロジックのメソッド</dt>
-		<dd>List&lt;Member&gt; selectSuffixMemberList(String suffix)</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>指定された suffix で会員名称を後方一致検索</li>
-				<li>会員名称の昇順で並べる</li>
-				<li>suffixが無効な値なら例外: IllegalArgumentException</li>
-				<li>会員名称、生年月日、正式会員日時をログに出す <span class="freecomment">(Commons Logging)</span></li>
-			</ul>
-		</dd>
-		<dt>対応テストメソッド</dt>
-		<dd>test_selectSuffixMemberList_指定したsuffixで検索されること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>suffix は "vic" で</li>
-				<li>テストメソッド名通りのアサート</li>
-				<li>テストが成り立っていることも(できる範囲で)アサート <span class="freecomment">(今後ずっとそう)</span></li>
-			</ul>
-		</dd>
-		<dd>test_selectSuffixMemberList_suffixが無効な値なら例外が発生すること()</dd>
-		<dd>
-			<ul class="supplementlist">
-				<li>無効な値とは、nullと空文字とトリムして空文字になる値</li>
-			</ul>
-		</dd>
-	</dl>
-	<p>
-		ちなみに、今回からエクササイズをより実践に近いもので行います。<span class="freecomment">(講師によるフォローあり)</span>
-	</p>
-	<ol>
-		<li>ロジッククラスにメソッドを定義して実装 (BehaviorはDIを利用)</li>
-		<li>ctrl + 9 で対応するテストクラスを自動生成 (src/test/java に)</li>
-		<li>テストメソッドを実装してロジックを検証</li>
-	</ol>
-	<div class="relatedpage"><a href="../../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
-	<p>
-		ロジッククラスでの Behavior の宣言は、以下のようにします。<span class="freecomment">(講師によるDIのお話あり)</span>
-	</p>
-	<div class="relatedpage"><a href="../../../manual/reference/diway/seasar/index.html">Seasarの取扱い</a></div>
-<pre><span class="codetitle">e.g. ロジッククラスでの Behavior の宣言 @Java</span><code>
-<span class="comment">/**
- * @author jflute
- */</span>
-<span class="keyword">public class</span> HandsOn06Logic {
-
-    @Resource
-    <span class="keyword">protected</span> MemberBhv <span class="atrribute">memberBhv</span>;
-
-    <span class="abbreviation">...</span>
-}
-</code></pre>
-	<p>
-		テストクラスでのロジックの利用方法は、以下のようにします。<span class="freecomment">(講師によるUTFluteのお話あり)</span>
-	</p>
-<pre><span class="codetitle">e.g. テストクラスでロジッククラスを生成して利用 @Java</span><code>
-<span class="keyword">public void</span> test_<span class="abbreviation">...</span>() {
-    <span class="comment">// ## Arrange ##</span>
-    HandsOn06Logic logic = <span class="keyword">new</span> HandsOn06Logic();
-    inject(logic);
-    
-    <span class="comment">// ## Act ##</span>
-    <span class="abbreviation">...</span> = logic.select<span class="abbreviation">...</span>();
-    <span class="abbreviation">...</span>
-}
-</code></pre>
-	<h3 id="dfpropsetting">DBFluteプロパティの設定</h3>
-	<p>
-		それでは、ドキュメントに関するDBFluteプロパティ、DBFluteクライアントの dfprop/documentDefinitionMap.dfprop
-		を開いて、以下のプロパティを設定してみましょう。
-	</p>
-	<dl class="textlist">
-		<dt>aliasDelimiterInDbComment</dt>
-		<dd>DBコメント内の別名と説明の区切り(デリミタ)を表す文字</dd>
-		<dd>設定する値 => : <span class="freecomment">(コロン)</span></dd>
-		<dt>isDbCommentOnAliasBasis</dt>
-		<dd>DBコメントの基本が別名か否か (デリミタがない場合にそれは別名なのかどうか)</dd>
-		<dd>設定する値 => true</dd>
-	</dl>
-	<div class="relatedpage"><a href="../../../manual/reference/dfprop/documentdefinition/index.html">documentDefinitionMap.dfprop</a></div>
-	<h3 id="genereatedoc">再自動生成して確認</h3>
-	<p>
-		DBFluteプロパティの設定が終わったら、Docタスク、そして、Generateタスクを実行してみてください。
-		SchemaHTML、および、それぞれのカラムに対応するメソッドの JavaDoc コメントに変化があるはずです。
-	</p>
-	<div class="detailpage"><a href="../../../manual/function/genbafit/implfit/aliasdefinition/index.html">現場フィット - 別名(和名)の定義</a></div>
-
-	<h2 id="uppercase">ちょっと大文字にしてみましょうか</h2>
-	<p>
-		ハンズオンのMySQLでは、SQL上で大文字小文字を区別しないで済むような設定がされています。<span class="freecomment">(講師による小話あり)</span>
-	</p>
-	<div class="relatedpage"><a href="../../../manual/reference/dbway/mysql/index.html#ignorecase">MySQLの取扱い - ケース区別なしのススメ</a></div>
-	<p>
-		内部的には、テーブル名を全て小文字で管理することによって実現されています。
-		よって、DBFluteが取得するメタデータなどが小文字になっています(SchemaHTMLやCBで実行されたSQLなど)。
-		これを、大文字にするという地味な機能が用意されています。以下のプロパティ(littleAdjustmentMap.dfprop)を設定して再自動生成して確認してみてください。
-	</p>
-<pre><span class="codetitle">e.g. DBFlute管理上ではテーブル名を大文字に @littleAdjustmentMap.dfprop</span><code>
-; isTableDispNameUpperCase = <span class="keyword">true</span>
-</code></pre>
-<pre><span class="codetitle">e.g. DBFluteで発行するSQLのテーブル名やカラム名を大文字に @littleAdjustmentMap.dfprop</span><code>
-; isTableSqlNameUpperCase = <span class="keyword">true</span>
-; isColumnSqlNameUpperCase = <span class="keyword">true</span>
-</code></pre>
-	<p>
-		そもそもテーブル名やカラム名を大文字とするか小文字とするかは、文化や組織によって異なるものです。
-		どちらが良いという話ではなく、ERDなどのドキュメントと合わせるための地味機能と捉えてください。
-		<span class="freecomment">(とはいえ、小文字にするプロパティは用意されてないのですが...)</span>
-	</p>
-	<p>
-		ハンズオンでは、これらプロパティを true
-		に設定して、再自動生成してそれぞれ大文字になっていることを確認してみましょう。
-	</p>
-
-	<h2 id="emptystring">空文字をDBに入れたくない</h2>
-	<p>
-		DB上の空文字は、地味にトラブルを引き起こす可能性があります。
-		<span class="freecomment">(講師による小話あり)</span>
-	</p>
-	<div class="relatedpage"><a href="../../../manual/function/genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
-	<p>
-		次のセクションから、登録や更新処理を行います。
-		この時点で、DBに空文字が入らないように施策を打っておきます。
-		以下のプロパティ(littleAdjustmentMap.dfprop)を再自動生成しておきましょう。
-	</p>
-<pre><span class="codetitle">e.g. Entityにセットされた空文字をnullに変換 @littleAdjustmentMap.dfprop</span><code>
-; isEntityConvertEmptyStringToNull = <span class="keyword">true</span>
-</code></pre>
-
-	<h2 id="nextsection">次のセクション</h2>
-	<p>
-		さて、次のセクションへ
-	</p>
-	<div class="detailpage"><a href="./hands-on07.html">ハンズオン セクション 7</a></div>
+	<div class="detailpage"><a href="../section06.html">ハンズオントレーニング Section 6</a></div>
 
 </div>
 </div>
@@ -265,17 +71,17 @@
 		</li>
 		<li><a href="../../../../ja/tutorial/handson/index.html">DBFluteハンズオン</a>
 			<ul>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on01.html">セクション１</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on02.html">セクション２</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on03.html">セクション３</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on04.html">セクション４</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on05.html">セクション５</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on06.html">セクション６</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on07.html">セクション７</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on08.html">セクション８</a></li>
-				<li class="upper-space"><a href="../../../../ja/tutorial/handson/phase1/hands-on09.html">セクション９</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase1/hands-on10.html">セクション１０</a></li>
-				<li><a href="../../../../ja/tutorial/handson/phase2/hands-on11.html">セクション１１</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on01.html">Section 1</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on02.html">Section 2</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on03.html">Section 3</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on04.html">Section 4</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on05.html">Section 5</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on06.html">Section 6</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on07.html">Section 7</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on08.html">Section 8</a></li>
+				<li class="upper-space"><a href="../../../../ja/tutorial/handson/training/hands-on09.html">Section 9</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on10.html">Section 10</a></li>
+				<li><a href="../../../../ja/tutorial/handson/training/hands-on11.html">Section 11</a></li>
 			</ul>
 		</li>
 	</ul>
