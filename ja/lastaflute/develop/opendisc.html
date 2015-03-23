@@ -99,7 +99,7 @@
 @Execute
 <span class="keyword">public</span> HtmlResponse list() { <span class="comment">// 一覧画面の表示</span>
     List&lt;ProductRowBean&gt; <span class="localvar">beanList</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
-    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductList_jsp</span>).<span class="point">with</span>(<span class="localvar">data</span> -> {
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductList_jsp</span>).<span class="point">renderWith</span>(<span class="localvar">data</span> -> {
         <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beanList"</span>, <span class="localvar">beanList</span>);
     });
 }
@@ -107,7 +107,7 @@
 @Execute(urlPattern=<span class="literal">"{productId}"</span>)
 <span class="keyword">public</span> HtmlResponse edit() { <span class="comment">// 編集入力画面の表示</span>
     ProductEditForm <span class="localvar">form</span> = ... <span class="comment">// DBFluteで一件検索して詰め替え</span>
-    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>).<span class="point">with</span>(<span class="localvar">data</span> -> {
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>).<span class="point">renderWith</span>(<span class="localvar">data</span> -> {
         <span class="localvar">data</span>.<span class="subpoint">registerForm</span>(<span class="attribute">productForm</span>); <span class="comment">// ★Formは明示登録する？</span>
     });
 }
@@ -127,7 +127,7 @@
     <span class="comment">// バリデーションして、だめなら編集画面に戻るぞー</span>
     <span class="point">validate</span>(<span class="attribute">productForm</span>, () -> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>));
 
-    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>, <span class="localvar">data</span> -> {
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>).renderWith(<span class="localvar">data</span> -> {
         <span class="localvar">data</span>.registerForm(<span class="attribute">productForm</span>); <span class="comment">// ★Formは明示登録する？</span>
     });
 }
@@ -138,7 +138,7 @@
     <span class="subpoint">validateWith</span>(<span class="attribute">productForm</span>, () -> <span class="point">doValidate()</span>, () -> {
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>);
     });
-    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductConfirm_jsp</span>, <span class="localvar">data</span> -> {
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductConfirm_jsp</span>).renderWith(<span class="localvar">data</span> -> {
         <span class="localvar">data</span>.registerForm(<span class="attribute">productForm</span>);
     });
 }
