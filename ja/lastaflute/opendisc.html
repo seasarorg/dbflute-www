@@ -42,10 +42,12 @@
 		<li><a href="#lastaflute">LastaFluteとは？</a></li>
 		<li><a href="#actionreturn">Action の return</a>
 			<ul>
-				<li><a href="#returnjsp">JSPやJsonを戻すとき</a></li>
+				<li><a href="#returnjsp">JSPやJSONを戻すとき</a></li>
 				<li><a href="#returndata">JSPへのデータの渡し方</a></li>
 			</ul>
 		</li>
+		<li><a href="#validation">バリデーションするとき</a></li>
+		<li><a href="#definerender">最低限描画データ準備の共通化</a></li>
 		<li><a href="#dixmlhierarchy">Di XML の階層構造</a></li>
 	</ul>
 
@@ -55,7 +57,7 @@
 	</p>
 
 	<h2 id="actionreturn">Action の return</h2>
-	<h3 id="returnjsp">JSPやJsonを戻すとき</h3>
+	<h3 id="returnjsp">JSPやJSONを戻すとき</h3>
 	<p>
 		戻り値 String にしない(互換は保つかも)。JsonResponseとかも new するのではなく、asJson()などを用意する。
 		基本、asなんとか()でResponseを戻せる。
@@ -97,20 +99,99 @@
 @Execute
 <span class="keyword">public</span> HtmlResponse list() { <span class="comment">// 一覧画面の表示</span>
     List&lt;ProductRowBean&gt; <span class="localvar">beanList</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
-    <span class="keyword">return</span> <span class="subpoint">asHtml</span>(<span class="attribute">path_Product_ProductList_jsp</span>).with(<span class="localvar">data</span> -> {
-        <span class="localvar">data</span>.register(<span class="literal">"beanList"</span>, <span class="localvar">beanList</span>);
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductList_jsp</span>).<span class="point">with</span>(<span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beanList"</span>, <span class="localvar">beanList</span>);
     });
 }
 
 @Execute(urlPattern=<span class="literal">"{productId}"</span>)
 <span class="keyword">public</span> HtmlResponse edit() { <span class="comment">// 編集入力画面の表示</span>
     ProductEditForm <span class="localvar">form</span> = ... <span class="comment">// DBFluteで一件検索して詰め替え</span>
-    <span class="keyword">return</span> <span class="subpoint">asHtml</span>(<span class="attribute">path_Product_ProductInput_jsp</span>).with(<span class="localvar">data</span> -> {
-        <span class="localvar">data</span>.registerForm(<span class="localvar">form</span>);
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>).<span class="point">with</span>(<span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.<span class="subpoint">registerForm</span>(<span class="attribute">productForm</span>); <span class="comment">// ★Formは明示登録する？</span>
     });
 }
 </code></pre>
 
+	<h2 id="validation">バリデーションするとき</h2>
+	<p>
+		HibernateValidatorのアノテーションをActionFormのプロパティに付与するアノテーションベース方式と、
+		相関バリデーションのためのプログラムベース方式をサポートする。
+	</p>
+	<p>
+		Executeアノテーションでごちゃごちゃ指定するのやめて、メソッド内でメソッド呼ぶ。
+	</p>
+<pre><span class="codetitle">e.g. アノテーションベースのバリデーションだけ @Directory</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse confirm() { <span class="comment">// 確認画面: formをもらって、formの内容を表示</span>
+    <span class="comment">// バリデーションして、だめなら編集画面に戻るぞー</span>
+    <span class="point">validate</span>(<span class="attribute">productForm</span>, () -> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>));
+
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>, <span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.registerForm(<span class="attribute">productForm</span>); <span class="comment">// ★Formは明示登録する？</span>
+    });
+}
+</code></pre>
+<pre><span class="codetitle">e.g. アノテーションベースとプログラムベースの組み合わせ @Directory</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse confirm() { <span class="comment">// 確認画面: formをもらって、formの内容を表示</span>
+    <span class="subpoint">validateWith</span>(<span class="attribute">productForm</span>, () -> <span class="point">doValidate()</span>, () -> {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductInput_jsp</span>);
+    });
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductConfirm_jsp</span>, <span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.registerForm(<span class="attribute">productForm</span>);
+    });
+}
+
+<span class="keyword">protected</span> DocksideMessages <span class="subpoint">doValidate()</span> { <span class="comment">// publicである必要はない、ただ呼ばれる</span>
+    DocksideMessages <span class="localvar">messages</span> = createActionMessages(); 
+    <span class="keyword">if</span> (<span class="abbreviation">...</span>) {
+        <span class="localvar">messages</span>.addErrorsNantoka(<span class="abbreviation">...</span>);
+    }
+    <span class="keyword">return</span> <span class="localvar">messages</span>;
+}
+</code></pre>
+	<p>
+		バリデーションエラーのときは、例外が発生してフレームワーク内で asHtml() が指定されている Lambda
+		をコールバックするので、アプリでは分岐を書く必要はない。
+	</p>
+	<p>
+		バリデーションエラーのときの描画のための検索とかは、Lambdaの中でご自由に。
+		Executeアノテーションでのinputだとそれがやりづらくてしょうがなかった。
+	</p>
+
+	<h2 id="definerender">最低限描画データ準備の共通化</h2>
+	<p>
+		それぞれの Execute で用意するメインの描画データとは別に、その画面を表示するために必要な最低限のデータ (これを最低限描画データと呼ぶ)
+		を準備するための領域を用意する。主には、リストボックスの値とか。
+	</p>
+	<p>
+		バリデーションエラーのときでも、描画データを持ってくる必要があるため、素のSAStrutsだと input でフォワードさせることがよくあった。
+		それがスパゲッティになりやすいので、SAFluteでは、callbackFinally() での isForwardingToJsp() でその処理を共通化していた。
+		LastaFluteでは目的を明確にさせたメソッドの中でやるようにしている。
+	</p>
+<pre><span class="codetitle">e.g. アノテーションベースとプログラムベースの組み合わせ @Directory</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index() { <span class="comment">// 確認画面: formをもらって、formの内容を表示</span>
+    <span class="abbreviation">...</span>
+}
+
+<span class="comment">// どのメソッドでも共通の、JSPごとのリソースを定義する</span>
+<span class="comment">// 実際には、callbackFinally() での isForwardingToJsp() の中で呼ばれる</span>
+@Override
+<span class="keyword">protected void</span> defineRenderResource(RenderDef renderDef) 
+    renderDef.define(<span class="attribute">path_Product_ProductList_jsp</span>, <span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.register(<span class="literal">"productStatusList"</span>, selectProductStatusList());
+    }
+    renderDef.define(<span class="attribute">path_Product_ProductInput_jsp</span>, <span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.register(<span class="literal">"productStatusList"</span>, selectProductStatusList());
+    }
+    renderDef.define(<span class="attribute">path_Product_ProductConfirm_jsp</span>, <span class="localvar">data</span> -> {
+        <span class="localvar">data</span>.register(<span class="literal">"productStatusList"</span>, selectProductStatusList());
+    }
+}
+</code></pre>
+	
 	<h2 id="dixmlhierarchy">Di XML の階層構造</h2>
 <pre><span class="codetitle">e.g. Di XML の階層構造 @Java</span><code>
 app.dicon*
