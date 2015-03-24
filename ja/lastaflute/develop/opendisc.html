@@ -62,24 +62,32 @@
 		戻り値 String にしない(互換は保つかも)。JsonResponseとかも new するのではなく、asJson()などを用意する。
 		基本、asなんとか()でResponseを戻せる。
 	</p>
-<pre><span class="codetitle">e.g. xxx @Java</span><code>
+<pre><span class="codetitle">e.g. JSPやJSONを戻すとき @Java</span><code>
 @Execute
 <span class="keyword">public</span> HtmlResponse list() { <span class="comment">// 一覧画面の表示</span>
     List&lt;ProductRowBean&gt; <span class="localvar">beanList</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
-    <span class="keyword">return</span> <span class="subpoint">asHtml</span>(<span class="attribute">path_Product_ProductList_jsp</span>);
+    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Product_ProductList_jsp</span>);
 }
 
 @Execute
 <span class="keyword">public</span> JsonResponse index() { <span class="comment">// JSON戻す</span>
     ProductContentBean <span class="localvar">bean</span> = ...
-    <span class="keyword">return</span> <span class="subpoint">asJson</span>(<span class="localvar">bean</span>);
+    <span class="keyword">return</span> <span class="point">asJson</span>(<span class="localvar">bean</span>);
 }
 
 @Execute
 <span class="keyword">public</span> StreamResponse index() { <span class="comment">// Stream戻す</span>
-    byte[] <span class="localvar">bytes</span> = ...
-    <span class="keyword">return</span> <span class="subpoint">asStream</span>(<span class="localvar">bytes</span>);
+    InputStream <span class="localvar">ins</span> = ...
+    <span class="keyword">return</span> <span class="point">asStream</span>(<span class="literal">"dbflute.pdf"</span>).stream(<span class="localvar">ins</span>); <span class="comment">// octet-stream</span>
 }
+
+<span class="comment">// JSONのいろいろオプション</span>
+<span class="keyword">return</span> <span class="subpoint">asJson</span>(<span class="localvar">bean</span>).header(<span class="literal">"dream"</span>, <span class="literal">"cruise"</span>);
+
+<span class="comment">// Streamのいろいろオプション</span>
+<span class="keyword">return</span> <span class="subpoint">asStream</span>(<span class="literal">"dbflute.pdf"</span>).data(<span class="localvar">bytes</span>); <span class="comment">// byte array</span>
+<span class="keyword">return</span> <span class="subpoint">asStream</span>(<span class="literal">"dbflute.pdf"</span>).stream(<span class="localvar">ins</span>).contentType(<span class="literal">"dream/cruise"</span>);
+<span class="keyword">return</span> <span class="subpoint">asStream</span>(<span class="literal">"dbflute.pdf"</span>).stream(<span class="localvar">ins</span>).header(<span class="literal">"dream"</span>, <span class="literal">"cruise"</span>);
 </code></pre>
 	<p>
 		ただし、Redirect や Forward はいままでと同じ。
