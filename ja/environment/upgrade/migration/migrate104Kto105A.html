@@ -92,8 +92,8 @@
 		これからは、以下のようになります。
 	</p>
 	<dl class="valuemainlist">
-		<dt>自分でnewしたEntity</dt><dd>EntityのSetterが呼ばれたカラムだけ列挙 <span class="freecomment">※通常はこちら</span></dd>
-		<dt>事前検索されたEntity</dt><dd>全てのカラムを列挙 <span class="freecomment">※copy insertするような場合 (レアケース)</span></dd>
+		<dt>自分でnewしたEntity</dt><dd>EntityのSetterが呼ばれたカラムだけ列挙 <span class="frm">※通常はこちら</span></dd>
+		<dt>事前検索されたEntity</dt><dd>全てのカラムを列挙 <span class="frm">※copy insertするような場合 (レアケース)</span></dd>
 	</dl>
 	<p>
 		update() のルールと同じく ModifiedProperties が利用されます。統一的な仕様を重視しました。
@@ -102,12 +102,12 @@
 	<p>
 		DB変更でデフォルト制約付きのNotNullカラムが新規追加された場合でも、どちらのケースでも修正無しで対応できます。
 		Setterで呼ばれてないカラムは、デフォルト制約が有効です。
-		<span class="freecomment">(事前検索されている場合は、そもそも別レコードのそのカラムの値で登録される)</span>
+		<span class="frm">(事前検索されている場合は、そもそも別レコードのそのカラムの値で登録される)</span>
 	</p>
 	<h4>互換性は？</h4>
 	<p>
 		以前のバージョンとの互換性で気にするポイントは、Entityにnullを明示的にセットしたカラムに対して、デフォルト制約が利かなくなっていることです。
-		<span class="freecomment">(かなりレアケースではあると考えています)</span>
+		<span class="frm">(かなりレアケースではあると考えています)</span>
 	</p>
 	<p>
 		こちらの挙動を元に戻すには、以下のプロパティを littleAdjustmentMap.dfprop に以下を定義します。
@@ -121,14 +121,14 @@
 		バッチ登録の batchInsert() メソッドで、insert文に列挙されるカラムのルールが変わります。
 	</p>
 	<dl class="valuemainlist">
-		<dt>いままで</dt><dd>全てのカラム <span class="freecomment">(デフォルト制約を全く利用できなかった)</span></dd>
+		<dt>いままで</dt><dd>全てのカラム <span class="frm">(デフォルト制約を全く利用できなかった)</span></dd>
 	</dl>
 	<p>
 		これからは、以下のようになります。
 	</p>
 	<dl class="valuemainlist">
-		<dt>自分でnewしたEntity</dt><dd>EntityのSetterが呼ばれたカラムの最小公倍数を列挙 <span class="freecomment">※通常はこちら</span></dd>
-		<dt>事前検索されたEntity</dt><dd>全てのカラムを列挙 <span class="freecomment">※copy insertするような場合 (レアケース)</span></dd>
+		<dt>自分でnewしたEntity</dt><dd>EntityのSetterが呼ばれたカラムの最小公倍数を列挙 <span class="frm">※通常はこちら</span></dd>
+		<dt>事前検索されたEntity</dt><dd>全てのカラムを列挙 <span class="frm">※copy insertするような場合 (レアケース)</span></dd>
 	</dl>
 	<p>
 		update() のルールと同じく ModifiedProperties が利用されます。統一的な仕様を重視しました。
@@ -137,7 +137,7 @@
 	<p>
 		また、DB変更でデフォルト制約付きのNotNullカラムが新規追加された場合に、修正無しで対応できるようになりました。
 		(全てのEntity)Setterで呼ばれてないカラムは、デフォルト制約が有効です。
-		<span class="freecomment">(事前検索されている場合は、そもそも別レコードのそのカラムの値で登録される)</span>
+		<span class="frm">(事前検索されている場合は、そもそも別レコードのそのカラムの値で登録される)</span>
 	</p>
 	<h4>互換性は？</h4>
 	<p>
@@ -157,8 +157,8 @@
 		バッチ登録の batchUpdate() メソッドで、update文に列挙されるカラムのルールが変わります。
 	</p>
 	<dl class="valuemainlist">
-		<dt>いままで</dt><dd>全てのカラム <span class="freecomment">(パフォーマンス劣化の温床)</span></dd>
-		<dt>これから</dt><dd>EntityのSetterが呼ばれたカラムを列挙 <span class="freecomment">(全てのEntityで一致の必要あり)</span></dd>
+		<dt>いままで</dt><dd>全てのカラム <span class="frm">(パフォーマンス劣化の温床)</span></dd>
+		<dt>これから</dt><dd>EntityのSetterが呼ばれたカラムを列挙 <span class="frm">(全てのEntityで一致の必要あり)</span></dd>
 	</dl>
 	<p>
 		update() のルールと同じく ModifiedProperties が利用されます。統一的な仕様を重視しました。
@@ -170,7 +170,7 @@
 	</p>
 	<p>
 		一部 Entity の、とあるカラムの既存の値をキープしたいという場合は、そもそも事前検索が必要となりますが、そのためだけに事前検索をするくらいなら、バッチ更新は利用しない方が良いでしょう。
-		<span class="freecomment">(そもそもパフォーマンス考慮のために存在するメソッドであるため、事前検索を避ける方が良いかと)</span>
+		<span class="frm">(そもそもパフォーマンス考慮のために存在するメソッドであるため、事前検索を避ける方が良いかと)</span>
 	</p>
 	<p>
 		ちなみに、第二引数のSpecifyQueryを使った BatchUpdate の場合に変更はありません。SpecifyQueryを使って明示的にカラムを指定したら、ModifiedPropertiesは関係なくなります。

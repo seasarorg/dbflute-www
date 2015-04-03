@@ -54,7 +54,7 @@
 		</li>
 		<li><a href="#recycle">再利用メソッド</a>
 			<ul>
-				<li><a href="#slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></a></li>
+				<li><a href="#slice">再利用は細切れに <span class="frm">(ArrangeQuery)</span></a></li>
 				<li><a href="#arrange">再利用メソッドの名前は arrangeXxx()</a></li>
 				<li><a href="#arrangename">参考までにこんな命名はいかがでしょう？</a></li>
 				<li><a href="#javadoc">再利用メソッドには必ずJavaDocを</a></li>
@@ -83,11 +83,11 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 </code></pre>
 	<p>
 		一つのメソッド内に、複数の ConditionBean を宣言する必要がある場合、つまり二回検索するような場合は、そもそもメソッド分けすると良いでしょう。
-		<span class="freecomment">(できれば、くらいのニュアンスで)</span>
+		<span class="frm">(できれば、くらいのニュアンスで)</span>
 	</p>
 	<h3 id="implorder">実装順序は、データの取得、絞り込み、並び替え</h3>
 	<p>
-		みながそうすれば、可読性が良くなります。<span class="freecomment">(ぜひとも、くらいのニュアンスで)</span>
+		みながそうすれば、可読性が良くなります。<span class="frm">(ぜひとも、くらいのニュアンスで)</span>
 	</p>
 <pre><span class="codetitle">データの取得、絞り込み、並び替え @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -191,7 +191,7 @@ cb.query().setMemberStatusCode_Equal_AsMemberStatus(status);
 </code></pre>
 	<p>
 		ConditionBeanの処理の前にフィルター処理するとか別途ロジックが入るようなケースでは、やはり普通にif文でチェックすることになりますので、ケースバイケースで使い分けてください。
-		<span class="freecomment">(よくわからないのであれば、これは使わずに全部if文で明示的にチェックする方がよいでしょう)</span>
+		<span class="frm">(よくわからないのであれば、これは使わずに全部if文で明示的にチェックする方がよいでしょう)</span>
 	</p>
 	<p>
 		また、すべてのケースで適用するというより、"あっ、これちょっとチェックしておいた方がいいかなー"
@@ -229,7 +229,7 @@ cb.query().setMemberId_InScope(memberIdList); <span class="comment">// 空っぽ
 	<p>
 		ただ、もしその InScope の条件以外に、固定の絞り込み条件がある場合は意味がありません。InScopeが消えても全件ではないので DBFlute
 		も例外にすることができません。でも、業務的にはOUTであることには変わりないので、基本的には条件値(memberIdList)を事前にチェックするか、checkInvalidQuery()
-		を使うことが大切です。<span class="freecomment">(両方やっておくのが吉。更新や削除で何かあると大事故です)</span>
+		を使うことが大切です。<span class="frm">(両方やっておくのが吉。更新や削除で何かあると大事故です)</span>
 	</p>
 <pre><span class="codetitle">e.g. 固定条件があると全件チェックできないので、やはり事前チェックはやっておいた方がいい @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -240,14 +240,14 @@ cb.query().setMemberStatusCode_Equal_正式会員(); <span class="comment">// �
 </code></pre>
 
 	<h2 id="recycle">再利用メソッド</h2>
-	<h3 id="slice">再利用は細切れに <span class="freecomment">(ArrangeQuery)</span></h3>
+	<h3 id="slice">再利用は細切れに <span class="frm">(ArrangeQuery)</span></h3>
 	<p>
 		検索をまるごと再利用すると、画面間の要求のちょっとしたギャップで分岐がカオスになりがちですし、setupSelect
 		が最小公倍数の指定になって、無駄なデータ取得が発生しやすいです。検索は、絞り込み条件などを細かく分けて再利用する方が扱いやすく効果的です。
 	</p>
 	<p>
 		ジェネレーションギャップを有効活用して、ConditionBean や ConditinoQuery の "Exクラス" に Arrange
-		メソッドを定義して再利用しましょう。<span class="freecomment">(ArrangeQueryと呼ぶ)</span>
+		メソッドを定義して再利用しましょう。<span class="frm">(ArrangeQueryと呼ぶ)</span>
 	</p>
 <pre><span class="codetitle">e.g. サービス会員: ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員 @Java</span><code>
 <span class="keyword">public class</span> MemberCQ <span class="keyword">extends</span> BsMemberCQ {
@@ -288,11 +288,11 @@ cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
 	<h3 id="arrange">再利用メソッドの名前は arrangeXxx()</h3>
 	<p>
 		arrangeXxx() という名前がオススメです。みなで合わせれば、補完するときにとりあえず arr
-		で探せば簡単に見つけることができます。<span class="freecomment">(再利用のポイントは、いかに知ってもらうか)</span>
+		で探せば簡単に見つけることができます。<span class="frm">(再利用のポイントは、いかに知ってもらうか)</span>
 	</p>
 	<p>
 		(Specify)DerivedReferrer や LoadReferrer のときでも、(特に違和感なければ) arrangeXxx()
-		で良いでしょう。<span class="freecomment">(ここはまあ、好みにおまかせします、くらいのニュアンスで)</span>
+		で良いでしょう。<span class="frm">(ここはまあ、好みにおまかせします、くらいのニュアンスで)</span>
 	</p>
 <pre><span class="codetitle">e.g. 最終ログイン日時を取得する再利用メソッド @Java</span><code>
 <span class="keyword">public class</span> MemberCB <span class="keyword">extends</span> BsMemberCB {
@@ -318,7 +318,7 @@ cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
 		<p>
 			jfluteがやっている命名です。
 			業務次第でアドリブもありますが、おおまかにはこういった名前を心がけています。
-			とにかく、見つけやすさ重視です。<span class="freecomment">(絞り込みとソートは CB, CQ 共通)</span>
+			とにかく、見つけやすさ重視です。<span class="frm">(絞り込みとソートは CB, CQ 共通)</span>
 		</p>
 		<dl class="shortvaluemainlist">
 			<dt>setupSelect...() の再利用</dt>
@@ -326,7 +326,7 @@ cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
 			<dt>specify() の再利用</dt>
 			<dd>arrangeSpecifyXxx()</dd>
 			<dt>query() (絞り込み) の再利用</dt>
-			<dd>arrangeXxx() <span class="freecomment">★いちばんよく使うので業務名だけで</span></dd>
+			<dd>arrangeXxx() <span class="frm">★いちばんよく使うので業務名だけで</span></dd>
 			<dt>query() (ソート) の再利用</dt>
 			<dd>arrangeOrderXxx()</dd>
 		</dl>

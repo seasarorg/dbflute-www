@@ -42,13 +42,13 @@
 		<li><a href="#policy">ポリシー、七か条</a></li>
 		<li><a href="#select">とにかく検索は？</a>
 			<ul>
-				<li><a href="#selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></a></li>
-				<li><a href="#selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></a></li>
+				<li><a href="#selectentitycb">ConditionBean で一件検索 <span class="frm">*selectEntity(cb)</span></a></li>
+				<li><a href="#selectlistcb">ConditionBean でリスト検索 <span class="frm">*selectList(cb)</span></a></li>
 				<li><a href="#optionalmessage">Optionalの例外メッセージをどうにかしたかった</a></li>
 				<li><a href="#selectothers">その他のConditionBeanによる検索</a></li>
 				<li><a href="#derivedreferrer">さくっと (Specify)DerivedReferrer</a></li>
 				<li><a href="#optionlambda">Option がもろもろ Lambda</a></li>
-				<li><a href="#loadreferrer">子テーブルの検索 (LoadReferrer) <span class="freecomment">*load(loader)</span></a></li>
+				<li><a href="#loadreferrer">子テーブルの検索 (LoadReferrer) <span class="frm">*load(loader)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#update">そういえば更新とかは？</a>
@@ -103,12 +103,12 @@
 		<dt>プログラム型</dt><dd>日付に関しては、Java8のTimeAPIを利用</dd>
 	</dl>
 	<p>
-		<span class="freecomment">※一部機能は 1.0.x 系でも取り込まれていますが、このページは 1.1 を中心としたお話です。</span>
+		<span class="frm">※一部機能は 1.0.x 系でも取り込まれていますが、このページは 1.1 を中心としたお話です。</span>
 	</p>
 	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20140530/java8">外部サイト - jfluteの日記 - DBFluteのJava8版というか1.1ではこうなる</a></div>
 
 	<h2 id="select">とにかく検索は？</h2>
-	<h3 id="selectentitycb">ConditionBean で一件検索 <span class="freecomment">*selectEntity(cb)</span></h3>
+	<h3 id="selectentitycb">ConditionBean で一件検索 <span class="frm">*selectEntity(cb)</span></h3>
 <pre><span class="codetitle">e.g. 会員ID "1" 番で会員を一件検索 (関連テーブルの会員ステータスも一緒に取得) @Java8</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
@@ -140,13 +140,13 @@ memberBhv.<span class="point">selectEntity</span>(<span class="localvar">cb</spa
 		<li>seleceEntity() の引数が、ConditionBeanを受け取るLambdaコールバック</li>
 		<li>ConditionBeanの変数名は、相変わらず cb が習慣！</li>
 		<li>selectEntity() の戻り値が OptionalEntity になっていて null は戻らない</li>
-		<li>絶対に存在することが前提なら、alwaysPresent() <span class="freecomment">※selectEntityWithDeletedCheck()と同じ</span></li>
-		<li>存在しないかもしれないなら、ifPresent() に続いて orElse() <span class="freecomment">※ifPresent()だけでもOK</span></li>
+		<li>絶対に存在することが前提なら、alwaysPresent() <span class="frm">※selectEntityWithDeletedCheck()と同じ</span></li>
+		<li>存在しないかもしれないなら、ifPresent() に続いて orElse() <span class="frm">※ifPresent()だけでもOK</span></li>
 		<li>Entityの変数名は、Member なら member、MemberWithdrawal なら withdrawal という感じで</li>
 		<li>alwaysPresent() と orElse() (ifPresent()の戻り値) はDBFlute独自のメソッド</li>
 	</ul>
 	<div class="relatedpage"><a href="./../manual/function/ormapper/behavior/select/selectentity.html#java8">selectEntity(cb) - Java8 なら OptionalEntity</a></div>
-	<h3 id="selectlistcb">ConditionBean でリスト検索 <span class="freecomment">*selectList(cb)</span></h3>
+	<h3 id="selectlistcb">ConditionBean でリスト検索 <span class="frm">*selectList(cb)</span></h3>
 <pre><span class="codetitle">e.g. 色々な絞り込み条件で会員をリスト検索 (関連テーブルもいろいろと) @Java8</span><code>
 <span class="abbreviation">...</span>
 <span class="comment">// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
@@ -220,7 +220,7 @@ memberList.<span class="point">forEach</span>(<span class="localvar">member</spa
 			するでしょう。とはいえ、データベースに絶対はありません。そう、DBの世界で "絶対に存在する"
 			というのは、業務的に存在するという意味であり、業務上の例外(すれ違い)や、データバグなどがありえるのです。開発中でも本番でも。そのときに単なる
 			NoSuchElementException ではつらいなと。
-			<span class="freecomment">(ifPresent()で素通りして全然違う例外が出てもつらいし、orElseThrow()で毎度毎度チェックロジックを書くのもつらい...し、なかなかやってもらえないでしょう)</span>
+			<span class="frm">(ifPresent()で素通りして全然違う例外が出てもつらいし、orElseThrow()で毎度毎度チェックロジックを書くのもつらい...し、なかなかやってもらえないでしょう)</span>
 		</p>
 		<p>
 			ということで、selectEntity() の OptionalEntity では、EntityAlreadyDeletedException で発行した SQL
@@ -243,7 +243,7 @@ memberList.<span class="point">forEach</span>(<span class="localvar">member</spa
 		<dt>scalarSelect(cb)</dt><dd>戻り値が OptionalObject に</dd>
 	</dl>
 	<p>
-		<span class="freecomment">※他の項目の Example で "ついでに" 登場しますので、そちらを参考に</span>
+		<span class="frm">※他の項目の Example で "ついでに" 登場しますので、そちらを参考に</span>
 	</p>
 	<h3 id="derivedreferrer">さくっと (Specify)DerivedReferrer</h3>
 	<p>
@@ -362,7 +362,7 @@ memberBhv.selectCursor(<span class="localvar">cb</span> <span class="keyword">-&
 		Lambdaの導入で Option の指定がしやすくなったことにより、LikeSearch や FromTo に統一することにしました。
 	</p>
 	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20141001/cblambda">外部サイト - jfluteの日記 - DBFlute-1.1でLambdaでCB</a></div>
-	<h3 id="loadreferrer">子テーブルの検索 (LoadReferrer) <span class="freecomment">*load(loader)</span></h3>
+	<h3 id="loadreferrer">子テーブルの検索 (LoadReferrer) <span class="frm">*load(loader)</span></h3>
 	<p>
 		1.0.x系でもサポートされた Loader 方式全開で実装しましょう。
 	</p>
@@ -446,9 +446,9 @@ memberList.forEach(<span class="localvar">member</span> <span class="keyword">-&
 	</p>
 	<h3 id="mappingdate">日付のマッピング</h3>
 	<dl class="keymainlist">
-		<dt>DATE</dt><dd>LocalDate <span class="freecomment">※いままでは、java.util.Date</span></dd>
-		<dt>DATETIME</dt><dd>LocalDateTime <span class="freecomment">※いままでは、java.sql.Timestamp</span></dd>
-		<dt>TIME</dt><dd>LocalTime <span class="freecomment">※いままでは、java.sql.Time</span></dd>
+		<dt>DATE</dt><dd>LocalDate <span class="frm">※いままでは、java.util.Date</span></dd>
+		<dt>DATETIME</dt><dd>LocalDateTime <span class="frm">※いままでは、java.sql.Timestamp</span></dd>
+		<dt>TIME</dt><dd>LocalTime <span class="frm">※いままでは、java.sql.Time</span></dd>
 	</dl>
 	<h3 id="handydate">HandyDateは？</h3>
 	<p>
@@ -555,14 +555,14 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span>
 		ということで、Eclipseで補完テンプレート (Java Editor Templates) を用意しています。
 	</p>
 	<dl class="keymainlist">
-		<dt>_arrow <span class="freecomment">(_a)</span></dt><dd>-&gt; <span class="freecomment">※単なる矢印</span></dd>
-		<dt>_li <span class="freecomment">(えるあい)</span></dt><dd>var -&gt; var.xxx <span class="freecomment">※Lambda Inline: LikeSearch などの一行スタイル</span></dd>
-		<dt>_ll <span class="freecomment">(えるえる)</span></dt><dd>var -&gt; {改行var.xxx改行} <span class="freecomment">※Lambda Linefeed: CB などの複数行スタイル</span></dd>
-		<dt>_foreach <span class="freecomment">(_fo)</span></dt><dd>var.forEach(newName -&gt; {改行}); <span class="freecomment">※var部分は近くの変数に置き換わる</span></dd>
-		<dt>_smap <span class="freecomment">(_sm)</span></dt><dd>var.stream().map(object -&gt; {改行 return object; 改行});</dd>
-		<dt>_sfilter <span class="freecomment">(_sf)</span></dt><dd>var.stream().filter(object -&gt; {改行 return object; 改行});</dd>
-		<dt>_scolist <span class="freecomment">(_scol)</span></dt><dd>...am().collect(Collectors.toList());</dd>
-		<dt>_scomap <span class="freecomment">(_scom)</span></dt><dd>...am().collect(Collectors.toMap(bean -&gt; be...);</dd>
+		<dt>_arrow <span class="frm">(_a)</span></dt><dd>-&gt; <span class="frm">※単なる矢印</span></dd>
+		<dt>_li <span class="frm">(えるあい)</span></dt><dd>var -&gt; var.xxx <span class="frm">※Lambda Inline: LikeSearch などの一行スタイル</span></dd>
+		<dt>_ll <span class="frm">(えるえる)</span></dt><dd>var -&gt; {改行var.xxx改行} <span class="frm">※Lambda Linefeed: CB などの複数行スタイル</span></dd>
+		<dt>_foreach <span class="frm">(_fo)</span></dt><dd>var.forEach(newName -&gt; {改行}); <span class="frm">※var部分は近くの変数に置き換わる</span></dd>
+		<dt>_smap <span class="frm">(_sm)</span></dt><dd>var.stream().map(object -&gt; {改行 return object; 改行});</dd>
+		<dt>_sfilter <span class="frm">(_sf)</span></dt><dd>var.stream().filter(object -&gt; {改行 return object; 改行});</dd>
+		<dt>_scolist <span class="frm">(_scol)</span></dt><dd>...am().collect(Collectors.toList());</dd>
+		<dt>_scomap <span class="frm">(_scom)</span></dt><dd>...am().collect(Collectors.toMap(bean -&gt; be...);</dd>
 	</dl>
 	<p>
 		やってみましょう。
@@ -666,7 +666,7 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 	<p>
 		いや、実際に指を動かして比べると、だいぶ違います。少し Eclipse に振り回されてる感がありますが、意外に
 		cbLambda の Lambda 部分を消して " -&gt; {" と打つのがわりと面倒です。これは、使ってるキーボードによるかもしれませんが、"矢印"
-		はスムーズに案外打ちづらいのです。<span class="freecomment">(shift離してハイフン、shift押して大なり...)</span>
+		はスムーズに案外打ちづらいのです。<span class="frm">(shift離してハイフン、shift押して大なり...)</span>
 	</p>
 	<p>
 		ちょっと修練は必要ですが、慣れると DBFlute に限らず Lambda
@@ -680,7 +680,7 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 		にて、importしてみてください。アンダースコア始まりの補完が使えるようになります。
 	</p>
 	<p>
-		<span class="freecomment">(本当は、Eclipseのバージョンが上がって、こういった補完でデフォルトでできるようになったらいいなと...)</span>
+		<span class="frm">(本当は、Eclipseのバージョンが上がって、こういった補完でデフォルトでできるようになったらいいなと...)</span>
 	</p>
 	<div class="inucolumn">
 	<h3 id="triclipse">裏技あります</h3>
@@ -691,7 +691,7 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 			<em class="keyword">selectList(cbLambda) を補完後に、右押してctrl+space！</em>
 		</p>
 		<p>
-			<span class="freecomment">"右"って、cbLambdaの選択状態を解除して、cbLambdaの右側にカーソルを確定させているだけです。</span>
+			<span class="frm">"右"って、cbLambdaの選択状態を解除して、cbLambdaの右側にカーソルを確定させているだけです。</span>
 		</p>
 	</div>
 	<div class="inucolumn">
@@ -699,7 +699,7 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 		<p>
 			Lambdaの中の、補完がまだ 4.4.1 だととても不安定です。おかしいな!?と思ったら、いったん周りのコンパイルエラーを直しましょう。
 			特にセミコロンの有無とか括弧とか要注意です。実務における ConditionBean
-			の検索で、大きいものであれば、それだけで同じクラスにメソッド化してしまってもいいでしょう<span class="freecomment">(すると、"Lambdaの中" ではなくなるので安定します)</span>。
+			の検索で、大きいものであれば、それだけで同じクラスにメソッド化してしまってもいいでしょう<span class="frm">(すると、"Lambdaの中" ではなくなるので安定します)</span>。
 		</p>
 		<p>
 			時間の問題と思われますが、ConditionBeanのコールバックだけは最初は Lambda を使わずにいつも通りの
@@ -707,12 +707,12 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 			をして、昔ながらのコールバックの中でCBの実装をしてひと段落してから、ctrl+1でLambdaに変換するでもよいでしょう。
 		</p>
 		<p>
-			また、Eclipseの入力モード <span class="freecomment">(勝手にそう呼んでいますが、変数名やstatementが四角で囲われている状態)</span>
+			また、Eclipseの入力モード <span class="frm">(勝手にそう呼んでいますが、変数名やstatementが四角で囲われている状態)</span>
 			がどんどんネストしていって、enter押したときのカーソルの飛び先やセミコロンを入力したおきの扱いなどがわけわからないことになることがあります。
 		</p>
 		<p>
 			まずは、びっくりしないこと。そして、なんだか変な感じだなと思ったら、escボタンを押して入力モードを強制終了しちゃってもいいでしょう。
-			しかも、一回だけでなく、二、三回押すと確実にモードがおわりやすいので、escをパンパン！っと。<span class="freecomment">(いずせにせよ、反射神経を研ぎすませて...)</span>
+			しかも、一回だけでなく、二、三回押すと確実にモードがおわりやすいので、escをパンパン！っと。<span class="frm">(いずせにせよ、反射神経を研ぎすませて...)</span>
 		</p>
 	</div>
 	<h3 id="intellij">IntelliJ IDEA なら</h3>
@@ -737,12 +737,12 @@ memberList.forEach(<span class="subpoint">member -&gt; {</span> <span class="com
 		<dt>基点テーブルのCB</dt><dd>cb で OK</dd>
 		<dt>ExistsReferrer</dt><dd>[entity名]CB: <em class="keyword">独立した世界のCBなら、テーブルを識別しやすく</em></dd>
 		<dt>DerivedReferrer</dt><dd>[entity名]CB: 上に同じ</dd>
-		<dt>LoadReferrer</dt><dd>[entity名]CB: 上に同じ <span class="freecomment">※Loaderは [entity名]Loader</span></dd>
-		<dt>ScalarCondition</dt><dd>[entity名]CB: 上に同じ <span class="freecomment">※PartitionByは colCB</span></dd>
+		<dt>LoadReferrer</dt><dd>[entity名]CB: 上に同じ <span class="frm">※Loaderは [entity名]Loader</span></dd>
+		<dt>ScalarCondition</dt><dd>[entity名]CB: 上に同じ <span class="frm">※PartitionByは colCB</span></dd>
 		<dt>OrScopeQuery</dt><dd>orCB: <em class="keyword">一時的な役割を担うCBなら、役割prefixを</em></dd>
-		<dt>ColumnQuery</dt><dd>colCB: 上に同じ <span class="freecomment">※その他、カラムだけを指定するものはこれと同じ</span></dd>
+		<dt>ColumnQuery</dt><dd>colCB: 上に同じ <span class="frm">※その他、カラムだけを指定するものはこれと同じ</span></dd>
 		<dt>UnionQuery</dt><dd>unionCB: 上に同じ</dd>
-		<dt>Option系</dt><dd>op: もうお約束で <span class="freecomment">※名前がバッティングするときは、アドリブで短い役割名を</span></dd>
+		<dt>Option系</dt><dd>op: もうお約束で <span class="frm">※名前がバッティングするときは、アドリブで短い役割名を</span></dd>
 		<dt>alwaysPresent()など</dt><dd>[entity名]: Entity名のイメージ (わかれば短くしてもOK)</dd>
 		<dt>その他いろいろ</dt><dd>これらを踏まえて、応用していい感じの名前を</dd>
 	</dl>
@@ -816,12 +816,12 @@ ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span cl
 	</p>
 	<h3 id="cbnullorempty">Strict: nullOrEmpty</h3>
 	<p>
-		CBでnullや空文字入れたら例外に！ <span class="freecomment">(オプションで戻せます)</span>
+		CBでnullや空文字入れたら例外に！ <span class="frm">(オプションで戻せます)</span>
 	</p>
 	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20140813/strict11">外部サイト - jfluteの日記 - DBFlute-1.1になったらStrict</a></div>
 	<h3 id="cbnullorempty">Strict: SpecifyColumn</h3>
 	<p>
-		CBでSpecifyColumnしてないカラムをgetしたら例外に！ <span class="freecomment">(オプションで戻せます)</span>
+		CBでSpecifyColumnしてないカラムをgetしたら例外に！ <span class="frm">(オプションで戻せます)</span>
 	</p>
 	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20141021/nonspecified">外部サイト - jfluteの日記 - DBFlute-1.1からはNonSpecifiedチェック</a></div>
 

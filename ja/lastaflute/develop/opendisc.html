@@ -64,9 +64,8 @@
 	</p>
 <pre><span class="codetitle">e.g. JSPやJSONを戻すとき @Java</span><code>
 @Execute
-<span class="keyword">public</span> HtmlResponse list() { <span class="comment">// 一覧画面の表示</span>
-    List&lt;ProductRowBean&gt; <span class="localvar">beanList</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
-    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Product_ProductList_jsp</span>);
+<span class="keyword">public</span> HtmlResponse index() { <span class="comment">// 一覧画面の表示</span>
+    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Mypage_Mypage_jsp</span>);
 }
 
 @Execute
@@ -101,14 +100,14 @@
 </code></pre>
 	<h3 id="returndata">JSPへのデータの渡し方</h3>
 	<p>
-		public変数で渡すのやめ。.with() でつなげて、dataオブジェクトに登録する。
+		public変数で渡すのやめ。.renderWith() でつなげて、dataオブジェクトに登録する。
 	</p>
 <pre><span class="codetitle">e.g. xxx @Directory</span><code>
 @Execute
 <span class="keyword">public</span> HtmlResponse list() { <span class="comment">// 一覧画面の表示</span>
-    List&lt;ProductRowBean&gt; <span class="localvar">beanList</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
+    List&lt;ProductRowBean&gt; <span class="localvar">beans</span> = ... <span class="comment">// DBFluteでリスト検索して詰め替え</span>
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductList_jsp</span>).<span class="point">renderWith</span>(<span class="localvar">data</span> -> {
-        <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beanList"</span>, <span class="localvar">beanList</span>);
+        <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
     });
 }
 
@@ -151,8 +150,8 @@
     });
 }
 
-<span class="keyword">protected</span> DocksideMessages <span class="subpoint">doValidate()</span> { <span class="comment">// publicである必要はない、ただ呼ばれる</span>
-    DocksideMessages <span class="localvar">messages</span> = createActionMessages();
+<span class="keyword">protected</span> DocksideMessages <span class="subpoint">doValidate()</span> { <span class="comment">// publicである必要はまったくない</span>
+    DocksideMessages <span class="localvar">messages</span> = Messages();
     <span class="keyword">if</span> (<span class="attribute">productForm</span>.memberName<span class="abbreviation">...</span>) {
         <span class="localvar">messages</span>.addErrorsNantoka(<span class="abbreviation">...</span>);
     }

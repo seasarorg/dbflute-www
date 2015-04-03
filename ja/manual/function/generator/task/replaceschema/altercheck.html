@@ -87,7 +87,7 @@
 
 	<h2 id="overview">概要</h2>
 	<p>
-		ReplaceSchema で差分DDLを検証する仕組みがあります<span class="freecomment">(@since 0.9.8.4)</span>。
+		ReplaceSchema で差分DDLを検証する仕組みがあります<span class="frm">(@since 0.9.8.4)</span>。
 		<em class="keyword">AlterCheck</em> と呼ばれるこの仕組みを利用してフルDDLと差分DDLをしっかりと整合性をとって運用していくことが推奨されます。
 	</p>
 	<div class="relatedpage"><a href="./livingdbmigration.html">LivingDBMigration</a></div>
@@ -116,9 +116,9 @@
 	</p>
 	<dl class="textlist">
 		<dt>PreviousDDL を保存</dt>
-		<dd>Previous-DB を再現するためのDDLをコピー保存 <span class="freecomment">(前回のリリース後からDB変更前に)</span></dd>
+		<dd>Previous-DB を再現するためのDDLをコピー保存 <span class="frm">(前回のリリース後からDB変更前に)</span></dd>
 		<dt>AlterCheck を実行</dt>
-		<dd>Previous-DB + AlterDDL と NextDDL の結果をチェック <span class="freecomment">(DB変更後からリリース前)</span></dd>
+		<dd>Previous-DB + AlterDDL と NextDDL の結果をチェック <span class="frm">(DB変更後からリリース前)</span></dd>
 	</dl>
 	<h3 id="conceptimage">AlterCheck概念図</h3>
 	<p class="imgbox">図 : AlterCheck概念図
@@ -141,7 +141,7 @@
 		やデータをまるごと保存します。これが(リリースするまでは)本番DBと同じ構造を表現する PreviousDDL となります。
 	</p>
 	<p>
-		Manageタスクで、<em class="keyword">SavePrevious</em> を指定して実行します<span class="freecomment">(@since 0.9.9.7B)</span>。
+		Manageタスクで、<em class="keyword">SavePrevious</em> を指定して実行します<span class="frm">(@since 0.9.9.7B)</span>。
 	</p>
 	<div class="relatedpage"><a href="../manage/index.html">Manageタスク</a></div>
 <pre><span class="codetitle">e.g. Manageタスクで SavePrevious の実行 (シェル) @Command</span><code>
@@ -171,7 +171,7 @@ dbflute_exampledb
 		SavePrevious しても AlterCheck は利用できます。本番環境のDDLダンプでも構いません。要は migration/previous
 		配下に Previous-DB を復元できる DDL が手動でも配置されればOKなのです。
 		また、ZIP形式でなくても、previous配下に直接 replace-schema.sql を配置すれば AlterCheck 時に認識されます。
-		<span class="freecomment">(内部的には、ZIPファイルがなければ展開されているファイルをそのまま利用します)</span>
+		<span class="frm">(内部的には、ZIPファイルがなければ展開されているファイルをそのまま利用します)</span>
 	</p>
 	<p>
 		さてこの後、思う存分DB変更をして開発を続けてください。
@@ -189,7 +189,7 @@ dbflute_exampledb
 		まずは何も考えず何の準備もせず、そのままAlterCheckタスクをいきなり実行してみてみましょう。
 	</p>
 	<p>
-		Manageタスクで、<em class="keyword">AlterCheck</em> を指定して実行します<span class="freecomment">(@since 0.9.9.7B)</span>。
+		Manageタスクで、<em class="keyword">AlterCheck</em> を指定して実行します<span class="frm">(@since 0.9.9.7B)</span>。
 	</p>
 	<div class="relatedpage"><a href="../manage/index.html">Manageタスク</a></div>
 <pre><span class="codetitle">e.g. Manageタスクで AlterCheck の実行 (シェル) @Command</span><code>
@@ -214,7 +214,7 @@ dbflute_exampledb
 </code></pre>
 	<p>
 		この時点で、playsql/migration配下に alter というディレクトリが自動で作成され、デフォルトのAlterDDLのファイルも作成されます。
-		<span class="freecomment">(あらかじめ手動で作成しても構いません。内部的にはファイルがなければ空っぽで作成しておいて、そのまま空のAlterDDLとして差分チェックをしているだけです)</span>
+		<span class="frm">(あらかじめ手動で作成しても構いません。内部的にはファイルがなければ空っぽで作成しておいて、そのまま空のAlterDDLとして差分チェックをしているだけです)</span>
 	</p>
 <pre><span class="codetitle">e.g. AlterDDL の配置 @playsql</span><code>
 dbflute_exampledb
@@ -252,7 +252,7 @@ dbflute_exampledb
 	<div class="relatedpage"><a href="../doc/historyhtml.html">HistoryHTML</a></div>
 	<p>
 		ちなみに、このSQLファイルのエンコーディングは UTF-8 で、insert文などのデータ値の中に改行が含まれていたら、その改行は "LF"
-		として扱われます。<span class="freecomment">(ReplaceSchemaのデータ登録で利用されるエクセルデータの改行もLFとして扱われます)</span>
+		として扱われます。<span class="frm">(ReplaceSchemaのデータ登録で利用されるエクセルデータの改行もLFとして扱われます)</span>
 	</p>
 	<p>
 		また、CraftDiffを利用している場合は、その差分も AlterCheck
@@ -494,7 +494,7 @@ dbflute_exampledb
 		<p>
 			そういうことから、あえて AlterDDL はベタに実装することを想定した仕様にしています。
 			ただ、この本番環境適用は、そもそも多種多様でまだまだ分析の余地のある領域でもあるため、
-			今後の分析次第ではまた違った解釈で色々なアプローチを検討していくかもしれません。<span class="freecomment">(2011/05/01現在)</span>
+			今後の分析次第ではまた違った解釈で色々なアプローチを検討していくかもしれません。<span class="frm">(2011/05/01現在)</span>
 		</p>
 	</div>
 

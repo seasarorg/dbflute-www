@@ -214,16 +214,16 @@
 </code></pre>
 	<p>
 		ネストの基点となるプロパティの型がParameterBeanで、
-		ネストしたプロパティ自体にLikeSearch条件のオプションが指定されていれば、それが有効になります。<span class="freecomment">@since 0.9.7.1</span>
+		ネストしたプロパティ自体にLikeSearch条件のオプションが指定されていれば、それが有効になります。<span class="frm">@since 0.9.7.1</span>
 	</p>
 	<p>
 		基本的な適用法則として、バインド変数として利用する値(のプロパティ)に近いオプションが利用されます。
 		(ループ内の場合は、InLoopオプションが一番近いオプションとして扱われます)
-		<span class="freecomment">@since 0.9.7.1</span>
+		<span class="frm">@since 0.9.7.1</span>
 	</p>
 	<h3 id="bindinloopoption">ループ内で利用できるオプション</h3>
 	<p>
-		FORコメントのループ内でのみ利用できるLikeSearch条件関連のオプションがあります。<span class="freecomment">@since 0.9.7.1</span>
+		FORコメントのループ内でのみ利用できるLikeSearch条件関連のオプションがあります。<span class="frm">@since 0.9.7.1</span>
 	</p>
 	<div class="detailpage"><a href="#forinloopoption">FORコメント - InLoopオプション</a></div>
 
@@ -252,7 +252,7 @@
 </code></pre>
 	<h3 id="embeddedquoted">クォーテーションの調整</h3>
 	<p>
-		テスト値がクォートされている場合は、展開された値がクォートされます。<span class="freecomment">@since 0.9.7.1</span>
+		テスト値がクォートされている場合は、展開された値がクォートされます。<span class="frm">@since 0.9.7.1</span>
 	</p>
 <pre><span class="codetitle">e.g. 埋め込み変数コメントでクォートされる場合 {memberName=bar} @OutsideSql</span><code>
   <span class="keyword">and</span> MEMBER_NAME = <span class="comment">/*$pmb.memberName*/</span><span class="literal">'foo'</span>
@@ -269,14 +269,14 @@
 	</p>
 	<dl class="textlist">
 		<dt>/*$$pmb.foo*/</dt>
-		<dd>テスト値がSQL上にそのまま展開される <span class="freecomment">@since 0.9.9.0C</span></dd>
+		<dd>テスト値がSQL上にそのまま展開される <span class="frm">@since 0.9.9.0C</span></dd>
 		<dd>
 			"from /*$$pmb.foo*/SEA.MEMBER mb" なら "from [fooの値]SEA.MEMBER mb"
 			と展開されます。つまり、埋め込み変数コメントだけが単に置換されるだけとなります。
 			(通常の埋め込み変数コメントであれば、"from [fooの値] mb" となる)
 		</dd>
 		<dt>/*$.pmb.foo*/</dt>
-		<dd>テスト値はドット "." (の前の文字列)までと認識 <span class="freecomment">@since 0.9.9.0C</span></dd>
+		<dd>テスト値はドット "." (の前の文字列)までと認識 <span class="frm">@since 0.9.9.0C</span></dd>
 		<dd>
 			"from /*$$pmb.foo*/SEA.MEMBER mb" なら "from [fooの値].MEMBER mb"
 			と展開されます。テーブル名に付与するスキーマ名を切り替えるような場合に有効です。
@@ -285,12 +285,12 @@
 	<h3 id="embeddednull">null値の扱い</h3>
 	<p>
 		基本仕様は、バインド変数コメントと同じです。null を許容する状況で、(InScopeでない場合に)実際に値が null
-		だった場合は、"null" という文字が展開されます。<span class="freecomment">@since 0.9.7.1</span>
+		だった場合は、"null" という文字が展開されます。<span class="frm">@since 0.9.7.1</span>
 	</p>
 	<h3 id="dynamicbinding">埋め込み変数コメント内のバインド</h3>
 	<p>
 		埋め込み変数の値の中に、バインド変数コメントやIFコメントなどを含めることができます(動的に解析されます)。
-		但し、不定数の条件はFORコメントを利用することで実現できるため、あまり利用が想定されていません。<span class="freecomment">@since 0.9.7.0</span>
+		但し、不定数の条件はFORコメントを利用することで実現できるため、あまり利用が想定されていません。<span class="frm">@since 0.9.7.0</span>
 	</p>
 	<div class="relatedpage"><a href="#forcomment">this - FORコメント</a></div>
 	<h3 id="embeddedngchar">埋め込み変数コメント内のNG文字</h3>
@@ -331,18 +331,18 @@
 		条件表現として、以下のポイントがあります。
 	</p>
 	<ul>
-		<li>文字列リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberName &gt; 'Pixy'*/</span></li>
-		<li>数値リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberId &gt;= 6*/</span></li>
-		<li>日付リテラルが利用できる <span class="freecomment">e.g. /*IF pmb.birthdate &gt; date '2000/03/28'*/</span></li>
-		<li>nullリテラルが利用できる <span class="freecomment">e.g. /*IF pmb.memberName != null*/</span></li>
-		<li>等値条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberName == 'Pixy'*/</span></li>
-		<li>非等値条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberId != 3*/</span></li>
-		<li>大なり小なり条件で判定できる <span class="freecomment">e.g. /*IF pmb.memberId &lt; 3*/</span></li>
-		<li>boolean型を利用できる <span class="freecomment">e.g. /*IF pmb.memberFlg*/</span></li>
-		<li>(引数なしの)メソッド呼び出しができる <span class="freecomment">e.g. /*IF pmb.isPaging()*/</span></li>
-		<li>boolean型で否定判定できる <span class="freecomment">e.g. /*IF !pmb.memberFlg*/</span></li>
-		<li>AND条件で条件連結できる <span class="freecomment">e.g. /*IF pmb.isPaging() && pmb.memberId != null*/</span></li>
-		<li>OR条件で条件連結できる <span class="freecomment">e.g. /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
+		<li>文字列リテラルが利用できる <span class="frm">e.g. /*IF pmb.memberName &gt; 'Pixy'*/</span></li>
+		<li>数値リテラルが利用できる <span class="frm">e.g. /*IF pmb.memberId &gt;= 6*/</span></li>
+		<li>日付リテラルが利用できる <span class="frm">e.g. /*IF pmb.birthdate &gt; date '2000/03/28'*/</span></li>
+		<li>nullリテラルが利用できる <span class="frm">e.g. /*IF pmb.memberName != null*/</span></li>
+		<li>等値条件で判定できる <span class="frm">e.g. /*IF pmb.memberName == 'Pixy'*/</span></li>
+		<li>非等値条件で判定できる <span class="frm">e.g. /*IF pmb.memberId != 3*/</span></li>
+		<li>大なり小なり条件で判定できる <span class="frm">e.g. /*IF pmb.memberId &lt; 3*/</span></li>
+		<li>boolean型を利用できる <span class="frm">e.g. /*IF pmb.memberFlg*/</span></li>
+		<li>(引数なしの)メソッド呼び出しができる <span class="frm">e.g. /*IF pmb.isPaging()*/</span></li>
+		<li>boolean型で否定判定できる <span class="frm">e.g. /*IF !pmb.memberFlg*/</span></li>
+		<li>AND条件で条件連結できる <span class="frm">e.g. /*IF pmb.isPaging() && pmb.memberId != null*/</span></li>
+		<li>OR条件で条件連結できる <span class="frm">e.g. /*IF pmb.isPaging() || pmb.memberId != null*/</span></li>
 		<li>AND条件とOR条件の(一つのIFコメント内での)併用はできない</li>
 	</ul>
 	<h3 id="alternatebool">複雑な条件はメソッド化</h3>
@@ -407,7 +407,7 @@
 	<h3 id="commentconstraint">コメント制約</h3>
 	<p>
 		DBFluteの古いバージョンでは、IFコメントとELSEコメントの間には、行コメント("--")を含めることができません。
-		<span class="freecomment">@until 0.9.9.0D</span>
+		<span class="frm">@until 0.9.9.0D</span>
 	</p>
 <pre><span class="codetitle">e.g. ELSEコメントの利用 @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
@@ -430,7 +430,7 @@
 	<ul>
 		<li>IFコメント</li>
 		<li>ELSEコメント</li>
-		<li>FORコメント <span class="freecomment">@since 0.9.7.0</span></li>
+		<li>FORコメント <span class="frm">@since 0.9.7.0</span></li>
 	</ul>
 	<p>
 		"/*BEGIN*/" という形式で記述し、ENDコメントでスコープを定義します。where
@@ -466,9 +466,9 @@
 	<ul>
 		<li>IFコメント</li>
 		<li>ELSEコメント</li>
-		<li>FORコメント <span class="freecomment">@since 0.9.7.0</span></li>
-		<li>FIRSTコメント <span class="freecomment">@since 0.9.7.0</span></li>
-		<li>ネストしたBEGINコメント(後述) <span class="freecomment">@since 0.9.7.0</span></li>
+		<li>FORコメント <span class="frm">@since 0.9.7.0</span></li>
+		<li>FIRSTコメント <span class="frm">@since 0.9.7.0</span></li>
+		<li>ネストしたBEGINコメント(後述) <span class="frm">@since 0.9.7.0</span></li>
 	</ul>
 <pre><span class="codetitle">e.g. BEGINコメントで where 句をまるごと囲う @OutsideSql</span><code>
 <span class="keyword">select</span> * <span class="keyword">from</span> MEMBER
@@ -502,14 +502,14 @@
 		BEGINコメントをネストさせることができます。"and" や "or"
 		などの連結文字の調整は、ネストしたBEGINコメントごとに独立して処理されながらも、
 		(上位の)BEGINコメントの判定対象として、ネストしたBEGINコメントのスコープ内のIFコメントやFORコメントなどもしっかり含まれるため、サブクエリの
-		where 句などに利用することができます。<span class="freecomment">@since 0.9.7.0</span>
+		where 句などに利用することができます。<span class="frm">@since 0.9.7.0</span>
 	</p>
 	<p>
 		また、ネストしたBEGINコメント自体の直後の "and" や "or"
 		も調整されます。以下の例のようにサブクエリ内の条件が全て無効の場合に、サブクエリ自体を削除するというような記述が可能です。
 		ネストしたBEGINの直後の and も調整され、かつ、ネストしたBEGIN内の(最初に有効になった)IFコメントの直後の and も同時に調整されます。
 		(memberId が null の場合、ネストしたBEGIN直後の and が削除されます)
-		<span class="freecomment">@since 0.9.7.0</span>
+		<span class="frm">@since 0.9.7.0</span>
 	</p>
 <pre><span class="codetitle">e.g. サブクエリの条件でネストしたBEGINコメントを利用 @OutsideSql</span><code>
  <span class="comment">/*BEGIN*/</span>
@@ -574,7 +574,7 @@
 	<h2 id="forcomment">FORコメント</h2>
 	<p>
 		アプリケーションから渡されるパラメータをもとにループして可変なSQLを展開するパラメータコメントです。主に、where
-		句における不定数の条件に利用します。<span class="freecomment">@since 0.9.7.0</span>
+		句における不定数の条件に利用します。<span class="frm">@since 0.9.7.0</span>
 	</p>
 	<p>
 		"/**/" 形式のコメントの中で、"FOR [list-expression]" という形式で記述し、ENDコメントでスコープを定義します。
@@ -594,7 +594,7 @@
 		<li>指定するリストは、java.util.List の実装クラスである必要がある</li>
 		<li>FORコメントの中に、別のコメント(IFコメントなど)を定義することができる</li>
 		<li>リストが null や空リストの場合は何も展開されない(スコープがまるごと削除される)</li>
-		<li>リストの要素に null を含めることはできる <span class="freecomment">@since 0.9.7.1</span></li>
+		<li>リストの要素に null を含めることはできる <span class="frm">@since 0.9.7.1</span></li>
 	</ul>
 	<h3 id="current">カレント変数</h3>
 	<p>
@@ -737,7 +737,7 @@
 	<p>
 		FORコメントの中で条件が複数あって、LikeSearch条件でない文字列の条件が含まれる場合や、それぞれLikeSearch条件を細かく設定したい場合に、
 		バインド変数コメントや埋め込み変数コメントのループ内限定のInLoopオプションを利用して調整することができます。"/*pmb.foo:[in-loop-option]*/"
-		という形式で指定します。<span class="freecomment">@since 0.9.7.1</span>
+		という形式で指定します。<span class="frm">@since 0.9.7.1</span>
 	</p>
 	<dl class="keymainlist">
 		<dt>notLike</dt><dd>LikeSearchではない</dd>
@@ -775,7 +775,7 @@
 		InLoopオプションで、動的に LikeSearchOption を受け取るオプション (likeオプション) は、通常の方法ではサポートされていません。
 		非常に回避的で内部構造依存な方法ではありますが、対象のBeanクラスに "[対象カラムのプロパティ名]InternalLikeSearchOption"
 		というプロパティ名のgetter/setterを作成して、動的な LikeSearchOption を指定することができます。
-		<span class="freecomment">(互換性は保たれますが、将来、代替するやり方が出てくるかもしれません)</span>
+		<span class="frm">(互換性は保たれますが、将来、代替するやり方が出てくるかもしれません)</span>
 	</p>
 	<h3 id="fornest">FORコメントのネスト</h3>
 	<p>

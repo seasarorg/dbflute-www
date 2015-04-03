@@ -168,12 +168,12 @@
 	<h3 id="throwthrow">アプリでは、基本的に catch せず throw</h3>
 	<p>
 		アプリ内でthrowされた例外は、最後の最後の ServletFilter のところで catch され、ERRORレベルで例外メッセージとスタックトレースが出力されます。
-		HTTPステータスコードは 500 として扱われ、500.html が表示されるような仕組みになっています<span class="freecomment">(単にweb.xmlでそう設定しているだけですが)</span>。
+		HTTPステータスコードは 500 として扱われ、500.html が表示されるような仕組みになっています<span class="frm">(単にweb.xmlでそう設定しているだけですが)</span>。
 		500.htmlはアプリごとに適切なデザインに修正します。
 	</p>
 	<p>
 		よって、例外が発生しても、アプリ内で自前で catch して ERROR を出す必要はありません。
-		<span class="freecomment">(もちろん、例外が発生しても処理を続行したい場合などは catch します)</span>
+		<span class="frm">(もちろん、例外が発生しても処理を続行したい場合などは catch します)</span>
 	</p>
 	<p>
 		RequestLoggingFilter にて、このログ出力が行われています。
@@ -283,11 +283,11 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 * * * * * * * * * */
 </code></pre>
 	<ul>
-		<li>それぞれのトランザクションが、開始されてからどのくらい経過しているのか？ <span class="freecomment"> e.g. 00m01s634ms</span></li>
-		<li>DBMS側のどのプロセスと紐づいているか？ <span class="freecomment">e.g. xxx/x(21) ※2015/02/26時点でMySQLのみ</span></li>
-		<li>どのActionから呼ばれたものなのか？ <span class="freecomment"> e.g. MypageIndexAction#index()</span></li>
-		<li>どのログインユーザーで実行されているものなのか？ <span class="freecomment"> e.g. {userId=83}</span></li>
-		<li>そのトランザクションがどのテーブルにどんな操作をしたか？ <span class="freecomment"> e.g. map:{MEMBER = ...}</span></li>
+		<li>それぞれのトランザクションが、開始されてからどのくらい経過しているのか？ <span class="frm"> e.g. 00m01s634ms</span></li>
+		<li>DBMS側のどのプロセスと紐づいているか？ <span class="frm">e.g. xxx/x(21) ※2015/02/26時点でMySQLのみ</span></li>
+		<li>どのActionから呼ばれたものなのか？ <span class="frm"> e.g. MypageIndexAction#index()</span></li>
+		<li>どのログインユーザーで実行されているものなのか？ <span class="frm"> e.g. {userId=83}</span></li>
+		<li>そのトランザクションがどのテーブルにどんな操作をしたか？ <span class="frm"> e.g. map:{MEMBER = ...}</span></li>
 		<li>その瞬間、どんなSQLが実行されていたのか？ (どのくらい時間がかかっているのか？)</li>
 	</ul>
 	<p>
@@ -297,13 +297,13 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 	</p>
 	<p>
 		その瞬間実行されているSQLの表示用SQL (DisplaySql)
-		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません<span class="freecomment">(その辺のパフォーマンス考慮、最大限しているつもり)</span>。
-		また、トランザクションが開始されていても、まだ一度もDBアクセスしていないトランザクションは表示されません<span class="freecomment">(ConnectionPoolに乗ってないため)</span>。
+		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません<span class="frm">(その辺のパフォーマンス考慮、最大限しているつもり)</span>。
+		また、トランザクションが開始されていても、まだ一度もDBアクセスしていないトランザクションは表示されません<span class="frm">(ConnectionPoolに乗ってないため)</span>。
 	</p>
 	<p>
-		こちらは、後から追加された機能です<span class="freecomment">(2015/02/24)</span>。SAFluteの src/main/resources に jta+TransactionManager.dicon
+		こちらは、後から追加された機能です<span class="frm">(2015/02/24)</span>。SAFluteの src/main/resources に jta+TransactionManager.dicon
 		が存在すること、jdbc.diconで ConnectionPoolImpl の代わりに HookedConnectionPool が設定されていることが前提です。
-		<span class="freecomment">(なければ、最新のSAFluteを参考に)</span>
+		<span class="frm">(なければ、最新のSAFluteを参考に)</span>
 	</p>
 
 	<h2 id="actionflowlog">ActionやJSPなどを一発で探せるように</h2>
@@ -325,7 +325,7 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 	<p>
 		Eclipseであれば、コンソールログで ctrl + F を押して、#action と入力すれば、Actionクラスの呼び出し部分に飛びます。
 		処理の多い Request で #flow で流れを追っていくのもよいでしょう。
-		 <span class="freecomment">(...残念なことに、#beforeは一箇所かぶっています)</span>
+		 <span class="frm">(...残念なことに、#beforeは一箇所かぶっています)</span>
 	</p>
 <pre><span class="codetitle">e.g. ActionやJSPの呼び出しログのハッシュタグ @Log</span><code>
 
@@ -404,7 +404,7 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 	<p>
 		インクリメンタル開発では、最初の時点では開発スピード重視で、パフォーマンス考慮を置き去りにされることがよくあります。
 		実際に、最初はデータ件数も少なく問題にならないことも多く、わざとそれを狙って実装する場合もあります。
-		<span class="freecomment">(考慮できるにこしたことはありませんが、考慮実装に時間がかかる場合など)</span>
+		<span class="frm">(考慮できるにこしたことはありませんが、考慮実装に時間がかかる場合など)</span>
 	</p>
 	<p>
 		そして、だんだんつらくなってきます。
