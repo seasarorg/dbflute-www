@@ -41,8 +41,8 @@
 	<ul class="indexlist">
 		<li><a href="#actionconv">Action Convention</a>
 			<ul>
-				<li><a href="#namingandurl">Naming and URL</a></li>
-				<li><a href="#actionexample">Action Eaxmple</a></li>
+				<li><a href="#namingandurl">Two Big convention <span class="frm">(URL and Package)</span></a></li>
+				<li><a href="#actionexample">Action Mapping Eaxmple</a></li>
 				<li><a href="#pkgloc">Package Location</a></li>
 			</ul>
 		</li>
@@ -60,25 +60,23 @@
 	<div class="relatedpage"><span class="working"><!-- <a href="./migration/mifromsa.html"> -->SAFluteからLastaFluteへの移行<!-- </a> --></span></div>
 
 	<h2 id="actionconv">Action Convention</h2>
-	<h3 id="namingandurl">Naming and URL</h3>
+	<h3 id="namingandurl">Two Big convention <span class="frm">(URL and Package)</span></h3>
 	<dl class="valuemainlist">
-		<dt>Actionクラス</dt><dd>[Packageキーワード] + [Actionキーワード] + Action</dd>
 		<dt>URLの構成</dt><dd>Actionクラス + Executeメソッド</dd>
+		<dt>Actionのパッケージ</dt><dd>Actionクラス名のprefix</dd>
 	</dl>
-	<h3 id="actionexample">Action Eaxmple</h3>
-	<dl class="textlist">
-		<dt>profile.ProfilePasswordAction#change() <span class="frm">※クラス名 = Profile + Password + Action</span></dt>
+	<h3 id="actionexample">Action Mapping Eaxmple</h3>
+	<dl class="lolongkeymainlist">
+		<dt>profile.<em class="mark">ProfilePassword</em>Action#<em class="mark">change</em>()</dt>
 		<dd><em class="keyword">/profile/password/change/</em></dd>
-		<dt>product.ProductAction#list() <span class="frm">※Actionキーワードを省略: Packageキーワードのみのクラス名に</span></dt>
+		<dt>product.<em class="mark">Product</em>Action#<em class="mark">list</em>()</dt>
 		<dd><em class="keyword">/product/list/</em></dd>
-		<dt>product.ProductListAction#index() <span class="frm">※Executeメソッド名を省略: index()メソッドが省略の予約語</span></dt>
+		<dt>product.<em class="mark">ProductList</em>Action#index()</dt>
 		<dd><em class="keyword">/product/list/</em></dd>
-		<dt>mypage.MypageAction#index() <span class="frm">※両方とも省略: 機能ごとのエントリページによく利用される</span></dt>
+		<dt>mypage.<em class="mark">Mypage</em>Action#index()</dt>
 		<dd><em class="keyword">/mypage/</em></dd>
-		<dt>MypageAction#index() <span class="frm">※Packageキーワードを省略: Web Root の Package 直下に配置</span></dt>
-		<dd><em class="keyword">/mypage/</em></dd>
-		<dt>RootAction#index() <span class="frm">※URL '/' を示す特別な Action</span></dt>
-		<dd><em class="keyword">/</em></dd>
+		<dt><em class="mark">Root</em>Action#index()</dt>
+		<dd><em class="keyword">/ <span class="frm">※URL '/' を示す特別な Action</span></em></dd>
 	</dl>
 	<h3 id="pkgloc">Package Location</h3>
 	<dl class="valuemainlist">
@@ -178,14 +176,22 @@ org.docksidestage
 </code></pre>
 	<h3 id="templatepath">TemplatePath FreeGen <span class="frm">(if use)</span></h3>
 	<p>
-		まず、Templateファイル (e.g. JSP) を作成 <span class="frm">(この時点では中身は空っぽでOK)</span>
+		まず、テンプレートファイル (e.g. JSP) を作成 <span class="frm">(まだ空っぽでもOK)</span>
 	</p>
-	<dl class="lolongvaluemainlist">
-		<dt>配置場所</dt><dd>対応する Action と同じディレクトリ構成で <span class="frm">e.g. WEB-INF/view/profile/</span></dd>
-		<dt>ファイル名</dt><dd>Formタグが飛ばすURLに対応 <span class="frm">e.g. profile_password_change.jsp</span></dd>
+	<dl class="longvaluemainlist">
+		<dt>ファイル名</dt><dd>Formタグが飛ばすURLに対応 <span class="frm">※ボタン名は除外</span></dd>
+		<dt>配置ディレクトリ</dt><dd>ファイル名のprefix</dd>
 	</dl>
 	<p>
-		そして、DBFlute の FreeGen を叩く！ <span class="frm">(パス定義が自動生成される)</span>
+		la:form で action属性を省略したときにリクエストされるURL。
+	</p>
+	<dl class="lolongkeymainlist">
+		<dt>product/<em class="mark">product_list</em>.jsp</dt><dd>/product/list/</dd>
+		<dt>profile/<em class="mark">profile_password_change</em>.jsp</dt><dd>/profile/password/change/</dd>
+		<dt>mypage/<em class="mark">mypage</em>.jsp</dt><dd>/mypage/</dd>
+	</dl>
+	<p>
+		そして、DBFlute の FreeGen を叩く！すると、パス定義が自動生成されて補完できるようになる。
 	</p>
 <pre><span class="codetitle">e.g. Template File Location @Directory</span><code>
 src/main/webapp
