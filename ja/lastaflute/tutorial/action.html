@@ -139,17 +139,30 @@ org.docksidestage
 }
 </code></pre>
 	<h3 id="urlparam">URL Parameter</h3>
-<pre><span class="codetitle">e.g. accept URL parameter as arguments with urlPattern @Java</span><code>
+	<p>
+		e.g. ProductListAction#index()
+	</p>
+<pre><span class="codetitle">e.g. accept URL parameter as required argument @Java</span><code>
     @Execute
-    <span class="keyword">public</span> HtmlResponse index(<span class="point">Integer pageNumber</span>) { <span class="comment">// /product/list/3/</span>
+    <span class="keyword">public</span> HtmlResponse index(<span class="point">int pageNumber</span>) { <span class="comment">// /product/list/3/</span>
         <span class="abbreviation">...</span>
     }
 </code></pre>
+<pre><span class="codetitle">e.g. accept URL parameter as optional argument @Java</span><code>
+    @Execute
+    <span class="keyword">public</span> HtmlResponse index(<span class="point">OptionalThing&lt;Integer&gt; pageNumber</span>) {
+        pageNumber.ifPresent(() -&gt; { <span class="comment">// /product/list/3/</span>
+            <span class="abbreviation">...</span>
+        }).orElse(() -&gt; { <span class="comment">// /product/list/</span>
+            <span class="abbreviation">...</span>
+        });
+    }
+</code></pre>
 <pre><span class="codetitle">e.g. accept URL parameter with more URL @Java</span><code>
-     <span class="comment">// /product/list/mystic/ikspiary/oneman/</span>
+    <span class="comment">// /product/list/mystic/ikspiary/oneman/</span> <span class="comment">(sea=mystic, land=oneman)</span>
     @Execute(<span class="subpoint">urlPattern</span> = <span class="literal">"{}/ikspiary/{}"</span>)
     <span class="keyword">public</span> HtmlResponse index(<span class="subpoint">String sea, String land</span>) {
-        <span class="abbreviation">...</span> <span class="comment">// sea=mystic, land=oneman</span>
+        <span class="abbreviation">...</span>
     }
 </code></pre>
 	<h3 id="executeparam">Action Form <span class="frm">(for POST, GET parameter)</span></h3>
