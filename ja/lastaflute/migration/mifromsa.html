@@ -52,6 +52,7 @@
 			<ul>
 				<li><a href="#packageimport">パッケージ名は、importの編成で</a></li>
 				<li><a href="#classreplace">クラス名は、ある程度は一括置換で</a></li>
+				<li><a href="#assistant">AssistantDirectorの移行</a></li>
 			</ul>
 		</li>
 		<li><a href="#dixml">Di xml への移行</a>
@@ -64,7 +65,6 @@
 				<li><a href="#postconstruct">タグの名前で変わったもの</a></li>
 			</ul>
 		</li>
-		<li><a href="#assistant">AssistantDirectorの移行</a></li>
 		<li><a href="#action">Actionクラスの移行</a>
 			<ul>
 				<li><a href="#ashtml">JSPを戻すときは asHtml()</a></li>
@@ -79,9 +79,9 @@
 
 	<h2 id="dbflute">DBFluteの設定をLasta用に</h2>
 	<ul>
+		<li>DBFluteエンジンの最新にアップグレード</li>
 		<li>basicInfoMap.dfprop の targetContainer を lasta_di に</li>
 		<li>dependencyInjectionMap.dfprop を最新に</li>
-		<li>FreeGenのVelocityテンプレートを最新に</li>
 		<li>再自動生成</li>
 	</ul>
 
@@ -96,14 +96,21 @@
 	</p>
 	<ul>
 		<li>distributionManagementからSeasarを削除</li>
-		<li>repositoriesからSeasar, amaterousを削除</li>
+		<li>repositoriesからSeasar, amaterasを削除</li>
 		<li>pluginRepositoriesからSeasarを削除</li>
 	</ul>
 	<h3 id="basepomdep">baseのpom.xmlのdependencies</h3>
 	<p>
-		properties, dependencyManagement, dependenciesは、ごっそり、LastaFluteのExampleのやつに置き換える。
-		アプリで独自に追加しているものは、その後で追加する。
+		properties, dependencyManagement, dependenciesは、LastaFluteの Example
+		を参考に修正する。主には以下のような感じ。
 	</p>
+	<ul>
+		<li>DBFluteランタイムを最新にアップグレード</li>
+		<li>UTFluteを seasar から lastaflute に変更</li>
+		<li>SAFluteを 外す</li>
+		<li>LastaFluteを入れる (もしJSPなら taglib も一緒に)</li>
+		<li>Logback移行は、後で別途やった方がいいかと</li>
+	</ul>
 	<h3 id="commonpomdep">commonのpom.xmlのdependencies</h3>
 	<p>
 		同じく dependencies は、ごっそり、LastaFluteのExampleのやつに置き換える。
@@ -121,6 +128,17 @@
 	</p>
 	<ul>
 		<li>S2Container :: LaContainer</li>
+		<li>SingletonS2Container :: SingletonLaContainer</li>
+		<li>MySystemException :: LaSystemException</li>
+		<li>ApplicationBaseException :: LaApplicationException</li>
+	</ul>
+	<h3 id="assistant">AssistantDirectorの移行</h3>
+	<p>
+		OptionalなんとかDirectorがリファクタリングされました。
+	</p>
+	<ul>
+		<li>OptionalAssistDirection</li>
+		<li>OptionalDbDirection <span class="frm"></span></li>
 	</ul>
 
 	<h2 id="dixml">Di xml への移行</h2>
@@ -162,15 +180,6 @@
 		<dt>initMethod to ...</dt><dd>postConstruct</dd>
 		<dt>destroyMethod to ...</dt><dd>preDestroy</dd>
 	</dl>
-
-	<h2 id="assistant">AssistantDirectorの移行</h2>
-	<p>
-		OptionalなんとかDirectorがリファクタリングされました。
-	</p>
-	<ul>
-		<li>OptionalAssistDirection</li>
-		<li>OptionalDbDirection <span class="frm"></span></li>
-	</ul>
 
 	<h2 id="action">Actionクラスの移行</h2>
 	<h3 id="ashtml">JSPを戻すときは asHtml()</h3>
