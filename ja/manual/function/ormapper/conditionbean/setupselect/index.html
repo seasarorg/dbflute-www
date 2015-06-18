@@ -71,7 +71,14 @@
 		<li><a href="#specifycolumn">関連テーブルの取得カラムの指定</a></li>
 		<li><a href="#queryrelation">Query(Relation) で同じ関連テーブル</a></li>
 		<li><a href="#unnecessary">SetupSelect が不要なケース</a></li>
-		<li><a href="#joinway">結合方式：基本的に outer join</a></li>
+		<li><a href="#joinway">結合方式は...外部結合"的"!?</a>
+			<ul>
+				<li><a href="#tooljoin">結合はあくまで手段</a></li>
+				<li><a href="#bizouter">業務的に自然な外部結合"的"</a></li>
+				<li><a href="#basepoint">基点テーブルから広がる世界</a></li>
+				<li><a href="#innerjoin">いざというときの内部結合</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -538,11 +545,89 @@ cb.query().queryMemberStatus().set<span class="abbreviation">...</span>; <span c
 		(そもそも処理として必要とされないため、呼び出しても利用されません)
 	</p>
 
-	<h2 id="joinway">結合方式：基本的に outer join</h2>
-	<p>
-		Query(Relation) と同じです。
-	</p>
-	<div class="relatedpage"><a href="../query/relation.html">Query(Relation)</a></div>
+	<div class="inucolumn">
+		<h2 id="joinway">結合方式は...外部結合"的"!?</h2>
+		<h3 id="tooljoin">結合はあくまで手段</h3>
+		<p>
+			ConditionBeanで取得される検索結果は、必ず外部結合"的"な結果になります。
+			"的" というのは、実際には inner join と left outer join
+			の両方がSQLに混じりますが、
+		</p>
+		<p>
+			<em class="keyword">結合処理だけで基点テーブルが絞り込まれてしまうことがないように</em>
+		</p>
+		<p>
+			...なっています。絞り込みは明示的に指定して初めて絞り込まれる、ということに重きを置いているため、結果としてはすべての結合を
+			left outer join していると考えたときのような結果になるということです。
+		</p>
+		<p>
+			何も考えずに内部結合して無意識のうちに基点テーブルが絞り込まれていた、というようなバグを発生させないようにしています<span class="frm">(厳密には100%防げているわけじゃないですが基本はそうです)</span>。また、結合処理は "関連テーブルのデータ取得" もしくは "関連テーブルを使った絞り込み"
+			のための<em class="bigmark">手段</em>であって、それ自身が目的ではないと捉えています。なので、結合だけで挙動が変わらないことを重視しています。
+		</p>
+		<div class="relatedpage"><a href="../about.html#purposeapi">ConditionBeanとは？ - 目的ドリブンの堅いAPI</a></div>
+		<h3 id="bizouter">業務的に自然な外部結合"的"</h3>
+		<p>
+			また、それが業務的にとても自然なものであるとも考えています。例えば、"会員の一覧を閲覧する" という業務に "同時に会員ステータスの情報も見たい"
+			という要件が加わる場合、概念的にフィットするのは以下のどちらでしょう？
+		</p>
+		<div class="relatedpage"><a href="../../../../reference/example/maihamadb.html">MaihamaDB</a></div>
+		<ul>
+			<li>A. 会員と会員ステータスをマージしたビュー (内部結合した結果) が見たい</li>
+			<li>B. 会員ステータスの情報が付与されている会員 (外部結合した結果) が見たい</li>
+		</ul>
+		<p>
+			この場合、どっちも結果は同じです。どっちに捉えるかは人の感覚の世界の話であって、挙動としてはどうでもいいことかもしれません。
+			ただ、DBFluteではこのように捉えています。
+		</p>
+		<p>
+			業務的には、"会員の一覧が見たい" のであって、会員ステータスはあくまでその中での付加情報と考えます。
+			{n : 1} 型リレーションなのでどう捉えようが結果は変わりませんが、仮に会員ステータスが {n : 0..1}
+			型リレーションだったら、その捉え方で結果が変わります。
+		</p>
+		<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nonerelation">{n : 1} 型リレーション</a></div>
+		<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nzeroonerelation">{n : 0..1} 型リレーション</a></div>
+		<p>
+			"A" の捉え方では、会員ステータスが不明の会員は一覧から消えてしまいます。"B"
+			の捉え方であれば、会員ステータスがあろうがなかろうが、あくまで付加情報なのでその会員は残ります。
+			どちらが概念的に業務にフィットしているか？その場面が多いかというと "B" と考えています。
+		</p>
+		<p>
+			"会員ステータスが不明なことなんてないよ"
+			と思われるなら、会員ステータスを会員退会情報に置き換えるとよいでしょう。"同時に会員退会情報も見たい"
+			というときに、退会会員だけになっても困ります。見たいのは退会会員の一覧ではなく、退会情報がくっ付いた会員一覧なのです。
+			ただ、相手がいないときだけの話というより、そもそも求められている<em class="mark">一覧の本質</em>に着目しています。
+		</p>
+		<h3 id="basepoint">基点テーブルから広がる世界</h3>
+		<p>
+			重視しているポイントとしては、ユーザーはどういうつもりでその一覧を見ているのか？
+			会員と退会情報をマージしたものを見てるというより、あくまで<em class="mark">会員の一覧</em>を見ているという風に捉えています。
+			退会会員だけに絞り込むかどうかは、絞り込み要件次第で別の話と捉えます。
+		</p>
+		<p>
+			ちょっとした捉え方の違いではありますが、"B" を中心に捉えていった方が業務的にフィットすることが多いだろうという考えから、  
+			少なくとも ConditionBean は、そういった基点テーブルというのを概念を重視した API となっています。
+		</p>
+		<p>
+			リレーショナルモデルには、外部結合の演算は存在していないため、どうしても "結合と言えば内部結合"
+			というようなイメージがありますが、業務に照らし合わせると一概に外部結合は全く不要とも言えず、
+			逆にその考え方自体... <em class="bigmark">外部結合"的"</em> はとても重要だろうと思っています。
+		</p>
+		<h3 id="innerjoin">いざというときの内部結合</h3>
+		<p>
+			かといって、問答無用で left outer join にはしていません。
+			外部結合"的" は論理的な話であって、物理的な話ではまた少し独自のロジックが存在します。
+		</p>
+		<p>
+			<em class="keyword">inner join でも left outer join でも結果が変わらないケース</em>
+			では、(できるだけ) inner join が利用されます。それを自動判別します。これを InnerJoinAutoDetect と呼びます。 
+		</p>
+		<div class="detailpage"><a href="../sidebar/innerjoinautodetect.html">InnerJoinAutoDetect</a></div>
+		<p>
+			物理的な話と先ほどの概念的な論理の話は別です。<em class="mark">外部結合"的"</em>
+			を現実問題とバランスと取りつつ実現するために、inner joinを積極的に利用します。
+			<span class="frm">(ただ、inner join にしたことによってパフォーマンスが劣化したケースも稀にありました...稀の稀ではありますが、なかなか難しいものですね)</span>
+		</p>
+	</div>
 
 </div>
 </div>

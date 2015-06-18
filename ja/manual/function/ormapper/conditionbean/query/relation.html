@@ -53,12 +53,7 @@
 		<li><a href="#methodspec">メソッド仕様</a></li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
 		<li><a href="#samerelation">SetupSelect で同じ関連テーブル</a></li>
-		<li><a href="#joinway">結合方式の基本は外部結合</a>
-			<ul>
-				<li><a href="#outerbiz">業務的に自然な外部結合</a></li>
-				<li><a href="#innerjoin">いざというときの内部結合</a></li>
-			</ul>
-		</li>
+		<li><a href="#joinway">結合方式は...外部結合"的"!?</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -136,56 +131,11 @@ cb.query().<span class="point">queryMemberStatus()</span><span class="abbreviati
 	</p>
 	<div class="relatedpage"><a href="../setupselect/index.html#queryrelation">SetupSelect(Relation) - Query(Relation) で同じ関連テーブル</a></div>
 
-	<h2 id="joinway">結合方式の基本は外部結合</h2>
+	<h2 id="joinway">結合方式は...外部結合"的"!?</h2>
 	<p>
-		結合方式は、基本的に外部結合(left outer join)が利用されます。ConditionBean
-		では、<em class="keyword">結合処理は "関連テーブルのデータ取得" もしくは "関連テーブルを使った絞り込み" のための手段</em>
-		であって、それ自身が目的ではないと捉えています。
+		SetupSelect(Relation) とセオリーは同じです。
 	</p>
-	<div class="relatedpage"><a href="../about.html#purposeapi">ConditionBeanとは？ - 目的ドリブンの堅いAPI</a></div>
-	<p>
-		ConditionBeanで大切にしていること、<em class="keyword">結合処理だけで基点テーブルが絞り込まれることがない</em>
-		ようにして、絞り込みは明示的に指定して初めて絞り込まれるということに重きを置いています。
-		<em class="keyword">何も考えずに内部結合していて無意識のうちに基点テーブルが絞り込まれていた、という状況を発生させない</em>
-		ためです。それを実現する結合が外部結合です。
-	</p>
-	<h3 id="outerbiz">業務的に自然な外部結合</h3>
-	<p>
-		また、それが業務的にとても自然なものであるとも考えています。例えば、"会員の一覧を閲覧する" という業務に "同時に会員ステータスの情報も見たい"
-		という要件が加わる場合、概念的にフィットするのは以下のどちらでしょう？
-	</p>
-	<div class="relatedpage"><a href="../../../../reference/example/maihamadb.html">MaihamaDB</a></div>
-	<ul>
-		<li>A. 会員と会員ステータスをマージしたビュー(内部結合)が見たい</li>
-		<li>B. 会員ステータスの情報が付与されている会員(外部結合)が見たい</li>
-	</ul>
-	<p>
-		業務的には会員が見たいのであって、会員ステータスはあくまで付加情報です。{n : 1}
-		型リレーションであれば実際にどっちに捉えようが結果は変わりませんが、仮に会員ステータスが
-		{n : 0..1} 型リレーションだとした場合、捉え方で結果が変わります。"A"
-		の捉え方では、会員ステータスを持たない会員は一覧から消えてしまいます。"B"
-		の捉え方であれば、会員ステータスがあろうがなかろうが、あくまで付加情報なので、会員はそのまま結果に残ります。
-		どちらが概念的に業務にフィットしているか、フィットする場面が多いかというと "B"、外部結合と考えています。
-	</p>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nonerelation">{n : 1} 型リレーション</a></div>
-	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/wn.html#nzeroonerelation">{n : 0..1} 型リレーション</a></div>
-	<p>
-		会員ステータスを、会員退会情報に置き換えるとさらにわかりやすいでしょう。"同時に会員退会情報も見たい"
-		というときに、会員退会情報を持っている会員だけになっても困ります。見たいのは、退会会員の一覧ではなく、退会情報がくっ付いた会員一覧なのです。
-		もちろん、業務的な要件がそもそも "A" の場合もあるでしょうが、業務的に頻度が多いのは "B"
-		と想定し、ConditionBean でメインのターゲットとしているのは "B" です。
-	</p>
-	<p>
-		SQLの歴史的には、内部結合が先に実装され、外部結合はその後だったため、どうしても "結合と言えば内部結合"
-		というようなイメージがありますが、業務に照らし合わせると逆になると考えられます。
-	</p>
-	<h3 id="innerjoin">いざというときの内部結合</h3>
-	<p>
-		ただし、パフォーマンス上の考慮のために、どうしても内部結合(inner
-		join)を使いたい場合は、明示的に指定することで結合方式を変えることができます。
-	</p>
-	<div class="relatedpage"><a href="../sidebar/innerjoinautodetect.html">InnerJoinAutoDetect</a></div>
-	<div class="relatedpage"><a href="../query/manualinnerjoin.html">(Manual)InnerJoin</a></div>
+	<div class="relatedpage"><a href="../setupselect/index.html#joinway">SetupSelect(Relation) - 結合方式は...外部結合"的"!?</a></div>
 
 </div>
 </div>
