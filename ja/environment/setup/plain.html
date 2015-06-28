@@ -52,11 +52,12 @@
 				<li><a href="#basicprop">3. 基本プロパティの設定</a></li>
 				<li><a href="#databaseprop">4. データベース接続プロパティの設定</a></li>
 				<li><a href="#runtime">5. DBFluteランタイムの準備</a></li>
-				<li><a href="#driver">6. JDBCドライバの準備</a></li>
-				<li><a href="#firstprop">7. 特定環境適用プロパティ</a></li>
+				<li><a href="#firstprop">6. 特定環境適用プロパティ</a></li>
+				<li><a href="#driver">7. JDBCドライバの準備</a></li>
 				<li><a href="#generate">8. クラスの自動生成</a></li>
 				<li><a href="#injection">9. DI環境の調整</a></li>
 				<li><a href="#thenafter">x. その後の設定</a></li>
+				<li><a href="#versionerror">UnsupportedClassVersionErrorが発生したら</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -66,7 +67,7 @@
 	<dl class="textlist">
 		<dt>Javaアプリケーションが実行できること</dt>
 		<dd>
-			DBFluteは Apache Ant を利用するため、Java-5.0 以上の JDK か JRE の環境が必要です。
+			1.0.x なら Java6 以上、1.1.x なら Java8 以上の JDK か JRE の環境が必要です。
 		</dd>
 		<dt>アプリケーションのJavaプロジェクト (e.g. Eclipseプロジェクト) がすでに存在すること</dt>
 		<dd>サポートされているDIコンテナのいずれかの動作環境が整っている必要があります。</dd>
@@ -177,15 +178,24 @@ maihama
 		アプリケーションのクラスパスにDBFluteランタイム(JAR)を追加して下さい。
 	</p>
 	<div class="detailpage"><a href="./runtime.html">セットアップ - DBFluteランタイムの準備</a></div>
-	<h3 id="driver">6. JDBCドライバの準備</h3>
+	<h3 id="firstprop">6. 特定環境適用プロパティ</h3>
 	<p>
-		DBFluteにJDBCドライバが同梱されていないデータベースを利用する場合は、そのデータベースのJDBCドライバを配置する必要があります。
+		ここからは、手動のセットアップかどうかに関係なく、どのセットアップ方法でも必要な手順です。
+	</p>
+	<p>
+		dfpropは、実際に使い始めてからつどつど微調整していく形でOKですが、
+		さすがに自動生成前にやっておいたほうがいいだろう "特定環境適用プロパティ"
+		もあるので、そちらのページをサッと目を通して必要であれば直しておきましょう。
+		<span class="frm">(ほとんどのケースで不要であると想定され、特殊な環境でなければ、もしくは、よくわからなければとりあえずスキップでもOK)</span>
+	</p>
+	<h3 id="driver">7. JDBCドライバの準備</h3>
+	<p>
+		DBFluteエンジンに同梱されていない DBMS (Oracle や DB2 など) であれば、JDBCドライバをダウンロードしてDBFluteクライアントの extlib
+		に配置する必要があります。
 	</p>
 	<div class="detailpage"><a href="./jdbcdriver.html">セットアップ - JDBCドライバの準備</a></div>
-	<h3 id="firstprop">7. 特定環境適用プロパティ</h3>
 	<p>
-		最初の自動生成の前に考慮すべき特定の環境に適用するためのプロパティを設定して下さい。
-		<span class="frm">(ほとんどのケースで不要であると想定され、特殊な環境でなければ、もしくは、よくわからなければとりあえずスキップでもOK)</span>
+		H2, MySQL, PostgreSQL は同梱されているので、この手順はスキップしてOKです。
 	</p>
 	<div class="detailpage"><a href="./firstprop.html">セットアップ - 特定環境適用プロパティ</a></div>
 	<h3 id="generate">8. クラスの自動生成</h3>
@@ -193,6 +203,12 @@ maihama
 		それでは、自動生成をしてみましょう。
 	</p>
 	<div class="detailpage"><a href="./generate.html">セットアップ - クラスの自動生成</a></div>
+	<p>
+		DBFluteタスク実行時に、
+		java.lang.UnsupportedClassVersionError, Unsupported major.minor version 52.0
+		のエラーが発生したときは、JAVA_HOME の設定を確認してみましょう。
+	</p>
+	<div class="relatedpage"><a href="#versionerror">this - UnsupportedClassVersionErrorが発生したら</a></div>
 	<h3 id="injection">9. DI環境の調整</h3>
 	<p>
 		アプリケーションで利用しているDIコンテナの環境にDBFluteのクラスを認識させて下さい。
@@ -205,6 +221,55 @@ maihama
 		より良い環境で実装してもらうために、現場フィットな機能を整えましょう！
 		<div class="detailpage"><a href="./thenafter.html">セットアップ - その後</a></div>
 	</p>
+	<div class="inucolumn">
+		<h3 id="versionerror">UnsupportedClassVersionErrorが発生したら</h3>
+		<p>
+			ReplaceSchema や Regenerate などのDBFluteタスク実行時に、UnsupportedClassVersionError,
+			Unsupported major.minor version 52.0 のエラーが発生した場合は、環境変数の JAVA_HOME
+			の設定が、Java8 ではなく Java6,7 になっている可能性があります。
+			<span class="frm">(もしかしたら、JAVA_HOMEが設定されていないときでも発生するかもしれません)</span>
+		</p>
+		<p>
+			JAVA_HOME を JDK8 に合わせて試してみましょう。
+		</p>
+		<p>
+			とりあえず、そのセッションだけ JAVA_HOME を設定して動かすのであれば、その場で export JAVA_HOME を実行するだけです。
+		</p>
+<pre><span class="codetitle">e.g. Macで一時的に JAVA_HOME を設定 @.bash_profile</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
+</code></pre>
+		<p>
+			固定的に JAVA_HOME を設定するのであれば、.bash_profileに設定するとよいでしょう。
+		</p>
+<pre><span class="codetitle">e.g. Macで .bash_profile に JAVA_HOME を設定 @.bash_profile</span><code>
+#!/bin/bash
+
+<span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
+<span class="abbreviation">...</span>
+</code></pre>
+		<p>
+			ちょっとずつこういった問題はなくなっていくと思いますが、Java6, 7, 8
+			と環境が混じる時期では、まだ少し注意が必要です。
+		</p>
+		<p>
+			DBFluteの方で、JAVA_HOMEが設定されるようにしてもいいかもしれません。DBFluteクライアントの _project.sh
+			にて、Macだったときにだけ JAVA_HOME が設定されるように。
+			<span class="frm">(ただ、すべての人の環境でちゃんと動くかどうかは不明です...でも、DBFluteの幾つかのExampleでは入れてしまっています)</span>
+		</p>
+<pre><span class="codetitle">e.g. _project.sh Macで .bash_profile に JAVA_HOME を設定 @.bash_profile</span><code>
+#!/bin/bash
+
+<span class="keyword">export</span> ANT_OPTS=-Xmx512m
+
+<span class="keyword">export</span> DBFLUTE_HOME=../mydbflute/dbflute-1.x
+
+<span class="keyword">export</span> MY_PROPERTIES_PATH=build.properties
+
+<span class="keyword">if</span> [ `uname` = <span class="literal">"Darwin"</span> ]; then
+  <span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
+<span class="keyword">fi</span>
+</code></pre>
+	</div>
 
 </div>
 </div>

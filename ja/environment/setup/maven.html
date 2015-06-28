@@ -95,7 +95,7 @@
 <span class="abbreviation">...</span>
     &lt;properties&gt;
         <span class="abbreviation">...</span>
-        <span class="subpoint">&lt;dbflute.version&gt;<span class="literal">1.1.0-sp2</span>&lt;/dbflute.version&gt;</span>
+        <span class="subpoint">&lt;dbflute.version&gt;<span class="literal">1.1.0-sp5</span>&lt;/dbflute.version&gt;</span>
         <span class="abbreviation">...</span>
     &lt;/properties&gt;
     
@@ -336,16 +336,43 @@
 		<p>
 			JAVA_HOME を JDK8 に合わせて試してみましょう。
 		</p>
+		<p>
+			とりあえず、そのセッションだけ JAVA_HOME を設定して動かすのであれば、その場で export JAVA_HOME を実行するだけです。
+		</p>
+<pre><span class="codetitle">e.g. Macで一時的に JAVA_HOME を設定 @.bash_profile</span><code>
+<span class="abbreviation">...</span>$ <span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
+</code></pre>
+		<p>
+			固定的に JAVA_HOME を設定するのであれば、.bash_profileに設定するとよいでしょう。
+		</p>
 <pre><span class="codetitle">e.g. Macで .bash_profile に JAVA_HOME を設定 @.bash_profile</span><code>
 #!/bin/bash
 
-<span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=<span class="literal">/Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home</span>
+<span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
 <span class="abbreviation">...</span>
 </code></pre>
 		<p>
 			ちょっとずつこういった問題はなくなっていくと思いますが、Java6,7,8
 			と環境が混じる時期では、まだ少し注意が必要です。
 		</p>
+		<p>
+			DBFluteの方で、JAVA_HOMEが設定されるようにしてもいいかもしれません。DBFluteクライアントの _project.sh
+			にて、Macだったときにだけ JAVA_HOME が設定されるように。
+			<span class="frm">(ただ、すべての人の環境でちゃんと動くかどうかは不明です...でも、DBFluteの幾つかのExampleでは入れてしまっています)</span>
+		</p>
+<pre><span class="codetitle">e.g. _project.sh Macで .bash_profile に JAVA_HOME を設定 @.bash_profile</span><code>
+#!/bin/bash
+
+<span class="keyword">export</span> ANT_OPTS=-Xmx512m
+
+<span class="keyword">export</span> DBFLUTE_HOME=../mydbflute/dbflute-1.x
+
+<span class="keyword">export</span> MY_PROPERTIES_PATH=build.properties
+
+<span class="keyword">if</span> [ `uname` = <span class="literal">"Darwin"</span> ]; then
+  <span class="keyword">export</span> <span class="subpoint">JAVA_HOME</span>=$(/usr/libexec/java_home -v 1.8)
+<span class="keyword">fi</span>
+</code></pre>
 	</div>
 
 </div>
