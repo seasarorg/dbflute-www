@@ -49,13 +49,19 @@
 				<li><a href="#adaptable"><em class="mark">変化できる</em>プログラミング</a></li>
 				<li><a href="#naturally"><em class="mark">自然とそうなる</em>プログラミング</a></li>
 				<li><a href="#cast">LastaFluteのキャスト</a></li>
+				<li><a href="#repository">LastaFluteのリポジトリ</a></li>
+				<li><a href="#saflute">SAFluteを御存知の方へ</a></li>
 			</ul>
 		</li>
-		<li><a href="#howtoimpl">LastaFluteの実装方法</a></li>
-		<li><a href="#saflute">SAFluteを御存知の方へ</a></li>
-		<li><a href="#repository">LastaFluteのリポジトリ</a></li>
+		<li><a href="#lacode">LastaFluteのコード</a></li>
+		<li><a href="#quicktrial">LastaFluteを動かしてみよう</a></li>
+		<li><a href="#newproject">LastaFluteで新プロジェクト</a>
+			<ul>
+				<li><a href="#single">シングルプロジェクトなら</a></li>
+				<li><a href="#multi">マルチプロジェクトなら</a></li>
+			</ul>
+		</li>
 		<li><a href="#function">LastaFluteの機能マニュアル</a></li>
-		<li><a href="#Thanks">Thanks, Frameworks</a></li>
 	</ul>
 
 	<h2 id="about">LastaFluteとは？</h2>
@@ -114,23 +120,33 @@
 	<p class="imgbox">
 		<a href="../data/model/lastaflute/lastaflute-Dependencies-view.png" title="LastaFluteのキャスト"><img src="../data/model/lastaflute/lastaflute-Dependencies-view.png" alt="LastaFluteのキャスト" width="550" height="380" /></a>
 	</p>
-
-	<h2 id="howtoimpl">LastaFluteの実装方法</h2>
+	<h3 id="repository">LastaFluteのリポジトリ</h3>
 	<p>
-		Actionクラスがなかなか楽しくなっております。
+		The source codes are in Github.
 	</p>
-	<div class="detailpage"><a href="./howto/action/index.html">LastaFlute Action | LastaFlute</a></div>
-<pre><span class="codetitle">e.g. Action for URL '/product/list/3/' @Java</span><code>
+	<div class="detailpage"><a href="https://github.com/lastaflute">Github - LastaFlute</a></div>
+	<h3 id="saflute">SAFluteを御存知の方へ</h3>
+	<p>
+		LastaFlute と SAFlute の違いを簡単にまとめています。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./migration/satola.html"> -->LastafluteとSAFluteとの違い<!-- </a> --></span></div>
+
+	<h2 id="lacode">LastaFluteのコード</h2>
+	<p>
+		LastaFluteのポリシーを反映し、Actionクラスに様々な工夫が施されています。
+	</p>
+	<div class="relatedpage"><a href="./howto/action/index.html">LastaFlute Action | LastaFlute</a></div>
+<pre><span class="codetitle">e.g. Action for URL '/product/list/3' @Java</span><code>
 @Execute
 <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">pageNumber</span>, ProductSearchForm <span class="localvar">form</span>) {
     validate(<span class="localvar">form</span>, () -&gt; {
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>);
     });
-    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = productBhv.selectPage(cb -> {
-        cb.setupSelect_ProductStatus();
-        cb.query().setProductName_LikeSearch(form.productName, op -&gt; op.likeContain());
-        cb.query().addOrderBy_ProductName_Asc();
-        cb.paging(getPagingPageSize(), pageNumber);
+    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = productBhv.selectPage(<span class="localvar">cb</span> -&gt; {
+        <span class="localvar">cb</span>.setupSelect_ProductStatus();
+        <span class="localvar">cb</span>.query().setProductName_LikeSearch(form.productName, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
+        <span class="localvar">cb</span>.query().addOrderBy_ProductName_Asc();
+        <span class="localvar">cb</span>.paging(getPagingPageSize(), pageNumber);
     });
     List&lt;ProductSearchRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
         <span class="keyword">return</span> mappingToBean(<span class="localvar">product</span>);
@@ -142,21 +158,46 @@
 }
 </code></pre>
 
-	<h2 id="saflute">SAFluteを御存知の方へ</h2>
+	<h2 id="quicktrial">LastaFluteを動かしてみよう</h2>
 	<p>
-		違いを簡単にまとめています。
+		Quick Trial のための Example が用意されています。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="./migration/satola.html"> -->LastafluteとSAFluteとの違い<!-- </a> --></span></div>
-	<p>
-		もし、移行する強者 (つわもの) であればこちら。
-	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="./migration/mifromsa.html"> -->SAFluteからLastaFluteへの移行<!-- </a> --></span></div>
+	<ol>
+		<li><em class="smallmark">git clone</em> <a href="https://github.com/dbflute-session/lastaflute-example-harbor">https://github.com/dbflute-session/lastaflute-example-harbor.git</a></li>
+		<li><em class="mark">*ReplaceSchema</em> でテストDBを用意: dbflute_maihamadb/manage.sh(bat) の 0 番</li>
+		<li>Eclipse や IntelliJ などを使って、Mavenプロジェクトとして Java8 でコンパイル</li>
+		<li>HarborBootクラス (org.docksidestage.boot) の <em class="mark">*main()</em> メソッドを実行</li>
+		<li>ブラウザで <a href="http://localhost:8090/harbor">http://localhost:8090/harbor</a> にアクセス (user:Pixy, pass:sea でログイン)</li>
+	</ol>
+<pre><span class="codetitle">e.g. Quick Trial の ReplaceSchema @Java</span><code>
+<span class="comment">// manageを叩いて、表示されたメニューから ReplaceSchema (0番) を選ぶ</span>
+<span class="abbreviation">...</span>$ <span class="keyword">sh</span> <span class="point">manage.sh</span>
+</code></pre>
+<pre><span class="codetitle">e.g. Quick Trial の main() メソッド @Java</span><code>
+<span class="keyword">public class</span> HarborBoot {
 
-	<h2 id="repository">LastaFluteのリポジトリ</h2>
+    <span class="keyword">public static void</span> main(String[] <span class="localvar">args</span>) {
+        <span class="keyword">new</span> JettyBoot(<span class="literal">8090</span>, <span class="literal">"/harbor"</span>).asDevelopment().bootAwait();
+    }
+}
+</code></pre>
+
+	<h2 id="newproject">LastaFluteで新プロジェクト</h2>
 	<p>
-		The source codes are in Github.
+		まず、大きく二つ...シングルプロジェクト？マルチプロジェクト？
 	</p>
-	<div class="detailpage"><a href="https://github.com/lastaflute">Github - LastaFlute</a></div>
+	<h3 id="single">シングルプロジェクトなら</h3>
+	<p>
+		まず、Quick Trial の lastaflute-example-harbor を clone して画面を起動します。
+		そして、StartupTest の domain と serviceName を修正して実行すると、harbor を元に新しいプロジェクトが作成されます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./environment/startup/single.html"> -->Startup as Single Project<!-- </a> --></span></div>
+	<h3 id="multi">マルチプロジェクトなら</h3>
+	<p>
+		まず、Quick Trial の lastaflute-example-maihama を clone して画面を起動します。
+		そして、StartupTest の domain と serviceName を修正して実行すると、maihama を元に新しいプロジェクトが作成されます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="./howto/startup/multi.html"> -->Startup as Multi Project<!-- </a> --></span></div>
 
 	<h2 id="function">LastaFluteの機能マニュアル</h2>
 	<dl class="textlist">
@@ -165,18 +206,6 @@
 		<dt>アーキテクチャ</dt>
 		<dd><a href="./howto/architecture/friendlylogging.html">ログにこだわるLastaFlute (Friendly Logging)</a></dd>
 		<dd><a href="./howto/architecture/asynchronous.html">LastaFluteで非同期処理 (Async)</a></dd>
-	</dl>
-
-	<h2 id="Thanks">Thanks, Frameworks</h2>
-	<p>
-		LastaFlute forks the following frameworks:
-	</p>
-	<dl class="keymainlist">
-		<dt>Seasar</dt><dd>Lasta Di</dd>
-		<dt>AOP Alliance</dt><dd>Lasta Di</dd>
-		<dt>SAStruts</dt><dd>LastaFlute</dd>
-		<dt>Struts</dt><dd>LastaFlute</dd>
-		<dt>Commons</dt><dd>LastaFlute</dd>
 	</dl>
 
 </div>
