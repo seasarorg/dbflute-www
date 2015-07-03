@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFluteのチュートリアル | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html"><img src="../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html"><img src="../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html"><img src="../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html"><img src="../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html"><img src="../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html"><img src="../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html"><img src="../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html"><img src="../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFluteの実装</h1>
+	<ul class="indexlist">
+		<li><a href="#acquaintanceship">ディベロッパーの心得</a></li>
+		<li><a href="#lets">スタートアップしてみよう</a></li>
+	</ul>
+
+	<h2 id="acquaintanceship">ディベロッパーの心得</h2>
+	<p>
+		LastaFluteを使って開発をするときの五か条です。
+	</p>
+	<dl class="textlist">
+		<dt><em class="mark">ホットデプロイ</em>でリズミカル実装</dt>
+		<dd>
+			Action や Form, Logic など、appパッケージ配下は (開発時は) 再起動せずに修正が反映されます。
+		</dd>
+		<dd>
+			アプリは起動しっぱなしで、"直してリロード直してリロード" を楽しみましょう。
+			ただ、DBFluteで自動生成されるクラスは app 配下ではないので <em class="keyword">自動生成したら再起動</em> と覚えておきましょう。
+		</dd>
+		<dt><em class="mark">Java8</em> バリバリでゴリゴリ実装</dt>
+		<dd>Java8 の文法をふんだんに利用することを前提としています。</dd>
+		<dd>
+			スタートアップでは、いちど "ざっくりと" 書いたコードを何度も読み直しては修正して...の繰り返しなので、<em class="keyword">すっきりと読みやすいコード</em>
+			にしたいものです。DBFluteも Java8 を最大限利用します。知らなくても、学べるチャンスとわりきって楽しみましょう。
+			<div class="detailpage"><span class="working"><!-- <a href="../tutorial/onjava8.html"> -->DBFlute on Java8<!-- </a> --></span></div>
+		</dd>
+		<dt><em class="mark">ショートカットとコード補完</em> でサクサク実装</dt>
+		<dd>Javaをスタートアップで使うからには、Javaならではのスピードを楽しみましょう。</dd>
+		<dd>
+			DBFlute の ConditionBean などでよく利用するコード補完はもちろん、変数やメソッド名の rename
+			など、スタートアップの開発に欠かせない <em class="keyword">リファクタリング機能</em> はしっかりと指に馴染ませましょう。
+		</dd>
+		<dd>
+			もし、Eclipseを使うのであれば、提供されている <em class="keyword">DBFlute補完テンプレート</em>
+			を workspace に設定すると、Java8 や DBFlute に加え、LastaFlute の実装も支援するコード補完が使えるようになります。
+			Eclipseを使って LastaFlute を実装する人がこれを入れない理由はないです。
+			<div class="detailpage"><span class="working"><!-- <a href="..//tutorial/onjava8.html#jflutableeclipse"> -->DBFlute補完テンプレートを入れたEclipse<!-- </a> --></span></div>
+		</dd>
+		<dd>
+			また、メールテンプレートや外だしSQLの補完もできます。<em class="keyword">EMecha</em> は必ず入れておきましょう。
+			<div class="detailpage"><span class="working"><!-- <a href="../manual/function/helper/emecha/index.html"> -->EMecha<!-- </a> --></span></div>
+		</dd>
+		<dt><em class="mark">コードリーディング</em> で発見しながら実装</dt>
+		<dd>
+			ソースコードを読みながら実装していくことを前提としています。
+		</dd>
+		<dd>
+			スタートアップではじっくりフレームワークを学ぶ時間もないため、必要になったときに "とっさに"
+			ソースコードを読んで要点だけ押さえて実装を進めていくことが大切です。
+			LastaFluteの方も、読みやすさも考慮して、できるだけシンプルな実装を心がけています。
+			発見をしながらのスピード開発を楽しみましょう。
+		</dd>
+		<dt><em class="mark">DBFluteの十か条</em> がそのまんま実装</dt>
+		<dd>
+			DBFluteをマキシマムに活用していくことが、Lastaのポリシーを実現することにつながります。
+			<div class="detailpage"><span class="working"><!-- <a href="../tutorial/developer.html#tenclause"> -->DBFluteの十か条<!-- </a> --></span></div>
+		</dd>
+		<dd>なので、実は四足す十で十四か条でした。</dd>
+	</dl>
+
+	<h2 id="lets">スタートアップしてみよう</h2>
+	<p>
+		まずは、Webアプリが一つだけか？
+		それとも、複数のアプリが存在するか？
+	</p>
+	<dl class="valuemainlist">
+		<dt>シングルプロジェクト</dt><dd><span class="working"><!-- <a href="./single.html"> -->Startup as Single Project<!-- </a> --></span> <span class="frm">(Webアプリ一つだけ)</span></dd>
+		<dt>マルチプロジェクト</dt><dd><span class="working"><!-- <a href="./multi.html"> -->Startup as Multi-Project<!-- </a> --></span> <span class="frm">(会員向けと管理側など、複数のアプリ)</span></dd>
+	</dl>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../"><img src="../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../ja/introduction/index.html">DBFluteの紹介</a>
+			<ul>
+				<li><a href="../../../ja/introduction/index.html#about">DBFluteとは？</a></li>
+				<li><a href="../../../ja/introduction/index.html#ormapper">O/Rマッパー</a></li>
+				<li class="upper-space"><a href="../../../ja/introduction/index.html#dbmanage">DB管理支援ツール</a></li>
+				<li><a href="../../../ja/introduction/index.html#welcome">DBFluteの世界へ</a></li>
+				<li><a href="../../../ja/introduction/index.html#thanks">Thanks, Frameworks</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../ja/introduction/gendriven.html">自動生成ドリブン</a>
+		</li>
+		<li><a href="../../../ja/introduction/dbaccessif.html">バランス重視のDBアクセス</a>
+		</li>
+		<li><a href="../../../ja/introduction/performance.html">パフォーマンス考慮</a>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
