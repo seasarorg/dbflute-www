@@ -55,6 +55,7 @@
 		<li><a href="#prepare">まず準備</a>
 			<ul>
 				<li><a href="#whatlasta">LastaFluteって何？</a></li>
+				<li><a href="#database">データベースの準備</a></li>
 				<li><a href="#setupenv">開発環境の構築</a></li>
 				<li><a href="#cloneexample">Exampleをclone</a></li>
 			</ul>
@@ -75,7 +76,8 @@
 	<h2 id="prepare">まず準備</h2>
 	<dl class="shortkeymainlist">
 		<dt>LastaFluteって何？</dt><dd>まずは、LastaFluteってなにもの？を知りましょう</dd>
-		<dt>開発環境の構築</dt><dd>Java8環境、Eclipseなら ERMaster-b や EMecha などのプラグイン</dd>
+		<dt>データベースの準備</dt><dd>MySQLのインストール、my.cnfの設定</dd>
+		<dt>開発環境の構築</dt><dd>Java8環境、EclipseならEMechaなどのプラグイン</dd>
 		<dt>Exampleをclone</dt><dd>参考実装である、Exampleをいつでも見られるように clone しておく</dd>
 	</dl>
 	<h3 id="whatlasta">LastaFluteって何？</h3>
@@ -83,6 +85,27 @@
 		トップページにいろいろ書いてあります。
 	</p>
 	<div class="detailpage"><a href="../index.html">LastaFluteトップページ</a></div>
+	<h3 id="database">データベースの準備</h3>
+	<p>
+		デフォルトでは MySQL を利用しますので、3306ポートの MySQL をインストールしましょう。
+	</p>
+	<p>
+		そして、my.cnf の [mysqld] の欄にて、以下の設定を入れることがオススメします。
+		もちろん、プロジェクトのカスタマイズ設定があれば調整して構いません。特にこだわりがなければ、これをそのままコピーして貼りつけましょう。
+		<span class="frm">(my.cnf or my.ini の場所にご注意を、よく調べてください)</span>
+	</p>
+<pre><span class="codetitle">e.g. MySQL の my.cnf のオススメ設定 @Java</span><code>
+<span class="comment"># /* * * * * * * * * * * * * * * * * * * * * * * * Custom Settings</span>
+<span class="localvar">character_set_server</span>=<span class="literal">utf8mb4</span>
+<span class="localvar">lower_case_table_names</span>=<span class="literal">1</span>
+
+<span class="comment"># to avoid easy deadlock of repeatable-read</span>
+<span class="localvar">transaction-isolation</span>=<span class="literal">READ-COMMITTED</span>
+
+<span class="comment"># TRADITIONAL contains STRICT_ALL_TABLES, NO_ZERO_DATE and so on...</span>
+<span class="localvar">sql_mode</span>=<span class="literal">"TRADITIONAL"</span>
+<span class="comment"># * * * * * * * * * */</span>
+</code></pre>
 	<h3 id="setupenv">開発環境の構築</h3>
 	<p>
 		Java8環境でコンパイル、開発ができる環境を準備しましょう。(e.g. Eclipse, IntelliJ IDEA)
@@ -170,8 +193,8 @@
 		<dt><a href="../howto/action/index.html">規約ベースAction</a></dt><dd><em class="mark">Action</em> class + <em class="mark">Execute</em> method</dd>
 		<dt>FreeGenでタイプセーフ</dt><dd><a href="../howto/architecture/objsafeprop.html">タイプセーフProperties</a>, <span class="working"><!-- <a href="../howto/architecture/typesafemail.html"> -->タイプセーフMailFlute<!-- </a> --></span>, ...</dd>
 		<dt>JettyBoot</dt><dd>アプリは main() メソッドで起動 <span class="frm">(TomcatBootでもOK)</span></dd>
-		<dt><a href="../howto/architecture/friendlylogging.html">フレンドリーログに着目</a></dt><dd>とにかくログをしっかり読めば、大抵のことのはわかるはず</dd>
-		<dt>JavaDocに着目</dt><dd>いたるところにリッチJavaDoc...例えば、Actionで <em class="smallmark">this.docu...</em></dd>
+		<dt><a href="../howto/architecture/friendlylogging.html">フレンドリーログに注目</a></dt><dd>とにかくログをしっかり読めば、大抵のことのはわかるはず</dd>
+		<dt>凝り性JavaDocに注目</dt><dd>いたるところにリッチJavaDoc...例えば、Actionで <em class="smallmark">this.docu...</em></dd>
 		<dt>リクエストトランザクション</dt><dd>Actionメソッドはすでにトランザクション</dd>
 		<dt>ActionHook</dt><dd>横断的な共通処理は、ActionHook で実装 <span class="frm">(Interceptor はあまり使わない)</span></dd>
 		<dt>循環テストデータ</dt><dd><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a> と <a href="../../manual/function/generator/task/doc/loaddatareverse.html">LoadDataReverse</a> の合わせ技</dd>

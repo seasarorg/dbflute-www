@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,Maven,プラグイン,Plugin,ゴール,goal,支援ツール" />
+	<meta name="keywords" content="DBFlute,MailFlute,メール送信,メールテンプレート" />
 	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>DBFlute Maven Plugin | DBFlute</title>
+	<title>MailFlute | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,140 +37,155 @@
 </div>
 
 <div id="content">
-	<h1>DBFlute Maven Plugin</h1>
+	<h1>MailFlute</h1>
 	<ul class="indexlist">
-		<li><a href="#about">DBFlute Maven Pluginとは？</a></li>
-		<li><a href="#install">Pluginのインストール</a>
+		<li><a href="#about">MailFluteとは？</a>
 			<ul>
-				<li><a href="#install11x">1.1.x なら <span class="frm">*Java8</span></a></li>
-				<li><a href="#install10x">1.0.x なら <span class="frm">*Java6,7</span></a></li>
+				<li><a href="#lastaeg">LastaFluteでの利用例</a></li>
 			</ul>
 		</li>
-		<li><a href="#goallist">Mavenゴールたち</a>
+		<li><a href="#mailtemplate">メールテンプレート</a>
 			<ul>
-				<li><a href="#goalhowto">ゴールの実行の仕方</a></li>
-				<li><a href="#goaloverview">それぞれのゴールの概要</a></li>
+				<li><a href="#bodymeta">Body Meta</a></li>
+				<li><a href="#headercomment">ヘッダーコメント <span class="frm">(タイトル、説明)</span></a></li>
+				<li><a href="#subject">subject: <span class="frm">(メールの件名)</span></a></li>
+				<li><a href="#option">option: <span class="frm">(メールのオプション)</span></a></li>
+				<li><a href="#pmcomment">パラメーターコメント</a></li>
 			</ul>
 		</li>
-		<li><a href="#config">コンフィグたち</a></li>
+		<li><a href="#postcard">Postcard, PostOffice</a></li>
+		<li><a href="#personnel">PostalPersonnel</a></li>
 	</ul>
 
-	<h2 id="about">DBFlute Maven Pluginとは？</h2>
+	<h2 id="about">MailFluteとは？</h2>
 	<p>
-		DBFlute Maven Plugin は Apache Maven 2.x, 3.x で利用可能なプラグインです。
-		DBFlute のセットアップなどの処理を Maven の mvn コマンドを通して実行することができます。
+		MailFlute は、メールテンプレート機能を備えたシンプルなメール送信ライブラリです。
 	</p>
-
-	<h2 id="install">Pluginのインストール</h2>
-	<h3 id="install11x">1.1.x なら <span class="frm">*Java8</span></h3>
 	<p>
-		pom.xml の plugins に、dbflute-maven-plugin を設定します。
-	</p>
-<pre><span class="codetitle">e.g. プラグイン情報の追加 (実行のための基本的な設定) {1.1.0} @pom.xml</span><code>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;project&gt;
-<span class="abbreviation">...</span>
-    &lt;build&gt;
-        &lt;plugins&gt;
-            <span class="abbreviation">...</span>
-            <span class="subpoint">&lt;plugin&gt;</span>
-                &lt;groupId&gt;<span class="literal">org.dbflute</span>&lt;/groupId&gt;
-                &lt;artifactId&gt;<span class="literal">dbflute-maven-plugin</span>&lt;/artifactId&gt;
-                &lt;version&gt;<span class="literal">1.1.0</span>&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;clientProject&gt;<span class="literal">xxxdb</span>&lt;/clientProject&gt;
-                    &lt;packageBase&gt;<span class="literal">com.xxx.dbflute</span>&lt;/packageBase&gt;
-                &lt;/configuration&gt;
-            <span class="subpoint">&lt;/plugin&gt;</span>
-            <span class="abbreviation">...</span>
-        &lt;/plugins&gt;
-    &lt;/build&gt;
-<span class="abbreviation">...</span>
-&lt;/project&gt;
-</code></pre>
-	<h3 id="install10x">1.0.x なら <span class="frm">*Java6,7</span></h3>
-	<p>
-		1.0.x用の方は、Seasarのリポジトリに入っているので、pluginRepositoryの設定が必要です。
-	</p>
-<pre><span class="codetitle">e.g. プラグインのリポジトリを追加 @pom.xml</span><code>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;project&gt;
-<span class="abbreviation">...</span>
-    &lt;pluginRepositories&gt;
-        &lt;pluginRepository&gt;
-            &lt;id&gt;<span class="literal">maven.seasar.org</span>&lt;/id&gt;
-            &lt;name&gt;<span class="literal">The Seasar Foundation Maven2 Repository</span>&lt;/name&gt;
-            &lt;url&gt;<span class="literal">http://maven.seasar.org/maven2/</span>&lt;/url&gt;
-        &lt;/pluginRepository&gt;
-    &lt;/pluginRepositories&gt;
-<span class="abbreviation">...</span>
-    &lt;build&gt;
-        &lt;plugins&gt;
-            &lt;plugin&gt;
-                &lt;groupId&gt;<span class="literal">org.seasar.dbflute</span>&lt;/groupId&gt;
-                &lt;artifactId&gt;<span class="literal">dbflute-maven-plugin</span>&lt;/artifactId&gt;
-                &lt;version&gt;<span class="literal">1.0.0</span>&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;dbfluteVersion&gt;<span class="literal">1.0.5N</span>&lt;/dbfluteVersion&gt;
-                    &lt;clientProject&gt;<span class="literal">xxxdb</span>&lt;/clientProject&gt;
-                &lt;/configuration&gt;
-            &lt;/plugin&gt;
-        &lt;/plugins&gt;
-    &lt;/build&gt;
-<span class="abbreviation">...</span>
-&lt;/project&gt;
-</code></pre>
-
-	<h2 id="goallist">Mavenゴールたち</h2>
-	<h3 id="goalhowto">ゴールの実行の仕方</h3>
-	<p>
-		コマンドラインにて、mvnコマンドで dbflute:xxx という形式で実行します。
-	</p>
-<pre><span class="codetitle">e.g. dbflute:download ゴールを叩く！ @Command</span><code>
-<span class="abbreviation">...</span>$ <span class="keyword">mvn</span> -e dbflute:download
-</code></pre>
-	<h3 id="goaloverview">それぞれのゴールの概要</h3>
-	<p>
-		DBFlute Maven Plugin では、以下のゴール (goal) を提供します。
-	</p>
-	<dl class="textlist">
-		<dt>download</dt>
-		<dd>
-			指定されたバージョンをダウンロードして、展開。
-		</dd>
-		<dd>
-			既存のDBFluteクライアントの参照を変更したりはせずダウンロード展開だけなので、
-			アップグレード目的の場合はDBFluteクライアントの_project.bat(sh)を手動で修正する必要あり。
-		</dd>
-		<dt>create-client</dt>
-		<dd>
-			ダウンロードした、指定したバージョンのdbflute_dfclient.zipを展開して、データベースのパラメータなどを更新。
-			コンフィグ設定を必要とするので、設定内容を確認してから。
-		</dd>
-		<dd>
-			1.1.x (Java8) を前提のセットアップドキュメントを参考に。
-			<div class="detailpage"><a href="../../../../environment/setup/maven.html">Mavenによるセットアップ</a></div>
-		</dd>
-		<dt>manage</dt><dd>manage.[sh|bat]を実行。実行後にメニューから実行するタスクを選ぶ</dd>
-		<dt>jdbc</dt><dd>jdbc.[sh|bat]を実行。DBスキーマのメタデータを取得</dd>
-		<dt>doc</dt><dd>doc.[sh|bat]を実行。ドキュメントなどを自動生成</dd>
-		<dt>generate</dt><dd>generate.[sh|bat]を実行。クラスを自動生成</dd>
-		<dt>outside-sql-test</dt><dd>outside-sql-test.[sh|bat]を実行。外だしSQLを一括テスト</dd>
-		<dt>sql2entity</dt><dd>sql2entity.[sh|bat]を実行。外だしSQL対応のクラスを自動生成</dd>
-		<dt>replace-schema</dt><dd>replace-schema.[sh|bat]を実行。開発用DBスキーマを再構築</dd>
-	</dl>
-	<p>
-		DBFluteクライアントが二つ存在する場合、DBFluteタスク実行ゴールは clientProject で指定されているDBFluteクライアントのものを実行します。
-	</p>
-
-	<h2 id="config">コンフィグたち</h2>
-	<p>
-		
+		DBFlute の FreeGen と組み合わせて利用することで、タイプセーフでメールパラメーターを指定できる、堅いツールになります。
+		DBFluteライクなメール送信ライブラリと言えるでしょう。
 	</p>
 	<dl class="keymainlist">
-		<dt>clientProject</dt><dd>DBFluteクライアントの名前、dbflute_xxx の xxx 部分に相当</dd>
-		<dt></dt>
+		<dt>1. メールテンプレートを書く</dt><dd>パラメータコメント形式でテンプレートを作成、拡張子は.dfmail</dd>
+		<dt>2. FreGenを叩く</dt><dd>FreeGenがメールテンプレートを読み込んで、クラスを自動生成</dd>
+		<dt>3. タイプセーフ実装</dt><dd>自動生成されたクラスを使って、タイプセーフにメール送信の実装</dd>
 	</dl>
+
+	<h3 id="lastaeg">LastaFluteでの利用例</h3>
+	<p>
+		LastaFluteとの組み合わせが、MailFlute利用の典型例となります。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../../lastaflute/howto/architecture/typesafemail/index.html"> -->LastaFlute Typesafe Mail<!-- </a> --></span></div>
+	<p>
+		まず、src/main/resources/mail配下に、dfmailのメールテンプレートを書きます。
+		外だしSQLに非常によく似たパラメータコメント形式 (pmfile形式) で書きます。
+	</p>
+<pre><span class="codetitle">e.g. 新しい会員の登録を想定したメールテンプレート @welcome_member.dfmail</span><code>
+<span class="comment">/*
+ [New Member's Registration]
+ The member will be formalized after click.
+*/</span>
+<span class="attribute">subject:</span> Welcome to your sign up, <span class="comment">/*pmb.memberName*/</span>
+<span class="attribute">&gt;&gt;&gt;</span>
+Hello, <span class="comment">/*pmb.memberName*/</span>
+
+How are you?
+<span class="comment">/*IF pmb.birthdate != null*/</span>
+Happy birthdate! Today is <span class="comment">/*pmb.birthdate*/</span>.
+<span class="comment">/*END*/</span>
+
+Thanks
+</code></pre>
+	<p>
+		そして、FreeGenを叩き...
+	</p>
+<pre><span class="codetitle">e.g. Manageで 12 (freegen) を叩く @Command</span><code>
+<span class="abbreviation">...</span>$ sh manage.sh <span class="literal">12</span>
+</code></pre>
+	<p>
+		mylasta.mail配下に自動生成されたクラスで実装します。
+		クラス名は、テンプレートファイルをキャメルケースにしたものになります。<span class="frm">(welcome_member.dfmail なら WelcomeMemberPostcard)</span>
+	</p>
+<pre><span class="codetitle">e.g. 自動生成されたクラスで実装 @Java</span><code>
+<span class="point">WelcomeMemberPostcard</span>.droppedInto(<span class="localvar">postbox</span>, <span class="localvar">postcard</span> -&gt; {
+    <span class="localvar">postcard</span>.setFrom(<span class="literal">"from@example.com"</span>, <span class="attribute">LABELS_OFFICE_MAIL</span>);
+    <span class="localvar">postcard</span>.addTo(<span class="literal">"to@example.com"</span>);
+    <span class="localvar">postcard</span>.<span class="subpoint">setMemberName</span>(<span class="literal">"sea"</span>);
+    <span class="localvar">postcard</span>.<span class="subpoint">setBirthdate</span>(birthdate);
+    <span class="localvar">postcard</span>.addReplyTo(<span class="literal">"replyto@example.com"</span>);
+});
+</code></pre>
+
+	<h2 id="mailtemplate">メールテンプレート</h2>
+	<p>
+		拡張子は .dfmail で、パラメーターコメント形式で書きます。
+	</p>
+	<h3 id="bodymeta">Body Meta</h3>
+	<p>
+		コメントや subject など、メールBodyのメタ情報 (Body Meta) を <em class="mark">&gt;&gt;&gt;</em> 区切りで定義します。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>*HeaderComment</dt><dd>ヘッダー部に書かれたメールに関する開発用コメント、タイトルと説明がある</dd>
+		<dt>*Title</dt><dd>メールを一行で要約する開発用コメント、[...]形式で書く</dd>
+		<dt>*Description</dt><dd>メールを自由に説明する開発用コメント、Titleの下に書く</dd>
+		<dt>*subject:</dt><dd>メールの件名、文言の中で動的パラメーターが利用できる</dd>
+		<dt>option:</dt><dd>メールのオプション、HTMLメールも飛ばすなら option: +html</dd>
+		<dt>-- !![type] abc!!</dt><dd>自動判別できないプロパティを明示的宣言をして自動生成</dd>
+	</dl>
+<pre><span class="codetitle">e.g. Body Meta の属性が勢ぞろい @welcome_member.dfmail</span><code>
+<span class="comment">/*
+ [New Member's Registration]
+ The member will be formalized after click.
+*/</span>
+<span class="attribute">subject:</span> Welcome to your sign up, <span class="comment">/*pmb.memberName*/</span>
+<span class="attribute">option:</span> +html
+<span class="attribute">-- !!</span>List&lt;Integer&gt;<span class="attribute"> abcList!!</span>
+<span class="point">&gt;&gt;&gt;</span>
+Hello, <span class="comment">/*pmb.memberName*/</span>
+
+<span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="headercomment">ヘッダーコメント <span class="frm">(タイトル、説明)</span></h3>
+	<p>
+		Title や Description は必須です。メールテンプレートには必ずタイトルと説明を入れます。
+		形式も決まっています。必ず <em class="mark">/* [タイトル] 説明 */</em> という形式でないと、FreeGenも実行時もエラーで落ちます。
+	</p>
+<pre><span class="codetitle">e.g. ヘッダーコメントの形式 @dfmail</span><code>
+<span class="point">/*
+ [タイトル]
+ 説明
+*/</span>
+<span class="attribute">subject:</span> <span class="abbreviation">...</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		タイトルと説明は、あくまで開発用コメントで、実装に送信されるメールの件名(subject)とは別です。
+	</p>
+	<h3 id="subject">subject: <span class="frm">(メールの件名)</span></h3>
+	<p>
+		さて、こちらは実際にメールされて受信者が目にするメールの件名です。
+	</p>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="option">option: <span class="frm">(メールのオプション)</span></h3>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="pmcomment">パラメーターコメント</h3>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="postcard">Postcard, PostOffice</h2>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="personnel">PostalPersonnel</h2>
+	<p>
+		TODO jflute
+	</p>
 
 </div>
 </div>

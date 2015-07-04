@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFluteの環境切り替え | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFluteの環境切り替え</h1>
+	<p>
+		環境ごとに設定を切り替えるための構成が用意されています。
+	</p>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<ul class="indexlist">
+		<li><a href="#mavenprofile">Maven での環境切り替え</a>
+			<ul>
+				<li><a href="#profileresources">profileごとのresources</a></li>
+				<li><a href="#envproperties">環境切り替え用のproperties</a></li>
+				<li><a href="#envifstatement">プログラム上で環境切り替え分岐</a></li>
+				<li><a href="#logbackxml">ログの設定 (logback.xml)</a></li>
+			</ul>
+		</li>
+		<li><a href="#lastaenv">LastaEnv での環境切り替え</a>
+			<ul>
+				<li><a href="#systemproperty">System Property で lasta.env</a></li>
+				<li><a href="#uselastaenv">lastafluteMap.dfprop で isUseLastaEnv</a></li>
+				<li><a href="#butlogback">logback.xml とかは自分で</a></li>
+			</ul>
+		</li>
+		<li><a href="#envreps">環境ごとのReplaceSchema</a></li>
+		<li><a href="#newdeployenv">新しいデプロイ環境をつくるなら</a></li>
+	</ul>
+
+	<h2 id="mavenprofile">Maven での環境切り替え</h2>
+	<p>
+		Mavenでビルド (パッケージング) をするときに profile を指定することで切り替えます。
+	</p>
+	<h3 id="profileresources">profileごとのresources</h3>
+	<dl class="longkeymainlist">
+		<dt>src/main/resources</dt><dd>ローカル用 (デフォルト) (環境切り替えがなければこれ)</dd>
+		<dt>src/allpackage/resources</dt><dd>パッケージングするすべての環境用 (次に優先)</dd>
+		<dt>src/integration/resources</dt><dd>結合環境用 (最優先)</dd>
+		<dt>src/production/resources</dt><dd>本番環境用 (最優先)</dd>
+	</dl>
+	<p>
+		例えば、ローカル用に sea.properties があっても、productionの方にも sea.properties
+		があった場合、本番環境では production の sea.properties
+		が利用されます。一方で、ローカル用に land.properties があって、他の環境で同じファイルが一切なければ、どの環境でもローカル用のものが利用されます。
+	</p>
+	<p>
+		allpackageは、結合環境や本番環境など、パッケージングされてデプロイされる環境における共通の領域です。
+		例えば、logback.xml などは結合環境でも本番環境でも設定が変わらないのであれば、allpackageに置くとよいでしょう。
+	</p>
+	<p>
+		Mavenの profile 設定は、common, webプロジェクトそれぞれの pom.xml
+		にあります。baseに入れていないのは、webとcommonで設定が変わる可能性があるだろうということで、あえて共通化していません。
+		もし、webプロジェクトを増やすときに、webの共通pomを作った場合は、webのprofile設定はそちらで一元管理するとよいでしょう。
+	</p>
+	<h3 id="envproperties">環境切り替え用のproperties</h3>
+	<p>
+		ファイル単位で切り替えるため、一つのファイルで環境ごとのものと環境で変わらないものが混在していると重複の原因になります。
+		なので、なんでもかんでも切り替えるのではなく、環境切り替え用のpropertiesを用意しています。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../architecture/objsafeprop.html#antidiconfig"> -->これはやめたい！DI設定ファイルの環境ごと切り替え<!-- </a> --></span></div>
+	<p>
+		デフォルトでは、commonの下に xxx_env.properties が用意されています。
+		こちらに、DBの接続情報や、メールサーバーの情報などを入れて切り替えるとよいでしょう。
+	</p>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでの環境ごとのProperties @Directory</span><code>
+maihama-common
+ |-src/main/resources
+ |  |-maihama_config.properties <span class="comment">// 環境依存しないコンフィグ</span>
+ |  |-<span class="point">maihama_env.properties</span> <span class="comment">// ローカル環境用のコンフィグ (環境ごとにコピーされる)</span>
+ |
+ |-src/main/integration
+ |  |-maihama_env.properties <span class="comment">// 結合環境用のコンフィグ</span>
+ |
+ |-src/main/production
+ |  |-maihama_env.properties <span class="comment">// 本番環境用のコンフィグ</span>
+</code></pre>
+	<p>
+		こちらの properties は、プログラム上でタイプセーフに get することができます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./objsafeprop.html#typesafeprop"> -->LastaFluteのタイプセーフProperties<!-- </a> --></span></div>
+	<p>
+		もし、webプロジェクトごとの環境切り替え properties
+		を作りたい場合は、FreeGen や PropertiesHtml の設定や、AssistantDirector のプログラムを修正する必要があります。
+		<span class="frm">(ただ、複雑になるので、よほどたくさんあるとかでなければcommonで一元管理でもいいかもです)</span>
+	</p>
+	<h3 id="envifstatement">プログラム上で環境切り替え分岐</h3>
+	<p>
+		基本的に、プロパティ値の切り替えだけで環境切り替えを実現するのが理想です。プログラム上で "ローカルだから本番だから"
+		という分岐を入れるのは、あまりオススメではありません。
+	</p>
+	<p>
+		ですが、どうしてもというときにある程度できるようにしています。
+	</p>
+<pre><span class="codetitle">e.g. isDevelopmentHere()による分岐 @Java</span><code>
+<span class="keyword">if</span> (maihamaConfig.<span class="point">isDevelopmentHere()</span>) { <span class="comment">// 開発環境(ローカル)だったら</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		もしくは、EnvDispatchアノテーションで Logic をまるごと切り替えます。
+	</p>
+<pre><span class="codetitle">e.g. EnvDispatchによるロジックの切り替え @Java</span><code>
+@EnvDispatch(dev = SeaLogicDev.<span class="keyword">class</span>, real = SeaLogicReal.<span class="keyword">class</span>)
+<span class="keyword">public interface</span> SeaLogic {
+    <span class="abbreviation">...</span>
+}
+<span class="comment">// SeaLogicDev と SeaLogicReal は SeaLogic インターフェースをimplements</span>
+</code></pre>
+	<p>
+		結合と本番でプログラムを分岐させる方法はデフォルトでは用意していません。
+		結合はできるだけ本番に近いプログラムで動いて欲しいものだからです。プロパティの値だけで切り替えたいところです。
+		ですが、どうしてもというときは、isDevelopmentHere()の仕組みを応用すれば、できなくはないので必要になったら修正を。
+	</p>
+	<h3 id="logbackxml">ログの設定 (logback.xml)</h3>
+	<p>
+		少なくともリリース時点では、結合環境は本番のログレベルは INFO (DEBUGは出さない)
+		にすると想定されるので、webプロジェクトの src/allpackage/resources 配下の logback.xml の
+		log.level を info にします。
+	</p>
+	<p>
+		また、LastaFlute の Example からプロジェクトを作成した時点では、結合や本番ではコンソールにはアプリログを出力しません。
+		これは、catalina.outが肥大化してしまう可能性があるためと同時に、catalina.outは Tomcat
+		のログに徹したものにしたいというところから、アプリログは専用のログファイルに出力されます。
+		ただ、もし catalina.out に出力したい場合は、consoleを追加すれば出力できます。
+	</p>
+
+	<h2 id="lastaenv">LastaEnv での環境切り替え</h2>
+	<p>
+		Exampleデフォルトは、Maven の profile 方式ですが、それをを使わずに LastaEnv を利用して環境切り替えもできます。
+	</p>
+	<p>
+		こちらの方式であれば、環境依存の情報が入らないwarファイルが作れます。
+	</p>
+	<h3 id="systemproperty">System Property で lasta.env</h3>
+	<p>
+		Java の <em class="keyword">System Property</em> に、<em class="bigmark">lasta.env</em> というキーで環境キーワードを指定します。
+		例えば、lasta.env=prod であれば、maihama_env.properties ではなく、maihama_env_prod.properties が読まれます。
+	</p>
+	<p>
+		_env.properties 以外の properties や Di xml は切り替え対象になりませんので、環境依存のものはすべて _env
+		に集約します。(これは LastaEnv 方式に限らず、そのようにするポリシー)
+	</p>
+	<h3 id="uselastaenv">lastafluteMap.dfprop で isUseLastaEnv</h3>
+	<p>
+		そのとき、PropertiesHTML の環境ファイル読み込み先も変わってしまうので、lastafluteMap.dfprop にて isUseLastaEnv を true にします。 
+	</p>
+	<h3 id="butlogback">logback.xml とかは自分で</h3>
+	<p>
+		ただし、切り替えられるのは Lasta で管理しているリソースだけです。
+		例えば、logbackの設定などは、別の方法でどうにか切り替える必要があります。
+	</p>
+	<div class="relatedpage"><a href="http://logback.qos.ch/manual/configuration_ja.html">第3章 logbackの設定 | logback</a></div>
+
+	<h2 id="envreps">環境ごとのReplaceSchema</h2>
+	<p>
+		もし、結合環境のDBを ReplaceSchema で管理するときのために、DB接続先などを切り替えることができます。
+		ちなみに、本番では ReplaceSchema は絶対にやりませんので、結合とか検証環境においてのみの話です。
+	</p>
+	<p>
+		DBFluteの環境ごとのdfpropの切り替えを使って実現します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../reference/dfprop/environmenttype.html"> -->環境タイプごとの dfprop<!-- </a> --></span></div>
+	<p>
+		例えば、integration だったら...
+	</p>
+<pre><span class="codetitle">e.g. 結合DB(integration)のためのReplaceSchemaのdfprop構成 @Directory</span><code>
+DBFluteクライアント <span class="comment">// dbflute_maihamadb とか</span>
+ |-dfprop
+ |  |-<span class="point">integration</span>
+ |  |  |-<span class="subpoint">databaseInfoMap+.dfprop</span> <span class="comment">// 結合DBへの接続先を設定</span>
+ |  |  |-<span class="subpoint">replaceSchemaMap+.dfprop</span> <span class="comment">// 結合でのReplaceSchemaの微調整</span>
+ |  |
+ |  |-<span class="abbreviation">...</span>dfprop
+ |  |-databaseInfoMap.dfprop
+ |  |-replaceSchemaMap.dfprop
+ |  |-<span class="abbreviation">...</span>dfprop
+ |
+ |-log
+ |-output
+ |-<span class="abbreviation">...</span>
+ |-<span class="subpoint">__integration_manage.sh</span> <span class="comment">// 結合への環境タイプが設定されたmanage</span>
+</code></pre>
+	<p>
+		databaseInfoMap+.dfpropには、結合DB用の接続情報を差分で設定します。
+	</p>
+<pre><span class="codetitle">e.g. 結合用の databaseInfoMap+.dfprop の設定 @databaseInfoMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; url      = jdbc:mysql://<span class="subpoint">integration.maihamadb.org</span>:3306/maihamadb
+    ; schema   =
+    ; user     = <span class="subpoint">integrationdb</span>
+    ; password = <span class="subpoint">integrationdb</span>
+}
+</code></pre>
+	<p>
+		replaceSchemaMap+.dfpropには、結合DBに登録するテストデータの選択、システムユーザーによるスキーマの自動作成をするかどうかなどの微調整を設定します。
+	</p>
+	<p>
+		例えば、特に結合DB専用のテストデータを用意していないのであれば、repsEnvType は ut
+		で。もし、用意する場合は、repsEnvType を integaration に修正。
+		<span class="frm">(テストデータをローカル用と結合用と分けて管理するのは、なかなかリソース的に難しい可能性があるので、とりあえずはutでもOKかと)</span>
+	</p>
+	<p>
+		また、システムユーザーによるスキーマの自動作成をしないのであれば、additionalUserMapは空っぽで上書き。
+		使いたい場合は本体のdfpropを真似て設定しましょう。
+		<span class="frm">(結合に関しては、そこまで自動化しなくても手間はあまりかからないので、ここでは空っぽで紹介しています)</span>
+	</p>
+<pre><span class="codetitle">e.g. 結合用の replaceSchemaMap+.dfprop の設定 @replaceSchemaMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="comment"># same as UT for now</span>
+    ; repsEnvType = ut
+
+    <span class="comment"># no system user here</span>
+    ; additionalUserMap = map:{
+    }
+}
+</code></pre>
+	<p>
+		__integration_manage.sh は、manage.sh をコピーして、DBFLUTE_ENVIRONMENT_TYPE が設定されただけのものです。
+		それにより、結合用のDB接続先が有効になって、結合DBに対してアクセスできます。
+	</p>
+<pre><span class="codetitle">e.g. 結合用の manage の中身 @__integration_manage.sh</span><code>
+<span class="abbreviation">...</span>
+
+<span class="keyword">export</span> <span class="point">DBFLUTE_ENVIRONMENT_TYPE</span>=integration
+
+<span class="keyword">sh</span> $DBFLUTE_HOME/etc/cmd/_df-manage.sh <span class="abbreviation">...</span>
+taskReturnCode=$?
+
+<span class="abbreviation">...</span>
+</code></pre>
+
+	<h2 id="newdeployenv">新しいデプロイ環境をつくるなら</h2>
+	<p>
+		新しい環境 (profile) をつくる場合は、いくつかの設定ファイルを修正していく必要があります。
+	</p>
+	<p>
+		例えば、pom.xml の修正や resources フォルダの追加、lastafluteMap.dfprop の environmentList
+		など、幾つかの手続きを踏む必要があります。
+	</p>
+	<div class="detailpage"><a href="./builddeploy.html#newdeployenv">新しいデプロイ環境をつくる</a></div>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimplfaq.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="https://github.com/lastaflute/lastaflute">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
