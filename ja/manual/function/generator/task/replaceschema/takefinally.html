@@ -106,8 +106,9 @@
 		というSQLコメント(assertコメント)を定義すると、その検索が一件でも結果を持った場合にReplaceSchemaが中断され、検出されたデータがログに出力されます。"select句"
 		には、検出した場合に(人間が)データを特定できるためのカラムを列挙しておきます。
 	</p>
-<pre><span class="codetitle">e.g. 退会会員が退会情報を持っていることをアサート @take-finally.sql</span><code>
+<pre><span class="codetitle">e.g. 最終チェックのアサート @take-finally.sql</span><code>
 <span class="comment">-- #df:assertListZero#</span>
+<span class="comment">-- 退会会員が退会情報を持っていることをアサート</span>
 <span class="keyword">select</span> member.MEMBER_ID, member.MEMBER_NAME
   <span class="keyword">from</span> MEMBER member
  <span class="keyword">where</span> member.MEMBER_STATUS_CODE = <span class="literal">'WDL'</span>
@@ -115,9 +116,10 @@
                      <span class="keyword">from</span> MEMBER_WITHDRAWAL withdrawal
                     <span class="keyword">where</span> withdrawal.MEMBER_ID = member.MEMBER_ID
        )
-</code></pre>
-<pre><span class="codetitle">e.g. 会員住所情報において、同じ会員で重複した期間がないことをアサート @take-finally.sql</span><code>
+;
+
 <span class="comment">-- #df:assertListZero#</span>
+<span class="comment">-- 会員住所情報において、同じ会員で重複した期間がないことをアサート</span>
 <span class="keyword">select</span> adr.MEMBER_ADDRESS_ID, adr.MEMBER_ID
      , adr.VALID_BEGIN_DATE, adr.VALID_END_DATE
      , adr.ADDRESS
@@ -128,6 +130,7 @@
                   <span class="keyword">and</span> subadr.VALID_BEGIN_DATE &gt; adr.VALID_BEGIN_DATE
                   <span class="keyword">and</span> subadr.VALID_BEGIN_DATE &lt; adr.VALID_END_DATE
        )
+;
 </code></pre>
 	<h3>不整合なデータのカウントを検出</h3>
 	<p>
