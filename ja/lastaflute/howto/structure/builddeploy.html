@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LastaFluteでビルドデプロイするやり方 | DBFlute</title>
+	<title>LastaFluteのデプロイ環境 | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-default">
@@ -37,18 +37,14 @@
 </div>
 
 <div id="content">
-	<h1>LastaFluteでビルドデプロイするやり方</h1>
+	<h1>LastaFluteのデプロイ環境</h1>
 	<p>
 		LastaFluteにおけるビルドデプロイのやり方です。
-		Maven の profile を使って切り替えることを前提としています。
 	</p>
 	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#mavenwar">Mavenでwarファイル作成</a>
-			<ul>
-				<li><a href="#mvnpackage">installとpackageの順序</a></li>
-			</ul>
-		</li>
+		<li><a href="#embeddedwar">組み込みwarでjavaコマンド実行</a></li>
+		<li><a href="#mavenwar">Mavenでwarファイル作成</a></li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
 			<ul>
 				<li><a href="#addproperties">1. resources に環境依存propertiesを追加</a></li>
@@ -59,20 +55,28 @@
 		<li><a href="#newwebproj">新しいWebプロジェクトつくる</a></li>
 	</ul>
 
-	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
-	<h3 id="mvnpackage">installとpackageの順序</h3>
+	<h2 id="embeddedwar">組み込みwarでjavaコマンド実行</h2>
 	<p>
-		継承や依存などの Maven の構成を把握していることを前提として...
+		組み込みJetty, 組み込みTomcatを使って、warファイルをjavaコマンドで実行するだけで、アプリが起動するようにするので基本です。
+		<span class="frm">(必須ではないですが、その方式で問題なければという感じで)</span>
+	</p>
+<pre><span class="codetitle">e.g. javaコマンドでwarファイルを実行、組み込みJetty,Tomcatが起動する @Command</span><code>
+java maihama-dockside.war
+</code></pre>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
+	<p>
+		継承や依存などの Maven の構成を把握していることを前提として...<span class="frm">(LastaEnvを前提に)</span>
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../projstructure.html#maven"> -->LastaFluteのプロジェクト構成 - Mavenの構成<!-- </a> --></span></div>
 	<p>
-		baseプロジェクトが、子プロジェクトを aggregate しているので...
+		xxx-base にて <em class="keyword">mvn -e clean package</em> を叩けばOKです。<span class="frm">(aggregateしてるので)</span>
 	</p>
 	<p>
-		xxx-base にて、<em class="keyword">mvn -e clean package</em>
-	</p>
-	<p>
-		LastaEnv方式であれば、できあがるwarファイルは環境依存をしていませんので、実行時に環境を指定します。
+		できあがるwarファイルは環境依存をしていませんので、javaコマンド実行時に環境を指定します。
 	</p>
 <pre><span class="codetitle">e.g. 本番環境(production)としてアプリを実行 @Command</span><code>
 java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
