@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Startup as Single Project | LastaFlute</title>
+	<title>Startup as Multi-Project | LastaFlute</title>
 </head>
 <body>
 <div id="container" class="ct-default">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>Startup as Single Project</h1>
+	<h1>Startup as Multi-Project</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">スタートアップの概要</a></li>
 		<li><a href="#howto">スタートアップの手順</a></li>
@@ -45,7 +45,7 @@
 		<li><a href="#domainservice">2. ドメインとサービス名を決める</a></li>
 		<li><a href="#newblankproject">3. プチBlankプロジェクトを作成する</a>
 			<ul>
-				<li><a href="#domainservice">ドメインとサービス名を書き換え</a></li>
+				<li><a href="#domainservice">ドメイン、サービス、アプリ名を書き換え</a></li>
 				<li><a href="#execstartup">StartupTestを実行</a></li>
 				<li><a href="#newworkspace">開発用workspaceでセットアップ</a></li>
 				<li><a href="#forexample">説明のために、例えば...</a></li>
@@ -85,13 +85,13 @@
 		Exampleを元にして、新しいプチBlankプロジェクトを作ります。
 	</p>
 	<p>
-		ここでは、一つだけのWebアプリケーションを想定します。
+		ここでは、複数のWebアプリケーションが存在するサービスを想定します。
 	</p>
 	<p>
-		将来、同じデータベースに対して、管理側のWebアプリを作ったり、バッチや別の顧客のためのアプリを追加するかもしれないのであれば、
-		こちらではなく、マルチプロジェクト構成の方のスタートアップをオススメします。<span class="frm">(あとで構成変更するのは大変なので)</span>
+		将来においても、絶対に一つしか作らないというような場合は、
+		こちらではなく、シングルプロジェクト構成の方のスタートアップをオススメします。<span class="frm">(あとで構成変更するのは大変なので)</span>
 	</p>
-	<div class="relatedpage"><a href="./multi.html">Startup as Multi Project</a></div>
+	<div class="relatedpage"><a href="./single.html">Startup as Single Project</a></div>
 
 	<h2 id="howto">スタートアップの手順</h2>
 	<p>
@@ -109,34 +109,25 @@
 
 	<h2 id="prepareexample">1. Exampleプロジェクトを準備</h2>
 	<p>
-		シングルプロジェクトのExampleである、harbor を clone します。
+		シングルプロジェクトのExampleである、maihama を clone します。
 	</p>
 	<dl class="lolongvaluemainlist">
-		<dt>プロジェクト</dt><dd>harbor</dd>
-		<dt>Gitリポジトリ</dt><dd><a href="https://github.com/dbflute-session/lastaflute-example-harbor">https://github.com/dbflute-session/lastaflute-example-harbor.git</a></dd>
+		<dt>プロジェクト</dt><dd>maihama</dd>
+		<dt>Gitリポジトリ</dt><dd><a href="https://github.com/dbflute-session/lastaflute-example-maihama">https://github.com/dbflute-session/lastaflute-example-maihama.git</a></dd>
 	</dl>
 
 	<h2 id="domainservice">2. ドメインとサービス名を決める</h2>
 	<p>
-		新しく作るサービスの、ドメインとサービス名を決めます。
+		新しく作るサービスの、ドメインとサービス名、そして、最初の一つ目のアプリ名を決めます。
 	</p>
 	<p>
 		例えば、LastaFluteのExampleプロジェクトであれば、このようになっています。
 	</p>
 	<dl class="valuemainlist">
 		<dt>ドメイン</dt><dd>docksidestage.org</dd>
-		<dt>サービス名</dt><dd>harbor</dd>
+		<dt>サービス名</dt><dd>maihama</dd>
+		<dt>アプリ名</dt><dd>dockside, hangar</dd>
 	</dl>
-	<p>
-		実際は、サービスがドメイン名に組み込まれることが多いので、その場合は...
-	</p>
-	<dl class="valuemainlist">
-		<dt>ドメイン</dt><dd>docksidestage.org</dd>
-		<dt>サービス名</dt><dd>docksidestage</dd>
-	</dl>
-	<p>
-		となるでしょう。
-	</p>
 	<p>
 		あとで直すのは大変なので、慎重に決めてください。
 	</p>
@@ -146,9 +137,18 @@
 	</p>
 
 	<h2 id="newblankproject">3. プチBlankプロジェクトを作成する</h2>
-	<h3 id="domainservice">ドメインとサービス名を書き換え</h3>
+	<h3 id="domainservice">ドメイン、サービス、アプリ名を書き換え</h3>
 	<p>
-		StartupTest.javaにて、ドメインとサービス名の値を書き換えます。
+		以下のどちらか、アプリで採用するスタイルに該当する方を選びます。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>dockside</dt><dd>サーバーサイドでHTMLを戻す "HTMLスタイル"</dd>
+		<dt>hangar</dt><dd>サーバーサイドはJSONを戻す "JSON APIスタイル"</dd>
+	</dl>
+	<p>
+		そして、該当するアプリプロジェクトの StartupTest.java
+		にて、ドメインとサービス名と "最初の一つ目のアプリ名"
+		の値を書き換えます。(ここでは、まずは一つ目のアプリの環境だけ作ります)
 	</p>
 	<h3 id="execstartup">StartupTestを実行</h3>
 	<p>
@@ -166,17 +166,18 @@
 	<div class="relatedpage"><a href="../../tutorial/laimpl.html#setupenv">開発環境の構築 | LastaFluteの実装チュートリアル</a></div>
 	<h3 id="forexample">説明のために、例えば...</h3>
 	<p>
-		この後の説明では、新しいドメインは dancingdb.org, サービス名は mythica と仮定します。
+		この後の説明では、新しいドメインは dancingdb.org, サービス名は showdance, 最初の一つ目のアプリ名を overthewaves と仮定します。
 	</p>
 	<dl class="valuemainlist">
 		<dt>たとえばドメイン</dt><dd>dancingdb.org</dd>
-		<dt>たとえばサービス名</dt><dd>mythica</dd>
+		<dt>たとえばサービス名</dt><dd>showdance</dd>
+		<dt>たとえばアプリ名</dt><dd>overthewaves</dd>
 	</dl>
 
 	<h2 id="anywayboot">4. とりあえず動かしてみましょう</h2>
 	<h3 id="otherdb">データベースはMySQL？</h3>
 	<p>
-		もし、別のデータベースであれば、mythica_env.properties や databaseInfoMap.dfprop
+		もし、別のデータベースであれば、overthewaves_env.properties や databaseInfoMap.dfprop
 		を直しましょう。ただ、DDLも直さないといけないので、動かすのはいったん飛ばして、次のステップに進みましょう。
 	</p>
 	<h3 id="firstreplaceschema">まずは ReplaceSchema</h3>
@@ -185,7 +186,7 @@
 	</p>
 	<h3 id="firstboot">そして、Bootクラスでmain()実行</h3>
 	<p>
-		そして、MythicaBootというクラスの main() を実行すると、Jettyが起動します。
+		そして、OverthewavesBootというクラスの main() を実行すると、Jettyが起動します。
 		起動ログの最後に表示される url をブラウザからアクセスしてみましょう。ひとまず、何かしら画面が表示されればOKです。
 	</p>
 
@@ -210,12 +211,12 @@
 		パスワードやCookieなどの暗号化のための秘密鍵を設定します。
 	</p>
 	<p>
-		MythicaFwAssistantDirectorクラスにて、InvertibleCryptographerを構築している箇所が <em class="keyword">二箇所</em> あります。
+		ShowdanceFwAssistantDirectorクラスにて、InvertibleCryptographerを構築している箇所が <em class="keyword">二箇所</em> あります。
 		それぞれに、アルゴリズムと秘密鍵を設定します。秘密鍵をどこから持ってくるか、どう定義するかはご自由に。
 	</p>
 	<h3 id="typeinfo">アプリ種別情報</h3>
 	<p>
-		MythicaBaseActionクラスにて、APP_TYPE と USER_TYPE を定義します。
+		OverthewavesBaseActionクラスにて、APP_TYPE と USER_TYPE を定義します。
 	</p>
 	<dl class="shortkeymainlist">
 		<dt>APP_TYPE</dt><dd>アプリの種別、mythicaなら MYC など三文字(推奨)のコード</dd>
@@ -228,7 +229,7 @@
 	</p>
 	<h3 id="bootinfo">Boot情報</h3>
 	<p>
-		MythicaBootクラスにて、アプリのポート番号やコンテキストパスを調整します。
+		OverthewavesBootクラスにて、アプリのポート番号やコンテキストパスを調整します。
 	</p>
 	<p>
 		もちろん、デフォルトのままでよければ、そのままでOKです。
