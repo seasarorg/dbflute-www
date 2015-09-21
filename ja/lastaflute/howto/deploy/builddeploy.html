@@ -47,17 +47,13 @@
 		<li><a href="#mavenwar">Mavenでwarファイル作成</a>
 			<ul>
 				<li><a href="#mvnpackage">installとpackageの順序</a></li>
-				<li><a href="#mvnprofile">環境ごとに切り替えデプロイ</a></li>
 			</ul>
 		</li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
 			<ul>
-				<li><a href="#addprofile">1. pom.xml にて profile を追加</a></li>
-				<li><a href="#addresources">2. src/sea/resources を追加</a></li>
-				<li><a href="#addproperties">3. resources に環境依存propertiesを追加</a></li>
-				<li><a href="#addpropertieshtml">4. lastafluteMap.dfprop にて env を追加</a></li>
-				<li><a href="#addoriginal">5. resources にその他環境依存のファイルを追加</a></li>
-				<li><a href="#addreplaceschema">6. ReplaceSchemaの環境設定を追加</a></li>
+				<li><a href="#addproperties">1. resources に環境依存propertiesを追加</a></li>
+				<li><a href="#addpropertieshtml">2. lastafluteMap.dfprop にて env を追加</a></li>
+				<li><a href="#addreplaceschema">3. ReplaceSchemaの環境設定を追加</a></li>
 			</ul>
 		</li>
 		<li><a href="#newwebproj">新しいWebプロジェクトつくる</a></li>
@@ -70,36 +66,17 @@
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../projstructure.html#maven"> -->LastaFluteのプロジェクト構成 - Mavenの構成<!-- </a> --></span></div>
 	<p>
-		依存の順序通りに maven を実行していきます。
+		baseプロジェクトが、子プロジェクトを aggregate しているので...
 	</p>
-	<ol>
-		<li>xxx-base で mvn -e clean install</li>
-		<li>xxx-common で mvn -e clean install <span class="frm">(profileの切り替えが必要なら -P オプション)</span></li>
-		<li>xxx-dockside で mvn -e clean package <span class="frm">(profileの切り替えが必要なら -P オプション)</span></li>
-	</ol>
-	<h3 id="mvnprofile">環境ごとに切り替えデプロイ</h3>
 	<p>
-		環境切り替え設定などの構成を把握していることを前提として...
+		xxx-base にて、<em class="keyword">mvn -e clean package</em>
 	</p>
-	<div class="relatedpage"><a href="./envswitch.html">LastaFluteの環境切り替え</a></div>
 	<p>
-		環境ごとに設定を切り替え場合は、commonとwebプロジェクトにて、profileを指定します。
+		LastaEnv方式であれば、できあがるwarファイルは環境依存をしていませんので、実行時に環境を指定します。
 	</p>
-<pre><span class="codetitle">e.g. 結合環境(integration)用のcommonプロジェクトをビルド @Command</span><code>
-mvn -e clean install <span class="point">-P integration</span>
+<pre><span class="codetitle">e.g. 本番環境(production)としてアプリを実行 @Command</span><code>
+java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 </code></pre>
-<pre><span class="codetitle">e.g. 結合環境(integration)用のwebプロジェクトをビルド @Command</span><code>
-mvn -e clean package <span class="point">-P integration</span>
-</code></pre>
-	<p>
-		すると、warファイルの中に含まれる xxx_env.properties などが、指定された環境のものになっています。
-		<span class="frm">(一方で、環境情報をwarに含めたくない場合は、propertiesの扱い方を工夫する必要があるでしょう)</span>
-	</p>
-	<p>
-		環境ごとに切り替える設定ファイルの環境に適した修正が終わっていることが前提です。
-	</p>
-	<div class="relatedpage"><a href="./envswitch.html#envproperties">環境切り替え用のproperties</a></div>
-	<div class="relatedpage"><a href="./envswitch.html#logbackxml">ログの設定 (logback.xml)</a></div>
 
 	<h2 id="newdeployenv">新しいデプロイ環境をつくる</h2>
 	<p>
@@ -113,29 +90,17 @@ mvn -e clean package <span class="point">-P integration</span>
 	<p>
 		例えば、sea という名前の環境を新たに作るとします。
 	</p>
-	<h3 id="addprofile">1. pom.xml にて profile を追加</h3>
+	<h3 id="addproperties">1. resources に環境依存propertiesを追加</h3>
 	<p>
-		common, webプロジェクトの pom.xml の profile で新しい環境の設定を追加します。
-	</p>
-	<p>
-		<span class="frm">※profileの設定場所を変更している場合は、そちらを修正</span>
-	</p>
-	<h3 id="addresources">2. src/sea/resources を追加</h3>
-	<p>
-		common, webプロジェクトの src/sea/resources フォルダを作成します。
-	</p>
-	<h3 id="addproperties">3. resources に環境依存propertiesを追加</h3>
-	<p>
-		独自に作ったばかりの src/なんとか/resources フォルダに xxx_env.properties
-		を追加します。別の環境の xxx_env.properties をコピーして作るとよいです。
+		src/main/resources に xxx_env_sea.properties を追加します。別の環境の xxx_env.properties をコピーして作るとよいです。
 		が、修正漏れだけには厳重注意しましょう。
 	</p>
 	<p>
 		プロパティ値だけでなく、コメントの中も新しい環境に合わせましょう。<span class="frm">(環境名とか書いてあるかも)</span>
 	</p>
-	<h3 id="addpropertieshtml">4. lastafluteMap.dfprop にて env を追加</h3>
+	<h3 id="addpropertieshtml">2. lastafluteMap.dfprop にて env を追加</h3>
 	<p>
-		lastafluteMap.dfprop の environmentList に、新しい環境の設定を追加します。<span class="frm">(PropertiesHTMLで比較ができるようにするため)</span>
+		lastafluteMap.dfprop の environmentList に、seaを追加します。<span class="frm">(PropertiesHTMLで比較ができるようにするため)</span>
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../generator/task/doc/propertieshtml.html"> -->Docタスク - PropertiesHTML<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. lastafluteMap の environmentList に新しい環境を追加 @Command</span><code>
@@ -149,11 +114,7 @@ mvn -e clean package <span class="point">-P integration</span>
 	<p>
 		Docタスク (manageの22番) を叩いて、PropertiesHTML に新しい環境の情報が追加されていることを確認しましょう。
 	</p>
-	<h3 id="addoriginal">5. resources にその他環境依存のファイルを追加</h3>
-	<p>
-		もし、アプリで独自の環境依存の設定ファイルを作っていれば、それを resources に作成します。
-	</p>
-	<h3 id="addreplaceschema">6. ReplaceSchemaの環境設定を追加</h3>
+	<h3 id="addreplaceschema">3. ReplaceSchemaの環境設定を追加</h3>
 	<p>
 		これは、もし新しい環境のDBを ReplaceSchema 管理するときだけです。
 	</p>

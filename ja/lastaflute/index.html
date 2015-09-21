@@ -53,16 +53,26 @@
 				<li><a href="#saflute">SAFluteを御存知の方へ</a></li>
 			</ul>
 		</li>
-		<li><a href="#lacode">LastaFluteのコード</a></li>
-		<li><a href="#quicktrial">LastaFluteを動かしてみよう</a></li>
+		<li><a href="#lacode">LastaFluteのコード</a>
+			<ul>
+				<li><a href="#pkgconvention">Package Convention</a></li>
+				<li><a href="#htmlresponse">Example for HTML response style</a></li>
+				<li><a href="#jsonresponse">Example for JSON response style</a></li>
+			</ul>
+		</li>
+		<li><a href="#quicktrial">LastaFluteを動かしてみよう</a>
+			<ul>
+				<li><a href="#singletrial">サクッとシングルプロジェクト</a></li>
+				<li><a href="#multitrial">しっかりマルチプロジェクト</a></li>
+			</ul>
+		</li>
 		<li><a href="#newproject">LastaFluteで新プロジェクト</a>
 			<ul>
 				<li><a href="#single">シングルプロジェクトなら</a></li>
 				<li><a href="#multi">マルチプロジェクトなら</a></li>
 			</ul>
 		</li>
-		<li><a href="#laimpl">LastaFluteの実装チュートリアル</a></li>
-		<li><a href="#function">LastaFluteの機能マニュアル</a></li>
+		<li><a href="#letsimpl">LastaFluteで実装してみよう ☆</a></li>
 	</ul>
 
 	<h2 id="about">LastaFluteとは？</h2>
@@ -136,20 +146,31 @@
 	<p>
 		LastaFluteのポリシーを反映し、Actionクラスに様々な工夫が施されています。
 	</p>
-	<div class="relatedpage"><a href="./howto/action/index.html">LastaFlute Action | LastaFlute</a></div>
-<pre><span class="codetitle">e.g. Action for URL '/product/list/3' @Java</span><code>
+	<h3 id="bigconvention">Mapping Convention</h2>
+	<dl class="valuemainlist">
+		<dt>Request URL</dt><dd><em class="mark">Action</em> class + <em class="mark">Execute</em> method</dd>
+	</dl>
+	<h3 id="pkgconvention">Package Convention</h3>
+	<dl class="valuemainlist">
+		<dt>Application Package</dt><dd>[your domain].app <span class="frm">e.g. org.docksidestage.app</span></dd>
+		<dt>Web Package</dt><dd>[Application Root].web <span class="frm">e.g. org.docksidestage.app.web</span></dd>
+		<dt>Action's Package</dt><dd>*you can use Action's prefix package</dd>
+	</dl>
+	<h3 id="htmlresponse">Example for HTML response style</h3>
+<pre><span class="codetitle">e.g. Action for URL '/product/list/3' as HTML response @Java</span><code>
 @Execute
-<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">pageNumber</span>, ProductSearchForm <span class="localvar">form</span>) {
-    validate(<span class="localvar">form</span>, () -&gt; {
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(OptionalThing&lt;Integer&gt; <span class="localvar">pageNumber</span>
+                        , ProductSearchForm <span class="localvar">form</span>) {
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; (), () -&gt; {
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>);
     });
-    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = productBhv.selectPage(<span class="localvar">cb</span> -&gt; {
+    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = <span class="attribute">productBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
         <span class="localvar">cb</span>.setupSelect_ProductStatus();
         <span class="localvar">cb</span>.query().setProductName_LikeSearch(form.productName, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
         <span class="localvar">cb</span>.query().addOrderBy_ProductName_Asc();
-        <span class="localvar">cb</span>.paging(getPagingPageSize(), pageNumber);
+        <span class="localvar">cb</span>.paging(getPagingPageSize(), <span class="localvar">pageNumber</span>.orElse(<span class="literal">1</span>));
     });
-    List&lt;ProductSearchRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
+    List&lt;ProductRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
         <span class="keyword">return</span> mappingToBean(<span class="localvar">product</span>);
     });
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>).renderWith(<span class="localvar">data</span> -&gt; {
@@ -158,10 +179,31 @@
     });
 }
 </code></pre>
-
+	<h3 id="jsonresponse">Example for JSON response style</h3>
+<pre><span class="codetitle">e.g. Action for URL '/product/list/3' as JSON response @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">JsonResponse&lt;SearchPagingBean&lt;ProductRowBean&gt;&gt;</span> index(
+                OptionalThing&lt;Integer&gt; <span class="localvar">pageNumber</span>
+              , ProductSearchBody <span class="localvar">body</span>) {
+    validate(<span class="localvar">body</span>, <span class="localvar">messages</span> -&gt; {});
+    ListResultBean&lt;Product&gt; <span class="localvar">page</span> = <span class="attribute">productBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+        <span class="localvar">cb</span>.setupSelect_ProductStatus();
+        <span class="localvar">cb</span>.query().setProductName_LikeSearch(form.productName, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
+        <span class="localvar">cb</span>.query().addOrderBy_ProductName_Asc();
+        <span class="localvar">cb</span>.paging(getPagingPageSize(), <span class="localvar">pageNumber</span>.orElse(<span class="literal">1</span>));
+    });
+    SearchPagingBean&lt;ProductRowBean&gt; <span class="localvar">bean</span> = createPagingBean(page);
+    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>);
+}
+</code></pre>
+	
 	<h2 id="quicktrial">LastaFluteを動かしてみよう</h2>
 	<p>
 		Quick Trial のための Example が用意されています。
+	</p>
+	<h3 id="singletrial">サクッとシングルプロジェクト</h3>
+	<p>
+		シンプルに小さく、全貌を見たいのなら...
 	</p>
 	<ol>
 		<li><em class="smallmark">git clone</em> <a href="https://github.com/dbflute-session/lastaflute-example-harbor">https://github.com/dbflute-session/lastaflute-example-harbor.git</a></li>
@@ -182,6 +224,13 @@
     }
 }
 </code></pre>
+	<h3 id="multitrial">しっかりマルチプロジェクト</h3>
+	<p>
+		実践を想定したしっかり構成を見たいのなら...
+	</p>
+	<p>
+		<a href="https://github.com/dbflute-session/lastaflute-example-maihama">https://github.com/dbflute-session/lastaflute-example-maihama.git</a>
+	</p>
 
 	<h2 id="newproject">LastaFluteで新プロジェクト</h2>
 	<p>
@@ -192,7 +241,7 @@
 		まず、Quick Trial の lastaflute-example-harbor を clone して画面を起動します。
 		そして、StartupTest の domain と serviceName を修正して実行すると、harbor を元に新しいプロジェクトが作成されます。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="./environment/startup/single.html"> -->Startup as Single Project<!-- </a> --></span></div>
+	<div class="detailpage"><a href="./howto/startup/single.html">Startup as Single Project</a></div>
 	<h3 id="multi">マルチプロジェクトなら</h3>
 	<p>
 		まず、Quick Trial の lastaflute-example-maihama を clone して画面を起動します。
@@ -200,37 +249,14 @@
 	</p>
 	<div class="detailpage"><span class="working"><!-- <a href="./howto/startup/multi.html"> -->Startup as Multi Project<!-- </a> --></span></div>
 
-	<h2 id="laimpl">LastaFluteの実装チュートリアル</h2>
+	<h2 id="letsimpl">LastaFluteで実装してみよう ☆</h2>
 	<p>
-		これから実装を始める人、実装しながら迷った人、そのためのページ。ぜひブックマークを！
+		これから実装を始める人、実装しながら迷った人、そのためのページ。
 	</p>
 	<div class="detailpage"><a href="./tutorial/laimpl.html">LastaFluteの実装チュートリアル</a></div>
-
-	<h2 id="function">LastaFluteの機能マニュアル</h2>
-	<dl class="textlist">
-		<dt>Actionクラスの実装</dt>
-		<dd><a href="./howto/action/index.html"><em class="mark">LastaFlute Action</em></a></dd>
-		<dd><span class="working"><!-- <a href="./howto/action/fwcomponent.html"> --><em class="mark">LastaFlute Framework Component</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/action/quickcomponent.html"> --><em class="mark">LastaFlute Quick Component</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/action/richcomponent.html"> --><em class="mark">LastaFlute Rich Component</em><!-- </a> --></span></dd>
-		<dt>アーキテクチャ</dt>
-		<dd><a href="./howto/architecture/objsafeprop.html"><em class="mark">LastaFlute Typesafe Properties</em></a></dd>
-		<dd><a href="./howto/architecture/friendlylogging.html"><em class="mark">LastaFlute Friendly Logging</em></a></dd>
-		<dd><a href="./howto/architecture/asynchronous.html"><em class="mark">LastaFlute Asyncronous</em></a></dd>
-		<dd><span class="working"><!-- <a href="./howto/architecture/typesafemail.html"> --><em class="mark">LastaFlute Typesafe Mail</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/architecture/actionhook.html"> --><em class="mark">LastaFlute Action Hook</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/architecture/jsonapi.html"> --><em class="mark">LastaFlute JSON API</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/architecture/logincontrol.html"> --><em class="mark">LastaFlute Login Control</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/architecture/assistantdirector.html"> --><em class="mark">LastaFlute AssistantDirectory</em><!-- </a> --></span></dd>
-		<dt>DBFlute</dt>
-		<dd><a href="./howto/dbflute/ladfprop.html"><em class="mark">lastafluteMap.dfprop</em></a></dd>
-		<dd><span class="working"><!-- <a href="./howto/dbflute/freegen.html"> --><em class="mark">LastaFlute FreeGen</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/dbflute/lastadoc.html"> --><em class="mark">LastaFlute LastaDoc</em><!-- </a> --></span></dd>
-		<dd><span class="working"><!-- <a href="./howto/dbflute/cyclicdata.html"> --><em class="mark">LastaFlute Cyclic TestData</em><!-- </a> --></span></dd>
-		<dt>プロジェクト環境</dt>
-		<dd><a href="./howto/structure/projstructure.html"><em class="mark">LastaFlute Project Structure</em></a></dd>
-		<dd><a href="./howto/structure/pkgstructure.html"><em class="mark">LastaFlute Package Structure</em></a></dd>
-	</dl>
+	<p>
+		ぜひブックマークを！
+	</p>
 
 </div>
 </div>

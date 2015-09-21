@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,LastaFlute,リーンスタートアップ" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
 	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>LastaFluteとSAFluteとの違い | DBFlute</title>
+	<title>LastaFlute JSP | LastaFlute</title>
 </head>
 <body>
 <div id="container" class="ct-default">
@@ -37,50 +37,63 @@
 </div>
 
 <div id="content">
-	<h1>LastaFluteとSAFluteとの違い</h1>
+	<h1>LastaFlute JSP</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#sameconcept">コンセプトは同じ</a></li>
-		<li><a href="#java8seasar">Seasar を Java8 でフォーク</a></li>
-		<li><a href="#java8sastruts">SAStruts を Java8 でフォーク</a></li>
-		<li><a href="#java8sastruts">SAFlute を Java8 で組み直した</a></li>
+		<li><a href="#jsppath">JSPPath FreeGen</a></li>
+		<li><a href="#taglib">JSP Taglib</a></li>
 	</ul>
 
-	<h2 id="sameconcept">コンセプトは同じ</h2>
+	<h2 id="jsppath">JSPPath FreeGen</h2>
 	<p>
-		Javaで始めるリーンスタートアップのためのフレームワーク、ここは同じ。
+		まず、JSPを作成 <span class="frm">(まだ空っぽでもOK)</span>
 	</p>
-	<h3 id="">要は...</h3>
-	<dl class="shoshortkeymainlist">
-		<dt>SAFlute</dt><dd>あくまでSeasar/SAStrutsの拡張、ソースのみ提供でユーザーの自由に</dd>
-		<dt>LastaFlute</dt><dd>DBFluteスタイルで最適化したAll-in-Oneフレームワーク、jar提供メンテナンス</dd>
+	<dl class="longvaluemainlist">
+		<dt>ファイル名</dt><dd>Formタグが飛ばすURLに対応 <span class="frm">※ボタン名は除外</span></dd>
+		<dt>配置ディレクトリ</dt><dd>ファイル名のprefix</dd>
 	</dl>
+	<p>
+		la:form で action属性を省略したときにリクエストされるURL。
+	</p>
+	<dl class="lolongkeymainlist">
+		<dt>product/<em class="mark">product_list</em>.jsp</dt><dd>/product/list/</dd>
+		<dt>profile/<em class="mark">profile_password_change</em>.jsp</dt><dd>/profile/password/change/</dd>
+		<dt>mypage/<em class="mark">mypage</em>.jsp</dt><dd>/mypage/</dd>
+	</dl>
+	<p>
+		そして、DBFlute の FreeGen を叩く！すると、パス定義が自動生成されて補完できるようになる。
+	</p>
+<pre><span class="codetitle">e.g. Template File Location @Directory</span><code>
+src/main/webapp
+ |-WEB-INF
+    |-view <span class="comment">// HtmlTemplateの配置場所</span>
+    |  |-product <span class="comment">// productパッケージに対応</span>
+    |  |  |-<span class="subpoint">product_list.jsp</span>     <span class="comment">// /product/list/</span>
+    |  |  |-product_purchase.jsp <span class="comment">// /product/purchase/</span>
+    |  |
+    |  |-profile
+    |  |  |-<span class="subpoint">profile_password_change.jsp</span> <span class="comment">// /profile/password/change/</span>
+    |  |  |-profile_withdrawal.jsp      <span class="comment">// /profile/withdrawal/</span>
+    |  |
+    |  |-mypage
+    |  |  |-<span class="subpoint">mypage.jsp</span> <span class="comment">// /mypage/</span>
+    |  |
+    |  |-root.jsp <span class="comment">// '/'</span>
+    |
+    |-web.xml
+</code></pre>
+<pre><span class="codetitle">e.g. you can use Template Path for HtmlResponse @Java</span><code>
+    @Execute
+    <span class="keyword">public</span> HtmlResponse index() {
+        <span class="abbreviation">...</span>
+        <span class="keyword">return</span> asHtml(<span class="point">path_Mypage_MypageJsp</span>); <span class="comment">// is static definition</span>
+    }
+</code></pre>
 
-	<h2 id="java8seasar">Seasar を Java8 でフォーク</h2>
-	<dl class="keymainlist">
-		<dt>徹底したスリム化</dt><dd>使わない機能削減、依存ライブラリ削減(依存jarを少なくシンプルに)</dd>
-		<dt>デバッグしやすいように</dt><dd>コンテナ内で発生したエラーのメッセージをDBFlute風に</dd>
-		<dt>OGNL改めJS</dt><dd>OGNLの代わりにJava同梱のNashornのJavaScriptエンジンを利用</dd>
-		<dt>Java8 でコンパイル</dt><dd>少し速くなるかなぁ...</dd>
-		<dt>ホットデプロイはそのまま</dt><dd>欠かせないホットデプロイは変わらず利用できるように</dd>
-	</dl>
-
-	<h2 id="java8sastruts">SAStruts を Java8 でフォーク</h2>
-	<dl class="keymainlist">
-		<dt>Struts1外し</dt><dd>一番のネックだった Struts1 への依存のない SAStruts を</dd>
-		<dt>commonsへの依存最小限</dt><dd>古いcommonsへの依存を外し、アプリで最新版使えるように</dd>
-		<dt>内部フォワードしない</dt><dd>フォワードせずとも綺麗なURLを実現</dd>
-		<dt>設定ファイル削減</dt><dd>定型化された設定を組み込んで、アプリで管理する設定をシンプルに</dd>
-		<dt>シンプルなコード</dt><dd>RequestからActionが呼ばれるまでの道のりできるだけシンプルに</dd>
-		<dt>Hibernate Validator</dt><dd>バリデーションに Hibernate Validator を使う</dd>
-		<dt>Java8 でコンパイル</dt><dd>少し速くなるかなぁ...</dd>
-		<dt>規約ベースはそのまま</dt><dd>欠かせない規約ベースURLマッピングは変わらず利用できるように</dd>
-	</dl>
-
-	<h2 id="java8sastruts">SAFlute を Java8 で組み直した</h2>
-	<dl class="keymainlist">
-		<dt>Lambdaを使って改善</dt><dd>SAStrutsに引きづられることなく、書きやすいActionに</dd>
-		<dt>統合して一枚岩に</dt><dd>拡張の拡張で複雑になってたところを、もろもろ統合してシンプルに</dd>
-	</dl>
+	<h2 id="taglib">JSP Taglib</h2>
+	<p>
+		TODO jflute
+	</p>
 
 </div>
 </div>

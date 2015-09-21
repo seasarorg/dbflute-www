@@ -43,82 +43,50 @@
 	</p>
 	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#mavenprofile">Maven での環境切り替え</a>
-			<ul>
-				<li><a href="#profileresources">profileごとのresources</a></li>
-				<li><a href="#envproperties">環境切り替え用のproperties</a></li>
-				<li><a href="#envifstatement">プログラム上で環境切り替え分岐</a></li>
-				<li><a href="#logbackxml">ログの設定 (logback.xml)</a></li>
-			</ul>
-		</li>
+		<li><a href="#envproperties">環境切り替え用のproperties</a></li>
+		<li><a href="#envifstatement">プログラム上で環境切り替え分岐</a></li>
 		<li><a href="#lastaenv">LastaEnv での環境切り替え</a>
 			<ul>
 				<li><a href="#systemproperty">System Property で lasta.env</a></li>
 				<li><a href="#uselastaenv">lastafluteMap.dfprop で isUseLastaEnv</a></li>
-				<li><a href="#butlogback">logback.xml とかは自分で</a></li>
+				<li><a href="#logback">logback.xml も env を読む</a></li>
+			</ul>
+		</li>
+		<li><a href="#mavenprofile">Maven での環境切り替え</a>
+			<ul>
+				<li><a href="#profileresources">profileごとのresources</a></li>
+				<li><a href="#envproperties">環境切り替え用のproperties</a></li>
+				<li><a href="#logbackxml">ログの設定 (logback.xml)</a></li>
 			</ul>
 		</li>
 		<li><a href="#envreps">環境ごとのReplaceSchema</a></li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくるなら</a></li>
 	</ul>
 
-	<h2 id="mavenprofile">Maven での環境切り替え</h2>
-	<p>
-		Mavenでビルド (パッケージング) をするときに profile を指定することで切り替えます。
-	</p>
-	<h3 id="profileresources">profileごとのresources</h3>
-	<dl class="longkeymainlist">
-		<dt>src/main/resources</dt><dd>ローカル用 (デフォルト) (環境切り替えがなければこれ)</dd>
-		<dt>src/allpackage/resources</dt><dd>パッケージングするすべての環境用 (次に優先)</dd>
-		<dt>src/integration/resources</dt><dd>結合環境用 (最優先)</dd>
-		<dt>src/production/resources</dt><dd>本番環境用 (最優先)</dd>
-	</dl>
-	<p>
-		例えば、ローカル用に sea.properties があっても、productionの方にも sea.properties
-		があった場合、本番環境では production の sea.properties
-		が利用されます。一方で、ローカル用に land.properties があって、他の環境で同じファイルが一切なければ、どの環境でもローカル用のものが利用されます。
-	</p>
-	<p>
-		allpackageは、結合環境や本番環境など、パッケージングされてデプロイされる環境における共通の領域です。
-		例えば、logback.xml などは結合環境でも本番環境でも設定が変わらないのであれば、allpackageに置くとよいでしょう。
-	</p>
-	<p>
-		Mavenの profile 設定は、common, webプロジェクトそれぞれの pom.xml
-		にあります。baseに入れていないのは、webとcommonで設定が変わる可能性があるだろうということで、あえて共通化していません。
-		もし、webプロジェクトを増やすときに、webの共通pomを作った場合は、webのprofile設定はそちらで一元管理するとよいでしょう。
-	</p>
-	<h3 id="envproperties">環境切り替え用のproperties</h3>
+	<h2 id="envproperties">環境切り替え用のproperties</h2>
 	<p>
 		ファイル単位で切り替えるため、一つのファイルで環境ごとのものと環境で変わらないものが混在していると重複の原因になります。
 		なので、なんでもかんでも切り替えるのではなく、環境切り替え用のpropertiesを用意しています。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../architecture/objsafeprop.html#antidiconfig"> -->これはやめたい！DI設定ファイルの環境ごと切り替え<!-- </a> --></span></div>
 	<p>
-		デフォルトでは、commonの下に xxx_env.properties が用意されています。
+		デフォルトでは、commonと各アプリにそれぞれ xxx_env.properties が用意されています。
 		こちらに、DBの接続情報や、メールサーバーの情報などを入れて切り替えるとよいでしょう。
 	</p>
 <pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでの環境ごとのProperties @Directory</span><code>
 maihama-common
  |-src/main/resources
  |  |-maihama_config.properties <span class="comment">// 環境依存しないコンフィグ</span>
- |  |-<span class="point">maihama_env.properties</span> <span class="comment">// ローカル環境用のコンフィグ (環境ごとにコピーされる)</span>
- |
- |-src/main/integration
- |  |-maihama_env.properties <span class="comment">// 結合環境用のコンフィグ</span>
- |
- |-src/main/production
- |  |-maihama_env.properties <span class="comment">// 本番環境用のコンフィグ</span>
+ |  |-maihama_env.properties <span class="comment">// 環境依存コンフィグ</span>
+ |  |-maihama_env_integration.properties <span class="comment">// 結合用の環境依存コンフィグ</span>
+ |  |-maihama_env_production.properties <span class="comment">// 本番用の環境依存コンフィグ</span>
 </code></pre>
 	<p>
 		こちらの properties は、プログラム上でタイプセーフに get することができます。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="./objsafeprop.html#typesafeprop"> -->LastaFluteのタイプセーフProperties<!-- </a> --></span></div>
-	<p>
-		もし、webプロジェクトごとの環境切り替え properties
-		を作りたい場合は、FreeGen や PropertiesHtml の設定や、AssistantDirector のプログラムを修正する必要があります。
-		<span class="frm">(ただ、複雑になるので、よほどたくさんあるとかでなければcommonで一元管理でもいいかもです)</span>
-	</p>
-	<h3 id="envifstatement">プログラム上で環境切り替え分岐</h3>
+
+	<h2 id="envifstatement">プログラム上で環境切り替え分岐</h2>
 	<p>
 		基本的に、プロパティ値の切り替えだけで環境切り替えを実現するのが理想です。プログラム上で "ローカルだから本番だから"
 		という分岐を入れるのは、あまりオススメではありません。
@@ -146,6 +114,85 @@ maihama-common
 		結合はできるだけ本番に近いプログラムで動いて欲しいものだからです。プロパティの値だけで切り替えたいところです。
 		ですが、どうしてもというときは、isDevelopmentHere()の仕組みを応用すれば、できなくはないので必要になったら修正を。
 	</p>
+
+	<h2 id="lastaenv">LastaEnv での環境切り替え</h2>
+	<p>
+		Exampleデフォルトは、LastaEnv 方式です。
+	</p>
+	<p>
+		こちらの方式であれば、環境依存の情報が入らないwarファイルが作れます。
+	</p>
+	<h3 id="systemproperty">System Property で lasta.env</h3>
+	<p>
+		Java の <em class="keyword">System Property</em> に、<em class="bigmark">lasta.env</em> というキーで環境キーワードを指定します。
+		例えば、lasta.env=production であれば、maihama_env.properties ではなく、maihama_env_production.properties が読まれます。
+	</p>
+	<p>
+		なので、組み込みwarで実行するときは、javaコマンドの引数で指定します。
+	</p>
+<pre><span class="codetitle">e.g. 本番環境(production)としてアプリを実行 @Command</span><code>
+java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
+</code></pre>
+	<p>
+		_env.properties 以外の properties や Di xml は切り替え対象になりませんので、環境依存のものはすべて _env
+		に集約します。(これは LastaEnv 方式に限らず、そのようにするポリシー)
+	</p>
+	<h3 id="uselastaenv">lastafluteMap.dfprop で isUseLastaEnv</h3>
+	<p>
+		そのとき、PropertiesHTML の環境ファイル読み込み先も変わってしまうので、lastafluteMap.dfprop にて isUseLastaEnv
+		を true にします。Exampleはデフォルトで true になっています。 
+	</p>
+	<h3 id="logback">logback.xml も env を読む</h3>
+	<p>
+		Exampleでは、logback.xml の中で _env.properties を読んでいます。
+	</p>
+	<p>
+		できる限り、_env.properties に集約して、環境ごとにファイルをまるごと切り替えるというのがないようにします。
+		LastaEnv方式を使うのであれば、シンプルさをキープしていく方がよいでしょう。
+	</p>
+
+	<h2 id="mavenprofile">Maven での環境切り替え</h2>
+	<p>
+		Exampleでは
+		Mavenでビルド (パッケージング) をするときに profile を指定することで切り替えます。
+	</p>
+	<h3 id="profileresources">profileごとのresources</h3>
+	<dl class="longkeymainlist">
+		<dt>src/main/resources</dt><dd>ローカル用 (デフォルト) (環境切り替えがなければこれ)</dd>
+		<dt>src/allpackage/resources</dt><dd>パッケージングするすべての環境用 (次に優先)</dd>
+		<dt>src/integration/resources</dt><dd>結合環境用 (最優先)</dd>
+		<dt>src/production/resources</dt><dd>本番環境用 (最優先)</dd>
+	</dl>
+	<p>
+		例えば、ローカル用に sea.properties があっても、productionの方にも sea.properties
+		があった場合、本番環境では production の sea.properties
+		が利用されます。一方で、ローカル用に land.properties があって、他の環境で同じファイルが一切なければ、どの環境でもローカル用のものが利用されます。
+	</p>
+	<p>
+		allpackageは、結合環境や本番環境など、パッケージングされてデプロイされる環境における共通の領域です。
+		例えば、logback.xml などは結合環境でも本番環境でも設定が変わらないのであれば、allpackageに置くとよいでしょう。
+	</p>
+	<p>
+		Mavenの profile 設定は、common, webプロジェクトそれぞれの pom.xml
+		にあります。baseに入れていないのは、webとcommonで設定が変わる可能性があるだろうということで、あえて共通化していません。
+		もし、webプロジェクトを増やすときに、webの共通pomを作った場合は、webのprofile設定はそちらで一元管理するとよいでしょう。
+	</p>
+	<h3 id="envproperties">環境切り替え用のproperties</h3>
+	<p>
+		_env.propertiesの置き場所は、maven の profile の通りに。
+	</p>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでの環境ごとのProperties @Directory</span><code>
+maihama-common
+ |-src/main/resources
+ |  |-maihama_config.properties <span class="comment">// 環境依存しないコンフィグ</span>
+ |  |-<span class="point">maihama_env.properties</span> <span class="comment">// ローカル環境用のコンフィグ (環境ごとにコピーされる)</span>
+ |
+ |-src/main/integration
+ |  |-maihama_env.properties <span class="comment">// 結合環境用のコンフィグ</span>
+ |
+ |-src/main/production
+ |  |-maihama_env.properties <span class="comment">// 本番環境用のコンフィグ</span>
+</code></pre>
 	<h3 id="logbackxml">ログの設定 (logback.xml)</h3>
 	<p>
 		少なくともリリース時点では、結合環境は本番のログレベルは INFO (DEBUGは出さない)
@@ -158,33 +205,6 @@ maihama-common
 		のログに徹したものにしたいというところから、アプリログは専用のログファイルに出力されます。
 		ただ、もし catalina.out に出力したい場合は、consoleを追加すれば出力できます。
 	</p>
-
-	<h2 id="lastaenv">LastaEnv での環境切り替え</h2>
-	<p>
-		Exampleデフォルトは、Maven の profile 方式ですが、それをを使わずに LastaEnv を利用して環境切り替えもできます。
-	</p>
-	<p>
-		こちらの方式であれば、環境依存の情報が入らないwarファイルが作れます。
-	</p>
-	<h3 id="systemproperty">System Property で lasta.env</h3>
-	<p>
-		Java の <em class="keyword">System Property</em> に、<em class="bigmark">lasta.env</em> というキーで環境キーワードを指定します。
-		例えば、lasta.env=prod であれば、maihama_env.properties ではなく、maihama_env_prod.properties が読まれます。
-	</p>
-	<p>
-		_env.properties 以外の properties や Di xml は切り替え対象になりませんので、環境依存のものはすべて _env
-		に集約します。(これは LastaEnv 方式に限らず、そのようにするポリシー)
-	</p>
-	<h3 id="uselastaenv">lastafluteMap.dfprop で isUseLastaEnv</h3>
-	<p>
-		そのとき、PropertiesHTML の環境ファイル読み込み先も変わってしまうので、lastafluteMap.dfprop にて isUseLastaEnv を true にします。 
-	</p>
-	<h3 id="butlogback">logback.xml とかは自分で</h3>
-	<p>
-		ただし、切り替えられるのは Lasta で管理しているリソースだけです。
-		例えば、logbackの設定などは、別の方法でどうにか切り替える必要があります。
-	</p>
-	<div class="relatedpage"><a href="http://logback.qos.ch/manual/configuration_ja.html">第3章 logbackの設定 | logback</a></div>
 
 	<h2 id="envreps">環境ごとのReplaceSchema</h2>
 	<p>
