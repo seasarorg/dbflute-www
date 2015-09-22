@@ -38,6 +38,7 @@
 
 <div id="content">
 	<h1>LastaFlute</h1>
+	<div class="relatedpage"><a href="../ja/lastaflute/index.html">Japanese Page of LastaFlute</a></div>
 	<ul class="indexlist">
 		<li><a href="#about">What is LastaFlute?</a>
 			<ul>
@@ -45,11 +46,16 @@
 				<li><a href="#adaptable"><em class="mark">Adaptable-to-Change</em> Programming</a></li>
 				<li><a href="#naturally"><em class="mark">Naturally-be-so</em> Programming</a></li>
 				<li><a href="#cast">LastaFlute Cast</a></li>
+				<li><a href="#repository">LastaFlute Repository <span class="frm">(with License, Fork info)</span></a></li>
 			</ul>
 		</li>
-		<li><a href="#howtoimpl">How to implement</a></li>
-		<li><a href="#repository">Source Code Repository</a></li>
-		<li><a href="#Thanks">Thanks, Frameworks</a></li>
+		<li><a href="#howtoimpl">How to implement</a>
+			<ul>
+				<li><a href="#pkgconvention">Package Convention</a></li>
+				<li><a href="#htmlresponse">Example for HTML response style</a></li>
+				<li><a href="#jsonresponse">Example for JSON response style</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">What is LastaFlute?</h2>
@@ -104,25 +110,42 @@
 	<p class="imgbox">
 		<a href="../data/model/lastaflute/lastaflute-Dependencies-view.png" title="LastaFlute Cast"><img src="../data/model/lastaflute/lastaflute-Dependencies-view.png" alt="LastaFluteのキャスト" width="550" height="380" /></a>
 	</p>
+	<h3 id="repository">LastaFlute Repository <span class="frm">(with License, Fork info)</span></h3>
+	<p>
+		The source codes are in Github. You can also see the license and fork information.
+	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute">Github - LastaFlute</a></div>
 
 	<h2 id="howtoimpl">How to implement</h2>
 	<p>
 		Java8-on-parade Action.
 	</p>
 	<div class="detailpage"><a href="./howto/action/index.html">Action Tutorial | LastaFlute</a></div>
-<pre><span class="codetitle">e.g. Action for URL '/product/list/3/' @Java</span><code>
+	<h3 id="bigconvention">Mapping Convention</h2>
+	<dl class="valuemainlist">
+		<dt>Request URL</dt><dd><em class="mark">Action</em> class + <em class="mark">Execute</em> method</dd>
+	</dl>
+	<h3 id="pkgconvention">Package Convention</h3>
+	<dl class="valuemainlist">
+		<dt>Application Package</dt><dd>[your domain].app <span class="frm">e.g. org.docksidestage.app</span></dd>
+		<dt>Web Package</dt><dd>[Application Root].web <span class="frm">e.g. org.docksidestage.app.web</span></dd>
+		<dt>Action's Package</dt><dd>*you can use Action's prefix package</dd>
+	</dl>
+	<h3 id="htmlresponse">Example for HTML response style</h3>
+<pre><span class="codetitle">e.g. Action for URL '/product/list/3' as HTML response @Java</span><code>
 @Execute
-<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">pageNumber</span>, ProductSearchForm <span class="localvar">form</span>) {
-    validate(<span class="localvar">form</span>, () -&gt; {
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(OptionalThing&lt;Integer&gt; <span class="localvar">pageNumber</span>
+                        , ProductSearchForm <span class="localvar">form</span>) {
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; (), () -&gt; {
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>);
     });
-    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = productBhv.selectPage(cb -> {
-        cb.setupSelect_ProductStatus();
-        cb.query().setProductName_LikeSearch(form.productName, op -&gt; op.likeContain());
-        cb.query().addOrderBy_ProductName_Asc();
-        cb.paging(getPagingPageSize(), pageNumber);
+    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = <span class="attribute">productBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+        <span class="localvar">cb</span>.setupSelect_ProductStatus();
+        <span class="localvar">cb</span>.query().setProductName_LikeSearch(form.productName, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
+        <span class="localvar">cb</span>.query().addOrderBy_ProductName_Asc();
+        <span class="localvar">cb</span>.paging(getPagingPageSize(), <span class="localvar">pageNumber</span>.orElse(<span class="literal">1</span>));
     });
-    List&lt;ProductSearchRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
+    List&lt;ProductRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
         <span class="keyword">return</span> mappingToBean(<span class="localvar">product</span>);
     });
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>).renderWith(<span class="localvar">data</span> -&gt; {
@@ -131,24 +154,23 @@
     });
 }
 </code></pre>
-
-	<h2 id="repository">Source Code Repository</h2>
-	<p>
-		The source codes are in Github.
-	</p>
-	<div class="detailpage"><a href="https://github.com/lastaflute">Github - LastaFlute</a></div>
-
-	<h2 id="Thanks">Thanks, Frameworks</h2>
-	<p>
-		LastaFlute forks the following frameworks:
-	</p>
-	<dl class="keymainlist">
-		<dt>Seasar</dt><dd>Lasta Di</dd>
-		<dt>AOP Alliance</dt><dd>Lasta Di</dd>
-		<dt>SAStruts</dt><dd>LastaFlute</dd>
-		<dt>Struts</dt><dd>LastaFlute</dd>
-		<dt>Commons</dt><dd>LastaFlute</dd>
-	</dl>
+	<h3 id="jsonresponse">Example for JSON response style</h3>
+<pre><span class="codetitle">e.g. Action for URL '/product/list/3' as JSON response @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">JsonResponse&lt;SearchPagingBean&lt;ProductRowBean&gt;&gt;</span> index(
+                OptionalThing&lt;Integer&gt; <span class="localvar">pageNumber</span>
+              , ProductSearchBody <span class="localvar">body</span>) {
+    validate(<span class="localvar">body</span>, <span class="localvar">messages</span> -&gt; {});
+    ListResultBean&lt;Product&gt; <span class="localvar">page</span> = <span class="attribute">productBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+        <span class="localvar">cb</span>.setupSelect_ProductStatus();
+        <span class="localvar">cb</span>.query().setProductName_LikeSearch(form.productName, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
+        <span class="localvar">cb</span>.query().addOrderBy_ProductName_Asc();
+        <span class="localvar">cb</span>.paging(getPagingPageSize(), <span class="localvar">pageNumber</span>.orElse(<span class="literal">1</span>));
+    });
+    SearchPagingBean&lt;ProductRowBean&gt; <span class="localvar">bean</span> = createPagingBean(page);
+    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>);
+}
+</code></pre>
 
 </div>
 </div>
