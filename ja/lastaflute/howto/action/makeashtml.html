@@ -1,0 +1,450 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Actionの作り方 (HTMLスタイル) | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Actionの作り方 (HTMLスタイル)</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<div class="relatedpage"><a href="./index.html">LastaFluteのAction</a></div>
+	<ul class="indexlist">
+		<li><a href="#flow">実装の流れ</a></li>
+		<li><a href="#designurl">URLを決める</a></li>
+		<li><a href="#makeaction">Actionクラスを作る</a>
+			<ul>
+				<li><a href="#actionname">Actionの名前を決める</a></li>
+				<li><a href="#pkglocation">Actionのパッケージ(配置場所)を決める</a></li>
+				<li><a href="#actuallymakeaction">実際に作る</a></li>
+			</ul>
+		</li>
+		<li><a href="#prepareexecute">Executeメソッドを準備</a>
+			<ul>
+				<li><a href="#extendsbase">Baseクラスを継承</a></li>
+				<li><a href="#executedef">Executeメソッドを定義</a></li>
+			</ul>
+		</li>
+		<li><a href="#makeform">Formを作る</a>
+			<ul>
+				<li><a href="#formdef">Formクラスを定義</a></li>
+				<li><a href="#implform">Formの実装</a></li>
+			</ul>
+		</li>
+		<li><a href="#makehtml">HTMLテンプレートを作る</a>
+			<ul>
+				<li><a href="#htmlname">HTMLテンプレートのファイル名</a></li>
+				<li><a href="#htmldir">HTMLテンプレートのディレクトリ</a></li>
+				<li><a href="#htmlfreegen">FreeGenを叩いてパス自動生成</a></li>
+			</ul>
+		</li>
+		<li><a href="#implexecute">Executeメソッドを実装</a>
+			<ul>
+				<li><a href="#resolveform">Formのコンパイルエラーを直す</a></li>
+				<li><a href="#returnfornow">ひとまずreturnを書いておく</a></li>
+				<li><a href="#validate">validate()を呼ぶ</a></li>
+				<li><a href="#dbflute">DBFluteを使う</a></li>
+				<li><a href="#dispbean">表示データのBeanを作る</a></li>
+				<li><a href="#dispdata">表示データをResponseに設定</a></li>
+			</ul>
+		</li>
+		<li><a href="#adjustment">いろいろと調整実装</a></li>
+	</ul>
+
+	<h2 id="flow">実装の流れ</h2>
+	<p>
+		ここでは、docksidestage.org というドメイン、つまりパッケージは <em class="mark">org.docksidestage</em>
+		を想定し、<em class="mark">harbor</em> というアプリ名であることを想定して説明していきます。
+	</p>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="designurl">URLを決める</h2>
+	<p>
+		まずは、URLを決めましょう。 
+		ここでは <em class="mark">/sea/land/3?iks=bonvo</em> というGETリクエストの対応する Action を作ることにしましょう。
+	</p>
+
+	<h2 id="makeaction">Actionクラスを作る</h2>
+	<h3 id="actionname">Actionの名前を決める</h3>
+	<p>
+		/3 はURLパラメーターとするならば、Actionを識別する部分が /sea/land/ となり、
+	</p>
+	<ul>
+		<li>A. <em class="mark">Sea</em>Action#<em class="mark">land</em>()</li>
+		<li>B. <em class="mark">SeaLand</em>Action#index()</li>
+	</ul>
+	<p>
+		の、どちらかとなります。<em class="bigmark">(規約)</em>
+	</p>
+	<div class="relatedpage"><a href="./index.html#urlmapping">LastaFluteのAction - URL Mapping</a></div>
+	<p>
+		基本的には、一つの画面に付き、一つのActionがオススメです。ですが、業務規模などの都合で微調整してもよいでしょう。
+		<span class="frm">(とりあえず漠然と決めて、あとでやっぱりこっちだった、となればリファクタリングすればOKです。変更してもURLには影響しません)</span>
+	</p>
+	<p>
+		ここでは、landという画面があると想定して、<em class="mark">SeaLandAction#index()</em> を作りましょう。
+	</p>
+	<h3 id="pkglocation">Actionのパッケージ(配置場所)を決める</h3>
+	<p>
+		SeaLandAction であれば、
+	</p>
+	<ul>
+		<li>A. ...app.web.SeaLandAction</li>
+		<li>B. ...app.web.<em class="mark">sea</em>.SeaLandAction</li>
+		<li>C. ...app.web.<em class="mark">sea.land</em>.SeaLandAction</li>
+	</ul>
+	<p>
+		のどれかになります。<em class="bigmark">(規約)</em>
+	</p>
+	<div class="relatedpage"><a href="./index.html#pkglocation">LastaFluteのAction - Action Package</a></div>
+	<p>
+		web直下に置くのは、よほどのメジャー感のあるものなので、基本的には B, C となるでしょう。
+		seaの仲間がすごく多いことが想定される場合は C ですが、まずは B にしておいて、後から移動してもよいでしょう。
+		<span class="frm">(あとでパッケージを移動しても、URLやプログラムに影響はありません)</span>
+	</p>
+	<p>
+		ここでは、...app.web.<em class="mark">sea</em> に置くことにしましょう。
+	</p>
+	<h3 id="actuallymakeaction">実際に作る</h3>
+	<p>
+		実際に org.docksidestage.app.web.sea.SeaLandAction にクラスを作ってみましょう。
+	</p>
+<pre><span class="codetitle">e.g. Action class location @Package</span><code>
+src/main/java
+ |-org.docksidestage
+ |  |-app
+ |  |  |-logic
+ |  |  |-web
+ |  |  |  |-<span class="subpoint">sea</span>
+ |  |  |  |  |-<span class="point">SeaLandAction.java</span>
+ |  |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-bizfw
+ |  |-dbflute
+ |  |-<span class="abbreviation">...</span>
+</code></pre>
+
+	<h2 id="prepareexecute">Executeメソッドを準備</h2>
+	<h3 id="extendsbase">Baseクラスを継承</h3>
+	<p>
+		まずは、作成したActionにて、そのアプリのBaseクラスを継承しましょう。アプリ名が harbor
+		であれば、	<em class="mark">HarborBaseAction</em> を継承します。<span class="frm">(そのアプリのBaseActionが用意されているはずです)</span>
+	</p>
+<pre><span class="codetitle">e.g. Action class extends Base class @Java</span><code>
+<span class="comment">/**
+ * @author your name
+ */</span>
+<span class="keyword">public class</span> SeaLandAction <span class="subpoint">extends</span> <span class="point">HarborBaseAction</span> {
+}
+</code></pre>
+	<h3 id="executedef">Executeメソッドを定義</h3>
+	<p>
+		ここでは、HTMLスタイルの Execute メソッド <em class="mark">index()</em>
+		を作ってみましょう。
+	</p>
+	<p>
+		Executeアノテーションを付け、戻り値は HtmlResponse,
+		URLパラメーター /3 を受け取る引数に加えて、最後の引数にGETパラメーターを受け取る Form を定義します。<em class="bigmark">(規約)</em>
+	</p>
+	<div class="relatedpage"><a href="./index.html#makeaction">LastaFluteのAction - make Action Class</a></div>
+<pre><span class="codetitle">e.g. Action class extends Base class @Java</span><code>
+<span class="comment">/**
+ * @author yourname
+ */</span>
+<span class="keyword">public class</span> SeaLandAction <span class="keyword">extends</span> HarborBaseAction {
+
+    @Execute
+    <span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
+    	<span class="comment">// コンパイルエラーです！</span>
+    	<span class="comment">// この後、Formを作って戻り値を指定しますので、ちょっとそのままで。</span>
+    }
+}
+</code></pre>
+	<p>
+		ちなみに、もしURLパラメーターの /3 が非必須の要素であれば、seaId の型を OptionalThing&lt;Integer&gt;
+		にします。省略されたときは empty になります。
+	</p>
+
+	<h2 id="makeform">Formを作る</h2>
+	<h3 id="formdef">Formクラスを定義</h3>
+	<p>
+		SeaLandForm は定義してみましたが、まだ存在しないのでコンパイルエラーです。
+	</p>
+	<p>
+		<em class="keyword">Formのクラス名は Form で終わる</em> 必要があります。その前に付く名前は任意ですが、Actionとイメージの近い名前がオススメです。
+		ここでは、<em class="mark">SeaLandForm</em> という名前で作ることにしましょう。
+	</p>
+	<p>
+		パッケージ(置き場所)は、Actionクラスと同じ (つまり、Actionの隣に置く) がオススメです。
+	</p>
+<pre><span class="codetitle">e.g. Form class location @Package</span><code>
+src/main/java
+ |-org.docksidestage
+ |  |-app
+ |  |  |-logic
+ |  |  |-web
+ |  |  |  |-sea
+ |  |  |  |  |-SeaLandAction.java
+ |  |  |  |  |-<span class="point">SeaLandForm.java</span>
+ |  |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-bizfw
+ |  |-dbflute
+ |  |-<span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="implform">Formの実装</h3>
+	<p>
+		publicフィールドで受け取るパラメーターのプロパティを定義します。フリー入力項目でなければ、Stringではなく、Integer や LocalDate
+		や CDef (区分値) など、ネイティヴな型で宣言してOKです。
+		<span class="frm">(変換できない値だったら、それはシステム上のミス、もしくは、いたずらということで 404 になる)</span>
+	</p>
+	<p>
+		ここでは、iks=bonvoというGETパラメーターに対応して、iksプロパティを定義しましょう。
+	</p>
+<pre><span class="codetitle">e.g. Form class @Java</span><code>
+<span class="comment">/**
+ * @author yourname
+ */</span>
+<span class="keyword">public class</span> SeaLandForm {
+
+    <span class="keyword">public</span> String <span class="attribute">iks</span>;
+}
+</code></pre>
+	<p>
+		もし、バリデーションを行うなら、Validatorアノテーションを付けます。
+	</p>
+	<dl class="longvaluemainlist">
+		<dt>必須チェック</dt><dd>@Required <span class="frm">(String, Integerなんでも使える)</span></dd>
+		<dt>文字列の最大長</dt><dd>@Length</dd>
+		<dt>数値の最大値</dt><dd>@Max</dd>
+		<dt>などなど</dt><dd>いろいろ</dd>
+	</dl>
+	<p>
+		ここでは、iksプロパティの長さが 10 以下であることをバリデーションしてみましょう。
+	</p>
+<pre><span class="codetitle">e.g. Form class @Java</span><code>
+<span class="comment">/**
+ * @author yourname
+ */</span>
+<span class="keyword">public class</span> SeaLandForm {
+
+    <span class="point">@Length</span>(<span class="literal">10</span>)
+    <span class="keyword">public</span> String <span class="attribute">iks</span>;
+}
+</code></pre>
+
+	<h2 id="makehtml">HTMLテンプレートを作る</h2>
+	<p>
+		Actionの実装の前に、HTMLテンプレートのファイルを作って、自動生成だけやっておきましょう。
+	</p>
+	<p>
+		ここでは、JSPを想定します。<span class="frm">(将来、提供されるメインのテンプレートが変わるかもしれません)</span>
+	</p>
+	<h3 id="htmlname">HTMLテンプレートのファイル名</h3>
+	<p>
+		関連するActionクラスを識別できる名前にします。<em class="bigmark">(規約)</em>
+	</p>
+	<p>
+		SeaLandAction であれば、sea_land.jsp になります。
+		la:form で action 属性を省略したとき、/sea/land/[submitされたボタン名] にsubmitされます。
+		<span class="frm">(省略しなければ、名前は任意になりますが、合わせておくのがオススメです)</span>
+	</p>
+	<p>
+		ここでは、<em class="mark">sea_land.jsp</em> にします。
+	</p>
+	<h3 id="htmldir">HTMLテンプレートのディレクトリ</h3>
+	<p>
+		JSPは、src/main/webapp/WEB-INF/view の下に作成します。<em class="bigmark">(規約)</em>
+	</p>
+	<p>
+		そこからのディレクトリ構成は、Actionクラスと同じで、sea_land.jsp なら、sea ディレクトリか sea/land ディレクトリの下に配置します。
+		<em class="bigmark">(規約)</em>
+	</p>
+	<p>
+		ここでは、src/main/webapp/WEB-INF/view/<em class="mark">sea</em> ディレクトリにします。
+	</p>
+	<h3 id="htmlfreegen">FreeGenを叩いてパス自動生成</h3>
+	<p>
+		manageタスク (DBFluteクライアントの manage.bat|sh) の 12 (freegen) を叩いて、FreeGen を実行すると、そのHTMLテンプレートに対応するパス定義が自動生成されます。
+		ここでは <em class="mark">HarborHtmlPath</em> に <em class="mark">path_Sea_SeaLandJsp</em> というパス定義が追加されるでしょう。
+	</p>
+
+	<h2 id="implexecute">Executeメソッドを実装</h2>
+	<h3 id="resolveform">Formのコンパイルエラーを直す</h3>
+	<p>
+		引数で定義した Form クラスの import を定義して、コンパイルエラーを解決しましょう。 
+	</p>
+	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
+	<p>
+		returnは後であれこあカスタマイズするかもしれませんが、コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきます。
+	</p>
+	<p>
+		asHtml([自動生成されたHTMLテンプレートのパス定義]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as HTML template @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Sea_SeaLandJsp</span>); 
+}
+</code></pre>
+	<p>
+		もし、別の Action へのリダイレクトなら、redirect([リダイレクト先のAction]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as redirect @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">redirect</span>(IksAmbaAction.class); 
+}
+</code></pre>
+	<h3 id="validate">validate()を呼ぶ</h3>
+	<p>
+		FormにValidatorアノテーションを一つでも付けているなら、validate() を呼ぶ必要があります。
+	</p>
+<pre><span class="codetitle">e.g. validate() in Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="point">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+    });
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>); 
+}
+</code></pre>
+	<p>
+		Eclipseであれば、秘伝の EditorTemplate が設定されていれば、魔法のように補完できます。
+	</p>
+	<div class="relatedpage"><a href="../../../tutorial/onjava8.html#triclipse">DBFlute on Java8 - 裏技あります</a></div>
+	<p>
+		相関バリデーションやDBを使ったバリデーションなど、アノテーションでは実現できないものは、第二引数の Lambda の中で実装します。
+	</p>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="dbflute">DBFluteを使う</h3>
+	<p>
+		DBFluteを使って検索・更新などを行うのであれば... TODO jflute
+	</p>
+	<h3 id="dispbean">表示データのBeanを作る</h3>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="dispdata">表示データをResponseに設定</h3>
+	<p>
+		asHtml()を使っている場合、HTMLテンプレートに表示データを渡します。
+	</p>
+	<p>
+		asHtml()に続いて、renderWith()メソッドを呼び、Lambda引数の data の register()
+		を使って、HTMLテンプレート上で参照する名前をキーに、表示データを登録します。
+	</p>
+<pre><span class="codetitle">e.g. validate() in Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+    });
+    SeaBean seaBean = <span class="abbreviation">...</span>
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>).<span class="point">renderWith</span>(data -&gt;{
+        data.<span class="subpoint">register</span>("bean", bean);
+    }); 
+}
+</code></pre>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="adjustment">いろいろと調整実装</h2>
+	<p>
+		TODO jflute
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimplfaq.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="https://github.com/lastaflute/lastaflute">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
