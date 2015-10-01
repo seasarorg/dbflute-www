@@ -39,6 +39,7 @@
 <div id="content">
 	<h1>Actionの作り方 (HTMLスタイル)</h1>
 	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<div class="relatedpage"><a href="../../tutorial/laimpl.html">LastaFluteの実装チュートリアル</a></div>
 	<div class="relatedpage"><a href="./index.html">LastaFluteのAction</a></div>
 	<ul class="indexlist">
 		<li><a href="#flow">実装の流れ</a></li>
@@ -107,7 +108,7 @@
 		<li>B. <em class="mark">SeaLand</em>Action#index()</li>
 	</ul>
 	<p>
-		の、どちらかとなります。<em class="bigmark">(規約)</em>
+		の、どちらかとなります。<em class="keyword">(規約)</em>
 	</p>
 	<div class="relatedpage"><a href="./index.html#urlmapping">LastaFluteのAction - URL Mapping</a></div>
 	<p>
@@ -127,7 +128,7 @@
 		<li>C. ...app.web.<em class="mark">sea.land</em>.SeaLandAction</li>
 	</ul>
 	<p>
-		のどれかになります。<em class="bigmark">(規約)</em>
+		のどれかになります。<em class="keyword">(規約)</em>
 	</p>
 	<div class="relatedpage"><a href="./index.html#pkglocation">LastaFluteのAction - Action Package</a></div>
 	<p>
@@ -176,8 +177,8 @@ src/main/java
 		を作ってみましょう。
 	</p>
 	<p>
-		Executeアノテーションを付け、戻り値は HtmlResponse,
-		URLパラメーター /3 を受け取る引数に加えて、最後の引数にGETパラメーターを受け取る Form を定義します。<em class="bigmark">(規約)</em>
+		Executeアノテーションを付けて戻り値は HtmlResponse,
+		そして、URLパラメーター /3 を受け取る引数を最初に定義して、GETパラメーターを受け取る Form を最後の引数に定義します。<em class="keyword">(規約)</em>
 	</p>
 	<div class="relatedpage"><a href="./index.html#makeaction">LastaFluteのAction - make Action Class</a></div>
 <pre><span class="codetitle">e.g. Action class extends Base class @Java</span><code>
@@ -194,8 +195,8 @@ src/main/java
 }
 </code></pre>
 	<p>
-		ちなみに、もしURLパラメーターの /3 が非必須の要素であれば、seaId の型を OptionalThing&lt;Integer&gt;
-		にします。省略されたときは empty になります。
+		もし、URLパラメーターの /3 が非必須の要素であれば、seaId の型を OptionalThing&lt;Integer&gt;
+		にします。省略されたときは empty になります。そもそも、URLパラメーターもFormパラメーターもないのであれば、引数なしでOKです。
 	</p>
 
 	<h2 id="makeform">Formを作る</h2>
@@ -204,8 +205,8 @@ src/main/java
 		SeaLandForm は定義してみましたが、まだ存在しないのでコンパイルエラーです。
 	</p>
 	<p>
-		<em class="keyword">Formのクラス名は Form で終わる</em> 必要があります。その前に付く名前は任意ですが、Actionとイメージの近い名前がオススメです。
-		ここでは、<em class="mark">SeaLandForm</em> という名前で作ることにしましょう。
+		<em class="keyword">Formのクラス名は Form で終わる</em> 必要があります<em class="keyword">(規約)</em>。その前の名前は任意ですが、Actionとイメージの近い名前がオススメです。
+		ここでは、<em class="mark">SeaLandForm</em> という名前で作りましょう。
 	</p>
 	<p>
 		パッケージ(置き場所)は、Actionクラスと同じ (つまり、Actionの隣に置く) がオススメです。
@@ -275,7 +276,7 @@ src/main/java
 	</p>
 	<h3 id="htmlname">HTMLテンプレートのファイル名</h3>
 	<p>
-		関連するActionクラスを識別できる名前にします。<em class="bigmark">(規約)</em>
+		関連するActionクラスを識別できる名前にします。<em class="keyword">(規約)</em>
 	</p>
 	<p>
 		SeaLandAction であれば、sea_land.jsp になります。
@@ -287,11 +288,11 @@ src/main/java
 	</p>
 	<h3 id="htmldir">HTMLテンプレートのディレクトリ</h3>
 	<p>
-		JSPは、src/main/webapp/WEB-INF/view の下に作成します。<em class="bigmark">(規約)</em>
+		JSPは、src/main/webapp/WEB-INF/view の下に作成します。<em class="keyword">(規約)</em>
 	</p>
 	<p>
 		そこからのディレクトリ構成は、Actionクラスと同じで、sea_land.jsp なら、sea ディレクトリか sea/land ディレクトリの下に配置します。
-		<em class="bigmark">(規約)</em>
+		<em class="keyword">(規約)</em>
 	</p>
 	<p>
 		ここでは、src/main/webapp/WEB-INF/view/<em class="mark">sea</em> ディレクトリにします。
@@ -368,7 +369,7 @@ src/main/java
 		asHtml()に続いて、renderWith()メソッドを呼び、Lambda引数の data の register()
 		を使って、HTMLテンプレート上で参照する名前をキーに、表示データを登録します。
 	</p>
-<pre><span class="codetitle">e.g. validate() in Action class @Java</span><code>
+<pre><span class="codetitle">e.g. renderWith() in Action class @Java</span><code>
 @Execute
 <span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">seaId</span>, SeaLandForm <span class="localvar">form</span>) {
     validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
@@ -410,15 +411,27 @@ src/main/java
 				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
 				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
 				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
-				<li><a href="../../../../ja/lastaflute/tutorial/laimplfaq.html">LastaFluteの実装FAQ</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#makeaction">Actionクラスを作る</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#implexecute">Executeメソッドを実装</a></li>
 			</ul>
 		</li>
 		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
 			<ul>
-				<li><a href="https://github.com/lastaflute/lastaflute">Lasta Di | Github</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
 			</ul>
 		</li>
 		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
 		</li>
 	</ul>
 
