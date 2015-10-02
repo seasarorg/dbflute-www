@@ -77,7 +77,6 @@
 		</li>
 		<li><a href="#implexecute">Executeメソッドを実装</a>
 			<ul>
-				<li><a href="#resolveform">Formのコンパイルエラーを直す</a></li>
 				<li><a href="#returnfornow">ひとまずreturnを書いておく</a></li>
 				<li><a href="#validate">validate()を呼ぶ</a></li>
 				<li><a href="#dbflute">DBFluteを使う</a></li>
@@ -141,7 +140,7 @@
 	</p>
 	<h3 id="pkglocation">Actionのパッケージ(配置場所)を決める</h3>
 	<p>
-		SeaLandAction であれば、
+		SeaLandAction であれば...
 	</p>
 	<ul>
 		<li>A. ...app.web.SeaLandAction</li>
@@ -232,7 +231,7 @@ src/main/java
 	<p>
 		パッケージ(置き場所)は、Actionクラスと同じ (つまり、Actionの隣に置く) がオススメです。
 	</p>
-<pre><span class="codetitle">e.g. Form class location @Package</span><code>
+<pre><span class="codetitle">e.g. Form class location @Directory</span><code>
 src/main/java
  |-org.docksidestage
  |  |-app
@@ -333,10 +332,6 @@ src/main/java
 	</p>
 
 	<h2 id="implexecute">Executeメソッドを実装</h2>
-	<h3 id="resolveform">Formのコンパイルエラーを直す</h3>
-	<p>
-		引数で定義した Form クラスの import を定義して、コンパイルエラーを解決しましょう。 
-	</p>
 	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
 	<p>
 		returnは後であれこあカスタマイズするかもしれませんが、コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきます。
@@ -447,13 +442,29 @@ src/main/java
 		ここに関しては、Lastaだからどうだってのはありませんが、習慣として Bean という名前のクラスをActionの隣に作っています。
 		ここでは、<em class="mark">SeaLandRowBean</em> というクラスを作りましょう。
 	</p>
+<pre><span class="codetitle">e.g. Bean class location @Directory</span><code>
+src/main/java
+ |-org.docksidestage
+ |  |-app
+ |  |  |-logic
+ |  |  |-web
+ |  |  |  |-sea
+ |  |  |  |  |-SeaLandAction.java
+ |  |  |  |  |-SeaLandForm.java
+ |  |  |  |  |-<span class="point">SeaLandRowBean.java</span>
+ |  |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-bizfw
+ |  |-dbflute
+ |  |-<span class="abbreviation">...</span>
+</code></pre>
 <pre><span class="codetitle">e.g. properties for display in Bean class @Java</span><code>
 <span class="comment">/**
  * @author yourname
  */</span>
 <span class="keyword">public class</span> SeaLandRowBean {
 
-    <span class="keyword">public</span> Integer <span class="attribute">purchaseId</span>;
+    <span class="keyword">public</span> Long <span class="attribute">purchaseId</span>;
     <span class="keyword">public</span> String <span class="attribute">memberName</span>;
     <span class="keyword">public</span> String <span class="attribute">productName</span>;
     <span class="keyword">public</span> String <span class="attribute">productHandleCode</span>;
@@ -484,10 +495,10 @@ src/main/java
             <span class="localvar">bean</span>.<span class="attribute">productName</span> = <span class="localvar">product</span>.getProductName();
             <span class="localvar">bean</span>.<span class="attribute">productHandleCode</span> = <span class="localvar">product</span>.getProductHandleCode();
         });
-        <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime());
+        <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
         <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
         <span class="keyword">return</span> <span class="localvar">bean</span>;
-    })
+    });
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>); 
 }
 </code></pre>
