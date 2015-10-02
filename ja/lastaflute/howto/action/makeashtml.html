@@ -45,6 +45,7 @@
 		<li><a href="#flow">実装の流れ</a>
 			<ul>
 				<li><a href="#precon">ちょっと前提</a></li>
+				<li><a href="#handson">ハンズオンで Action を作ってみよう！</a></li>
 				<li><a href="#rough">まずはラフスケッチ実装</a></li>
 			</ul>
 		</li>
@@ -73,6 +74,7 @@
 				<li><a href="#htmlname">HTMLテンプレートのファイル名</a></li>
 				<li><a href="#htmldir">HTMLテンプレートのディレクトリ</a></li>
 				<li><a href="#htmlfreegen">FreeGenを叩いてパス自動生成</a></li>
+				<li><a href="#htmlfreegen">JSPの実装...はさておいて</a></li>
 			</ul>
 		</li>
 		<li><a href="#implexecute">Executeメソッドを実装</a>
@@ -93,8 +95,11 @@
 		ここでは、docksidestage.org というドメイン、つまりパッケージは <em class="mark">org.docksidestage</em>
 		を想定し、<em class="mark">harbor</em> というアプリ名であることを想定して説明していきます。
 	</p>
+	<h3 id="handson">ハンズオンで Action を作ってみよう！</h3>
 	<p>
-		実際に、Exampleプロジェクトで、クラスを作りながらやっていってもよいでしょう。
+		LastaFluteでの実装のやり方を学んでいる最中であれば、まずは、Exampleプロジェクト harbor
+		で、実際にクラスを作りながらやっていってもよいでしょう。コードを真似て書きながら(コピーでもOK)、画面を作っていくと流れとコツがわかってくるかと思います。
+		<span class="frm">(それができるようにドキュメントを作っています)</span>
 	</p>
 	<h3 id="rough">まずはラフスケッチ実装</h3>
 	<p>
@@ -327,9 +332,50 @@ src/main/java
 <span class="abbreviation">...</span>$ sh <span class="point">manage.sh</span>
 <span class="comment">(メニューが表示されるので、12を入力してEnter)</span>
 </code></pre>
+	<h3 id="htmlfreegen">JSPの実装...はさておいて</h3>
 	<p>
-		まだ、ラフスケッチ中なので、中身は置いておきましょう。
+		まだ、ラフスケッチ中なので、中身はシンプルな状態で。この時点では真っ白でもOKです。
+		ここでは、<em class="mark">何も表示されないと悲しい</em> ので、一覧を表示するHTMLだけちょこっと書いておきましょう。
 	</p>
+<pre><span class="codetitle">e.g. execute FreeGen @Command</span><code>
+&lt;c:import url="${viewPrefix}/common/default_layout.jsp"&gt;
+&lt;c:param name="contents"&gt;
+&lt;!-- &lt;main&gt; start main content --&gt;
+&lt;div class="contents"&gt;
+    &lt;h2 class="pg-content-title"&gt;&lt;la:caption key="labels.purchase.list.title"/>&lt;/h2&gt;
+    &lt;section class="purchase-result-box"&gt;
+        &lt;h3 class="pg-content-title-second"&gt;Search Results&lt;/h3&gt;
+        &lt;table class="purchase-list-tbl"&gt;
+            &lt;thead&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;ID&lt;/th&gt;
+                    &lt;th&gt;Member Name&lt;/th&gt;
+                    &lt;th&gt;Product Name&lt;/th&gt;
+                    &lt;th&gt;Product Handle Code&lt;/th&gt;
+                    &lt;th&gt;Purchase Date&lt;/th&gt;
+                    &lt;th&gt;Purchase Price&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                &lt;c:forEach var="bean" items="${beans}"&gt;
+                &lt;tr&gt;
+                    &lt;td&gt;${f:h(bean.purchaseId)}&lt;/td&gt;
+                    &lt;td&gt;${f:h(bean.memberName)}&lt;/td&gt;
+                    &lt;td&gt;${f:h(bean.productName)}&lt;/td&gt;
+                    &lt;td&gt;${f:h(bean.productHandleCode)}&lt;/td&gt;
+                    &lt;td&gt;${f:h(bean.purchaseDate)}&lt;/td&gt;
+                    &lt;td&gt;${f:h(bean.purchasePrice)}&lt;/td&gt;
+                &lt;/tr&gt;
+                &lt;/c:forEach&gt;
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/section&gt;
+&lt;/div&gt;
+&lt;!-- &lt;/main&gt; end of main content --&gt;
+&lt;/c:param&gt;
+&lt;/c:import&gt;
+</code></pre>
+	
 
 	<h2 id="implexecute">Executeメソッドを実装</h2>
 	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
@@ -522,7 +568,7 @@ src/main/java
     });
     ListResultBean&lt;Purchase&gt; <span class="localvar">purchaseList</span> = <span class="abbreviation">...</span>
     List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = <span class="abbreviation">...</span>
-    <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>).<span class="point">renderWith</span>(<span class="localvar">data</span> -&gt;{
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>).<span class="point">renderWith</span>(<span class="localvar">data</span> -&gt; {
         <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
     });
 }
