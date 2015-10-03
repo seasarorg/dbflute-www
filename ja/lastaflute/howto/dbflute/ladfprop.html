@@ -41,11 +41,12 @@
 	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
 	<ul class="indexlist">
 		<li><a href="#about">Lasta の dfprop とは？</a></li>
-		<li><a href="#making">lastafluteMap.dfpropの作成</a></li>
 		<li><a href="#basic">基本プロパティ</a></li>
+		<li><a href="#env">環境プロパティ</a></li>
 		<li><a href="#appmap">appMapプロパティ</a></li>
-		<li><a href="#freegen">FreeGenプロパティ</a></li>
-		<li><a href="#prophtml">PropertiesHTMLプロパティ</a></li>
+		<li><a href="#freegen">freeGenListプロパティ</a></li>
+		<li><a href="#prophtml">propertiesHtmlListプロパティ</a></li>
+		<li><a href="#overridemap">規約の微調整 <span class="frm">(overrideMap)</span></a></li>
 	</ul>
 
 	<h2 id="about">Lasta の dfprop とは？</h2>
@@ -56,26 +57,150 @@
 		例えば、FreeGenの設定、PropertiesHTMLの設定など、直接 DBFlute に設定すると dfprop
 		が膨張して管理が煩雑になってしまいますが、LastaFluteの規約をDBFluteに組み込み、簡易な設定で反映させられるようにしています。
 	</p>
+<pre><span class="codetitle">e.g. Maihamaプロジェクトの lastafluteMap.dfprop @lastafluteMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="comment"># your service name, camel case, initial uncapitalised</span>
+    ; serviceName = <span class="literal">maihama</span>
 
-	<h2 id="making">lastafluteMap.dfpropの作成</h2>
-	<p>
-		Startup の手順であれば、Exampleで利用されていたものが最初から用意されているので、ゼロの状態から作ることは基本的にありません。
-	</p>
-	<p>
-		もし仮に、ゼロから作るのであれば、他のDBFluteの dfprop と同様に、DBFluteクライアント/dfprop配下に
-		lastafluteMap.dfprop という名前でテキストファイルを作成します。中身は、それこそ Example のものを参考にするとよいでしょう。
-	</p>
+    <span class="comment"># package for your domain name, e.g. com.example</span>
+    ; domainPackage = <span class="literal">org.docksidestage</span>
+
+    <span class="comment"># keywords for environment properties, same as directory name</span>
+    ; environmentList = <span class="keyword">list:</span>{ <span class="literal">integration</span> ; <span class="literal">production</span> }
+
+    <span class="comment"># environment dispatch by lasta.env of system property?</span>
+    ; isUseLastaEnv = <span class="keyword">true</span>
+
+    <span class="comment"># settings for common project of all web applications</span>
+    ; commonMap = <span class="keyword">map:</span>{
+        ; path = <span class="literal">..</span>
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+
+    <span class="comment"># settings for web applications</span>
+    ; appMap = <span class="keyword">map:</span>{
+        ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
+            ; path = <span class="literal">../../maihama-dockside</span>
+            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+            ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+        }
+        ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
+            ; path = <span class="literal">../../maihama-hangar</span>
+            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+            ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+        }
+    }
+
+    <span class="comment"># you can override (several) default settings like this:
+    #; overrideMap = map:{
+    #    ; dockside.freeGen.mail.targetDir = ./playsql/data/mail
+    #}</span>
+}
+</code></pre>
 
 	<h2 id="basic">基本プロパティ</h2>
+	<dl class="shortkeymainlist">
+		<dt>serviceName</dt><dd>プロジェクト全体のサービス名、Maihamaプロジェクトなら maihama</dd>
+		<dt>domainPackage</dt><dd>サービスのドメイン部分を表すパッケージ <span class="frm">(この直下に app や mylasta など)</span></dd>
+	</dl>
+
+	<h2 id="env">環境プロパティ</h2>
+	<dl class="shortkeymainlist">
+		<dt>environmentList</dt><dd>デプロイ環境のリスト、結合と本番の二つなら integration ; production</dd>
+		<dt>isUseLastaEnv</dt><dd>LastaEnvスタイルか？ <span class="frm">(Exampleテンプレートではtrue)</span></dd>
+	</dl>
 	<p>
-		TODO jflute
+		もし、デプロイ環境が増えたら、environmentList に環境を追加します。
+	</p>
+	<div class="relatedpage"><a href="../structure/builddeploy.html#addenvtodfprop">2. lastafluteMap.dfprop にて env を追加</a></div>
+	<p>
+		Maven の Profile 機能などを使って環境切り替えを実現する場合は、isUseLastaEnv を false
+		にしますが。LastaFluteのやり方としては、true がオススメです。
 	</p>
 
 	<h2 id="appmap">appMapプロパティ</h2>
+	<p>
+		ここでは、アプリごとの FreeGen や PropertiesHTML の設定などをしていきます。
+	</p>
+<pre><span class="codetitle">e.g. Maihamaプロジェクトの lastafluteMap.dfprop @lastafluteMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+<span class="comment"># settings for common project of all web applications</span>
+; commonMap = <span class="keyword">map:</span>{
+    ; path = <span class="literal">..</span>
+    ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+}
 
-	<h2 id="freegen">FreeGenプロパティ</h2>
+<span class="comment"># settings for web applications</span>
+; appMap = <span class="keyword">map:</span>{
+    ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
+        ; path = <span class="literal">../../maihama-dockside</span>
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+    ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
+        ; path = <span class="literal">../../maihama-hangar</span>
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+}
+</code></pre>
+	<p>
+		マルチプロジェクトの場合は、commonMap も含みます。そのまま commonプロジェクトの設定をします。
+		path は、DBFluteクライアントが common にあれば一個上に行くだけなので ".." です。
+	</p>
+	<p>
+		appMapの方は、アプリ名 (maihama-dockside なら dockside) を map
+		のキーにします。path は、DBFluteクライアントからの相対パスでそのアプリのプロジェクトルートまで少し旅に出ます。
+	</p>
 
-	<h2 id="prophtml">PropertiesHTMLプロパティ</h2>
+	<h2 id="freegen">freeGenListプロパティ</h2>
+	<p>
+		そのアプリで、FreeGenで自動生成するものを指定します。
+	</p>
+	<dl class="shoshortkeymainlist">
+		<dt>env</dt><dd>[app]_env.propertiesのインターフェース自動生成</dd>
+		<dt>config</dt><dd>[app]_config.propertiesのインターフェース自動生成</dd>
+		<dt>label</dt><dd>[app]_label.propertiesのインターフェース自動生成</dd>
+		<dt>message</dt><dd>[app]_message.propertiesのインターフェース自動生成</dd>
+		<dt>mail</dt><dd>MailFlute の Postcard クラスの自動生成 <span class="frm">(src/main/resources/mail配下のdfmail)</span></dd>
+		<dt>template</dt><dd>汎用テンプレート対応のクラスの自動生成 <span class="frm">(src/main/resources配下のdfpm)</span></dd>
+		<dt>jsp @ *</dt><dd>JSPのパス定義の自動生成 <span class="frm">(WEB-INF/view配下の .jsp と.html)</span></dd>
+		<dt>html @ *</dt><dd>HTMLテンプレートのパス定義の自動生成 <span class="frm">(WEB-INF/view配下の .html)</span></dd>
+		<dt>doc</dt><dd>LastaDocの自動生成 <span class="frm">(dbflute_[app]db/output/lasta配下に出力)</span></dd>
+	</dl>
+	<p>
+		"@" (あっとまーく) の付いているものは、commonプロジェクトでは不要です。
+	</p>
+	<p>
+		"*" の付いているものは、どちらか一つ、もしくは、JSON API なら両方とも不要です。
+	</p>
+	<p>
+		基本、それ以外はすべて指定しておきましょう。例えば、mail や template などは仮に使わないとしても、対象となるファイルを作らなければいいだけです。
+	</p>
+
+	<h2 id="prophtml">propertiesHtmlListプロパティ</h2>
+	<p>
+		そのアプリで、PropertiesHTMLの対象とするものを指定します。
+	</p>
+	<dl class="shoshortkeymainlist">
+		<dt>env</dt><dd>[app]_env.propertiesのインターフェース自動生成</dd>
+		<dt>config</dt><dd>[app]_config.propertiesのインターフェース自動生成</dd>
+		<dt>label</dt><dd>[app]_label.propertiesのインターフェース自動生成</dd>
+		<dt>message</dt><dd>[app]_message.propertiesのインターフェース自動生成</dd>
+	</dl>
+	<p>
+		基本、すべて指定しましょう。
+	</p>
+
+	<h2 id="overridemap">規約の微調整 <span class="frm">(overrideMap)</span></h2>
+	<p>
+		DBFluteにて組み込まれている規約をちょっと違うものにしたい場合は...
+	</p>
+	<p>
+		TODO jflute
+	</p>
 
 </div>
 </div>
