@@ -48,12 +48,18 @@
 				<li><a href="#checkokmaster">マスタデータが入ったことを確認</a></li>
 			</ul>
 		</li>
-		<li><a href="#testdata">テストデータの登録</a>
+		<li><a href="#testmethod">テストメソッドの作成</a>
 			<ul>
 				<li><a href="#assertnotestdata">テストデータがあることをアサートするテスト</a></li>
 				<li><a href="#impltestcode">テストコードの実装</a></li>
 				<li><a href="#executetestcode">テストコードの実行</a></li>
+			</ul>
+		</li>
+		<li><a href="#testdata">テストデータの登録</a>
+			<ul>
 				<li><a href="#loadtestdata">テストデータを配置して再びReplaceSchema</a></li>
+				<li><a href="#logreading">ログを読んでみましょう</a></li>
+				<li><a href="#defaultvalue">defaultValueMap.dataprop</a></li>
 				<li><a href="#checkoktestdata">テストが通ることを確認</a></li>
 			</ul>
 		</li>
@@ -107,7 +113,7 @@
 </code></pre>
 	<h3 id="loadmaster">マスタデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql-loaddata-common.zip の playsql/data/common/xls/10-master.xls
+		tutorial/material/dbflute/playsql-loaddata-common.zip の <em class="mark">playsql/data/common/xls/10-master.xls</em>
 		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
 	</p>
 <pre><span class="codetitle">e.g. マスタデータ用のエクセルファイルの配置場所 @Directory</span><code>
@@ -130,17 +136,21 @@ PROJECT_ROOT
 		先ほどの会員ステータスのカウント検索の結果が 0 でないことを確認してください。
 	</p>
 
-	<h2 id="testdata">テストデータの登録</h2>
+	<h2 id="testmethod">テストメソッドの作成</h2>
+	<p>
+		こんどは、テストデータの登録ですが、先にテストメソッドを書いて、テストデータが入っていることをアサートしてみましょう。
+		まだデータを登録する前ですから、テストは落ちるはずです。
+	</p>
 	<h3 id="assertnotestdata">テストデータがあることをアサートするテスト</h3>
 	<p>
 		HandsOn02Test に、会員(MEMBER)のデータをアサートするテストを書いて "落ちること"
-		を確認してください。テストメソッド名は "test_existsTestData()" とします。
+		を確認してください。テストメソッド名は <em class="mark">test_existsTestData()</em> とします。
 	</p>
 	<p>
 		このプロジェクトでは、メソッド名が test で始まることで、それがテストメソッドであると認識されます。
 		今後、テストを作成する際は、必ず "test何々" という形式でメソッドを作成してください。 
 	</p>
-	<h4>テストメソッドの雛形</h4>
+	<h3>テストメソッドの雛形</h3>
 	<p>
 		test と打って ctrl + space して enter するとテストメソッドの雛形が作成されます。
 	</p>
@@ -168,7 +178,7 @@ PROJECT_ROOT
     }
 }
 </code></pre>
-	<h4>メソッド名とBehaviorの宣言</h4>
+	<h3>メソッド名とBehaviorの宣言</h3>
 	<p>
 		テストメソッド名は、"test_existsTestData()" とし、MemberBhv を protected のインスタンス変数として宣言してください。
 		Seasarでは、@Resource というアノテーションを付けるとDI対象となります。<span class="frm">(厳密にはテストクラスではアノテーションは不要なのですが習慣として)</span>
@@ -212,18 +222,28 @@ PROJECT_ROOT
 		を押すと、そのテストが実行されます。これは Quick JUnit のショートカットです。
 	</p>
 	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
+
+	<h2 id="testdata">テストデータの登録</h2>
 	<h3 id="loadtestdata">テストデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql-loaddata-ut.zip の playsql/data/ut/xls/20-member.xls, 30-product.xls
+		tutorial/material/dbflute/playsql-loaddata-ut.zip の <em class="mark">playsql/data/ut/xls/20-member.xls, 30-product.xls</em>
 		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
 	</p>
 	<p>
 		(...ReplaceSchema実行中)
 	</p>
+	<h3 id="logreading">ログを読んでみましょう</h3>
 	<p>
-		落ちるはずです<span class="frm">(講師による例外翻訳の小話あり)</span>。20-member.xls を開いてみてみてください。NotNull制約のついている共通カラムのデータがありません。
+		落ちるはずです。ログを追って <em class="keyword">何が起きたのか？</em> を掴んでみましょう。
+		コンソールが見づらければ、DBFluteクライアント(dbflute_maihamadb)の log/dbflute.log
+		を見るとよいでしょう。
+	</p>
+	<div class="relatedpage"><a href="../../manual/topic/programming/java/beginners.html#exceptionstacktrace">例外メッセージとスタックトレース</a></div>
+	<h3 id="defaultvalue">defaultValueMap.dataprop</h3>
+	<p>
+		20-member.xls を開いてみてみてください。NotNull制約のついている共通カラムのデータがありません。
+		ここでは、(DB上ではなく)ReplaceSchemaにデフォルト値を設定して解決しましょう。
 		同じディレクトリに以下の内容で defaultValueMap.dataprop というファイルを作成して、ReplaceSchemaを再実行してみましょう。
-		
 	</p>
 <pre><span class="codetitle">e.g. 共通カラムのデフォルトテストデータの設定 @defaultValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
