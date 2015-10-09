@@ -48,6 +48,7 @@
 	<p>
 		DBFluteハンズオン、セクション 3 の模範解答的な実装です。
 	</p>
+	<div class="relatedpage"><a href="../section03.html">ハンズオンセクション 3</a></div>
 	<p>
 		正解は一つではありませんので、あくまで "的な" というところで、参考までに。
 	</p>
@@ -67,87 +68,87 @@ dbflute-hands-on
 
 	<h2 id="flowerimpl">模範解答的な実装</h2>
 <pre><span class="codetitle">e.g. 模範解答的な実装やってみた @Java</span><code>
-/**
+<span class="comment">/**
  * @author jflute
- */
-public class HandsOn03Test extends UnitContainerTestCase {
+ */</span>
+<span class="keyword">public class</span> HandsOn03Test <span class="keyword">extends</span> UnitContainerTestCase {
 
-    // ===================================================================================
+    <span class="comment">// ===================================================================================
     //                                                                           Attribute
-    //                                                                           =========
+    //                                                                           =========</span>
     @Resource
-    protected MemberBhv memberBhv;
+    <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
     @Resource
-    protected MemberSecurityBhv memberSecurityBhv;
+    <span class="keyword">protected</span> MemberSecurityBhv <span class="attribute">memberSecurityBhv</span>;
     @Resource
-    protected PurchaseBhv purchaseBhv;
+    <span class="keyword">protected</span> PurchaseBhv <span class="attribute">purchaseBhv</span>;
 
-    // ===================================================================================
+    <span class="comment">// ===================================================================================
     //                                                                     Exercise 1 to 3
-    //                                                                     ===============
-    /**
+    //                                                                     ===============</span>
+    <span class="comment">/**
      * [1] 会員名称がSで始まる1968年1月1日以前に生まれた会員を検索
      * o 会員ステータスも取得する
      * o 生年月日の昇順で並べる
      * o 会員が1968/01/01以前であることをアサート
      * o "以前" の解釈は、"その日ぴったりも含む" で。
      * ※もし、よければ HandyDate を使ってみましょう。
-     */
-    public void test_1() throws Exception {
-        // ## Arrange ##
-        LocalDate targetDate = new HandyDate("1968/01/01").getLocalDate(); // HandyDateの紹介
+     */</span>
+    <span class="keyword">public void</span> test_1() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        LocalDate targetDate = <span class="keyword">new</span> HandyDate(<span class="literal">"1968/01/01"</span>).getLocalDate(); <span class="comment">// HandyDateの紹介</span>
 
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.query().setMemberName_LikeSearch("S", op -> op.likePrefix());
-            cb.query().setBirthdate_LessEqual(targetDate);
-            cb.query().addOrderBy_Birthdate_Asc();
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likePrefix());
+            <span class="localvar">cb</span>.query().setBirthdate_LessEqual(targetDate);
+            <span class="localvar">cb</span>.query().addOrderBy_Birthdate_Asc();
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
-        memberList.forEach(member -> {
+        memberList.forEach(member -&gt; {
             LocalDate birthdate = member.getBirthdate();
             log(member.getMemberName(), birthdate);
             assertTrue(birthdate.isBefore(targetDate) || birthdate.isEqual(targetDate));
 
-            // << いろいろなやり方がある >>
+            <span class="comment">// << いろいろなやり方がある >></span>
             assertFalse(birthdate.isAfter(targetDate));
-            assertTrue(new HandyDate(birthdate).isLessEqual(targetDate));
+            assertTrue(<span class="keyword">new</span> HandyDate(birthdate).isLessEqual(targetDate));
         });
     }
 
-    /**
+    <span class="comment">/**
      * [2] 会員ステータスと会員セキュリティ情報も取得して会員を検索
      * o 若い順で並べる。生年月日がない人は会員IDの昇順で並ぶようにする
      * o 会員ステータスと会員セキュリティ情報が存在することをアサート
      * ※カージナリティを意識しましょう
-     */
-    public void test_2() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.setupSelect_MemberStatus();
-            cb.setupSelect_MemberSecurityAsOne();
+     */</span>
+    <span class="keyword">public void</span> test_2() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.setupSelect_MemberStatus();
+            <span class="localvar">cb</span>.setupSelect_MemberSecurityAsOne();
         });
 
-        // ## Assert ##
-        // 会員から会員ステータスは、NotNullのFKカラムで参照しているので、探しにいけば必ず存在する
+        <span class="comment">// ## Assert ##</span>
+        <span class="comment">// 会員から会員ステータスは、NotNullのFKカラムで参照しているので、探しにいけば必ず存在する
         // 会員から会員セキュリティは、FKの方向と探しにいく方向が逆なので同じ理論にはなりませんが、
         // ERDのリレーション線に注目。会員退会情報と比べると一目瞭然、黒丸がついていないので必ず存在する1
         //   会員から会員セキュリティ => 1:必ず1 (1:1)
         //   会員から会員退会情報    => 1:いないかもしれない1 (1:0..1)
         // ただ、物理的な制約はありません。業務的というのは、そういうルールにしているいうことだけなんですね。
         // 細かいですが、これがデータベースプログラミングにおいて、とても重要なんですよね。
-        // ぜひ、カージナリティに着目してみてください。
+        // ぜひ、カージナリティに着目してみてください。</span>
         assertHasAnyElement(memberList);
-        memberList.forEach(member -> {
+        memberList.forEach(member -&gt; {
             assertTrue(member.getMemberStatus().isPresent());
             assertTrue(member.getMemberSecurityAsOne().isPresent());
         });
     }
 
-    /**
+    <span class="comment">/**
      * [3] 会員セキュリティ情報のリマインダ質問で2という文字が含まれている会員を検索
      * o 会員セキュリティ情報のデータ自体は要らない
      * o リマインダ質問に2が含まれていることをアサート
@@ -155,57 +156,57 @@ public class HandsOn03Test extends UnitContainerTestCase {
      * ※Actでの検索は本番でも実行されることを想定して、テスト都合でパフォーマンス劣化させないように
      * ※実装できたら、こんどはアサートのための検索の回数が一回になるようにしてみましょう(もし、複数回検索しているのであれば)。
      * また、それもできたら、会員名称とリマインダ質問を会員ごとに一行のログに出力してみましょう。
-     */
-    public void test_3() throws Exception {
-        // ## Arrange ##
-        String keyword = "2";
+     */</span>
+    <span class="keyword">public void</span> test_3() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        String keyword = <span class="literal">"2"</span>;
 
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.query().queryMemberSecurityAsOne().setReminderQuestion_LikeSearch(keyword, op -> op.likeContain());
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().queryMemberSecurityAsOne().setReminderQuestion_LikeSearch(keyword, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
 
-        // << べたべたパターン: ループの中で検索してるのがちょっとよくない >>
-        memberList.forEach(member -> {
-            memberSecurityBhv.selectByPK(member.getMemberId()).alwaysPresent(security -> {
+        <span class="comment">// << べたべたパターン: ループの中で検索してるのがちょっとよくない >></span>
+        memberList.forEach(member -&gt; {
+            <span class="attribute">memberSecurityBhv</span>.selectByPK(member.getMemberId()).alwaysPresent(security -&gt; {
                 String question = security.getReminderQuestion();
                 log(member.getMemberName(), question);
                 assertTrue(question.contains(keyword));
             });
         });
 
-        // << SQLを救出パターン >>
-        // IDの抽出、stream()でこう書ける
-        //List&lt;Integer&gt; memberIdList = memberList.stream().map(member -> {
+        <span class="comment">// << SQLを救出パターン >></span>
+        <span class="comment">// IDの抽出、stream()でこう書ける
+        //List&lt;Integer&gt; memberIdList = memberList.stream().map(member -&gt; {
         //    return member.getMemberId();
         //}).collect(Collectors.toList());
-        // でも、ExtractColumnを使うのが一番
-        ListResultBean&lt;MemberSecurity&gt; securityList = memberSecurityBhv.selectList(cb -> {
-            cb.query().setMemberId_InScope(memberBhv.extractMemberIdList(memberList));
+        // でも、ExtractColumnを使うのが一番</span>
+        ListResultBean&lt;MemberSecurity&gt; securityList = <span class="attribute">memberSecurityBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().setMemberId_InScope(<span class="attribute">memberBhv</span>.extractMemberIdList(memberList));
         });
-        memberList.forEach(member -> {
-            securityList.forEach(security -> {
-                if (member.getMemberId().equals(security.getMemberId())) {
+        memberList.forEach(member -&gt; {
+            securityList.forEach(security -&gt; {
+                <span class="keyword">if</span> (member.getMemberId().equals(security.getMemberId())) {
                     String question = security.getReminderQuestion();
                     log(member.getMemberName(), question);
                     assertTrue(question.contains(keyword));
-                    markHere("exists");
-                    // あっ、breakできない!?
+                    markHere(<span class="literal">"exists"</span>);
+                    <span class="comment">// あっ、breakできない!?</span>
                 }
             });
-            assertMarked("exists");
+            assertMarked(<span class="literal">"exists"</span>);
         });
 
-        // << Mapにしちゃうパターン!? >>
-        // Mapの作り方、collect()が使えるけど、今までのやり方でも Lambda 使えばそれなりにいいかんじ!?
+        <span class="comment">// << Mapにしちゃうパターン!? >></span>
+        <span class="comment">// Mapの作り方、collect()が使えるけど、今までのやり方でも Lambda 使えばそれなりにいいかんじ!?
         //Map<Integer, MemberSecurity> securityMap = newHashMap();
-        //securityList.forEach(security -> securityMap.put(security.getMemberId(), security));
+        //securityList.forEach(security -> securityMap.put(security.getMemberId(), security));</span>
         Map<Integer, MemberSecurity> securityMap =
                 securityList.stream().collect(Collectors.toMap(bean -> bean.getMemberId(), bean -> bean));
-        memberList.forEach(member -> {
+        memberList.forEach(member -&gt; {
             MemberSecurity security = securityMap.get(member.getMemberId());
             String question = security.getReminderQuestion();
             log(member.getMemberName(), question);
@@ -213,66 +214,66 @@ public class HandsOn03Test extends UnitContainerTestCase {
         });
     }
 
-    // ===================================================================================
+    <span class="comment">// ===================================================================================
     //                                                                     Exercise 4 to 6
-    //                                                                     ===============
-    /**
+    //                                                                     ===============</span>
+    <span class="comment">/**
      * [4] 会員ステータスの表示順カラムで会員を並べて検索
      * o 会員ステータスの "表示順" カラムの昇順で並べる
      * o 会員ステータスのデータ自体は要らない
      * o その次には、会員の会員IDの降順で並べる
      * o 会員ステータスのデータが取れていないことをアサート
      * o 会員が会員ステータスごとに固まって並んでいることをアサート
-     */
-    public void test_4() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
-            cb.query().addOrderBy_MemberId_Desc();
+     */</span>
+    <span class="keyword">public void</span> test_4() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            <span class="localvar">cb</span>.query().addOrderBy_MemberId_Desc();
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
 
-        // << forEach()使ってみたパターン >>
-        Set&lt;String&gt; statusSet = new HashSet&lt;String&gt;();
-        Stack&lt;Member&gt; mbStack = new Stack&lt;Member&gt;();
-        memberList.forEach(member -> {
+        <span class="comment">// << forEach()使ってみたパターン >></span>
+        Set&lt;String&gt; statusSet = <span class="keyword">new</span> HashSet&lt;String&gt;();
+        Stack&lt;Member&gt; mbStack = <span class="keyword">new</span> Stack&lt;Member&gt;();
+        memberList.forEach(member -&gt; {
             assertFalse(member.getMemberStatus().isPresent());
-            String previous = !mbStack.isEmpty() ? mbStack.peek().getMemberStatusCode() : null;
+            String previous = !mbStack.isEmpty() ? mbStack.peek().getMemberStatusCode() : <span class="keyword">null</span>;
             String current = member.getMemberStatusCode();
             log(previous, current);
-            if (previous != null && !previous.equals(current)) {
+            <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
                 assertFalse(statusSet.contains(current));
             }
             statusSet.add(current);
             mbStack.add(member);
         });
 
-        // << 普通のfor文のパターン >>
-        statusSet.clear(); // ちと再利用させて
-        String previous = null;
-        for (Member member : memberList) {
+        <span class="comment">// << 普通のfor文のパターン >></span>
+        statusSet.clear(); <span class="comment">// ちと再利用させて</span>
+        String previous = <span class="keyword">null</span>;
+        <span class="keyword">for</span> (Member member : memberList) {
             assertFalse(member.getMemberStatus().isPresent());
             String current = member.getMemberStatusCode();
             log(previous, current);
-            if (previous != null && !previous.equals(current)) {
+            <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
                 assertFalse(statusSet.contains(current));
             }
             statusSet.add(current);
             previous = current;
         }
 
-        // << というか、違うやり方 >>
-        statusSet.clear(); // また再利用させて
-        previous = null; // こっちも
-        int switchCount = 0;
-        for (Member member : memberList) {
+        <span class="comment">// << というか、違うやり方 >></span>
+        statusSet.clear(); <span class="comment">// また再利用させて</span>
+        previous = null; <span class="comment">// こっちも</span>
+        <span class="keyword">int</span> switchCount = <span class="literal">0</span>;
+        <span class="keyword">for</span> (Member member : memberList) {
             assertFalse(member.getMemberStatus().isPresent());
             String current = member.getMemberStatusCode();
             log(previous, current);
-            if (previous != null && !previous.equals(current)) {
+            <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
                 ++switchCount;
             }
             statusSet.add(current);
@@ -281,30 +282,30 @@ public class HandsOn03Test extends UnitContainerTestCase {
         assertEquals(statusSet.size(), switchCount);
     }
 
-    /**
+    <span class="comment">/**
      * [5] 生年月日が存在する会員の購入を検索
      * o 会員名称と会員ステータス名称と商品名も一緒に取得(ログ出力)
      * o 購入日時の降順、購入価格の降順、商品IDの昇順、会員IDの昇順で並べる
      * o OrderBy がたくさん追加されていることをログで確認すること
      * o 購入に紐づく会員の生年月日が存在することをアサート
      * ※ログ出力は、スーパークラスの log() メソッドが利用できる。可変長引数でカンマ区切り出力になる。
-     */
+     */</span>
     public void test_5() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        ListResultBean&lt;Purchase&gt; purchaseList = purchaseBhv.selectList(cb -> {
-            cb.setupSelect_Member().withMemberStatus();
-            cb.setupSelect_Product();
-            cb.query().queryMember().setBirthdate_IsNotNull();
-            cb.query().addOrderBy_PurchaseDatetime_Desc();
-            cb.query().addOrderBy_PurchasePrice_Desc();
-            cb.query().addOrderBy_ProductId_Asc();
-            cb.query().addOrderBy_MemberId_Asc();
+        <span class="comment">// ## Arrange ##
+        // ## Act ##</span>
+        ListResultBean&lt;Purchase&gt; purchaseList = <span class="attribute">purchaseBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.setupSelect_Member().withMemberStatus();
+            <span class="localvar">cb</span>.setupSelect_Product();
+            <span class="localvar">cb</span>.query().queryMember().setBirthdate_IsNotNull();
+            <span class="localvar">cb</span>.query().addOrderBy_PurchaseDatetime_Desc();
+            <span class="localvar">cb</span>.query().addOrderBy_PurchasePrice_Desc();
+            <span class="localvar">cb</span>.query().addOrderBy_ProductId_Asc();
+            <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(purchaseList);
-        purchaseList.forEach(purchase -> {
+        purchaseList.forEach(purchase -&gt; {
             Member member = purchase.getMember().get();
             MemberStatus status = member.getMemberStatus().get();
             Product product = purchase.getProduct().get();

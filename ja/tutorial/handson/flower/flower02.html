@@ -48,6 +48,7 @@
 	<p>
 		DBFluteハンズオン、セクション 2 の模範解答的な実装です。
 	</p>
+	<div class="relatedpage"><a href="../section02.html">ハンズオンセクション 2</a></div>
 	<p>
 		正解は一つではありませんので、あくまで "的な" というところで、参考までに。
 	</p>
@@ -83,82 +84,82 @@ dbflute-hands-on
 
 	<h2 id="flowerimpl">模範解答的な実装</h2>
 <pre><span class="codetitle">e.g. 模範解答的な実装やってみた @Java</span><code>
-/**
+<span class="comment">/**
  * @author jflute
- */
-public class HandsOn02Test extends UnitContainerTestCase {
+ */</span>
+<span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
 
     @Resource
-    protected MemberBhv memberBhv;
+    <span class="keyword">protected</span> MemberBhv <span class="attribute">memberBhv</span>;
 
-    /**
+    <span class="comment">/**
      * テストデータが存在すること
-     */
-    public void test_existsTestData() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        int count = memberBhv.selectCount(cb -> {});
+     */</span>
+    <span class="keyword">public void</span> test_existsTestData() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="comment">// ## Act ##</span>
+        <span class="keyword">int</span> count = <span class="attribute">memberBhv</span>.selectCount(<span class="localvar">cb</span> -&gt; {});
 
-        // ## Assert ##
-        assertTrue(count > 0);
+        <span class="comment">// ## Assert ##</span>
+        assertTrue(count > <span class="literal">0</span>);
     }
 
-    /**
+    <span class="comment">/**
      * 会員名称がSで始まる会員を検索 (これはタイトル、この中にも要件が含まれている)
      * o 会員名称の昇順で並べる (これは実装要件、Arrange でこの通りに実装すること)
      * o (検索結果の)会員名称がSで始まっていることをアサート (これはアサート要件、Assert でこの通りに実装すること)
-     */
-    public void test_1() throws Exception {
-        // ## Arrange ##
-        String prefix = "S";
+     */</span>
+    <span class="keyword">public void</span> test_1() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        String prefix = <span class="literal">"S"</span>;
 
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.query().setMemberName_LikeSearch(prefix, op -> op.likePrefix());
-            cb.query().addOrderBy_MemberName_Asc();
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().setMemberName_LikeSearch(prefix, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likePrefix());
+            <span class="localvar">cb</span>.query().addOrderBy_MemberName_Asc();
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
-        memberList.forEach(member -> {
+        memberList.forEach(member -&gt; {
             String memberName = member.getMemberName();
             log(memberName);
             assertTrue(memberName.startsWith(prefix));
         });
     }
 
-    /**
+    <span class="comment">/**
      * 会員IDが1の会員を検索
      * o 一件検索として検索すること
      * o 会員IDが 1 であることをアサート
-     */
-    public void test_2() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        memberBhv.selectEntity(cb -> cb.acceptPK(1)).alwaysPresent(member -> {
-            // ## Assert ##
+     */</span>
+    <span class="keyword">public void</span> test_2() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="comment">// ## Act ##</span>
+        <span class="attribute">memberBhv</span>.selectEntity(<span class="localvar">cb</span> -&gt; <span class="localvar">cb</span>.acceptPK(<span class="literal">1</span>)).alwaysPresent(member -&gt; {
+            <span class="comment">// ## Assert ##</span>
             Integer memberId = member.getMemberId();
             log(memberId);
-            assertEquals(1, memberId);
+            assertEquals(<span class="literal">1</span>, memberId);
         });
     }
 
-    /**
+    <span class="comment">/**
      * 生年月日がない会員を検索
      * - 更新日時の降順で並べる
      * - 生年月日がないことをアサート
-     */
-    public void test_3() throws Exception {
-        // ## Arrange ##
-        // ## Act ##
-        ListResultBean&lt;Member&gt; memberList = memberBhv.selectList(cb -> {
-            cb.query().setBirthdate_IsNull();
-            cb.query().addOrderBy_UpdateDatetime_Desc();
+     */</span>
+    <span class="keyword">public void</span> test_3() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.query().setBirthdate_IsNull();
+            <span class="localvar">cb</span>.query().addOrderBy_UpdateDatetime_Desc();
         });
 
-        // ## Assert ##
+        <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
-        memberList.forEach(member -> {
+        memberList.forEach(member -&gt; {
             LocalDate birthdate = member.getBirthdate();
             log(member.getMemberName(), birthdate);
             assertNull(birthdate);
