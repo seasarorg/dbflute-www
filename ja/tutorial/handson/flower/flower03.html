@@ -203,9 +203,9 @@ dbflute-hands-on
         <span class="comment">// << Mapにしちゃうパターン!? >></span>
         <span class="comment">// Mapの作り方、collect()が使えるけど、今までのやり方でも Lambda 使えばそれなりにいいかんじ!?
         //Map<Integer, MemberSecurity> securityMap = newHashMap();
-        //securityList.forEach(security -> securityMap.put(security.getMemberId(), security));</span>
+        //securityList.forEach(security -&gt; securityMap.put(security.getMemberId(), security));</span>
         Map<Integer, MemberSecurity> securityMap =
-                securityList.stream().collect(Collectors.toMap(bean -> bean.getMemberId(), bean -> bean));
+                securityList.stream().collect(Collectors.toMap(bean -&gt; bean.getMemberId(), bean -&gt; bean));
         memberList.forEach(member -&gt; {
             MemberSecurity security = securityMap.get(member.getMemberId());
             String question = security.getReminderQuestion();
@@ -273,7 +273,7 @@ dbflute-hands-on
             assertFalse(member.getMemberStatus().isPresent());
             String current = member.getMemberStatusCode();
             log(previous, current);
-            <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
+            <span class="keyword">if</span> (previous != <span class="keyword">null</span> && !previous.equals(current)) {
                 ++switchCount;
             }
             statusSet.add(current);
@@ -314,7 +314,151 @@ dbflute-hands-on
         });
     }
 
-    // TODO jflute ６番からまだやってない
+    <span class="comment">/**
+     * [6] 会員名称に "vi" を含む会員を検索
+     * o 会員ステータスも一緒に取得
+     * o ただし、会員ステータス名称だけ取得できればいい (説明や表示順カラムは不要)
+     * o 2005年10月の1日から3日までに正式会員になった会員を検索
+     * o 会員名称と正式会員日時と会員ステータス名称をログに出力
+     * o 会員ステータスがコードと名称だけが取得されていることをアサート
+     * o 会員の正式会員日時が指定された条件の範囲内であることをアサート
+     * ※Java8 (DBFlute-1.1) なら、assertException(...)を使うとよいでしょう
+     * ※実装できたら、こんどはスーパークラスのメソッド adjustMember_FormalizedDatetime_...() を使って、10月1日ジャスト(時分秒なし)の正式会員日時を持つ会員データを作成してテスト実行してみましょう。 もともと一件しかなかった検索結果が「二件」になるはずです。
+     * @throws Exception
+     */</span>
+    public void test_6() throws Exception {
+        <span class="comment">// ## Arrange ##</span>
+        LocalDateTime fromDate = <span class="keyword">new</span> HandyDate("2005/10/01").getLocalDateTime();
+        LocalDateTime toDate = <span class="keyword">new</span> HandyDate("2005/10/03").getLocalDateTime();
+        String nameKeyword = <span class="literal">"vi"</span>;
+        adjustMember_FormalizedDatetime_FirstOnly(fromDate, nameKeyword);
+
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+            <span class="localvar">cb</span>.setupSelect_MemberStatus();
+            <span class="localvar">cb</span>.specify().specifyMemberStatus().columnMemberStatusName();
+            <span class="localvar">cb</span>.query().setMemberName_LikeSearch(nameKeyword, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
+            <span class="localvar">cb</span>.query().setFormalizedDatetime_FromTo(fromDate, toDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsDate());
+        });
+
+        <span class="comment">// ## Assert ##</span>
+        assertHasAnyElement(memberList);
+        LocalDateTime addedToDate = toDate.plusDays(1);
+        <span class="keyword">for</span> (Member member : memberList) {
+            LocalDateTime formalizedDatetime = member.getFormalizedDatetime();
+            MemberStatus status = member.getMemberStatus().get();
+            String statusName = status.getMemberStatusName();
+            log(member.getMemberName(), formalizedDatetime, statusName);
+
+            assertNotNull(status.getMemberStatusCode());
+            assertNotNull(statusName);
+            assertException(NonSpecifiedColumnAccessException.class, () -&gt; status.getDisplayOrder());
+            assertException(NonSpecifiedColumnAccessException.class, () -&gt; status.getDescription());
+
+            assertTrue(fromDate.isEqual(formalizedDatetime) || fromDate.isBefore(formalizedDatetime));
+            assertTrue(addedToDate.isAfter(formalizedDatetime));
+        }
+    }
+
+    <span class="comment">/**
+     * [7] 正式会員になってから一週間以内の購入を検索
+     * o 会員と会員ステータス、会員セキュリティ情報も一緒に取得
+     * o 商品と商品ステータス、商品カテゴリ、さらに上位の商品カテゴリも一緒に取得
+     * o 上位の商品カテゴリ名が取得できていることをアサート
+     * o 購入日時が正式会員になってから一週間以内であることをアサート
+     * ※ログ出力と書いてなくても、テストの動作を確認するためにも(自由に)ログ出力すると良い。
+     * ※実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...() を呼び出し、調整されたデータによって検索結果が一件増えるかどうか確認してみましょう。 もし増えないなら、なぜ増えないのか...
+     * @throws Exception
+     */</span>
+    public void test_7() throws Exception {
+        <span class="comment">// ## Arrange ##</span>
+        adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
+
+        <span class="comment">// ## Act ##</span>
+        ListResultBean<Purchase> purchaseList = <span class="attribute">purchaseBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.setupSelect_Member().withMemberStatus();
+            <span class="localvar">cb</span>.setupSelect_Member().withMemberSecurityAsOne();
+            <span class="localvar">cb</span>.setupSelect_Product().withProductStatus();
+            <span class="localvar">cb</span>.setupSelect_Product().withProductCategory().withProductCategorySelf();
+            <span class="localvar">cb</span>.columnQuery(colCB -&gt; {
+                colCB.specify().columnPurchaseDatetime();
+            }).greaterEqual(colCB -&gt; { <span class="comment">// ぴったしは含むとする</span>
+                colCB.specify().specifyMember().columnFormalizedDatetime();
+            });
+            <span class="localvar">cb</span>.columnQuery(colCB -&gt; {
+                colCB.specify().columnPurchaseDatetime();
+            }).lessThan(colCB -&gt; {
+                colCB.specify().specifyMember().columnFormalizedDatetime();
+            }).convert(<span class="localvar">op</span> -&gt; <span class="localvar">op</span>.truncTime().addDay(<span class="literal">8</span>)); <span class="comment">// 24*7 hours + あるふぁ</span>
+        });
+
+        <span class="comment">// ## Assert ##</span>
+        assertHasAnyElement(purchaseList);
+        <span class="keyword">for</span> (Purchase purchase : purchaseList) {
+            Product product = purchase.getProduct().get();
+            product.getProductCategory().get().getProductCategorySelf().alwaysPresent(parent -&gt; { <span class="comment">// categoryなけりゃ落ちる</span>
+                assertNotNull(parent.getProductCategoryName()); <span class="comment">// not null だから、ここまでくりゃあるはずだけど念のため</span>
+            });
+            LocalDateTime purchaseDatetime = purchase.getPurchaseDatetime();
+            LocalDateTime formalizedDatetime = purchase.getMember().get().getFormalizedDatetime();
+            LocalDateTime oneWeekAfter = <span class="keyword">new</span> HandyDate(formalizedDatetime).moveToDayJust().addDay(<span class="literal">8</span>).getLocalDateTime();
+            log(<span class="literal">"purchaseDatetime={}, formalizedDatetime={}, {}"</span>, purchaseDatetime, formalizedDatetime, product.getProductName());
+            assertTrue(purchaseDatetime.isEqual(formalizedDatetime) || purchaseDatetime.isAfter(formalizedDatetime));
+            assertTrue(purchaseDatetime.isBefore(oneWeekAfter));
+        }
+    }
+
+    <span class="comment">/**
+     * [8] 1974年までに生まれた、もしくは不明の会員を検索
+     * o 会員ステータス名称、リマインダ質問と回答、退会理由入力テキストも取得(ログ出力)
+     * o 若い順だが生年月日が null のデータを最初に並べる
+     * o 生年月日が指定された条件に合致することをアサート
+     * o 1974年生まれの人が含まれていることをアサート
+     * o 生まれが不明の会員が先頭になっていることをアサート
+     * @throws Exception
+     */</span>
+    public void test_8() throws Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="keyword">int</span> <span class="localvar">inputYear</span> = <span class="literal">1974</span>; <span class="comment">// 画面から検索条件として飛んできたと想定</span>
+        LocalDate <span class="localvar">targetDate</span> = LocalDate.of(inputYear, <span class="literal">1</span>, <span class="literal">1</span>);
+
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+            <span class="localvar">cb</span>.setupSelect_MemberStatus();
+            <span class="localvar">cb</span>.setupSelect_MemberSecurityAsOne();
+            <span class="localvar">cb</span>.setupSelect_MemberWithdrawalAsOne();
+            <span class="localvar">cb</span>.query().setBirthdate_FromTo(null, targetDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().allowOneSide().orIsNull());
+            <span class="comment">// おもいで</span>
+            <span class="comment">//cb.orScopeQuery(orCB -&gt; {
+            //    orCB.query().setBirthdate_FromTo(null, targetDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().allowOneSide());
+            //    orCB.query().setBirthdate_IsNull();
+            //});</span>
+            <span class="localvar">cb</span>.query().addOrderBy_Birthdate_Desc().withNullsFirst();
+        });
+
+        <span class="comment">// ## Assert ##</span>
+        assertHasAnyElement(<span class="localvar">memberList</span>);
+        LocalDate <span class="localvar">nextYear</span> = targetDate.plusYears(<span class="literal">1</span>);
+        <span class="keyword">boolean</span> <span class="localvar">existsTarget</span> = <span class="keyword">false</span>;
+        <span class="keyword">for</span> (Member <span class="localvar">member</span> : <span class="localvar">memberList</span>) {
+            MemberStatus <span class="localvar">status</span> = member.getMemberStatus().get();
+            MemberSecurity <span class="localvar">security</span> = <span class="localvar">member</span>.getMemberSecurityAsOne().get();
+            String <span class="localvar">reason</span> = <span class="localvar">member</span>.getMemberWithdrawalAsOne().map(<span class="localvar">wdl</span> -&gt; <span class="localvar">wdl</span>.getWithdrawalReasonInputText()).orElse(<span class="keyword">null</span>);
+            log(<span class="localvar">status</span>.getMemberStatusName(), <span class="localvar">security</span>.getReminderQuestion(), <span class="localvar">security</span>.getReminderAnswer(), <span class="localvar">reason</span>);
+
+            LocalDate <span class="localvar">birthdate</span> = <span class="localvar">member</span>.getBirthdate();
+            <span class="keyword">if</span> (<span class="localvar">birthdate</span> != <span class="keyword">null</span>) {
+                assertTrue(<span class="localvar">birthdate</span>.isBefore(<span class="localvar">nextYear</span>));
+                <span class="keyword">if</span> (<span class="localvar">birthdate</span>.getYear() == <span class="localvar">targetDate</span>.getYear()) {
+                    <span class="localvar">existsTarget</span> = <span class="keyword">true</span>;
+                }
+            }
+        }
+        assertTrue(<span class="localvar">existsTarget</span>);
+        assertNull(<span class="localvar">memberList</span>.get(<span class="literal">0</span>).getBirthdate()); <span class="comment">// 先頭なのでこれでOK</span>
+    }
+
+    // TODO jflute ９番からまだやってない
 }
 </code></pre>
 
