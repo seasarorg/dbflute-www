@@ -59,6 +59,7 @@
 		<li><a href="#project">プロジェクトのセットアップ</a>
 			<ul>
 				<li><a href="#maveneclipse">Eclipseプロジェクトの作成</a></li>
+				<li><a href="#workprojdiff">workspaceの設定とプロジェクトの設定</a></li>
 				<li><a href="#encoding">エンコーディングの調整 <span class="frm">#workspace #project</span></a></li>
 				<li><a href="#linecolor">行番号の表示、背景色の設定 <span class="frm">#workspace</span></a></li>
 				<li><a href="#typefilters">Type Filters を設定 <span class="frm">#workspace</span></a></li>
@@ -68,7 +69,6 @@
 				<li><a href="#miscsettings">その他いろいろとワークスペース設定 <span class="frm">#workspace</span></a></li>
 				<li><a href="#formatter">フォーマッタのインポート <span class="frm">#project</span></a></li>
 				<li><a href="#saveaction">フォーマッタ・インポート調整の自動化 <span class="frm">#project</span></a></li>
-				<li><a href="#srcfolder">ソースフォルダの順序調整 <span class="frm">#omake #workspace</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#dfsetup">DBFluteのセットアップ</a>
@@ -269,6 +269,22 @@ PROJECT_ROOT
 		<span class="frm">(ちなみに、この時点では、maven-eclipse.bat|sh の "call dbflute_maihamadb/manage.bat refresh"
 		において、そんなコマンドはないとエラーが発生しますが、Mavenのコマンドさえ成功していればOKです)</span>
 	</p>
+	<h3 id="workprojdiff">workspaceの設定とプロジェクトの設定</h3>
+	<p>
+		workspace は、そのローカルPCの workspace ディレクトリのEclipse設定と考えてよいでしょう。
+		これらは Git 管理にはなりません(しません)ので、他の人と共有されません。
+		個人設定と捉えることもできますが、他の人と共有したくなるようなものもあるのがジレンマです。
+	</p>
+	<p>
+		一方で、プロジェクトの設定は、プロジェクト直下の.settingsディレクトリに保存されます。
+		Git管理にすることができるので、他の人と共有できます。つまり、最初のひとりがやっておけば、他の人はやる必要がありません。
+		強制力があるのはこちらです。
+	</p>
+	<p>
+		さて、<em class="smallmark">#workspace</em> であれば workspace の設定、<em class="smallmark">#project</em> であればプロジェクトの設定、
+		いずれにせよハンズオンの環境としては最初ですから、どちらも必要です。ですが、その違いを意識しながら設定していきましょう。
+		他の人がこのプロジェクトを参照するとき、共有されるものとされないものがあるわけです。
+	</p>
 	<h3 id="encoding">エンコーディングの調整 <span class="frm">#workspace #project</span></h3>
 	<p>
 		プロジェクトのエンコーディングを UTF-8 にしてください。プロジェクトを選択して、"alt + enter"
@@ -400,13 +416,8 @@ PROJECT_ROOT
 		</dd>
 		<dt>コンソールのバッファサイズ</dt>
 		<dd>
-			大きな処理だとログがあっという間に最初の方のログが切れてしまうので、Window - Show View - Console
-			で表示されたコンソール上で右クリックして Preferences... で、"Console buffer size" を 800000 (八十万) に。
-			コンソールはそのままバッテンを押して消してOK(テスト実行に自動的に表示されるので)。 
-		</dd>
-		<dd>
-			ただ、こちらの設定、コンソールに何も表示されていないと右クリックしても Preferences
-			が出てきません。何かしらの方法でコンソールに文字が表示できれば設定できますが、特に急ぐものではないので、セクション２でテストを実行したときにコンソールが出てくるので、(忘れずに)そのときにやりましょう。
+			大きな処理だとログがあっという間に最初の方のログが切れてしまうので、Preferences の Run/Debug - Console 
+			の "Console buffer size" を 800000 (八十万) に。
 		</dd>
 		<dt>ビューの配置</dt>
 		<dd>
@@ -419,8 +430,8 @@ PROJECT_ROOT
 			<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20130125/egitsive">EGitでSubversiveっぽく</a></div>
 		</dd>
 		<dd>
-			また、"Rerun JUnit Test" を ctrl + R (好み) とかに設定しておくと良い。
-			<span class="frm">(Quick JUnit の F11 が別のキーに奪われている可能性があるため)</span>
+			また、"Rerun JUnit Test" を ctrl + R (好み) とかに設定しておくと良い<span class="frm">(Quick JUnit の F11 が別のキーに奪われている可能性があるため)</span>。
+			ショートカットキーは、Preferences の Keys で設定できます。
 		</dd>
 	</dl>
 	<h3 id="formatter">フォーマッタのインポート <span class="frm">#project</span></h3>
@@ -451,26 +462,6 @@ PROJECT_ROOT
 		文を整理してくれるアクション(ctrl + shift + O)です。
 	</p>
 	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/codejustcut.html">コード調整ショートカット</a></div>
-	<h3 id="srcfolder">ソースフォルダの順序調整 <span class="frm">#omake #workspace</span></h3>
-	<p>
-		ソースフォルダの順序がいまいちな場合は、.classpath を修正して順序を調整してください。
-		具体的には、src/main/java, src/main/resources, src/test/java, src/test/resource の順に直します。
-		<span class="frm">(ただ、maven-eclipse.bat|sh を実行する度に戻ってしまいますので、そのときは好きなように)</span>
-	</p>
-	<p>
-		<span class="frm">※.classpathファイルがEclipseから見当たらない場合は、先ほどの workspace の設定が終わってない可能性あり</span>
-	</p>
-<pre><span class="codetitle">e.g. ソースフォルダの順序をいい感じに直す @Java</span><code>
-  &lt;classpathentry kind="src" path="src/main/java" including=<span class="abbreviation">...</span>
-  &lt;classpathentry kind="src" path="src/main/resources" excluding=<span class="abbreviation">...</span>
-  &lt;classpathentry kind="src" path="src/test/java" output=<span class="abbreviation">...</span>
-  &lt;classpathentry kind="src" path="src/test/resources" output=-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		.classpath の修正では、Eclipse のエディタ上のショートカット "alt + 上矢印", "alt + 下矢印"
-		と有効に使うと良いでしょう。現在カーソルのある行が矢印の方向に移動します。
-	</p>
-	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/editorcut.html">エディタショートカット</a></div>
 
 	<h2 id="dfsetup">DBFluteのセットアップ</h2>
 	<h3 id="dfclient6">DBFluteクライアントの作成 <span class="frm">※Java6, 7</span></h3>
@@ -512,26 +503,26 @@ PROJECT_ROOT
 	</p>
 	<div class="relatedpage"><a href="../../environment/setup/maven.html">Mavenによるセットアップ</a></div>
 	<p>
-		まずは、コマンドラインで dbflute:download ゴールを叩きます。<span class="frm">(プロジェクト直下にて)</span>
+		まずは、コマンドラインで <em class="mark">dbflute:download</em> ゴールを叩きます。<span class="frm">(プロジェクト直下にて)</span>
 	</p>
 <pre><span class="codetitle">e.g. dbflute:download ゴールを叩く！ @Command</span><code>
 <span class="abbreviation">...</span>$ <span class="keyword">mvn</span> -e dbflute:download
 </code></pre>
 	<p>
-		その後、コマンドラインで dbflute:create-client ゴールを叩きます。
+		その後、コマンドラインで <em class="mark">dbflute:create-client</em> ゴールを叩きます。
 	</p>
 <pre><span class="codetitle">e.g. dbflute:create-client ゴールを叩く！ @Command</span><code>
 <span class="abbreviation">...</span>$ <span class="keyword">mvn</span> -e dbflute:create-client
 </code></pre>
 	<p>
-		basicInfoMap.dfprop のプロパティ値を修正します。
+		<em class="mark">basicInfoMap.dfprop</em> のプロパティ値を修正します。<em class="keyword">(忘れずに)</em>
 	</p>
 	<dl class="valuemainlist">
 		<dt>database</dt><dd>mysql</dd>
-		<dt>targetContainer</dt><dd>seasar</dd>
+		<dt>targetContainer</dt><dd>lasta_di</dd>
 	</dl>
 	<p>
-		databaseInfoMap.dfprop のプロパティ値を修正します。
+		<em class="mark">databaseInfoMap.dfprop</em> のプロパティ値を修正します。<em class="keyword">(忘れずに)</em>
 	</p>
 	<dl class="valuemainlist">
 		<dt>driver</dt><dd>com.mysql.jdbc.Driver</dd>
