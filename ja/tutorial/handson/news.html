@@ -39,6 +39,7 @@
 <div id="content">
 	<h1>ハンズオンニュース</h1>
 	<ul class="indexlist">
+		<li><a href="#20151010">Lasta Di に変更</a></li>
 		<li><a href="#20150311">org.docksidestageに変更</a>
 			<ul>
 				<li><a href="#todockside">docksidestageに移行するなら</a></li>
@@ -73,6 +74,99 @@
 			</ul>
 		</li>
 	</ul>
+
+	<h2 id="20151010">Lasta Di に変更</h2>
+	<p>
+		ハンズオン環境で利用しているDIコンテナが、Seasar から Lasta Di に変わりました。<span class="frm">(Java8以降)</span>
+	</p>
+	<div class="relatedpage"><a href="../../lastaflute/lastadi/index.html">Lasta Di</a></div>
+	<p>
+		
+	</p>
+	<ol>
+		<li>pom.xmlを修正、Seasar関連のものを削除して、Lasta Diを追加</li>
+		<li>maven-eclipse.bat|sh を叩く</li>
+		<li>UnitContainerTestCase の import 文を編成 (seasar 部分を lastadi に)</li>
+		<li>src/test/resources のファイルをすべて削除、.gitkeep (空のテキストファイル) だけ配置</li>
+		<li>src/main/resources に、<em class="smallmark">app.xml, jdbc.xml, lasta_di.properties, logback.xml</em> を追加</li>
+	</ol>
+	<p>
+		pom.xmlは、以下をコピーして、該当箇所に設定しましょう。
+	</p>
+<pre><span class="codetitle">e.g. pom.xmlのproperties @pom.xml</span><code>
+	&lt;properties&gt;
+		<span class="point">&lt;lasta.di.version&gt;0.6.4&lt;/lasta.di.version&gt;</span>
+		<span class="abbreviation">...</span>
+	&lt;/properties&gt;
+</code></pre>
+	<p>
+		dependenciesは、もうまるごと差し替え。
+	</p>
+<pre><span class="codetitle">e.g. pom.xmlのdependencies @pom.xml</span><code>
+	&lt;dependencies&gt;
+		&lt;!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = --&gt;
+		&lt;!--                                                                Main Framework --&gt;
+		&lt;!--                                                                 = = = = = = = --&gt;
+		&lt;!-- dbflute --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.dbflute&lt;/groupId&gt;
+			&lt;artifactId&gt;dbflute-runtime&lt;/artifactId&gt;
+			&lt;version&gt;${dbflute.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;mysql&lt;/groupId&gt;
+			&lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+			&lt;version&gt;${mysql.jdbc.version}&lt;/version&gt;
+			&lt;scope&gt;runtime&lt;/scope&gt;
+		&lt;/dependency&gt;
+
+		&lt;!-- lasta di --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.lastaflute&lt;/groupId&gt;
+			&lt;artifactId&gt;lasta-di&lt;/artifactId&gt;
+			&lt;version&gt;${lasta.di.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = --&gt;
+		&lt;!--                                                               Partner Library --&gt;
+		&lt;!--                                                               = = = = = = = = --&gt;
+		&lt;!-- transaction --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;javax.transaction&lt;/groupId&gt;
+			&lt;artifactId&gt;javax.transaction-api&lt;/artifactId&gt;
+			&lt;version&gt;1.2&lt;/version&gt;
+			&lt;scope&gt;provided&lt;/scope&gt;
+		&lt;/dependency&gt;
+
+		&lt;!-- logging --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+			&lt;artifactId&gt;logback-classic&lt;/artifactId&gt;
+			&lt;version&gt;1.1.3&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = --&gt;
+		&lt;!--                                                                       Testing --&gt;
+		&lt;!--                                                                       = = = = --&gt;
+		&lt;!-- unit test --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;junit&lt;/groupId&gt;
+			&lt;artifactId&gt;junit&lt;/artifactId&gt;
+			&lt;version&gt;4.8.2&lt;/version&gt; &lt;!-- is latest version without hamcrest --&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.dbflute.utflute&lt;/groupId&gt;
+			&lt;artifactId&gt;utflute-lasta-di&lt;/artifactId&gt;
+			&lt;version&gt;${utflute.version}&lt;/version&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+</code></pre>
+	<p>
+		src/main/resources は、用意されています。
+	</p>
+	<div class="detailpage"><a href="http://dbflute.seasar.org/download/patch/handson/20151010_lasta_di/hands-on-lasta_di-resources.zip">hands-on-lasta_di-resources.zip</a></div>
 
 	<h2 id="20150311">org.docksidestageに変更</h2>
 	<p>
