@@ -458,7 +458,56 @@ dbflute-hands-on
         assertNull(<span class="localvar">memberList</span>.get(<span class="literal">0</span>).getBirthdate()); <span class="comment">// 先頭なのでこれでOK</span>
     }
 
-    // TODO jflute ９番からまだやってない
+    <span class="comment">/**
+     * [9] 無効な条件は無視されることを確認しつつ生年月日のない会員を検索
+     * o 会員名称の等値条件に null を設定
+     * o 会員アカウントの等値条件に空文字を設定
+     * o 生年月日がない、という条件を設定
+     * o 2005年6月に正式会員になった会員は先にして、会員IDの降順で並べる
+     * o 会員名称や会員アカウントの条件がないことをログで確認すること
+     * o 検索された会員の生年月日が存在しないことをアサート
+     * o 2005年6月に正式会員になった会員が先に並んでいることをアサート
+     * ※Java8 (DBFlute-1.1) なら、cb.ignoreNullOrEmptyQuery()を使うとよいでしょう
+     * @throws Exception
+     */</span>
+    <span class="keyword">public void</span> test_9() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="keyword">int</span> <span class="localvar">inputYear</span> = <span class="literal">2005</span>; <span class="comment">// 画面から検索条件として飛んできたと想定</span>
+        <span class="keyword">int</span> <span class="localvar">inputMonth</span> = <span class="literal">6</span>; <span class="comment">// 上に同じ</span>
+        LocalDate <span class="localvar">fromDate</span> = LocalDate.of(<span class="localvar">inputYear</span>, <span class="localvar">inputMonth</span>, <span class="literal">1</span>);
+
+        <span class="comment">// ## Act ##</span>
+        ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = memberBhv.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.ignoreNullOrEmptyQuery();
+            <span class="localvar">cb</span>.query().setMemberName_Equal(<span class="keyword">null</span>);
+            <span class="localvar">cb</span>.query().setMemberAccount_Equal(<span class="literal">""</span>);
+            <span class="localvar">cb</span>.query().setBirthdate_IsNull();
+            <span class="localvar">cb</span>.query().addOrderBy_FormalizedDatetime_Asc().withManualOrder(<span class="localvar">op</span> -&gt; {
+                <span class="localvar">op</span>.when_FromTo(<span class="localvar">fromDate</span>, <span class="localvar">fromDate</span>, <span class="localvar">ftOp</span> -&gt; <span class="localvar">ftOp</span>.compareAsMonth());
+            });
+            <span class="localvar">cb</span>.query().addOrderBy_MemberId_Desc();
+        });
+
+        <span class="comment">// ## Assert ##</span>
+        assertHasAnyElement(<span class="localvar">memberList</span>);
+        <span class="keyword">boolean</span> <span class="localvar">existsTargetMonth</span> = <span class="keyword">false</span>;
+        <span class="keyword">boolean</span> <span class="localvar">passedBorder</span> = <span class="keyword">false</span>;
+        HandyDate <span class="localvar">fromHandy</span> = <span class="keyword">new</span> HandyDate(fromDate);
+        <span class="keyword">for</span> (Member <span class="localvar">member</span> : memberList) {
+            assertNull(<span class="localvar">member</span>.getBirthdate());
+            LocalDateTime <span class="localvar">formalizedDatetime</span> = <span class="localvar">member</span>.getFormalizedDatetime();
+            <span class="keyword">if</span> (<span class="localvar">formalizedDatetime</span> != <span class="keyword">null</span> && <span class="localvar">fromHandy</span>.isMonthOfYearSameAs(<span class="localvar">formalizedDatetime</span>)) {
+                assertFalse(<span class="localvar">passedBorder</span>);
+                <span class="localvar">existsTargetMonth</span> = <span class="keyword">true</span>;
+            } <span class="keyword">else</span> { <span class="comment">// null or others</span>
+                <span class="localvar">passedBorder</span> = <span class="keyword">true</span>;
+            }
+        }
+        assertTrue(<span class="localvar">existsTargetMonth</span>);
+        assertTrue(<span class="localvar">passedBorder</span>);
+    }
+
+    // TODO jflute ページングからまだやってない
 }
 </code></pre>
 
