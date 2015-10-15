@@ -237,18 +237,18 @@ dbflute-hands-on
         assertHasAnyElement(memberList);
 
         <span class="comment">// << forEach()使ってみたパターン >></span>
+        Deque&lt;String&gt; statusDeque = <span class="keyword">new</span> LinkedList&lt;String&gt;();
         Set&lt;String&gt; statusSet = <span class="keyword">new</span> HashSet&lt;String&gt;();
-        Stack&lt;Member&gt; mbStack = <span class="keyword">new</span> Stack&lt;Member&gt;();
         memberList.forEach(member -&gt; {
             assertFalse(member.getMemberStatus().isPresent());
-            String previous = !mbStack.isEmpty() ? mbStack.peek().getMemberStatusCode() : <span class="keyword">null</span>;
+            String previous = !statusDeque.isEmpty() ? statusDeque.peekLast() : <span class="keyword">null</span>;
             String current = member.getMemberStatusCode();
             log(previous, current);
             <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
                 assertFalse(statusSet.contains(current));
             }
+            statusDeque.add(current);
             statusSet.add(current);
-            mbStack.add(member);
         });
 
         <span class="comment">// << 普通のfor文のパターン >></span>
@@ -279,7 +279,21 @@ dbflute-hands-on
             statusSet.add(current);
             previous = current;
         }
-        assertEquals(statusSet.size(), switchCount);
+        assertEquals(statusSet.size() - 1, switchCount);
+
+        <span class="comment">// << これはちょっと強引かな >></span>
+        <span class="comment">// reduce()の機能を間借りしてみた...が、reduceしてわけじゃないので紛らわしいかもね</span>
+        statusSet.clear(); <span class="comment">// これまた再利用させて</span>
+        memberList.stream().reduce((previousMember, currentMember) -> {
+            assertFalse(previousMember.getMemberStatus().isPresent());
+            assertFalse(currentMember.getMemberStatus().isPresent());
+            String currentStatus = currentMember.getMemberStatusCode();
+            <span class="keyword">if</span> (!previousMember.getMemberStatusCode().equals(currentStatus)) {
+                assertFalse(statusSet.contains(currentStatus));
+            }
+            statusSet.add(currentStatus);
+            return currentMember; <span class="comment">// to be previous at next loop</span>
+        });
     }
 
     <span class="comment">/**
@@ -429,7 +443,7 @@ dbflute-hands-on
             <span class="localvar">cb</span>.setupSelect_MemberWithdrawalAsOne();
             <span class="localvar">cb</span>.query().setBirthdate_FromTo(null, targetDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().allowOneSide().orIsNull());
             <span class="comment">// おもいで</span>
-            <span class="comment">//cb.orScopeQuery(orCB -&gt; {
+            <span class="comment">//<span class="localvar">cb</span>.orScopeQuery(orCB -&gt; {
             //    orCB.query().setBirthdate_FromTo(null, targetDate, op -&gt; op.compareAsYear().allowOneSide());
             //    orCB.query().setBirthdate_IsNull();
             //});</span>
@@ -467,7 +481,7 @@ dbflute-hands-on
      * o 会員名称や会員アカウントの条件がないことをログで確認すること
      * o 検索された会員の生年月日が存在しないことをアサート
      * o 2005年6月に正式会員になった会員が先に並んでいることをアサート
-     * ※Java8 (DBFlute-1.1) なら、cb.ignoreNullOrEmptyQuery()を使うとよいでしょう
+     * ※Java8 (DBFlute-1.1) なら、<span class="localvar">cb</span>.ignoreNullOrEmptyQuery()を使うとよいでしょう
      * @throws Exception
      */</span>
     <span class="keyword">public void</span> test_9() <span class="keyword">throws</span> Exception {
@@ -507,7 +521,119 @@ dbflute-hands-on
         assertTrue(<span class="localvar">passedBorder</span>);
     }
 
-    // TODO jflute ページングからまだやってない
+    <span class="comment">// ===================================================================================
+    //                                                                              Paging
+    //                                                                              ======</span>
+    <span class="comment">/**
+     * 全ての会員をページング検索
+     * o 会員ステータス名称も取得
+     * o 会員IDの昇順で並べる
+     * o ページサイズは 3、ページ番号は 1 で検索すること
+     * o 会員ID、会員名称、会員ステータス名称をログに出力
+     * o SQLのログでカウント検索時と実データ検索時の違いを確認
+     * o 総レコード件数が会員テーブルの全件であることをアサート
+     * o 総ページ数が期待通りのページ数(計算で導出)であることをアサート
+     * o 検索結果のページサイズ、ページ番号が指定されたものであることをアサート
+     * o 検索結果が指定されたページサイズ分のデータだけであることをアサート
+     * o PageRangeを 3 にして PageNumberList を取得し、[1, 2, 3, 4]であることをアサート
+     * o 前のページが存在しないことをアサート
+     * o 次のページが存在することをアサート
+     * @throws Exception
+     */</span>
+    <span class="keyword">public void</span> test_paging() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        <span class="keyword">int</span> pageSize = <span class="literal">3</span>;
+        <span class="keyword">int</span> pageNumber = <span class="literal">1</span>;
+
+        <span class="comment">// ## Act ##</span>
+        <span class="comment">// [SQL]
+        // MySQL's found_rows() is used here
+        //  data  : select sql_calc_found_rows ... limit 0, 3
+        //  count : select found_rows()</span>
+        PagingResultBean<Member> page = memberBhv.selectPage(<span class="localvar">cb</span> -> {
+            <span class="localvar">cb</span>.setupSelect_MemberStatus();
+            <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
+            <span class="localvar">cb</span>.paging(pageSize, pageNumber);
+        });
+
+        <span class="comment">// ## Assert ##</span>
+        assertHasAnyElement(page);
+        page.forEach(member -> {
+            log(member.getMemberId(), member.getMemberName(), member.getMemberStatus().get().getMemberStatusName());
+        });
+        <span class="keyword">int</span> allRecordCount = page.getAllRecordCount();
+        assertEquals(memberBhv.selectCount(<span class="localvar">cb</span> -> {}), allRecordCount);
+        assertEquals((allRecordCount / pageSize) + (allRecordCount % pageSize > <span class="literal">0</span> ? <span class="literal">1</span> : <span class="literal">0</span>), page.getAllPageCount());
+        assertEquals(pageSize, page.getPageSize());
+        assertEquals(pageNumber, page.getCurrentPageNumber());
+        assertEquals(pageSize, page.size());
+        assertEquals(Arrays.asList(<span class="literal">1</span>, <span class="literal">2</span>, <span class="literal">3</span>, <span class="literal">4</span>), page.pageRange(op -> op.rangeSize(<span class="literal">3</span>)).createPageNumberList());
+        assertFalse(page.existsPreviousPage());
+        assertTrue(page.existsNextPage());
+    }
+
+    <span class="comment">// ===================================================================================
+    //                                                                              Cursor
+    //                                                                              ======</span>
+    <span class="comment">/**
+     * 会員ステータスの表示順カラムで会員を並べてカーソル検索
+     * o 会員ステータスの "表示順" カラムの昇順で並べる
+     * o 会員ステータスのデータも取得
+     * o その次には、会員の会員IDの降順で並べる
+     * o 会員ステータスが取れていることをアサート
+     * o 会員が会員ステータスごとに固まって並んでいることをアサート
+     * o 検索したデータをまるごとメモリ上に持ってはいけない
+     * o (要は、検索結果レコード件数と同サイズのリストや配列の作成はダメ)
+     * @throws Exception
+     */</span>
+    <span class="keyword">public void</span> test_cursor() <span class="keyword">throws</span> Exception {
+        <span class="comment">// ## Arrange ##</span>
+        Deque&lt;String&gt; statusDeque = new LinkedList&lt;String&gt;();
+        Set&lt;String&gt; statusSet = new HashSet&lt;String&gt;();
+
+        <span class="comment">// ## Act ##</span>
+        memberBhv.selectCursor(<span class="localvar">cb</span> -> {
+            <span class="localvar">cb</span>.setupSelect_MemberStatus();
+            <span class="localvar">cb</span>.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
+            <span class="localvar">cb</span>.query().addOrderBy_MemberId_Desc();
+        } , member -> {
+            <span class="comment">// ## Assert ##</span>
+            assertTrue(member.getMemberStatus().isPresent());
+            String previous = !statusDeque.isEmpty() ? statusDeque.peekLast() : <span class="keyword">null</span>;
+            String current = member.getMemberStatusCode();
+            log(previous, current);
+            <span class="keyword">if</span> (previous != <span class="keyword">null</span> && !previous.equals(current)) {
+                assertFalse(statusSet.contains(current));
+            }
+            statusDeque.clear(); <span class="comment">// so always previous only</span>
+            statusDeque.add(current);
+            statusSet.add(current);
+        });
+        assertHasAnyElement(statusSet);
+    }
+
+    <span class="comment">// ===================================================================================
+    //                                                                           InnerJoin
+    //                                                                           =========</span>
+    <span class="comment">/**
+     * いままで書いたエクササイズでもいいですし、新たに適当なテストメソッドを作ってもいいので、
+     * ログのSQLを目視で確認して InnerJoinAutoDetect を実感してみるとよいでしょう。
+     * @throws Exception
+     */</span>
+    <span class="keyword">public void</span> test_confirm_InnerJoinAutoDetect() <span class="keyword">throws</span> Exception {
+        <span class="comment">// select ...
+        //  from member dfloc
+        //    inner join member_status dfrel_0 on dfloc.MEMBER_STATUS_CODE = dfrel_0.MEMBER_STATUS_CODE
+        //    left outer join member_security dfrel_1 on dfloc.MEMBER_ID = dfrel_1.MEMBER_ID
+        //    inner join member_withdrawal dfrel_3 on dfloc.MEMBER_ID = dfrel_3.MEMBER_ID
+        // where dfrel_3.WITHDRAWAL_DATETIME >= '2015-10-15 14:49:56.608'</span>
+        memberBhv.selectList(cb -> {
+            cb.setupSelect_MemberStatus();
+            cb.setupSelect_MemberSecurityAsOne();
+            cb.setupSelect_MemberWithdrawalAsOne();
+            cb.query().queryMemberWithdrawalAsOne().setWithdrawalDatetime_GreaterEqual(currentLocalDateTime());
+        });
+    }
 }
 </code></pre>
 
