@@ -48,9 +48,11 @@
 		<li><a href="#checkbiz">テストデータの登録時チェック</a>
 			<ul>
 				<li><a href="#morecheck">さらにチェック</a></li>
+				<li><a href="#cbstyle">ConditionBeanスタイルで</a></li>
 				<li><a href="#omakecheck">おまけチェック</a></li>
 			</ul>
 		</li>
+		<li><a href="#sqlalias">SQLのエリアス名のこだわり</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -196,7 +198,7 @@ select max(login.LOGIN_DATETIME)
 		今度は、以下のSQLをDBFluteクライアント/playsql/take-finally.sql
 		に記述して再実行してみましょう。ログに注目です。じっくり読んでみましょう。
 	</p>
-<pre><span class="codetitle">ex) 会員住所情報で同時点で住所が重複しないようにチェック @take-finally.sql</span><code>
+<pre><span class="codetitle">e.g. 会員住所情報で同時点で住所が重複しないようにチェック @take-finally.sql</span><code>
 <span class="comment">-- #df:assertListZero#</span>
 <span class="comment">-- /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
 <span class="comment">-- Member addresses should be only one at any time.</span>
@@ -229,12 +231,36 @@ select max(login.LOGIN_DATETIME)
 		<li>退会会員が退会情報を持っていることをアサート</li>
 	</ul>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/takefinally.html#assert">最終チェック - データの整合性チェック</a></div>
+	<h3 id="cbstyle">ConditionBeanスタイルで</h3>
+	<p>
+		もし、よければ、(強いこだわりがなければ) ConditionBeanスタイルで書いてみましょう。
+		DBFluteユーザーが見慣れているフォーマットで書くことで、全体の可読性向上が期待できます。
+	</p>
+<pre><span class="codetitle">e.g. "|" が左端と想定して、ConditionBeanスタイルの法則 @SQL</span><code>
+ |<span class="keyword">select</span> ...
+ |     , ...
+ |  <span class="keyword">from</span> MEMBER
+ |    <span class="keyword">left outer join</span> ...
+ |    <span class="keyword">inner join</span> ...
+ | <span class="keyword">where</span> ...
+ |   <span class="keyword">and</span> ...
+ | <span class="keyword">order by</span> ...
+</code></pre>
 	<h3 id="omakecheck">おまけチェック</h3>
 	<p>
 		実は、先ほどの会員住所情報の重複チェックのSQLは、有効期間が一日だけ重複しているパターンを検出することはできません。
 		時間が余った場合は、このSQLをどのように直せばそのパターンが検出できるのか試してみましょう。
 		また、様々なパターンに挑戦してみるのも良いでしょう。
 	</p>
+
+	<div class="inucolumn">
+		<h2 id="sqlalias">SQLのエリアス名のこだわり</h2>
+		<p>
+			なかなか議論が尽きないところではありますが、SQLのエリアス名の付け方、こういった考えをもっています。
+			これといった正解をだしづらいものですが、ぜひいちどお読みくださいませ。
+		</p>
+		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20140908/sqlalias">SQLのエリアス名、頭文字省略は...うーん | jfluteの日記</a></div>
+	</div>
 
 	<h2 id="nextsection">次のセクション</h2>
 	<p>

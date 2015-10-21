@@ -51,6 +51,7 @@
 				<li><a href="#genereatedoc">再自動生成して確認</a></li>
 			</ul>
 		</li>
+		<li><a href="#stopgetselect">getであんまり検索したくない</a></li>
 		<li><a href="#uppercase">ちょっと大文字にしてみましょうか</a></li>
 		<li><a href="#emptystring">空文字をDBに入れたくない</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
@@ -141,8 +142,11 @@
 				<li>指定された suffix で会員名称を後方一致検索</li>
 				<li>会員名称の昇順で並べる</li>
 				<li>suffixが無効な値なら例外: IllegalArgumentException</li>
-				<li>会員名称、生年月日、正式会員日時をログに出す <span class="frm">(Commons Logging)</span></li>
+				<li>会員名称、生年月日、正式会員日時をログに出す <span class="frm">(Slf4j or CommonsLogging)</span></li>
 			</ul>
+		</dd>
+		<dd>
+			※こちらのメソッドは、他の人が呼び出すことを想定して public にしましょう。<span class="frm">(この先ずっと同じ)</span>
 		</dd>
 		<dt>対応テストメソッド</dt>
 		<dd>test_selectSuffixMemberList_指定したsuffixで検索されること()</dd>
@@ -161,18 +165,17 @@
 		</dd>
 	</dl>
 	<p>
-		ちなみに、今回からエクササイズをより実践に近いもので行います。<span class="frm">(講師によるフォローあり)</span>
+		ちなみに、今回からエクササイズをより実践に近いもので行います。
 	</p>
 	<ol>
 		<li>ロジッククラスにメソッドを定義して実装 (BehaviorはDIを利用)</li>
-		<li>ctrl + 9 で対応するテストクラスを自動生成 (src/test/java に)</li>
+		<li>(Eclipseであれば) <em class="bigmark">ctrl + 9</em> で対応するテストクラスを自動生成 (src/test/java に)</li>
 		<li>テストメソッドを実装してロジックを検証</li>
 	</ol>
 	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
 	<p>
 		ロジッククラスでの Behavior の宣言は、以下のようにします。<span class="frm">(講師によるDIのお話あり)</span>
 	</p>
-	<div class="relatedpage"><a href="../../manual/reference/diway/seasar/index.html">Seasarの取扱い</a></div>
 <pre><span class="codetitle">e.g. ロジッククラスでの Behavior の宣言 @Java</span><code>
 <span class="comment">/**
  * @author jflute
@@ -180,7 +183,7 @@
 <span class="keyword">public class</span> HandsOn06Logic {
 
     @Resource
-    <span class="keyword">protected</span> MemberBhv <span class="atrribute">memberBhv</span>;
+    <span class="keyword">private</span> MemberBhv <span class="atrribute">memberBhv</span>;
 
     <span class="abbreviation">...</span>
 }
@@ -219,6 +222,18 @@
 		SchemaHTML、および、それぞれのカラムに対応するメソッドの JavaDoc コメントに変化があるはずです。
 	</p>
 	<div class="detailpage"><a href="../../manual/function/genbafit/implfit/aliasdefinition/index.html">現場フィット - 別名(和名)の定義</a></div>
+
+	<div class="inucolumn">
+		<h2 id="stopgetselect">getであんまり検索したくない</h2>
+		<p>
+			ハンズオンでは、Logicの検索メソッドの名前は、select...() になっています。データを取得するからget？ではありません。
+			検索している、探している、ということを意識したいのです。
+		</p>
+		<p>
+			こういった考えでやっていますので、ぜひいちどお読みくださいませ。
+		</p>
+		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20151020/stopgetselect">単純な話、getであんまり検索したくない | jfluteの日記</a></div>
+	</div>
 
 	<h2 id="uppercase">ちょっと大文字にしてみましょうか</h2>
 	<p>
