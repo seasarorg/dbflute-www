@@ -43,9 +43,8 @@
 		<li><a href="#ready">事前準備</a></li>
 		<li><a href="#develop">(一次)開発時のDB変更</a>
 			<ul>
-				<li><a href="#modifysqlerror">外だしSQLの修正</a></li>
-				<li><a href="#modifycompileerror">コンパイルエラーの修正</a></li>
-				<li><a href="#checkhistory">HistoryHTMLの確認</a></li>
+				<li><a href="#regen">クラスの再自動生成</a></li>
+				<li><a href="#sqlcheck">外だしSQLのチェック</a></li>
 				<li><a href="#unittest">単体テストの実行</a></li>
 				<li><a href="#dbchange">DB変更が発生したら (まとめ)</a></li>
 			</ul>
@@ -79,7 +78,8 @@
 
 	<h2 id="develop">(一次)開発時のDB変更</h2>
 	<p>
-		以下のDB変更が発生しました。DDL修正後、Renewal (manageの1番) してみましょう。
+		以下のDB変更が発生しました。DDL修正後、ReplaceSchema してみましょう。
+		<span class="frm">(講師による実演あり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchemaタスク</a></div>
 	<dl class="textlist">
@@ -91,27 +91,37 @@
 	<p>
 		ReplaceSchema で落ちます。エラー内容から原因を特定してみましょう。
 		商品の定価が必須になったので、データのなかったレコードでエラーが発生するはずです。
-		商品のデータ入っているエクセルデータを開いて、以下のようにデータを定義して、再度 Renewal (manageの1番) してみましょう。
+		商品のデータ入っているエクセルデータを開いて、以下のようにデータを定義して、再度 ReplaceSchema してみましょう。
 	</p>
 	<dl class="valuemainlist">
 		<dt>商品ID: 15</dt><dd>定価: 500000</dd>
 		<dt>商品ID: 16</dt><dd>定価: 4000000</dd>
 	</dl>
-	<h3 id="modifysqlerror">外だしSQLの修正</h3>
+	<h3 id="regen">クラスの再自動生成</h3>
 	<p>
-		さて、さらに Renewal が落ちたはずです。<span class="frm">(今までのエクササイズがちゃんと終わっていれば...)</span>
-		エラー内容の通りに直しましょう。OutsideSqlTestタスクがぜんぶ通るまで直し続けます。
+		正常に通れば、次は再自動生成です。JDBCタスク、Docタスク、Generateタスクと一気に実行してください。
+		自動でEclipseプロジェクトがリフレッシュされるはずですが、一体何が起こるでしょうか？
+		<span class="frm">(今までのエクササイズが終わっていれば何かが...)</span>
+		見ればわかるはずですので、その通り直します。<span class="frm">(講師によるフォローあり)</span>
 	</p>
-	<div class="relatedpage"><a href="../../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTestタスク</a></div>
-	<h3 id="modifycompileerror">コンパイルエラーの修正</h3>
-	<p>
-		さて、Renewal が最後のタスクまで通っても、今度はコンパイルエラーが発生したはずです。<span class="frm">(今までのエクササイズがちゃんと終わっていれば...)</span>
-		エラー内容の通りに直しましょう。
-	</p>
-	<h3 id="checkhistory">HistoryHTMLの確認</h3>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/index.html">Docタスク</a></div>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
 	<p>
 		HistoryHTML を見てみましょう。変更した内容が出力されているはずです。
 	</p>
+	<h3 id="sqlcheck">外だしSQLのチェック</h3>
+	<p>
+		さらに、OutsideSqlTestタスクを実行してみましょう。エラーが出ませんか？<span class="frm">(今までのエクササイズが終わっていれば...)</span>
+		エラー内容の通りに直しましょう。OutsideSqlTestタスクは、全ての外だしSQLを実行して実行エラーが発生しないかをチェックします。
+		Sql2Entity対象外の外だしSQLも実行するので、DB変更時の影響範囲の特定に有効です。<span class="frm">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/outsidesqltest/index.html">OutsideSqlTestタスク</a></div>
+	<p>
+		そして、Sql2Entityタスクを実行してみましょう。Generateタスクのときと同じようにな感じですね<span class="frm">(今までのエクササイズが終わっていれば...)</span>。
+		さあ、直しましょう。<span class="frm">(講師によるフォローあり)</span>
+	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/sql2entity/index.html">Sql2Entityタスク</a></div>
 	<h3 id="unittest">単体テストの実行</h3>
 	<p>
 		最後に、今まで作った単体テストを全て実行してグリーンになることを確認しましょう。
@@ -124,7 +134,7 @@
 
 	<h2 id="livingdb">運用後のDB変更</h2>
 	<p>
-		次は運用後のDB変更を想定してやってみましょう。
+		次は運用後のDB変更を想定してやってみましょう。<span class="frm">(講師によるお話あり)</span>
 	</p>
 	<div class="detailpage"><a href="../../manual/function/generator/task/replaceschema/livingdbmigration.html">運用後のDB変更</a></div>
 	<p>
@@ -137,7 +147,7 @@
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/altercheck.html#saveprevious">AlterCheck - まずは SavePrevious</a></div>
 	<h3 id="dbchange">2. 普通にDB変更</h3>
 	<p>
-		以下の内容を playsql 配下の DDL に反映して Renewal (manageの1番) を実行。
+		以下の内容を playsql 配下の DDL に反映して ReplaceSchema を実行。
 	</p>
 	<dl class="textlist">
 		<dt>会員セキュリティ情報にリマインダ回数を追加 <span class="frm">(忘れっぽい人を分析する)</span></dt>
@@ -164,7 +174,7 @@
 		<dd>上から適当に</dd>
 	</dl>
 	<p>
-		気を取り直して、Renewal (manageの1番) を実行。
+		気を取り直して、ReplaceSchema を実行。
 	</p>
 	<h3 id="altercheck">3. AlterCheck</h3>
 	<p>
