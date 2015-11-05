@@ -355,7 +355,7 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 
 </code></pre>
 	<p>
-		GodHandableActionWrapper で、このログ出力が行われています。
+		GodHandableAction で、このログ出力が行われています。
 	</p>
 
 	<h2 id="calllersqllog">SQLに呼び出しActionを埋め込み</h2>
@@ -398,7 +398,8 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 - ===========/ [00m00s016ms - Selected list: 6 first={1,Stojkovic,Pixy,FML,2007-12-01 02:01:10.0,1965-03-02 15:00:00.0,2008-01-23 13:38:25.989,replace-schema,replace-schema,2008-01-23 13:38:25.991,replace-schema,replace-schema,1}]
 </code></pre>
 	<p>
-		TypicalBaseAction の ActionCallback の before の中で SqlStringFilter が設定され、このログ出力が行われています。
+		TypicalAction の ActionHook の before の中で SqlStringFilter が設定され、それによりDBFluteがSQLに画面情報を付与するようになります。
+		<span class="frm">(そこから追っていくと見つかります)</span>
 	</p>
 
 	<h2 id="sqlcountlog">RequestごとのSQLの発行回数</h2>
@@ -436,7 +437,8 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 
 </code></pre>
 	<p>
-		TypicalAction の ActionCallback の before の中で SqlStringFilter が設定され、このログ出力が行われています。
+		TypicalAction の ActionHook の before の中で SqlStringFilter が設定され、それによりDBFluteがSQLの発行回数を数えるようになります。
+		実際にログを出力するところは、finally の中で行われています。<span class="frm">(そこから追っていくと見つかります)</span>
 	</p>
 	<p>
 		また、SQL発行回数がある一定のしきい値(デフォルトで30)を超えると、WARNレベルのログが出力されます。
