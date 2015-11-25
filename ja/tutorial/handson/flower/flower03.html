@@ -170,7 +170,7 @@ dbflute-hands-on
         <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
 
-        <span class="comment">// << べたべたパターン: ループの中で検索してるのがちょっとよくない >></span>
+        <span class="comment">// &lt;&lt; べたべたパターン: ループの中で検索してるのがちょっとよくない &gt;&gt;</span>
         memberList.forEach(member -&gt; {
             <span class="attribute">memberSecurityBhv</span>.selectByPK(member.getMemberId()).alwaysPresent(security -&gt; {
                 String question = security.getReminderQuestion();
@@ -179,7 +179,7 @@ dbflute-hands-on
             });
         });
 
-        <span class="comment">// << SQLを救出パターン >></span>
+        <span class="comment">// &lt;&lt; SQLを救出パターン &gt;&gt;</span>
         <span class="comment">// IDの抽出、stream()でこう書ける
         //List&lt;Integer&gt; memberIdList = memberList.stream().map(member -&gt; {
         //    return member.getMemberId();
@@ -201,7 +201,20 @@ dbflute-hands-on
             assertMarked(<span class="literal">"exists"</span>);
         });
 
-        <span class="comment">// << Mapにしちゃうパターン!? >></span>
+        <span class="comment">// &lt;&lt; stream()で探してみるパターン &gt;&gt;</span>
+        memberList.forEach(member -&gt; {
+            securityList.stream().filter(security -> {
+                <span class="keyword">return</span> member.getMemberId().equals(security.getMemberId());
+            }).findFirst().ifPresent(security -&gt; {
+                String question = security.getReminderQuestion();
+                log(member.getMemberName(), question);
+                assertTrue(question.contains(keyword));
+                markHere(<span class="literal">"exists"</span>);
+            });
+            assertMarked(<span class="literal">"exists"</span>);
+        });
+
+        <span class="comment">// &lt;&lt; Mapにしちゃうパターン!? &gt;&gt;</span>
         <span class="comment">// Mapの作り方、collect()が使えるけど、今までのやり方でも Lambda 使えばそれなりにいいかんじ!?
         //Map<Integer, MemberSecurity> securityMap = newHashMap();
         //securityList.forEach(security -&gt; securityMap.put(security.getMemberId(), security));</span>
