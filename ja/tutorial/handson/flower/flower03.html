@@ -250,22 +250,22 @@ dbflute-hands-on
         <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(memberList);
 
-        <span class="comment">// << forEach()使ってみたパターン >></span>
-        Deque&lt;String&gt; statusDeque = <span class="keyword">new</span> LinkedList&lt;String&gt;();
+        <span class="comment">// &lt;&lt; forEach()使ってみたパターン &gt;&gt;</span>
+        String[] previousBox = <span class="keyword">new</span> String[1]; // Lambda使うとこういうのしづらい!?
         Set&lt;String&gt; statusSet = <span class="keyword">new</span> HashSet&lt;String&gt;();
         memberList.forEach(member -&gt; {
             assertFalse(member.getMemberStatus().isPresent());
-            String previous = !statusDeque.isEmpty() ? statusDeque.peekLast() : <span class="keyword">null</span>;
+            String previous = previousBox[0];
             String current = member.getMemberStatusCode();
             log(previous, current);
             <span class="keyword">if</span> (previous != null && !previous.equals(current)) {
                 assertFalse(statusSet.contains(current));
             }
-            statusDeque.add(current);
+            previousBox[0] = current;
             statusSet.add(current);
         });
 
-        <span class="comment">// << 普通のfor文のパターン >></span>
+        <span class="comment">// &lt;&lt; 普通のfor文のパターン &gt;&gt;</span>
         statusSet.clear(); <span class="comment">// ちと再利用させて</span>
         String previous = <span class="keyword">null</span>;
         <span class="keyword">for</span> (Member member : memberList) {
@@ -279,7 +279,7 @@ dbflute-hands-on
             previous = current;
         }
 
-        <span class="comment">// << というか、違うやり方 >></span>
+        <span class="comment">// &lt;&lt; というか、違うやり方 &gt;&gt;</span>
         statusSet.clear(); <span class="comment">// また再利用させて</span>
         previous = null; <span class="comment">// こっちも</span>
         <span class="keyword">int</span> switchCount = <span class="literal">0</span>;
@@ -295,8 +295,9 @@ dbflute-hands-on
         }
         assertEquals(statusSet.size() - 1, switchCount);
 
-        <span class="comment">// << これはちょっと強引かな >></span>
+        <span class="comment">// &lt;&lt; これはちょっと強引かな &gt;&gt;</span>
         <span class="comment">// reduce()の機能を間借りしてみた...が、reduceしてわけじゃないので紛らわしいかもね</span>
+        <span class="comment">// jflute的にはやらないです。これだったら普通のforの方がいい</span>
         statusSet.clear(); <span class="comment">// これまた再利用させて</span>
         memberList.stream().reduce((previousMember, currentMember) -> {
             assertFalse(previousMember.getMemberStatus().isPresent());
