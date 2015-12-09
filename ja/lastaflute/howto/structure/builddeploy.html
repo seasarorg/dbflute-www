@@ -44,7 +44,13 @@
 	</p>
 	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
 	<ul class="indexlist">
-		<li><a href="#embeddedwar">組み込みwarでjavaコマンド実行</a></li>
+		<li><a href="#executablewar">実行可能warでアプリ起動</a>
+			<ul>
+				<li><a href="#javawar">warをjavaコマンドで実行</a></li>
+				<li><a href="#lastaenv">lasta.envを指定</a></li>
+				<li><a href="#portswitch">ポート番号をスイッチ</a></li>
+			</ul>
+		</li>
 		<li><a href="#mavenwar">Mavenでwarファイル作成</a></li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
 			<ul>
@@ -56,7 +62,8 @@
 		<li><a href="#newwebproj">新しいWebプロジェクトつくる</a></li>
 	</ul>
 
-	<h2 id="embeddedwar">組み込みwarでjavaコマンド実行</h2>
+	<h2 id="executablewar">実行可能warでアプリ起動</h2>
+	<h3 id="javawar">warをjavaコマンドで実行</h3>
 	<p>
 		組み込みJetty, 組み込みTomcatを使って、warファイルをjavaコマンドで実行するだけで、アプリが起動するようにするので基本です。
 		<span class="frm">(必須ではないですが、その方式で問題なければという感じで)</span>
@@ -64,8 +71,44 @@
 <pre><span class="codetitle">e.g. javaコマンドでwarファイルを実行、組み込みJetty,Tomcatが起動する @Command</span><code>
 java -jar maihama-dockside.war
 </code></pre>
+	<h3 id="lastaenv">lasta.envを指定</h3>
 	<p>
-		TODO jflute
+		環境設定を切り替えるためには、javaコマンドでシステムプロパティ <em class="keyword">lasta.env</em> を指定します。
+	</p>
+<pre><span class="codetitle">e.g. javaコマンドで lasta.env に production (本番) を指定 @Command</span><code>
+java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
+</code></pre>
+	<p>
+		これにより、アプリで読み込まれる ..._env.properties が切り替わります。
+	</p>
+	<p>
+		例えば、lasta.env が production
+		であれば、..._env_production.properties が読み込まれます。
+		<span class="frm">(普段のローカル開発環境では lasta.env は指定されないので、ローカル用の ..._env.properties が読み込まれます)</span>
+	</p>
+	<h3 id="portswitch">ポート番号をスイッチ</h3>
+	<p>
+		デプロイ環境ではポート番号を別にしたいなら、lasta.env の有無で分岐するとよいでしょう。
+	</p>
+<pre><span class="codetitle">e.g. デプロイ環境ではport番号を 8080 にする (結合も本番も同じだとして) @Java</span><code>
+<span class="keyword">private static final int</span> <span class="attribute">DEVELOPMENT_PORT</span> = <span class="literal">8091</span>;
+<span class="keyword">private static final int</span> <span class="attribute">PRODUCTION_PORT</span> = <span class="literal">8080</span>;
+
+<span class="keyword">public static void</span> main(String[] args) { <span class="comment">// e.g. java -Dlasta.env=production -jar maihama-dockside.war</span>
+    <span class="keyword">new</span> TomcatBoot(derivePort(), <span class="literal">"/dockside"</span>).asDevelopment(isNoneEnv()).bootAwait();
+}
+
+<span class="keyword">private static int</span> derivePort() {
+    <span class="keyword">return</span> isNoneEnv() ? <span class="attribute">DEVELOPMENT_PORT</span> : <span class="attribute">PRODUCTION_PORT</span>;
+}
+
+<span class="keyword">private static boolean</span> isNoneEnv() {
+    <span class="keyword">return</span> System.getProperty(<span class="literal">"lasta.env"</span>) == <span class="keyword">null</span>;
+}
+</code></pre>
+	<p>
+		もっと、細かくデプロイ環境ごとに変更したいとかであれば、javaコマンドの引数で指定したりしてもよいでしょう。
+		main() の args から指定された port 番号を取得できるようにするなど。
 	</p>
 
 	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
