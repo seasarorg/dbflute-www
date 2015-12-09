@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Actionの実装デザイン | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Actionの実装デザイン</h1>
+	<p>
+		LastaFluteの特徴の一つです。
+	</p>
+	<div class="relatedpage"><a href="../../index.html">LastaFluteトップページ</a></div>
+	<div class="relatedpage"><a href="../../tutorial/laimpl.html">LastaFluteの実装チュートリアル</a></div>
+	<ul class="indexlist">
+		<li><a href="#actionrole">Actionの役割</a>
+			<ul>
+				<li><a href="#boundaryfacade">バウンダリ、かつ、ファサード</a></li>
+				<li><a href="#ifnotx">もし、トランザクションがなければ</a></li>
+				<li><a href="#byconvention">規約ベースなので Action は自然分離</a></li>
+			</ul>
+		</li>
+		<li><a href="#actionimpl">Actionに何を実装するか？</a>
+			<ul>
+				<li><a href="#flowcontrol">フローコントロール <span class="frm">(ファサード)</span></a></li>
+				<li><a href="#nonrecyledb">再利用しない検索や更新 <span class="frm">(ちょこっとロジック)</span></a></li>
+				<li><a href="#actionlikethis">つまりこんな感じです</a></li>
+				<li><a href="#whererecycle">検索の再利用は部品単位で</a></li>
+			</ul>
+		</li>
+		<li><a href="#logicimpl">Logicに何を実装するか？</a>
+			<ul>
+				<li><a href="#looselogic">ルーズなロジックだと？</a></li>
+				<li><a href="#recylelogic">なので、再利用するものだけをロジックに！</a></li>
+				<li><a href="#firstlogic">二個目が見えてないときは難しい</a></li>
+				<li><a href="#lazyrecyle">再利用するときに切り出せばいい</a></li>
+			</ul>
+		</li>
+		<li><a href="#actionassist">ActionをAssistするAssistクラス</a></li>
+	</ul>
+
+	<h2 id="actionrole">Actionの役割</h2>
+	<h3 id="boundaryfacade">バウンダリ、かつ、ファサード</h3>
+	<p>
+		Action には、すでにトランザクションがかかっています。
+		単なるWebサイドのバウンダリ(境界)としての役割だけでなく、ビジネスロジックのファサード(玄関)としての役割を持つことができます。
+	</p>
+	<p>
+		厳密なアーキテクチャではその役割を分離することが多いですが、LastaFlute ではシンプルさを追求するために、一つにしています。
+		スタートアップの開発では、その二つを分離することのメリットを享受する前に変更がたくさん入り、逆に分離していることによるデメリットが足かせになりやすいと考えます。
+	</p>
+	<h3 id="ifnotx">もし、トランザクションがなければ</h3>
+	<p>
+		例えば、とある Action では、A という処理と B という処理と C という処理を行う必要があるとします。
+		もし、Actionにトランザクションがかかっていなければ、通常は A, B, C を呼び出す流れのロジックは Action には書けません。
+		A と B で insert や update をしたとき、C で例外が発生しても A と B をロールバックできないからです。
+	</p>
+	<p>
+		ゆえに、トランザクションを発行させるビジネスロジックのファサードのようなレイヤ<span class="frm">(様々な呼ばれ方をします)</span>を用意して、Actionはそこに委譲することが多いです。
+		ですが、そこで迷うのが、じゃあそのレイヤはどこまで依存していいのか？Formを引数で渡してもいいのか？何かしらのDTOに詰め替えをして渡す？
+		様々なデザインが存在します。しっかり決め事をしないとどんどん実装はバラバラになります。 
+	</p>
+	<p>
+		LastaFluteでは、そのデザインをする必要性がスタートアップではあまりないだろうと考え、Action でそれをまかなえるようにしています。
+		少なくとも、わざわざ Form の値を DTO に詰め替えて、すぐ隣のクラスに渡すというようなことはスタートアップではあまり意味がないと考えています。
+	</p>
+	<h3 id="byconvention">規約ベースなので Action は自然分離</h3>
+	<p>
+		LastaFlute の Action は規約ベースであり、ある意味不自由です。少なくとも、ネストしたURLの Execute
+		メソッドを定義することはできません。SeaAction に、/sea/land/piari/ を受け付けるメソッドは作れません。
+		ゆえに、Action クラスに定義できるメソッドは限界があり、自然と分離されていきます。規約ベースでないフレームワークの Action
+		で、/sea/ 配下の URL のメソッドが大量に一つの SeaAction に実装されて見通しが非常に悪いというようなアンチパターンを見かけますが、
+		LastaFluteでは比較的それは発生しづらいことです。 
+	</p>
+	<p>
+		なので、Action クラスである程度 "ベタっと"
+		書くことを許容して、逆にそのメリットを享受する方がよいだろうと考えています。
+		インクリメンタル開発では、既存のソースコードを読む時間が非常に長いです。あちこち飛ぶのはできるだけ少なくしたいものです。
+	</p>
+
+	<h2 id="actionimpl">Actionに何を実装するか？</h2>
+	<h3 id="flowcontrol">フローコントロール <span class="frm">(ファサード)</span></h3>
+	<p>
+		先ほど出てきた "A やって B やって C やって"
+		という、そのリクエストにおけるトランザクションに含む必要のある流れの呼び出しを司ります。
+	</p>
+	<p>
+		C で例外が発生しても、A と B がロールバックされるように。
+	</p>
+	<h3 id="nonrecyledb">再利用しない検索や更新 <span class="frm">(ちょこっとロジック)</span></h3>
+	<p>
+		ActionでDBアクセスしてはいけないというポリシーは LastaFlute
+		には存在しません。少なくとも、プロジェクトポリシーで明確に規定されない限りは。
+	</p>
+	<p>
+		その画面でしか使わない ConditionBean による検索や更新など、Action で入れてもOKです。
+	</p>
+	<h3 id="actionlikethis">つまりこんな感じです</h3>
+	<p>
+		シンプルな処理ですが...
+	</p>
+<pre><span class="codetitle">e.g. SeaLandAction in harbor @Java</span><code>
+<span class="comment">/**
+ * @author yourname
+ */</span>
+<span class="keyword">public class</span> SeaLandAction <span class="keyword">extends</span> HarborBaseAction {
+
+    <span class="comment">// ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========</span>
+    @Resource
+    <span class="keyword">private</span> <span class="point">PurchaseBhv</span> <span class="attribute">purchaseBhv</span>;
+
+    <span class="comment">// ===================================================================================
+    //                                                                             Execute
+    //                                                                             =======</span>
+    @Execute
+    <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+        validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
+            <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+        });
+        ListResultBean&lt;Purchase&gt; <span class="localvar">purchaseList</span> = selectPurchaseList(<span class="localvar">form</span>);
+        List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = mappingToBeans(<span class="localvar">purchaseList</span>);
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>).renderWith(<span class="localvar">data</span> -&gt; {
+            <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
+        });
+    }
+
+    <span class="comment">// ===================================================================================
+    //                                                                              Select
+    //                                                                              ======</span>
+    <span class="keyword">private</span> ListResultBean&lt;Purchase&gt; selectPurchaseList(SeaLandForm <span class="localvar">form</span>) {
+        <span class="keyword">return</span> <span class="attribute">purchaseBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+            <span class="localvar">cb</span>.setupSelect_Member();
+            <span class="localvar">cb</span>.setupSelect_Product();
+            <span class="localvar">cb</span>.query().setProductId_Equal(<span class="localvar">productId</span>);
+            <span class="localvar">cb</span>.orScopeQuery(<span class="localvar">orCB</span> -> {
+                <span class="localvar">orCB</span>.query().setMemberId_Equal(<span class="localvar">userId</span>);
+                <span class="localvar">orCB</span>.query().queryMember().existsMemberFollowingByYourMemberId(<span class="localvar">followingCB</span> -> {
+                    <span class="localvar">followingCB</span>.query().setMyMemberId_Equal(<span class="localvar">userId</span>);
+                });
+            });
+            <span class="localvar">cb</span>.query().existsPurchasePayment(<span class="localvar">paymentCB</span> -&gt; {
+                <span class="localvar">paymentCB</span>.query().setPaymentMethodCode_Equal_AsPaymentMethod(form.<span class="attribute">pay</span>);
+            });
+            <span class="localvar">cb</span>.query().addOrderBy_PurchaseDatetime_Desc();
+        });
+    }
+
+    <span class="comment">// ===================================================================================
+    //                                                                             Mapping
+    //                                                                             =======</span>
+    <span class="keyword">private</span> List&lt;SeaLandRowBean&gt; mappingToBeans(ListResultBean&lt;Purchase&gt; <span class="localvar">purchaseList</span>) {
+        <span class="keyword">return</span> <span class="localvar">purchaseList</span>.mappingList(<span class="localvar">purchase</span> -&gt; {
+            SeaLandRowBean <span class="localvar">bean</span> = <span class="keyword">new</span> SeaLandRowBean();
+            <span class="localvar">bean</span>.<span class="attribute">purchaseId</span> = <span class="localvar">purchase</span>.getPurchaseId();
+            <span class="localvar">purchase</span>.getMember().alwaysPresent(<span class="localvar">member</span> -&gt; {
+                <span class="localvar">bean</span>.<span class="attribute">memberName</span> = <span class="localvar">member</span>.getMemberName();
+            });
+            <span class="localvar">purchase</span>.getProduct().alwaysPresent(<span class="localvar">product</span> -&gt; {
+                <span class="localvar">bean</span>.<span class="attribute">productName</span> = <span class="localvar">product</span>.getProductName();
+                <span class="localvar">bean</span>.<span class="attribute">productHandleCode</span> = <span class="localvar">product</span>.getProductHandleCode();
+            });
+            <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
+            <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
+            <span class="keyword">return</span> <span class="localvar">bean</span>;
+        });
+    }
+}
+</code></pre>
+	<h3 id="whererecycle">検索の再利用は部品単位で</h3>
+	<p>
+		もし、検索の中で再利用したいものがあれば、<em class="keyword">Arrange Query</em>
+		を使いましょう。これは、DBFluteのポリシーでもあります。検索の丸ごと再利用は多くの場合失敗に終わります。
+	</p>
+	<div class="detailpage"><a href="http://dbflute.seasar.org/ja/manual/function/genbafit/implfit/whererecycle/">where句の再利用</a></div>
+
+	<h2 id="logicimpl">Logicに何を実装するか？</h2>
+	<p>
+		Logicは、非常に粒度を設計するのが難しいクラスです。画面単位？テーブル単位？いやいや業務単位？
+		しっかりとDDDをやらない限り、業務単位というのもなかなか適切なデザインをするのは難しいです。
+	</p>
+	<h3 id="looselogic">ルーズなロジックだと？</h3>
+	<p>
+		曖昧なまま、Logic運用をするプロジェクトがたくさんあります。
+		そこで発生する問題は大抵同じです。
+	</p>
+	<dl class="textlist">
+		<dt>潜在的に画面に依存したロジック</dt>
+		<dd>
+			汎用的に見えて、実際には (潜在的に) 固有の画面に依存したロジック。再利用すべきでないロジック。
+		</dd>
+		<dd>
+			これ自体が悪いというより、これが Logic に入っていると、ついつい別の画面が使ってしまうことがあります。
+			そうすると、元々の画面のロジック変更をしたとき、別の画面に不具合が発生する可能性があります。
+			ちゃんと修正するときに確認はすべきことですが、ロジックの扱いが曖昧だと、修正する方は他の画面が使ってると全く思わず作業してしまいます。
+		</dd>
+		<dd>
+			そうなってくると、本来再利用すべきロジックも "なんか怖くて呼べない", "呼んでいいのやらいけないのやら..."
+			という気持ちになってきて、本来ロジックが持っている大きな役割の一つである "再利用"
+			に支障が出てくるのです。
+		</dd>
+		<dt>ソースを読むのにあっちこっち飛ぶ</dt>
+		<dd>
+			そもそも再利用していたり、業務上の意味が明確で、ネーミングもわかりやすいものであれば、それは問題ないですが、
+			なかなかそうはならないです。たくさん command + click
+			でソースを飛んで飛んで読んでいても、実際には全部その画面固有の処理だったなんてことも...
+		</dd>
+		<dd>
+			綺麗に役割を分けて書くというのは、想像以上に難しいことです。プログラムが書けるからそれができる、とは全く言えないと考えます。
+			ヘタに分けるくらいだったら、分けない方がまだマシというようなことも多くあります。
+		</dd>
+	</dl>
+	<h3 id="recylelogic">なので、再利用するものだけをロジックに！</h3>
+	<p>
+		ここはなかなか答えを出すのが難しいところですが、LastaFluteでのひとつの提案があります。
+	</p>
+	<p>
+		<em class="keyword">再利用するものだけロジックに書く</em>
+	</p>
+	<p>
+		先ほどの曖昧なロジック運用のデメリットを回避することが最優先だと考えます。
+		再利用し過ぎるよりは、少し足りないくらいの方がスタートアップには向いていると考えます。
+	</p>
+	<h3 id="firstlogic">二個目が見えてないときは難しい</h3>
+	<p>
+		将来の再利用を目的に Logic に切り出すとします。厳密にはそれはとてもよいことです。
+		しかしながら、そのときはまだ再利用するもう一個のプロセスが見えてない状態です。
+		その状態で二個目のプロセスに本当にぴったりな再利用メソッドに最初から仕上げるのはなかなか高度なことです。
+	</p>
+	<p>
+		よくあるケースで、"再利用できそうなんだけど、ちょっとだけ違うんだよね"
+		と、実質最初のプロセス固有の処理が入り込んでしまったりして、結局再利用できないことも。
+		すると、ここでなかなかつらいことが発生します。
+	</p>
+	<dl class="valuemainlist">
+		<dt>コピペパターン</dt><dd>コピーして、少しだけ直したものを新しく作ってしまう</dd>
+		<dt>リモコンパターン</dt><dd>一つ目のメソッドの引数にbooleanを追加して分岐させる</dd>
+	</dl>
+	<p>
+		放っておくと大抵はコピペパターンになります。
+	</p>
+	<p>
+		リモコンパターンが積み重なると、悲劇を生みます。
+	</p>
+	<div class="detailpage"><a href="http://dbflute.seasar.org/ja/manual/function/genbafit/implfit/whererecycle/#argremote">引数リモコンパターンはやめたい</a></div>
+	<h3 id="lazyrecyle">再利用するときに切り出せばいい</h3>
+	<p>
+		インクリメンタル開発は、運用中の既存のコードを修正するのが当たり前なので、ある意味で既存のコードを修正しやすい環境とも言えます。
+		なので、適切な再利用が見えてきてから再利用をするように切り出すことは比較的しやすいのです。
+	</p>
+	<p>
+		もちろん、再利用メソッドの経験値の高い人はよいですが、そうでないならば、将来を見越した再利用メソッドは無理をする必要はないと考えます。
+		なので、ひとまずは Action クラスに書いてもいいでしょうと。それが恒久デザインなわけではないので。
+	</p>
+	<p>
+		もし、自信持って再利用メソッドをあらかじめ作るのであれば、JavaDocなどはしっかり整備して、再利用する人が迷わないようにしましょう。
+	</p>
+
+	<h2 id="actionassist">ActionをAssistするAssistクラス</h2>
+	<p>
+		さて、それでも、再利用しないものだけでもそれなりのロジックが Action
+		に入ってきて、ちょっとさすがに外に出したいと思ったら、Assistクラスを使いましょう。
+	</p>
+	<p>
+		Assistクラスは、単なるActionのAssistです。
+		Actionの中で記述するべきものを、ちょっとまとまったクラスにしたいというときに使います。
+	</p>
+	<p>
+		TODO jflute
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#makeaction">Actionクラスを作る</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#implexecute">Executeメソッドを実装</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
