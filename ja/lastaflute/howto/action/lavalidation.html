@@ -1,0 +1,425 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFlute Validation | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFlute Validation</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<ul class="indexlist">
+		<li><a href="#howto">Validationの実装方法</a></li>
+		<li><a href="#formannotation">1. Form,Bodyにアノテーション</a>
+			<ul>
+				<li><a href="#hibernate">Hibernate Validator</a></li>
+				<li><a href="#required">必須チェックは @Required</a></li>
+				<li><a href="#clienterror">システム項目は groups=ClientError.class</a></li>
+				<li><a href="#validnested">ネストのプロパティは @Valid</a></li>
+			</ul>
+		</li>
+		<li><a href="#validatemethod">2. Action で validate() を呼ぶ</a>
+			<ul>
+				<li><a href="#validateapi">JsonResponse なら validateApi()</a></li>
+				<li><a href="#switchtoapi">そもそも全部 JsonResponse なら</a></li>
+			</ul>
+		</li>
+		<li><a href="#morevalidation">3. Lambdaで、もっとValidation</a>
+			<ul>
+				<li><a href="#correlationdb">相関チェック、DB検索が必要なチェック</a></li>
+				<li><a href="#morevalidatemethod">moreValidate() のススメ</a></li>
+			</ul>
+		</li>
+		<li><a href="#adjustmessage">エラーメッセージを調整</a></li>
+		<li><a href="#jsonvalidation">番外. JSON Bean のバリデーション</a>
+			<ul>
+				<li><a href="#alsobeanlastadoc">LastaDocに載るのでフロント側に伝えやすい</a></li>
+				<li><a href="#dontforgetjson">@Valid や List の @Required に注意</a></li>
+				<li><a href="#exceptproduction">本番ではチェックしない、とか、警告だけとか</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="howto">Validationの実装方法</h2>
+	<p>
+		<em class="keyword">アノテーションを付けて、validate() を呼びます。</em>
+	</p>
+
+	<h2 id="formannotation">1. Form,Bodyにアノテーション</h2>
+	<h3 id="hibernate">Hibernate Validator</h3>
+	<p>
+		Form, Body クラスに、Hibernate Validator のアノテーションを付けます。
+	</p>
+	<div class="detailpage"><a href="http://hibernate.org/validator/">Hibernate Validator | Hibernate</a></div>
+<pre><span class="codetitle">e.g. Hibernate validator annotation in Form class @Java</span><code>
+<span class="keyword">public class</span> SeaLandForm {
+
+    <span class="point">@Length(max = 10)</span>
+    <span class="keyword">public</span> String <span class="attribute">memberName</span>;
+}
+</code></pre>
+	<h3 id="required">必須チェックは @Required</h3>
+	<p>
+		必須チェックに関しては、LastaFlute で Required アノテーションを用意しています。
+		String や Integer など型を意識せずに利用できるアノテーションです。
+		<span class="frm">(StringだからNotEmpty, IntegerだからNotNullなどと型ごとに使い分けなくてもいいように)</span>
+	</p>
+<pre><span class="codetitle">e.g. Required annotation in Form class @Java</span><code>
+<span class="keyword">public class</span> SeaLandForm {
+
+    <span class="point">@Required</span>
+    @Length(max = 10)
+    <span class="keyword">public</span> String <span class="attribute">memberName</span>;
+}
+</code></pre>
+	<p>
+		ルールは以下の通り。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>String</dt><dd>NotBlank と同じ、nullと空文字と空白はダメ</dd>
+		<dt>Integer など</dt><dd>NotNull と同じ</dd>
+		<dt>LocalDate など</dt><dd>NotNull と同じ</dd>
+		<dt>List や Map など</dt><dd>NotEmpty と同じ、null や空リストはダメ、<em class="keyword">一件以上の要素が必要</em></dd>
+	</dl>
+	<h3 id="clienterror">システム項目は groups=ClientError.class</h3>
+	<p>
+		例えば、hiddenフィールドに保持しておいたIDやバージョン番号など、ユーザー入力ではないシステム項目は、
+		アノテーションの属性として <em class="mark">groups=ClientError.class</em> を指定するとよいでしょう。
+	</p>
+<pre><span class="codetitle">e.g. Required annotation in Form class @Java</span><code>
+<span class="keyword">public class</span> SeaLandForm {
+
+    @Required(<span class="point">groups=ClientError.class</span>)
+    <span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
+
+    @Required
+    @Length(max = 10)
+    <span class="keyword">public</span> String <span class="attribute">memberName</span>;
+
+    <span class="abbreviation">...</span>
+
+    @Required(<span class="point">groups=ClientError.class</span>)
+    <span class="keyword">public</span> Long <span class="attribute">versionNo</span>;
+}
+</code></pre>
+	<p>
+		これらの値が不正であれば、ユーザーの操作によるものではなくクライアントアプリのバグ <span class="frm">(もしくは、ユーザーのいたずら)</span> と考えられるので、
+		ユーザー向けメッセージではなく、<em class="mark">400 Bad Request</em> が戻ります。サーバー側ではINFOでログに残ります。
+		Assertの代わりのようなものと言えるでしょう
+	</p>
+	<h3 id="validnested">ネストのプロパティは @Valid</h3>
+	<p>
+		<em class="keyword">ネストしているクラスの中のアノテーションも有効にしたいときは、@Valid を付けます</em>
+	</p>
+<pre><span class="codetitle">e.g. how to validate nested class @Java</span><code>
+<span class="keyword">public class</span> SeaLandForm {
+
+    <span class="point">@Valid</span>
+    <span class="keyword">public</span> PiariElement <span class="attribute">piari</span>;
+
+    <span class="point">@Valid</span>
+    <span class="keyword">public</span> List&lt;BonvoElement&gt; <span class="attribute">bonvos</span>;
+
+    <span class="keyword">public static class</span> PiariElement {
+
+        <span class="subpoint">@Required</span>
+        <span class="keyword">public</span> String <span class="attribute">dstore</span>;
+    }
+
+    <span class="keyword">public static class</span> BonvoElement {
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<p>
+		ちなみに、再利用しないネストクラスは、Form や Body のインナークラスでの定義をオススメしています。
+		独立している必要もなく、見通しをよくするためにと。戻りの JSON Bean も同じです。
+	</p>
+
+	<h2 id="validatemethod">2. Action で validate() を呼ぶ</h2>
+	<p>
+		Actionクラスで <em class="mark">validate()</em>
+		メソッドを呼ぶと、アノテーションの通りにバリデーションされます。
+	</p>
+<pre><span class="codetitle">e.g. validate() in Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="point">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+    });
+    <span class="abbreviation">...</span>
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>); 
+}
+</code></pre>
+	<dl class="shoshortkeymainlist">
+		<dt>第一引数</dt><dd>アノテーションが付与されている Form もしくは Body</dd>
+		<dt>第二引数</dt><dd>アノテーションではできないバリデーションを実装 <span class="frm">(後述)</span></dd>
+		<dt>第三引数</dt><dd>バリデーションエラーになったときのResponse処理 <span class="frm">(いまの画面に戻すことがほとんど)</span></dd>
+	</dl>
+	<h3 id="validateapi">JsonResponse なら validateApi()</h3>
+	<p>
+		JsonResponseの場合は、<em class="mark">validateApi()</em> の方を使います。
+		こちらは第三引数がなく、バリデーションエラーは ApiFailureHook#handleValidationError() で、統一的なResponse処理がされます。
+	</p>
+	<h3 id="switchtoapi">そもそも全部 JsonResponse なら</h3>
+	<p>
+		もし、JSON APIサーバーで全部 JsonResponse というときは、BaseAction が implements しているインターフェースを LaValidatableApi
+		に変更すると、validate() 自体が JsonResponse 用のメソッドになります。<span class="frm">(これは一番最初に決めましょう)</span>
+	</p>
+
+	<h2 id="morevalidation">3. Lambdaで、もっとValidation</h2>
+	<h3 id="correlationdb">相関チェック、DB検索が必要なチェック</h3>
+	<p>
+		アノテーションではできないようなバリデーション <span class="frm">(相関チェック、DB検索が必要なチェック)</span> をする場合は、第二引数の Lambda で実装します。
+		そのとき、メッセージは messages のタイプセーフな add メソッドを使って指定します。
+	</p>
+<pre><span class="codetitle">e.g. more validation in Lambda @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="subpoint">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {
+        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span> &gt; <span class="localvar">form</span>.<span class="attribute">land</span>) {
+            <span class="localvar">messages</span>.<span class="point">addErrorsSeaLand</span>(<span class="literal">"sea"</span>);
+        }
+    }, () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+    });
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		エラーメッセージを追加する場合は、[App]_message.properties に追加して FreeGen を叩きます。
+	</p>
+	<div class="detailpage"><a href="#adjustmessage">エラーメッセージを調整</a></div>
+	<h3 id="morevalidatemethod">moreValidate() のススメ</h3>
+	<p>
+		ちょっとせまっくるしいので、<em class="mark">moreValidate()</em> メソッドに出すとよいでしょう。
+	</p>
+<pre><span class="codetitle">e.g. moreValidate() @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="subpoint">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {
+        <span class="point">moreValidate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span>);
+    }, () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+    });
+    <span class="abbreviation">...</span>
+}
+
+<span class="keyword">public void</span> <span class="subpoint">moreValidate</span>(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
+    <span class="keyword">if</span> (isNotEmpty(<span class="localvar">form</span>.<span class="attribute">sea</span>) && isNotEmpty(<span class="localvar">form</span>.<span class="attribute">land</span>)) { <span class="comment">// don't forget!</span>
+        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) { <span class="comment">// should be longer</span>
+            <span class="localvar">messages</span>.addErrorsSeaLand(<span class="literal">"sea"</span>);
+        }
+    }
+}
+</code></pre>
+	<p>
+		アノテーションの方でバリデーションエラーが発生しても、必ず呼び出されます。
+	</p>
+	<p>
+		必須項目でも、必須チェックに引っかかって null かもしれないので、<em class="keyword">実際に値が入っていたら</em>、という分岐を入れましょう。
+	</p>
+
+	<h2 id="adjustmessage">エラーメッセージを調整</h2>
+	<p>
+		TODO jflute [App]_message.properties, FreeGne
+	</p>
+
+	<h2 id="jsonvalidation">番外. JSON Bean のバリデーション</h2>
+	<h3 id="alsobeanlastadoc">LastaDocに載るのでフロント側に伝えやすい</h3>
+	<p>
+		asJson() の引数に指定する JSON Bean にも、アノテーションを付けることができます。 
+	</p>
+	<p>
+		付けておくと、単なるサーバー側のバグチェックだけでなく、LastaDoc にアノテーションが表示されるので、
+		フロント側のディベロッパーに項目の特性を自然と伝えることができます。
+	</p>
+	<div class="relatedpage"><a href="../dbflute/lastadoc.html">LastaDoc</a></div>
+<pre><span class="codetitle">e.g. Required annotation in Bean class @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    @Required
+    <span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
+
+    @Required
+    <span class="keyword">public</span> String <span class="attribute">memberName</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">e.g. asJson() in Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="abbreviation">...</span>
+    SeaLandBean <span class="localvar">bean</span> = <span class="abbreviation">...</span>
+    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>); <span class="comment">// validated in this method</span>
+}
+</code></pre>
+	<p>
+		これはユーザー入力でもなければクライアントエラーでもなく、サーバーのバグやデータ不備なので、エラーが発生したらシステムエラー
+		<em class="mark">(500 Server Error)</em> です。Form や Body の ClientError と同様、Assertの代わりのようなものです。
+		なので、こちらではメッセージ調整は発生しません。
+	</p>
+	<p>
+		凝り過ぎてもつらいので、例えば <em class="keyword">Required だけチェックする</em>
+		というような割り切りがオススメです。フロント側のディベロッパーと相談してみましょう。
+	</p>
+	<h3 id="dontforgetjson">@Valid や List の @Required に注意</h3>
+	<p>
+		Form や Body のときと同様に、ネストした Bean には @Valid
+		を定義し忘れないようにしましょう。
+	</p>
+<pre><span class="codetitle">e.g. don't forget @Valid annotation for nested bean @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    @Required
+    <span class="point">@Valid</span>
+    <span class="keyword">public</span> PiariElement <span class="attribute">piari</span>;
+
+    <span class="point">@Valid</span>
+    <span class="keyword">public</span> List&lt;BonvoElement&gt; <span class="attribute">bonvos</span>;
+
+    <span class="keyword">public static class</span> PiariElement {
+
+        <span class="subpoint">@Required</span>
+        <span class="keyword">public</span> String <span class="attribute">dstore</span>;
+    }
+
+    <span class="keyword">public static class</span> BonvoElement {
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<p>
+		また、<em class="keyword">List に対する @Required は一件以上</em>
+		というチェックになるので、もし、その List が空リストでもOKなのであれば、代わりに <em class="mark">@NotNull</em> を付けましょう。 
+	</p>
+<pre><span class="codetitle">e.g. List @Valid annotation for nested bean @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    <span class="point">@NotNull</span>
+    @Valid
+    <span class="keyword">public</span> List&lt;PiariElement&gt; <span class="attribute">piaris</span>; <span class="comment">// (NotNull, EmptyAllowed)</span>
+
+    <span class="point">@Required</span>
+    @Valid
+    <span class="keyword">public</span> List&lt;BonvoElement&gt; <span class="attribute">bonvos</span>; <span class="comment">// (NotNull, NotEmpty)</span>
+
+    <span class="keyword">public static class</span> PiariElement {
+
+        @Required
+        <span class="keyword">public</span> String <span class="attribute">dstore</span>;
+    }
+
+    <span class="keyword">public static class</span> BonvoElement {
+        <span class="abbreviation">...</span>
+    }
+}
+</code></pre>
+	<h3 id="exceptproduction">本番ではチェックしない、とか、警告だけとか</h3>
+	<p>
+		TODO jflute
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#makeaction">Actionクラスを作る</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html#implexecute">Executeメソッドを実装</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
