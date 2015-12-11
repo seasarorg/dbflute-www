@@ -60,6 +60,7 @@
 				<li><a href="#jsonbody">JSON Body <span class="frm">(for JSON in request body)</span></a></li>
 				<li><a href="#actionresponse">Action Response</a></li>
 				<li><a href="#validation">Form/Body Validation</a></li>
+				<li><a href="#token">DoubleSubmit Token</a></li>
 			</ul>
 		</li>
 		<li><a href="#examplecode">Example Code</a>
@@ -323,6 +324,36 @@ org.docksidestage
     <span class="abbreviation">...</span>
 }
 </code></pre>
+	<h3 id="token">DoubleSubmit Token</h3>
+	<p>
+		You can call saveToken() and verifyToken() in action.
+	</p>
+<pre><span class="codetitle">e.g. double submit token @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index() {
+    <span class="point">saveToken()</span>;
+    <span class="abbreviation">...</span>
+}
+@Execute
+<span class="keyword">public</span> HtmlResponse update() {
+    <span class="point">verifyToken</span>(() -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListJsp</span>);
+    });
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		And keep the token in HTML as hidden field like this:
+	</p>
+<pre><span class="codetitle">e.g. saved token in Thymeleaf template @Html</span><code>
+&lt;form th:action=<span class="literal">"@{/member/edit/}"</span> action=<span class="literal">"#"</span> method=<span class="literal">"post"</span>&gt;
+    &lt;input type=<span class="literal">"hidden"</span> <span class="point">la:token</span>=<span class="literal">"true"</span>/&gt;
+    <span class="abbreviation">...</span>
+&lt;/form&gt;
+</code></pre>
+	<dl>
+		<dt></dt><dd><input type="hidden" la:token="true"/></dd>
+	</dl>
 
 	<h2 id="examplecode">Example Code</h2>
 	<h3 id="htmlresponse">HTML response style</h3>
