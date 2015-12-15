@@ -60,6 +60,7 @@
 			<ul>
 				<li><a href="#correlationdb">相関チェック、DB検索が必要なチェック</a></li>
 				<li><a href="#morevalidatemethod">moreValidate() のススメ</a></li>
+				<li><a href="#alwayscalled">アノテーションでエラーがあっても呼ばれる</a></li>
 			</ul>
 		</li>
 		<li><a href="#adjustmessage">エラーメッセージを調整</a></li>
@@ -223,8 +224,10 @@
 @Execute
 <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
     <span class="subpoint">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {
-        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span> &gt; <span class="localvar">form</span>.<span class="attribute">land</span>) {
-            <span class="localvar">messages</span>.<span class="point">addErrorsSeaLand</span>(<span class="literal">"sea"</span>);
+        <span class="keyword">if</span> (isNotEmpty(<span class="localvar">form</span>.<span class="attribute">sea</span>) && isNotEmpty(<span class="localvar">form</span>.<span class="attribute">land</span>)) { <span class="comment">// don't forget!</span>
+            <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) { <span class="comment">// should be longer</span>
+                <span class="localvar">messages</span>.<span class="point">addErrorsSeaLand</span>(<span class="literal">"sea"</span>);
+            }
         }
     }, () -&gt; {
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
@@ -251,7 +254,7 @@
     <span class="abbreviation">...</span>
 }
 
-<span class="keyword">public void</span> <span class="subpoint">moreValidate</span>(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
+<span class="keyword">private void</span> <span class="subpoint">moreValidate</span>(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
     <span class="keyword">if</span> (isNotEmpty(<span class="localvar">form</span>.<span class="attribute">sea</span>) && isNotEmpty(<span class="localvar">form</span>.<span class="attribute">land</span>)) { <span class="comment">// don't forget!</span>
         <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) { <span class="comment">// should be longer</span>
             <span class="localvar">messages</span>.addErrorsSeaLand(<span class="literal">"sea"</span>);
@@ -259,12 +262,20 @@
     }
 }
 </code></pre>
+	<h3 id="alwayscalled">アノテーションでエラーがあっても呼ばれる</h3>
 	<p>
-		アノテーションの方でバリデーションエラーが発生しても、必ず呼び出されます。
+		アノテーションの方でバリデーションエラーが発生しても、第二引数の moreValidation の Lambda は必ず呼び出されます。
+		なので、必須項目でも必須チェックに引っかかって null になっているかもしれないので、<em class="keyword">実際に値が入っていたら</em>、という分岐を入れましょう。
 	</p>
-	<p>
-		必須項目でも、必須チェックに引っかかって null かもしれないので、<em class="keyword">実際に値が入っていたら</em>、という分岐を入れましょう。
-	</p>
+<pre><span class="codetitle">e.g. null check for more validation @Java</span><code>
+<span class="keyword">private void</span> moreValidate(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
+    <span class="keyword">if</span> (<span class="point">isNotEmpty</span>(<span class="localvar">form</span>.<span class="attribute">sea</span>) && <span class="point">isNotEmpty</span>(<span class="localvar">form</span>.<span class="attribute">land</span>)) { <span class="comment">// don't forget!</span>
+        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) { <span class="comment">// should be longer</span>
+            <span class="localvar">messages</span>.addErrorsSeaLand(<span class="literal">"sea"</span>);
+        }
+    }
+}
+</code></pre>
 
 	<h2 id="adjustmessage">エラーメッセージを調整</h2>
 	<p>
