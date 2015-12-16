@@ -1,0 +1,396 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>素早さのJSON API | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>素早さのJSON API</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<ul class="indexlist">
+		<li><a href="#returnjson">JSON戻すActionの実装</a>
+			<ul>
+				<li><a href="#jsonresponse">JsonResponseを戻り値に</a></li>
+				<li><a href="#jsonwithhtml">HtmlResponseと混在してもOK</a></li>
+				<li><a href="#validateapi">API用のvalidateApi()</a></li>
+				<li><a href="#publicfield">Beanのプロパティはpublicフィールド</a></li>
+				<li><a href="#nativetypeproperty">Beanのプロパティはネイティヴ型</a></li>
+				<li><a href="#beanvalidator">JsonBeanもバリデーション</a></li>
+			</ul>
+		</li>
+		<li><a href="#acceptjson">JSON受け取るActionの実装</a>
+			<ul>
+				<li><a href="#jsonbody">JsonBodyクラスを引数に</a></li>
+				<li><a href="#bodyvalidate">Bodyのバリデーション</a></li>
+			</ul>
+		</li>
+		<li><a href="#nativemapping">ネイティヴ型のマッピング</a></li>
+		<li><a href="#apifailurehook">忘れられないApiFailureHook</a>
+			<ul>
+				<li><a href="#commonerrors">共通的なエラーハンドリング</a></li>
+				<li><a href="#hookpolicy">最初にHookポリシーをデザイン</a></li>
+				<li><a href="#hookvalidationerror">バリデーションエラーをHook</a></li>
+				<li><a href="#hookapplicationexception">業務例外をHook</a></li>
+				<li><a href="#hookclientexception">クライアント例外をHook</a></li>
+				<li><a href="#hooksystemexception">システム例外をHook</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="returnjson">JSON戻すActionの実装</h2>
+	<h3 id="jsonresponse">JsonResponseを戻り値に</h3>
+	<p>
+		Executeメソッドの戻り値が、<em class="mark">JsonResponse</em> 型になり、<em class="mark">asJson()</em> で Bean を戻します。
+	</p>
+	<div class="relatedpage"><a href="../action/index.html#actionresponse">LastaFlute の Action - Action Response</a></div>
+<pre><span class="codetitle">e.g. JsonResponse and asJson() @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="point">JsonResponse</span><span class="subpoint">&lt;SeaLandBean&gt;</span> index() {
+    <span class="abbreviation">...</span>
+    SeaLandBean <span class="localvar">bean</span> = <span class="keyword">new</span> SeaLandBean();
+    <span class="localvar">bean</span>.<span class="attribute">piari</span> = <span class="literal">"iks"</span>;
+    <span class="localvar">bean</span>.<span class="attribute">bonvo</span> = <span class="literal">"yage"</span>;
+    <span class="abbreviation">...</span>
+    <span class="keyword">return</span> <span class="subpoint">asJson</span>(<span class="localvar">bean</span>); 
+}
+</code></pre>
+	<p>
+		JsonResponse には Generic の型として、JSON に変換する Bean クラスを指定します。
+		<span class="frm">(JSONを戻す実現要件としては本当は不要ですが、仕組みの中で型を判別できることで、LastaDocに載せたりバリデーションのミスをチェックしたりなどの様々なメリットを享受することができます。
+		なのでプログラム上の明示という意味合いも兼ねて指定するようにしています)</span>
+	</p>
+	<h3 id="jsonwithhtml">HtmlResponseと混在してもOK</h3>
+	<p>
+		JSON APIというよりかはAJAX的な使い方をする場合、一つのActionクラスの中に HtmlResponse と JsonResponse
+		のメソッドが混じってもOKです。
+	</p>
+	<p>
+		もともと HtmlResponse の場合は、Actionは一つの画面に付き一つ作るというのがオススメです。
+		JsonResponoseが必要な画面でも、API専用のActionというように分けず、同じActionにあった方が再利用もしやすく、管理しやすいかと思います。
+		<span class="frm">(もちろん、ケースバイケースのさじ加減が必要ですが、少なくとも仕組み的な制約はないということです)</span>
+	</p>
+	<h3 id="validateapi">API用のvalidateApi()</h3>
+	<p>	
+		JsonResponseの場合は、バリデーションのメソッドとして <em class="mark">validateApi()</em> を使います。
+	</p>
+<pre><span class="codetitle">e.g. validateApi() for form in Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index(SeaLandForm <span class="localvar">form</span>) {
+    <span class="point">validateApi</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {});
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		普通の validate() に比べて、バリデーションエラー時の制御をする第三引数のLambdaがありません。
+	</p>
+	<p>
+		JsonResponseのときは、Actionごとつどつど制御するのではなく、アプリ全体で共通的な処理をすることが想定されるため、
+		<em class="bigmark">ApiFailureHook</em> の <em class="mark">handleValidationError()</em> にてエラー用のJSONを戻します。
+		<span class="frm">(ちなみに、業務例外も同様に、ApiFailureHook で制御されます)</span>
+	</p>
+	<p>
+		ちなみに、もしそのアプリがJSON APIサーバーで全部 JsonResponse というときは、BaseAction が implements しているインターフェースを LaValidatableApi
+		に変更すると、validate() 自体が JsonResponse 用のメソッドになります。<span class="frm">(これは一番最初に決めましょう)</span>
+	</p>
+	<div class="detailpage"><a href="#apifailurehook">this - 忘れられないApiFailureHook</a></div>
+	<h3 id="publicfield">Beanのプロパティはpublicフィールド</h3>
+	<p>
+		Form や Body と同様に、Web周りの Bean は、<em class="mark">publicフィールド</em> をベースにするのが LastaFlute のスタイルです。
+		特に JsonBean は、仮に Getter/Setter を作ったとしても、privateフィールドが直接参照されますので、フィールドベースにするのがよいでしょう<span class="frm">(これは Gson の特徴)</span>。
+	</p>
+<pre><span class="codetitle">e.g. Required annotation in Bean class @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    <span class="point">public</span> Integer <span class="attribute">piari</span>;
+
+    <span class="point">public</span> String <span class="attribute">bonvo</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="nativetypeproperty">Beanのプロパティはネイティヴ型</h3>
+	<p>
+		String だけじゃなく、Integer, Long, LocalDate, Boolean, CDef.Xxx など、対応するネイティヴ型をそのまま定義することができます。
+	</p>
+<pre><span class="codetitle">e.g. native type property in Bean class @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    <span class="keyword">public</span> <span class="point">Integer</span> <span class="attribute">piari</span>;
+
+    <span class="keyword">public</span> <span class="point">LocalDate</span> <span class="attribute">bonvo</span>;
+
+    <span class="keyword">public</span> <span class="point">Boolean</span> <span class="attribute">dstore</span>;
+
+    <span class="keyword">public</span> <span class="point">CDef.MemberStatus</span> <span class="attribute">amba</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		LocalDate などは、デフォルトでは ISO の yyyy-MM-dd, yyyy-MM-dd'T'HH:mm:ss
+		で解釈されます。これを調整したい場合は、option で指定します。
+	</p>
+	<div class="relatedpage"><a href="#nativemapping">this - ネイティヴ型のマッピング</a></div>
+	<p>
+		一方で、int, long や boolean などの primitive 型も定義できますが、オススメしません。後述される Validator Annotation
+		との相性を考えると、全体的に <em class="keyword">プロパティの型にはWrapper型を使う</em> というポリシーがよいでしょう。
+	</p>
+	<h3 id="beanvalidator">JsonBeanもバリデーション</h3>
+	<p>
+		Form や Body と同様に、asJson() に入れる JsonBean もバリデーションすることができます。
+		プロパティに @Required などの Validator Annotation を付けると、実際にバリデーションが実行されます。
+		この場合のバリデーションエラーは、サーバーサイドのバグやデータの不整合が想定されますので、システムエラーとして扱われます。
+	</p>
+	<div class="relatedpage"><a href="./lavalidation.html#jsonbeanvalidation">JSON Bean のバリデーション</a></div>
+<pre><span class="codetitle">e.g. Required annotation in Bean class @Java</span><code>
+<span class="keyword">public class</span> SeaLandBean {
+
+    <span class="point">@Required</span>
+    <span class="keyword">public</span> Integer <span class="attribute">piari</span>;
+
+    <span class="point">@Required</span>
+    <span class="keyword">public</span> String <span class="attribute">bonvo</span>;
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		LastaDocにもアノテーションが載るので、フロントサイドのディベロッパーに項目の特徴を自然と伝えることができます。
+		ドキュメント的な意味合いとアサート的な意味合いの両方のメリットを享受します。
+	</p>
+	<div class="relatedpage"><a href="../dbflute/lastadoc.html">LastaDoc</a></div>
+	<p>
+		ただ、やり過ぎるとキリが無いので、とりあえず @Required や @NotNull だけは付けておく、というのがオススメです。
+		<span class="frm">(それだけでも、サーバーサイドの "設定し忘れバグ" を防ぐことができますので)</span>
+	</p>
+	<p>
+		一方で、実装上の三大チェックポイントは抑えておきましょう。
+	</p>
+	<div class="detailpage"><a href="./lavalidation.html#bigcheck">LastaFlute の Validation - 三大チェックポイント</a></div>
+	<dl class="keymainlist">
+		<dt>primitive型プロパティ</dt><dd><a href="./lavalidation.html#dontuseprimitive">気をつけて！int や boolean の @Required</a></dd>
+		<dt>ネストBeanプロパティ</dt><dd><a href="./lavalidation.html#dontforgetvalid">忘れないで！ネストBean には @Valid</a></dd>
+		<dt>Listプロパティ</dt><dd><a href="./lavalidation.html#rememberlistrequired">思い出して！List の @Required は一件以上</a></dd>
+	</dl>
+
+	<h2 id="acceptjson">JSON受け取るActionの実装</h2>
+	<h3 id="jsonbody">JsonBodyクラスを引数に</h3>
+	<p>
+		JSON を RequestBody で直接受け取る場合は、Formクラスではなく、Bodyクラスを使います。
+	</p>
+	<div class="relatedpage"><a href="../action/index.html#jsonbody">LastaFlute の Action - JSON Body</a></div>
+<pre><span class="codetitle">e.g. JsonBody instead of form @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index(<span class="point">SeaLandBody</span> <span class="localvar">body</span>) {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		Bodyクラスは、Formと同様にpublicフィールドベースで、ネイティヴ型で定義します。
+		Validator Annotation も付けることができます。この辺の要領は、JsonBean と全く同じです。
+	</p>
+<pre><span class="codetitle">e.g. validator annotation in form @Java</span><code>
+<span class="keyword">public class</span> SeaLandBody {
+
+    @Required
+    <span class="keyword">public</span> Integer <span class="attribute">piari</span>;
+
+    @Required
+    <span class="keyword">public</span> LocalDate <span class="attribute">bonvo</span>;
+}
+</code></pre>
+	<h3 id="bodyvalidate">Bodyのバリデーション</h3>
+	<p>	
+		Bodyクラスでも、バリデーションは Form と全く要領は同じです。
+	</p>
+	<div class="relatedpage"><a href="./lavalidation.html#howto">Validationの実装方法</a></div>
+	<p>
+		その Action の戻りが HTML なら validate() ですし、JSON なら validateApi() です。
+		<span class="frm">(JSON Bodyを受け取りながらHTMLを戻すというのはあまり考えられないので、Bodyならほとんど
+		validateApi() だと想定しています)</span>
+	</p>
+
+	<h2 id="nativemapping">ネイティヴ型のマッピング</h2>
+	<p>
+		例えば、LocalDate は、デフォルトでは ISO の yyyy-MM-dd で解釈されます。
+	</p>
+	<p>
+		これらは、<em class="mark">JsonResourceProvider</em> の <em class="mark">provideOption()</em>
+		にて調整できます。option にある様々なメソッドで指定します。これ自体はインターフェースなので、実装クラスは Maihama プロジェクトであれば、<em class="mark">MaihamaJsonResourceProvider</em> というクラスになります。
+	</p>
+<pre><span class="codetitle">e.g. format date delimited by slash at provideOption() @Java</span><code>
+public class MaihamaJsonResourceProvider implements JsonResourceProvider {
+
+    @Override
+    <span class="keyword">public</span> JsonMappingOption provideOption() {
+        JsonMappingOption <span class="localvar">option</span> = <span class="keyword">new</span> JsonMappingOption();
+        <span class="localvar">option</span>.formatLocalDateBy(DateTimeFormatter.ofPattern(<span class="literal">"yyyy/MM/dd"</span>));
+        <span class="localvar">option</span>.formatLocalDateTimeBy(DateTimeFormatter.ofPattern(<span class="literal">"yyyy/MM/dd HH:mm:ss"</span>));
+        <span class="keyword">return</span> option;
+    }
+}
+</code></pre>
+
+	<h2 id="apifailurehook">忘れられないApiFailureHook</h2>
+	<h3 id="commonerrors">共通的なエラーハンドリング</h3>
+	<p>
+		JsonResponse の Action にて <em class="mark">バリデーションエラー</em>、<em class="mark">業務例外</em>、<em class="mark">システム例外</em>が発生したときは、
+		<em class="keyword">Actionごとつどつど制御するのではなくアプリ全体で共通的な処理をすることが想定される</em>
+		ため、共通部分で統一的なJSONを戻します。
+	</p>
+	<p>
+		それを司るのが、<em class="bigmark">ApiFailureHook</em>
+		です。これ自体はインターフェースなので、実装クラスは Maihama プロジェクトであれば、<em class="mark">MaihamaApiFailureHook</em> というクラスになります。
+	</p>
+	<dl class="longkeymainlist">
+		<dt>handleValidationError()</dt><dd>バリデーションエラーのHook</dd>
+		<dt>handleApplicationException()</dt><dd>業務例外のHook</dd>
+		<dt>handleClientException()</dt><dd>クライアント例外のHook</dd>
+		<dt>handleServerException()</dt><dd>システム例外のHook</dd>
+	</dl>
+	<h3 id="hookpolicy">最初にHookポリシーをデザイン</h3>
+	<p>
+		これは、フロントサイドと相談して決める必要があります。
+	</p>
+	<ul>
+		<li>バリデーションエラーのとき、どういう形式でメッセージを戻すのか？</li>
+		<li>そもそもバリデーションエラーをどう判定してもらうのか？</li>
+		<li>業務例外のメッセージはどうやって戻すのか？</li>
+		<li>それぞれの業務例外をどう判定してもらうのか？</li>
+		<li>JSONパースエラーなどフロントサイドの不具合のときどうするのか？</li>
+		<li>NullPointerなどサーバーサイドの不具合のときどうするのか？</li>
+	</ul>
+	<p>
+		これはプロジェクトによってガラリを変わるものなので、いい感じのデザインをしましょう。
+	</p>
+	<p>
+		LastaFlute の Example プロジェクト (harbor や maihama)
+		では、シンプルな実装がされていますので、それを参考にしてもよいでしょう。
+	</p>
+	<h3 id="hookvalidationerror">バリデーションエラーをHook</h3>
+	<p>
+		TODO jflute
+	</p>
+<pre><span class="codetitle">e.g. handleValidationError() of MaihamaApiFailureHook @Java</span><code>
+@Override
+<span class="keyword">public</span> ApiResponse handleValidationError(ApiFailureResource <span class="localvar">resource</span>) {
+    <span class="keyword">final</span> TooSimpleFailureBean <span class="localvar">bean</span> = createFailureBean(TooSimpleBizStatus.<span class="attribute">VALIDATION_ERROR</span>, <span class="localvar">resource</span>);
+    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>).httpStatus(<span class="attribute">HTTP_BAD_REQUEST</span>);
+}
+</code></pre>
+	<h3 id="hookapplicationexception">業務例外をHook</h3>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="hookclientexception">クライアント例外をHook</h3>
+	<p>
+		TODO jflute
+	</p>
+	<h3 id="hooksystemexception">システム例外をHook</h3>
+	<p>
+		TODO jflute
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
