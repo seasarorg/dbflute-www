@@ -54,6 +54,7 @@
 			<ul>
 				<li><a href="#jsonbody">JsonBodyクラスを引数に</a></li>
 				<li><a href="#bodyvalidate">Bodyのバリデーション</a></li>
+				<li><a href="#bodyfilter">Bodyの一律Filter</a></li>
 			</ul>
 		</li>
 		<li><a href="#tellbylastadoc">JSON を LastaDocで伝える</a></li>
@@ -242,6 +243,15 @@
 		<span class="frm">(JSON Bodyを受け取りながらHTMLを戻すというのはあまり考えられないので、Bodyならほとんど
 		validateApi() だと想定しています)</span>
 	</p>
+	<h3 id="bodyfilter">Bodyの一律Filter</h3>
+	<p>
+		Bodyで受け取るJSONの項目にフィルター処理をかけたい場合は、JsonResourceProvider の provideOption()
+		にて、JsonMappingOption の filterSimpleTextReading() で設定します。
+	</p>
+	<p>
+		厳密には、JsonManagerの読み込み処理のすべてに適用されるので、Bodyだけじゃなく JsonManager
+		の fromJson() でもFilterされます。
+	</p>
 
 	<h2 id="tellbylastadoc">JSON を LastaDocで伝える</h2>
 	<p>
@@ -254,6 +264,9 @@
 		<span class="frm">("DBからSchemaHTML" というDBFluteの発想と同じような感じ)</span>
 	</p>
 	<div class="detailpage"><a href="../dbflute/lastadoc.html">Actionのドキュメント自動生成(LastaDoc)</a></div>
+	<p class="imgbox">
+		<a href="../../../../data/model/lastaflute/lastaflute-LastaDoc-json-execute.png" title="JSONスタイルのExecuteメソッド詳細"><img src="../../../../data/model/lastaflute/lastaflute-LastaDoc-json-execute.png" alt="JSONスタイルのExecuteメソッド詳細" width="550" height="380" /></a>
+	</p>
 
 	<h2 id="nativemapping">ネイティヴ型のマッピング</h2>
 	<p>
@@ -266,7 +279,7 @@
 	</p>
 	<div class="relatedpage"><a href="../architecture/assistantdirector.html">AssistantDirector</a></div>
 <pre><span class="codetitle">e.g. format date delimited by slash at provideOption() @Java</span><code>
-public class MaihamaJsonResourceProvider implements JsonResourceProvider {
+<span class="keyword">public class</span> MaihamaJsonResourceProvider <span class="keyword">implements</span> JsonResourceProvider {
 
     @Override
     <span class="keyword">public</span> JsonMappingOption provideOption() {
