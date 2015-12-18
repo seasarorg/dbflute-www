@@ -55,7 +55,8 @@
 		<li><a href="#hookapplicationexception">業務例外をHook</a>
 			<ul>
 				<li><a href="#laappexorembedded">LaApplicationException or 組み込み業務例外ならここ！</a></li>
-				<li><a href="#laapplicationexception">フレームワーク組み込み業務例外</a></li>
+				<li><a href="#embeddedappex">フレームワーク組み込み業務例外</a></li>
+				<li><a href="#embeddedmessage">フレームワーク組み込みメッセージ</a></li>
 				<li><a href="#maihamaappex">MaihamaのApplicationException</a></li>
 			</ul>
 		</li>
@@ -179,7 +180,7 @@
 		<dd>LastaFluteの中で<em class="mark">INFOレベル</em>で詳細がログ出力される <span class="frm">(業務例外なのかエラーなのか判断が難しい)</span></dd>
 		<dd>HTTPステータスは何も指定しなければ 200 になる</dd>
 	</dl>
-	<h3 id="laapplicationexception">フレームワーク組み込み業務例外</h3>
+	<h3 id="embeddedappex">フレームワーク組み込み業務例外</h3>
 	<p>
 		LastaFluteですでに用意している業務例外があります。
 		LastaFlute自体が自動でthrowするものもあれば、アプリがthrowするメソッドを明示的に呼ぶこともあります。
@@ -213,6 +214,42 @@
 		<dd>任意のメッセージを載せてthrow <span class="frm">(throwする人がメッセージを決めることができる)</span></dd>
 		<dd>これを継承して、メッセージ固定の専用の例外を作ることもある</dd>
 	</dl>
+	<h3 id="embeddedmessage">フレームワーク組み込みメッセージ</h3>
+	<p>
+		フレームワーク組み込み業務例外に対応する組み込みメッセージを、アプリに適したものに調整しましょう。
+		<em class="mark">[App]_message.properties</em> にて定義されています。
+	</p>
+<pre><span class="codetitle">e.g. embedded messages in maihama_message.properties @Properties</span><code>
+<span class="abbreviation">...</span>
+constraints.Required.message                = is required
+constraints.TypeAny.message                 = should be {propertyType}
+
+<span class="comment"># ----------------------------------------------------------</span>
+<span class="comment">#                                      Application Exception</span>
+<span class="comment">#                                      ---------------------</span>
+<span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="comment"># five framework-embedded messages (don't change key names)</span>
+<span class="comment"># - - - - - - - - - -/</span>
+<span class="point">errors.login.failure</span>=<span class="literal">could not login</span>
+<span class="point">errors.app.illegal.transition</span>=<span class="literal">retry because of illegal transition</span>
+<span class="point">errors.app.db.already.deleted</span>=<span class="literal">others might be deleted, so retry</span>
+<span class="point">errors.app.db.already.updated</span>=<span class="literal">others might be updated, so retry</span>
+<span class="point">errors.app.db.already.exists</span>=<span class="literal">already existing data, so retry</span>
+<span class="point">errors.app.double.submit.request</span>=<span class="literal">double submit might be requested</span>
+
+
+<span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment"># you can define your messages here:</span>
+<span class="comment"># e.g.</span>
+<span class="comment">#  errors.xxx = ...</span>
+<span class="comment">#  info.xxx = ...</span>
+<span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment"># ========================================================================================</span>
+<span class="comment">#                                                                                  Sign up</span>
+<span class="comment">#                                                                                  =======</span>
+<span class="abbreviation">...</span>
+</code></pre>
+
 	<h3 id="maihamaappex">MaihamaのApplicationException</h3>
 	<p>
 		例外に対応する FailureType を探して、シンプル過ぎるBeanに例外に紐づいているものメッセージを載せて、
