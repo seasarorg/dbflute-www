@@ -59,16 +59,7 @@
 		</li>
 		<li><a href="#tellbylastadoc">JSON を LastaDocで伝える</a></li>
 		<li><a href="#nativemapping">ネイティヴ型のマッピング</a></li>
-		<li><a href="#apifailurehook">忘れられないApiFailureHook</a>
-			<ul>
-				<li><a href="#commonerrors">共通的なエラーハンドリング</a></li>
-				<li><a href="#hookpolicy">最初にHookポリシーをデザイン</a></li>
-				<li><a href="#hookvalidationerror">バリデーションエラーをHook</a></li>
-				<li><a href="#hookapplicationexception">業務例外をHook</a></li>
-				<li><a href="#hookclientexception">クライアント例外をHook</a></li>
-				<li><a href="#hooksystemexception">システム例外をHook</a></li>
-			</ul>
-		</li>
+		<li><a href="#apifailurehook">忘れられないApiFailureHook</a></li>
 	</ul>
 
 	<h2 id="returnjson">JSON戻すActionの実装</h2>
@@ -292,7 +283,6 @@
 </code></pre>
 
 	<h2 id="apifailurehook">忘れられないApiFailureHook</h2>
-	<h3 id="commonerrors">共通的なエラーハンドリング</h3>
 	<p>
 		JsonResponse の Action にて <em class="mark">バリデーションエラー</em>、<em class="mark">業務例外</em>、<em class="mark">システム例外</em>が発生したときは、
 		<em class="keyword">Actionごとつどつど制御するのではなくアプリ全体で共通的な処理をすることが想定される</em>
@@ -302,55 +292,7 @@
 		それを司るのが、<em class="bigmark">ApiFailureHook</em>
 		です。これ自体はインターフェースなので、実装クラスは Maihama プロジェクトであれば、<em class="mark">MaihamaApiFailureHook</em> というクラスとなり、AssistantDirectorで登録されます。
 	</p>
-	<div class="relatedpage"><a href="../architecture/assistantdirector.html">AssistantDirector</a></div>
-	<dl class="longkeymainlist">
-		<dt>handleValidationError()</dt><dd>バリデーションエラーのHook</dd>
-		<dt>handleApplicationException()</dt><dd>業務例外のHook</dd>
-		<dt>handleClientException()</dt><dd>クライアント例外のHook</dd>
-		<dt>handleServerException()</dt><dd>システム例外のHook</dd>
-	</dl>
-	<h3 id="hookpolicy">最初にHookポリシーをデザイン</h3>
-	<p>
-		これは、フロントサイドと相談して決める必要があります。
-	</p>
-	<ul>
-		<li>バリデーションエラーのとき、どういう形式でメッセージを戻すのか？</li>
-		<li>そもそもバリデーションエラーをどう判定してもらうのか？</li>
-		<li>業務例外のメッセージはどうやって戻すのか？</li>
-		<li>それぞれの業務例外をどう判定してもらうのか？</li>
-		<li>JSONパースエラーなどフロントサイドの不具合のときどうするのか？</li>
-		<li>NullPointerなどサーバーサイドの不具合のときどうするのか？</li>
-	</ul>
-	<p>
-		これはプロジェクトによってガラリを変わるものなので、いい感じのデザインをしましょう。
-	</p>
-	<p>
-		LastaFlute の Example プロジェクト (harbor や maihama)
-		では、シンプルな実装がされていますので、それを参考にしてもよいでしょう。
-	</p>
-	<h3 id="hookvalidationerror">バリデーションエラーをHook</h3>
-	<p>
-		TODO jflute
-	</p>
-<pre><span class="codetitle">e.g. handleValidationError() of MaihamaApiFailureHook @Java</span><code>
-@Override
-<span class="keyword">public</span> ApiResponse handleValidationError(ApiFailureResource <span class="localvar">resource</span>) {
-    <span class="keyword">final</span> TooSimpleFailureBean <span class="localvar">bean</span> = createFailureBean(TooSimpleBizStatus.<span class="attribute">VALIDATION_ERROR</span>, <span class="localvar">resource</span>);
-    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>).httpStatus(<span class="attribute">HTTP_BAD_REQUEST</span>);
-}
-</code></pre>
-	<h3 id="hookapplicationexception">業務例外をHook</h3>
-	<p>
-		TODO jflute
-	</p>
-	<h3 id="hookclientexception">クライアント例外をHook</h3>
-	<p>
-		TODO jflute
-	</p>
-	<h3 id="hooksystemexception">システム例外をHook</h3>
-	<p>
-		TODO jflute
-	</p>
+	<div class="detailpage"><a href="./apifailure.html">忘れられないApiFailureHook</a></div>
 
 </div>
 </div>
