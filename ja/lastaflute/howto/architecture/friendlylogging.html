@@ -47,10 +47,10 @@
 		<li><a href="#manydebug">幾度となくログを見る</a></li>
 		<li><a href="#requestscopelog">どの Request かわかりやすく</a></li>
 		<li><a href="#requestinfolog">RequestパラメーターやSessionの状態など</a></li>
-		<li><a href="#finalexceptionlog">最後の砦として例外メッセージをログに</a>
+		<li><a href="#finalexceptionlog">最後の砦として例外メッセージを必ずログに</a>
 			<ul>
 				<li><a href="#throwthrow">アプリでは、基本的に catch せず throw</a></li>
-				<li><a href="#slimerror">本当のエラーだけ 500 に</a></li>
+				<li><a href="#slimerror">本当のエラーだけエラーログに <span class="frm">(できるだけ)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#requestexceptionlog">例外メッセージにRequestの状態も</a>
@@ -83,27 +83,33 @@
 	</p>
 <pre><span class="codetitle">e.g. どこからどこまでが、どの Request のログなのか？ @Log</span><code>
 
-<span class="abbreviation">...</span>-DEBUG (<span class="abbreviation">...</span>#before():268) - <span class="point">* * * * * * * * * * {BEGIN}</span>: /member/list/
-  Request class=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttp<span class="abbreviation">...</span>
-  , REQUEST_URI=/dockside/member/list/, SERVLET_PATH=/member/list/, Chara<span class="abbreviation">...</span>
-  , ContentType=application/x-www-form-urlencoded, Locale=ja, Locales=ja,<span class="abbreviation">...</span>
+<span class="abbreviation">...</span> DEBUG (<span class="abbreviation">...</span>#before():268) - <span class="point">* * * * * * * * * * {BEGIN}</span>: /member/list/
+  requestClass=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHtt<span class="abbreviation">...</span>
+  ; url=http://localhost:8090/harbor/product/list/?productName=&product<span class="abbreviation">...</span>
+  ; method=GET ; protocol=HTTP/1.1 ; scheme=http ; secure=false ; remot<span class="abbreviation">...</span>
+  ; characterEncoding=UTF-8 ; contentLength=-1 ; contentType=null ; loc<span class="abbreviation">...</span>
 
 <span class="abbreviation">...</span>
 <span class="abbreviation">...</span>
 <span class="abbreviation">...</span>
 
-  Response class=org.mortbay.jetty.Response, ContentType=text/html; chars<span class="abbreviation">...</span>
-  , toString()=HTTP/1.1 200  Content-Type: text/html; charset=utf-8 Expir<span class="abbreviation">...</span>
-  [session] javax.servlet.jsp.jstl.fmt.request.charset=UTF-8
-  [session] member_memberListForm=org.docksidestage.app.web.member.Memb<span class="abbreviation">...</span>
-  [session] org.apache.struts.action.LOCALE=ja
-  [session] org.docksidestage.mylasta.action.DocksideUserBean={userId=<span class="abbreviation">...</span>
-<span class="point">* * * * * * * * * * {END}</span>: /member/list/ [00m00s247ms]
+  responseClass=org.eclipse.jetty.server.Response ; committed=true
+  ; httpStatus=500 ; contentType=text/html ; locale=ja_JP
+  [cookie] JSESSIONID=1iwgg3g3f5qz1b6m3q5n3picu
+  <span class="abbreviation">...</span>
+  [request] lastaflute.action.ACTION_RUMTIME=runtime:{/product/list/, pu<span class="abbreviation">...</span>
+  [request] lastaflute.dbflute.SQL_COUNT={total=2, selectCB=2, entityUpd<span class="abbreviation">...</span>
+  <span class="abbreviation">...</span>
+  [session] lastaflute.action.USER_BEAN={userId=1, sync=2015/12/23 20:46<span class="abbreviation">...</span>
+  [session] lastaflute.action.USER_LOCALE=ja
+<span class="point">* * * * * * * * * * {END}</span>: /product/list/ [00m00s247ms]
 
 
-<span class="abbreviation">...</span>-DEBUG (<span class="abbreviation">...</span>#before():268) - * * * * * * * * * * {BEGIN}: /member/edit/3/
-  Request class=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttp<span class="abbreviation">...</span>
-  , REQUEST_URI=/dockside/member/edit/3/, SERVLET_PATH=/member/edit/3/<span class="abbreviation">...</span>
+<span class="abbreviation">...</span> DEBUG (<span class="abbreviation">...</span>#before():268) - * * * * * * * * * * {BEGIN}: /member/edit/3/
+  requestClass=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHtt<span class="abbreviation">...</span>
+  ; url=http://localhost:8090/harbor/product/list/?productName=&product<span class="abbreviation">...</span>
+  ; method=GET ; protocol=HTTP/1.1 ; scheme=http ; secure=false ; remot<span class="abbreviation">...</span>
+  ; characterEncoding=UTF-8 ; contentLength=-1 ; contentType=null ; loc<span class="abbreviation">...</span>
 <span class="abbreviation">...</span>
 <span class="abbreviation">...</span>
 </code></pre>
@@ -124,76 +130,88 @@
 	</dl>
 <pre><span class="codetitle">e.g. Requestパラメーターやセッションの状態など @Log</span><code>
 
-<span class="abbreviation">...</span>-DEBUG (<span class="abbreviation">...</span>#before():268) - * * * * * * * * * * {BEGIN}: /member/list/
-  Request class=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttpServletRequest, RequestedSessionId=1iwgg3g3f5qz1b6m3q5n3picu
-  , REQUEST_URI=/dockside/member/list/, SERVLET_PATH=/member/list/, CharacterEncoding=UTF-8, ContentLength=113
-  , ContentType=application/x-www-form-urlencoded, Locale=ja, Locales=ja, en_US, en, es, ko, Scheme=http, isSecure=false
-  , SERVER_PROTOCOL=HTTP/1.1, REMOTE_ADDR=0:0:0:0:0:0:0:1%0, REMOTE_HOST=0:0:0:0:0:0:0:1%0, SERVER_NAME=localhost, SERVER_PORT=8088
-  , ContextPath=/dockside, REQUEST_METHOD=POST, PathInfo=null, RemoteUser=null
-  , REQUEST_URL=http://localhost:8088/dockside/member/list/
-  , QUERY_STRING=null
+<span class="abbreviation">...</span>-DEBUG (<span class="abbreviation">...</span>#before():268) - * * * * * * * * * * {BEGIN}: /product/list/
+  requestClass=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttpServletRequest ; sessionId=1jd3fpprgg97yx28iu7maf184
+  ; url=http://localhost:8090/harbor/product/list/?productName=&productStatus=&purchaseMemberName=
+  ; method=GET ; protocol=HTTP/1.1 ; scheme=http ; secure=false ; remoteAddr=127.0.0.1 ; remoteHost=127.0.0.1
+  ; characterEncoding=UTF-8 ; contentLength=-1 ; contentType=null ; locale=ja ; locales=ja,en_US,en,es,ko
   [header] Accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-  [header] Accept-Encoding=gzip,deflate,sdch
+  [header] Accept-Encoding=gzip, deflate, sdch
   [header] Accept-Language=ja,en-US;q=0.8,en;q=0.6,es;q=0.4,ko;q=0.2
   <span class="abbreviation">...</span>
-  [param] doSearch=検索
-  [param] memberName=S
+  [param] productName=sea
+  [param] productStatus=
+  [param] purchaseMemberName=
   <span class="abbreviation">...</span>
   [cookie] JSESSIONID=1iwgg3g3f5qz1b6m3q5n3picu
-  [cookie] MLE=Y
   <span class="abbreviation">...</span>
-  [session] org.apache.struts.action.LOCALE=ja
-  [session] org.dbflute.maihama.domainfw.action.DocksideUserBean={userId=1, sync=2014/04/06 19:34:29, locale=null, timeZone=null}
+  [session] lastaflute.action.USER_LOCALE=ja
 
 <span class="abbreviation">...</span>
 <span class="abbreviation">...</span>
 
-  Response class=org.mortbay.jetty.Response, ContentType=text/html; charset=utf-8, Committed=true
-  , toString()=HTTP/1.1 200  Content-Type: text/html; charset=utf-8 Expires: Thu, 01 Dec 1994 16:00:00 GMT Pragma: no-cache Cache-Contr...
+  responseClass=org.eclipse.jetty.server.Response ; committed=true
+  ; httpStatus=500 ; contentType=text/html ; locale=ja_JP
   [cookie] JSESSIONID=1iwgg3g3f5qz1b6m3q5n3picu
-  [cookie] MLE=Y
   <span class="abbreviation">...</span>
-  [request] memberStatusMap={=選択してください, FML=正式会員, WDL=退会会員, PRV=仮会員}
-  [request] member_memberListAction=org.dbflute.maihama.app.web.member.MemberListAction$$EnhancedByS2AOP$$2771f735@4a5f634c
-  [request] pageNumber=1
+  [request] lastaflute.action.ACTION_RUMTIME=runtime:{/product/list/, public HtmlResponse ProductListAction@index(OptionalThing, ProductSearchForm), urlParam:{{0=opt:{null}}}, *IllegalStateException}
+  [request] lastaflute.dbflute.SQL_COUNT={total=2, selectCB=2, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
   <span class="abbreviation">...</span>
-  [session] org.apache.struts.action.LOCALE=ja
-  [session] org.dbflute.maihama.domainfw.action.DocksideUserBean={userId=1, sync=2014/04/06 19:34:29, locale=null, timeZone=null}
-* * * * * * * * * * {END}: /member/list/ [00m00s247ms]
+  [session] lastaflute.action.USER_BEAN={userId=1, sync=2015/12/23 20:46:27}@74538453
+  [session] lastaflute.action.USER_LOCALE=ja
+* * * * * * * * * * {END}: /product/list/ [00m00s247ms]
 
 </code></pre>
 	<p>
 		RequestLoggingFilter にて、このログ出力が行われています。
 	</p>
 
-	<h2 id="finalexceptionlog">最後の砦として例外メッセージをログに</h2>
+	<h2 id="finalexceptionlog">最後の砦として例外メッセージを必ずログに</h2>
 	<h3 id="throwthrow">アプリでは、基本的に catch せず throw</h3>
 	<p>
-		アプリ内でthrowされた例外は、最後の最後の ServletFilter のところで catch され、ERRORレベルで例外メッセージとスタックトレースが出力されます。
-		HTTPステータスコードは 500 として扱われ、500.html が表示されるような仕組みになっています<span class="frm">(単にweb.xmlでそう設定しているだけですが)</span>。
-		500.htmlはアプリごとに適切なデザインに修正します。
+		アプリ内でthrowされた例外は、最後の最後の ServletFilter <em class="smallmark">(RequestLoggingFilter)</em> で catch され、ERRORレベルで例外メッセージとスタックトレースが出力されるようになっています。
+	</p>
+	<p>
+		HTTPステータスコードは 500 として扱われ、500.html が表示されるような仕組み<span class="frm">(単にweb.xmlでそう設定しているだけ)</span>になっています。
+		その 500.html はアプリごとに適切なデザインに修正しましょう。
 	</p>
 	<p>
 		よって、例外が発生しても、アプリ内で自前で catch して ERROR を出す必要はありません。
 		<span class="frm">(もちろん、例外が発生しても処理を続行したい場合などは catch します)</span>
 	</p>
+<pre><span class="codetitle">e.g. Action内ではシステムエラーはthrowすればOK @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(OptionalThing&lt;Integer&gt; <span class="localvar">pageNumber</span>, ProductSearchForm <span class="localvar">form</span>) {
+    <span class="comment">// *no need to catch and log about system error handling</span>
+    <span class="comment">//try {</span>
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {} , () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Product_ProductListHtml</span>);
+    });
+    PagingResultBean&lt;Product&gt; <span class="localvar">page</span> = selectProductPage(<span class="localvar">pageNumber</span>.orElse(<span class="literal">1</span>), <span class="localvar">form</span>);
+    List&lt;ProductSearchRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">page</span>.mappingList(<span class="localvar">product</span> -&gt; {
+        <span class="keyword">return</span> mappingToBean(<span class="localvar">product</span>);
+    });
+    <span class="abbreviation">...</span>
+    <span class="comment">} catch (SeaException e) {</span>
+    <span class="comment">    logger.error(..., e);</span>
+    <span class="comment">}</span>
+}
+</code></pre>
+	<h3 id="slimerror">本当のエラーだけエラーログに <span class="frm">(できるだけ)</span></h3>
 	<p>
-		RequestLoggingFilter にて、このログ出力が行われています。
-	</p>
-	<h3 id="slimerror">本当のエラーだけ 500 に</h3>
-	<p>
-		ユーザーのミスオペや、ちょっとしたいたずらなどで、簡単に500エラーが発生しないような工夫をしています。
-		インクリメンタル開発では、システムエラーはなかなか避けられないため、その分エラーログは重要です。
-		そこにあまり重要ではないエラーが混じっていると本当に緊急性の高いエラーを見逃してしまいます。
+		ユーザーのミスオペや、ちょっとしたアドレスバーでのURL修正いたずらなどで、簡単に500エラーが発生しないような工夫をしています。
+		以下のエラーは、400 もしくは 404 として扱われます。もちろん、バグかもしれないので、開発中はエラー内容がDEBUGログでしっかり出力されます。
 	</p>
 	<ul>
-		<li>GETパラメーターを受け取るFormのプロパティの型違いエラー</li>
-		<li>GETパラメーターを受け取るFormの配列プロパティのindexパースエラー</li>
-		<li>GETパラメーターを受け取るFormのJSONパースエラー</li>
+		<li>URLパラメーターの型違いエラー <em class="smallmark">(404)</em> <span class="frm">e.g. /list/3 を期待するところ /list/a が飛んできた</span></li>
+		<li>Formのプロパティの型違いエラー <em class="smallmark">(400)</em> <span class="frm">e.g. Integer なのに "a" が飛んできた</span></li>
+		<li>Formの配列プロパティのindexパースエラー <em class="smallmark">(400)</em> <span class="frm">e.g. sea[a] が飛んできた</span></li>
+		<li>JSON BodyリクエストのJSONパースエラー <em class="smallmark">(400)</em></li>
 		<li>などなど</li>
 	</ul>
 	<p>
-		もちろん、開発中はエラー内容がデバッグログでしっかり出力されます。
+		<em class="keyword">インクリメンタル開発では本番でのシステムエラーはなかなか完璧には予防できない</em> ため、その分エラーログは重要です。
+		エラーログにあまり重要ではないエラーが混じっていると本当に緊急性の高いエラーを見逃してしまいます。
 	</p>
 
 	<h2 id="requestexceptionlog">例外メッセージにRequestの状態も</h2>
