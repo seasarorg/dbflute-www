@@ -57,6 +57,7 @@
 			<ul>
 				<li><a href="#requestsnapshot">Request状態のSNAPSHOT</a></li>
 				<li><a href="#transactionlist">SQL例外のときはトランザクション一覧も</a></li>
+				<li><a href="#transactionmemories">トランザクションの思い出も <span class="frm">(Transaction Memories)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#actionflowlog">ActionやJSPなどを一発で探せるように</a></li>
@@ -206,38 +207,33 @@
 	</p>
 <pre><span class="codetitle">e.g. Requestパラメーターやセッションの状態など @Log</span><code>
 
--ERROR (<span class="abbreviation">...</span>#logError():512) - *ServletException occurred.
-/= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =: /member/list/
-  Request class=org.seasar.framework.container.hotdeploy.HotdeployHttpServletRequest, RequestedSessionId=1uyu0x3fblbvbcr8mi9bmo5gl
-  , REQUEST_URI=/dockside/member/list/, SERVLET_PATH=/member/list/, CharacterEncoding=UTF-8, ContentLength=113
-  , ContentType=application/x-www-form-urlencoded, Locale=ja, Locales=ja, en_US, en, es, ko, Scheme=http, isSecure=false
-  , SERVER_PROTOCOL=HTTP/1.1, REMOTE_ADDR=0:0:0:0:0:0:0:1%0, REMOTE_HOST=0:0:0:0:0:0:0:1%0, SERVER_NAME=localhost, SERVER_PORT=8088
-  , ContextPath=/dockside, REQUEST_METHOD=POST, PathInfo=null, RemoteUser=null
-  , REQUEST_URL=http://localhost:8088/dockside/member/list/
-  , QUERY_STRING=null
-  Response class=org.mortbay.jetty.Response, ContentType=text/html, Committed=true
-  , toString()=HTTP/1.1 500  Content-Type: text/html Accept-Ranges: bytes Content-Length: 116 Last-Modified: Fri, 28 Mar 2014 14:33:35 ...
+ ERROR (<span class="abbreviation">...</span>#logError():895) - *ServletException occurred.
+/= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =: /product/list/
+  requestClass=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttpServletRequest ; sessionId=1jd3fpprgg97yx28iu7maf184
+  ; url=http://localhost:8090/harbor/product/list/?productName=&productStatus=&purchaseMemberName=
+  ; method=GET ; protocol=HTTP/1.1 ; scheme=http ; secure=false ; remoteAddr=127.0.0.1 ; remoteHost=127.0.0.1
+  ; characterEncoding=UTF-8 ; contentLength=-1 ; contentType=null ; locale=ja ; locales=ja,en_US,en,es,ko
   [header] Accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
-  [header] Accept-Encoding=gzip,deflate,sdch
+  [header] Accept-Encoding=gzip, deflate, sdch
   <span class="abbreviation">...</span>
-  [param] doSearch=検索
-  [param] memberName=S
+  [param] productName=sea
+  [param] productStatus=
+  [param] purchaseMemberName=
   <span class="abbreviation">...</span>
-  [cookie] JSESSIONID=1iwgg3g3f5qz1b6m3q5n3picu
-  [cookie] MLE=Y
+  [cookie] JSESSIONID=1jd3fpprgg97yx28iu7maf184
   <span class="abbreviation">...</span>
-  [session] org.apache.struts.action.LOCALE=ja
-  [session] org.dbflute.maihama.domainfw.action.DocksideUserBean={userId=1, sync=2014/04/06 19:34:29, locale=null, timeZone=null}
-= = = = = = = = = =/ [00m01s851ms] #2bbe82a4
-java.lang.NullPointerException
-    at org.dbflute.maihama.app.web.member.MemberListAction.doSearch(MemberListAction.java:89)
-	at org.dbflute.maihama.app.web.member.MemberListAction$$EnhancedByS2AOP$$73795327.$$doSearch$$invokeSuperMethod$$(MemberListAction$$EnhancedByS2AOP$$73795327.java)
-	at org.dbflute.maihama.app.web.member.MemberListAction$$EnhancedByS2AOP$$73795327$$MethodInvocation$$doSearch1.proceed(MethodInvocationClassGenerator.java)
-	at org.seasar.extension.tx.DefaultTransactionCallback.execute(DefaultTransactionCallback.java:58)
-	at org.seasar.extension.tx.adapter.JTATransactionManagerAdapter.required(JTATransactionManagerAdapter.java:65)
-	at org.seasar.extension.tx.RequiredInterceptor.invoke(RequiredInterceptor.java:50)
-	at org.dbflute.maihama.app.web.member.MemberListAction$$EnhancedByS2AOP$$73795327$$MethodInvocation$$doSearch1.proceed(MethodInvocationClassGenerator.java)
-	at org.seasar.framework.aop.interceptors.ThrowsInterceptor.invoke(ThrowsInterceptor.java:79)
+  [request] lastaflute.action.ACTION_RUMTIME=runtime:{/product/list/, public HtmlResponse ProductListAction@index(OptionalThing, ProductSearchForm), urlParam:{{0=opt:{null}}}, *IllegalStateException}
+  [request] lastaflute.dbflute.SQL_COUNT={total=2, selectCB=2, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
+  <span class="abbreviation">...</span>
+  [session] lastaflute.action.USER_BEAN={userId=1, sync=2015/12/23 20:46:27}@74538453
+  [session] lastaflute.action.USER_LOCALE=ja
+  responseClass=org.eclipse.jetty.server.Response ; committed=true
+  ; httpStatus=500 ; contentType=text/html ; locale=ja_JP
+  [header] Accept-Ranges=bytes
+  <span class="abbreviation">...</span>
+= = = = = = = = = =/ [00m00s107ms] #6fc09463
+java.lang.IllegalStateException: test error
+    at org.docksidestage.app.web.product.ProductListAction.index(ProductListAction.java:56)
     <span class="abbreviation">...</span>
 </code></pre>
 	<p>
@@ -261,26 +257,26 @@ SQL Failure State, here!
 This state is for the SQL failure exception: #1553847
 
 [ConnectionPool View]
-org.dbflute.saflute.db.dbcp.HookedConnectionPool@7cfba6c5
+org.lastaflute.db.dbcp.HookedConnectionPool@7cfba6c5
 <span class="keyword">freePool=2, activePool=0, txActivePool=8</span>
-{00m03s243ms, <span class="point">1424243415266/1(21)</span>, web.mypage.MypageIndexAction#index(), {userId=3}, <span class="subpoint">map:{MEMBER = list:{selectCount} ; PURCHASE = list:{selectCount}}</span>, /mypage/}
-{00m01s131ms, <span class="point">1424243415266/10(7)</span>, web.product.ProductListAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectList}}</span>, /product/list/}
-{00m00s239ms, <span class="point">1424243415266/2(34)</span>, web.login.LoginIndexAction#doLogin(), {userId=null}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /login/doLogin}
-{00m01s632ms, <span class="point">1424243415266/9(75)</span>, web.mypage.MypageIndexAction#index(), {userId=22}, <span class="subpoint">map:{PURCHASE = list:{selectCount}}</span>, /mypage/}
+{00m03s243ms, <span class="point">1424243415266/1(21)</span>, web.mypage.MypageAction@index(), {userId=3}, <span class="subpoint">map:{MEMBER = list:{selectCount} ; PURCHASE = list:{selectCount}}</span>, /mypage/}
+{00m01s131ms, <span class="point">1424243415266/10(7)</span>, web.product.ProductListAction@index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectList}}</span>, /product/list/}
+{00m00s239ms, <span class="point">1424243415266/2(34)</span>, web.signin.SigninAction@doLogin(), {userId=null}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /login/doLogin}
+{00m01s632ms, <span class="point">1424243415266/9(75)</span>, web.mypage.MypageAction@index(), {userId=22}, <span class="subpoint">map:{PURCHASE = list:{selectCount}}</span>, /mypage/}
 <span class="literal">/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - (SQL now: PURCHASE#selectCount [00m00s003ms])
 select count(*)
   from PURCHASE dfloc
--- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$8/1635799099)
+-- org.docksidestage.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$8/1635799099)
 - - - - - - - - - -/</span>
-{00m01s634ms, <span class="point">1424243415266/5(26)</span>, web.product.ProductListAction#index(), {userId=83}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /product/}
-{00m07s637ms, <span class="point">1424243415266/3(31)</span>, web.purchase.PurchaseIndexAction#index(), {userId=9}, <span class="subpoint">map:{MEMBER = list:{selectList ; selectCount}}</span>, /purchase/}
-{00m01s632ms, <span class="point">1424243415266/8(41)</span>, web.profile.ProfileEditAction#index(), {userId=732}, <span class="subpoint">map:{MEMBER = list:{updateNonstrict}}</span>, /profile/edit/}
+{00m01s634ms, <span class="point">1424243415266/5(26)</span>, web.product.ProductListAction@index(), {userId=83}, <span class="subpoint">map:{MEMBER = list:{selectList}}</span>, /product/}
+{00m07s637ms, <span class="point">1424243415266/3(31)</span>, web.purchase.PurchaseAction@index(), {userId=9}, <span class="subpoint">map:{MEMBER = list:{selectList ; selectCount}}</span>, /purchase/}
+{00m01s632ms, <span class="point">1424243415266/8(41)</span>, web.profile.ProfileEditAction@index(), {userId=732}, <span class="subpoint">map:{MEMBER = list:{updateNonstrict}}</span>, /profile/edit/}
 <span class="literal">/- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - (SQL now: MEMBER#updateNonstrict [00m00s016ms])
 update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205', UPDATE_USER = 'M:-1,DCK,LoginIndexAction', VERSION_NO = VERSION_NO + 1
  where MEMBER_ID = 3
--- org.dbflute.maihama.app.web.login.LoginIndexAction#index(): (via LoginIndexAction$$Lambda$12/475753501)
+-- org.docksidestage.app.web.signin.SigninAction#index(): (via LoginIndexAction$$Lambda$12/475753501)
 - - - - - - - - - -/</span>
-{00m01s633ms, <span class="point">1424243415266/6(3)</span>, web.login.LoginIndexAction#index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectCount}}</span>, /login/}
+{00m01s633ms, <span class="point">1424243415266/6(3)</span>, web.login.LoginIndexAction@index(), {userId=null}, <span class="subpoint">map:{PRODUCT = list:{selectCount}}</span>, /login/}
 * * * * * * * * * */
 </code></pre>
 	<ul>
@@ -301,6 +297,57 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません<span class="frm">(その辺のパフォーマンス考慮、最大限しているつもり)</span>。
 		また、トランザクションが開始されていても、まだ一度もDBアクセスしていないトランザクションは表示されません<span class="frm">(ConnectionPoolに乗ってないため)</span>。
 	</p>
+	<h3 id="transactionmemories">トランザクションの思い出も <span class="frm">(Transaction Memories)</span></h3>
+	<p>
+		本番環境でのシステム例外は、例外メッセージとスタックトレースだけで原因を突き止めるのはなかなか難しいこともあります。
+		一つ前の検索結果が影響して例外が発生していることもあります。その一つ前の検索結果を知りたいものです。
+	</p>
+	<p>
+		そこで、例外発生時のリクエスト属性に、トランザクションの思い出を載せるようにしています。
+	</p>
+<pre><span class="codetitle">e.g. Requestパラメーターやセッションの状態など @Log</span><code>
+
+/= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =: /product/list/
+  requestClass=org.lastaflute.web.servlet.filter.hotdeploy.HotdeployHttpServletRequest ; sessionId=1jd3fpprgg97yx28iu7maf184
+  ; url=http://localhost:8090/harbor/product/list/?productName=&productStatus=&purchaseMemberName=
+  ; method=GET ; protocol=HTTP/1.1 ; scheme=http ; secure=false ; remoteAddr=127.0.0.1 ; remoteHost=127.0.0.1
+  ; characterEncoding=UTF-8 ; contentLength=-1 ; contentType=null ; locale=ja ; locales=ja,en_US,en,es,ko
+  [header] Accept=text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+  [header] Accept-Encoding=gzip, deflate, sdch
+  <span class="abbreviation">...</span>
+  [param] productName=sea
+  [param] productStatus=
+  [param] purchaseMemberName=
+  <span class="abbreviation">...</span>
+  [cookie] JSESSIONID=1jd3fpprgg97yx28iu7maf184
+  <span class="abbreviation">...</span>
+  [request] lastaflute.action.ACTION_RUMTIME=runtime:{/product/list/, public HtmlResponse ProductListAction@index(OptionalThing, ProductSearchForm), urlParam:{{0=opt:{null}}}, *IllegalStateException}
+  [request] lastaflute.dbflute.SQL_COUNT={total=2, selectCB=2, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
+  [request] <span class="point">lastaflute.dbflute.TRANSACTION_MEMORIES</span>=<span class="subpoint">wholeShow:
+   *RomanticTransaction@4dca5628
+   &lt;&lt; Transaction Current State &gt;&gt;
+   beginning time: 2015/12/23 20:46:29.444
+   table command: map:{PRODUCT = list:{selectList ; selectCount}}
+   ending: rollback
+   &lt;&lt; Transaction Recent Result &gt;&gt;
+   1. (2015/12/23 20:46:29.479) [00m00s016ms] PRODUCT@selectList => List:{size=4, first={PRODUCT_ID=6}}
+   2. (2015/12/23 20:46:29.497) [00m00s001ms] PRODUCT@selectCount => Integer:{count=20}</span>
+  [request] lastaflute.hotdeploy.CLASS_LOADER=org.lastaflute.di.core.smart.hot.HotdeployClassLoader@65ffb01f
+  <span class="abbreviation">...</span>
+  [session] lastaflute.action.USER_BEAN={userId=1, sync=2015/12/23 20:46:27}@74538453
+  [session] lastaflute.action.USER_LOCALE=ja
+  responseClass=org.eclipse.jetty.server.Response ; committed=true
+  ; httpStatus=500 ; contentType=text/html ; locale=ja_JP
+  [header] Accept-Ranges=bytes
+  <span class="abbreviation">...</span>
+= = = = = = = = = =/ [00m00s107ms] #6fc09463
+java.lang.IllegalStateException: test error
+    at org.docksidestage.app.web.product.ProductListAction.index(ProductListAction.java:56)
+</code></pre>
+	<ul>
+		<li>そのトランザクションがどのテーブルにどんなアクセスをしたか？ <span class="frm">(table command)</span></li>
+		<li>そのトランザクションの直近30のアクセス履歴、検索結果の件数やPKの値なども少し</li>
+	</ul>
 
 	<h2 id="actionflowlog">ActionやJSPなどを一発で探せるように</h2>
 	<p>
