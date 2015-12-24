@@ -346,11 +346,14 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
    *RomanticTransaction@4dca5628
    &lt;&lt; Transaction Current State &gt;&gt;
    beginning time: 2015/12/23 20:46:29.444
-   table command: map:{PRODUCT = list:{selectList ; selectCount}}
+   table command: map:{PRODUCT = list:{selectList ; selectCount ; updateNonstrict} ; PURCHASE = list:{selectList} ; MEMBER_LOGIN = list:{insert}}
    ending: rollback
    &lt;&lt; Transaction Recent Result &gt;&gt;
    1. (2015/12/23 20:46:29.479) [00m00s016ms] PRODUCT@selectList => List:{size=4, first={PRODUCT_ID=6}}
-   2. (2015/12/23 20:46:29.497) [00m00s001ms] PRODUCT@selectCount => Integer:{count=20}</span>
+   2. (2015/12/23 20:46:29.497) [00m00s001ms] PRODUCT@selectCount => Integer:{count=20}
+   3. (2015/12/23 20:46:29.511) [00m00s002ms] PRODUCT@updateNonstrict => Integer:{updated=1, key={PRODUCT_ID=9}}
+   4. (2015/12/23 20:46:29.520) [00m00s006ms] PURCHASE@selectList => List:{size=1, first={PURCHASE_ID=3}}
+   5. (2015/12/23 20:46:29.565) [00m00s003ms] MEMBER_LOGIN@insert => Integer:{inserted=1, key={MEMBER_LOGIN_ID=65}}</span>
   [request] lastaflute.hotdeploy.CLASS_LOADER=org.lastaflute.di.core.smart.hot.HotdeployClassLoader@65ffb01f
   <span class="abbreviation">...</span>
   [session] lastaflute.action.USER_BEAN={userId=1, sync=2015/12/23 20:46:27}@74538453
@@ -362,11 +365,21 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 = = = = = = = = = =/ [00m00s107ms] #6fc09463
 java.lang.IllegalStateException: test error
     at org.docksidestage.app.web.product.ProductListAction.index(ProductListAction.java:56)
+    <span class="abbreviation">...</span>
 </code></pre>
 	<ul>
-		<li>そのトランザクションがどのテーブルにどんなアクセスをしたか？ <span class="frm">(table command)</span></li>
+		<li>そのトランザクションがどのテーブルにどんなアクセスをしたか？</li>
 		<li>そのトランザクションの直近30のアクセス履歴、検索結果の件数やPKの値なども少し</li>
 	</ul>
+	<p>
+		これらが本番でわかるのであれば、トラブルシューティングする人が少しでも助かるのではないかと。
+	</p>
+	<dl class="keymainlist">
+		<dt>beginning time</dt><dd>トランザクション開始時間</dd>
+		<dt>table command</dt><dd>アクセスしたテーブルとそのコマンド (順不同)</dd>
+		<dt>ending</dt><dd>commit したか rollback したか</dd>
+		<dt>Recent Result</dt><dd>直近30個のDBアクセス情報、テーブル名や結果の一部</dd>
+	</dl>
 
 	<h2 id="actionflowlog">ActionやJSPなどを一発で探せるように</h2>
 	<p>
