@@ -39,11 +39,12 @@
 <div id="content">
 	<h1>Actionの実装デザイン</h1>
 	<p>
-		LastaFluteの特徴の一つです。
+		LastaFluteからの提案です。
 	</p>
 	<div class="relatedpage"><a href="../../index.html">LastaFluteトップページ</a></div>
 	<div class="relatedpage"><a href="../../tutorial/laimpl.html">LastaFluteの実装チュートリアル</a></div>
 	<ul class="indexlist">
+		<li><a href="#overview">いきなりまとめ</a></li>
 		<li><a href="#actionrole">Actionの役割</a>
 			<ul>
 				<li><a href="#boundaryfacade">バウンダリ、かつ、ファサード</a></li>
@@ -67,14 +68,46 @@
 				<li><a href="#lazyrecyle">再利用するときに切り出せばいい</a></li>
 			</ul>
 		</li>
-		<li><a href="#actionassist">ActionをAssistするAssistクラス</a></li>
+		<li><a href="#nologicweb">No more, Logic が WEB に依存!?</a></li>
+		<li><a href="#nologicaction">No more, Logic が Action 継承!?</a></li>
+		<li><a href="#nologicaction">No more, アバウトLogic!?</a></li>
+		<li><a href="#nomorecaossuper">No more, ごちゃごちゃスーパークラス</a></li>
+		<li><a href="#nomorecaosref">No more, あっちらこっちら参照</a></li>
+		<li><a href="#actionassist">ActionをアシストするActionAssist</a>
+			<ul>
+				<li><a href="#easywebclass">WEB依存でちょこっとまとめたい</a></li>
+				<li><a href="#assistpackage">Assistクラスのパッケージ</a></li>
+				<li><a href="#assistknowweb">AssistクラスはWEBに依存してOK</a></li>
+				<li><a href="#assistknowfront">Assistクラスは画面に依存してOK!?</a></li>
+				<li><a href="#assistcandi">Assistクラスも普通にDIできる</a></li>
+				<li><a href="#suppressweblogic">WEBに依存したロジックを作らないためにも</a></li>
+				<li><a href="#suppressweblogic">チグハグなスーパークラスにを作らないためにも</a></li>
+			</ul>
+		</li>
 	</ul>
+
+	<h2 id="overview">いきなりまとめ</h2>
+	<p>
+		本気でDDDをやるフェーズまで達していない段階での、実装デザインの提案です。
+	</p>
+	<dl class="textlist">
+		<dt><em class="mark">Action</em> <span class="frm">(すでにトランザクションかかっている)</span></dt>
+		<dd><em class="keyword">フローコントロール、再利用しない検索や更新 (ちょこっとロジック) を書く</em></dd>
+		<dd>検索の再利用は部品単位で <span class="frm">(ArrangeQueryを積極活用)</span></dd>
+		<dd>WEB依存 "する" 処理を再利用したいときは <em class="mark">ActionAssist</em></dd>
+		<dd>WEB依存 "しない" ビジネスロジックを再利用したいときは <em class="mark">Logic</em></dd>
+		<dt><em class="mark">Logic</em> <span class="frm">(ビジネスロジック)</span></dt>
+		<dd><em class="keyword">再利用するものだけロジックに書く</em> <span class="frm">(二箇所以上で呼ばれて初めて Logic に)</span></dd>
+		<dd>WEB依存しないようにキープ <span class="frm">(Formを渡したりしない、Sessionは参照しない)</span></dd>
+		<dd>Actionを継承してはいけない <span class="frm">(当たり前ですが...)</span></dd>
+		<dd>Logicの名前は、モノ+Logic はダメ、"モノ+業務+Logic" or "業務+Logic"</dd>
+	</dl>
 
 	<h2 id="actionrole">Actionの役割</h2>
 	<h3 id="boundaryfacade">バウンダリ、かつ、ファサード</h3>
 	<p>
-		Action には、すでにトランザクションがかかっています。
-		単なるWebサイドのバウンダリ(境界)としての役割だけでなく、ビジネスロジックのファサード(玄関)としての役割を持つことができます。
+		Action には、<em class="keyword">すでにトランザクションがかかっています</em>。
+		単なるWebサイドのバウンダリ(境界)としての役割だけでなく、<em class="keyword">ビジネスロジックのファサード(玄関)としての役割</em> を持つことができます。
 	</p>
 	<p>
 		厳密なアーキテクチャではその役割を分離することが多いですが、LastaFlute ではシンプルさを追求するために、一つにしています。
@@ -104,8 +137,8 @@
 		LastaFluteでは比較的それは発生しづらいことです。 
 	</p>
 	<p>
-		なので、Action クラスである程度 "ベタっと"
-		書くことを許容して、逆にそのメリットを享受する方がよいだろうと考えています。
+		なので、<em class="keyword">Action クラスである程度 "ベタっと" 書くことを許容</em>
+		して、逆にそのメリットを享受する方がよいだろうと考えています。
 		インクリメンタル開発では、既存のソースコードを読む時間が非常に長いです。あちこち飛ぶのはできるだけ少なくしたいものです。
 	</p>
 
@@ -291,17 +324,362 @@
 		もし、自信持って再利用メソッドをあらかじめ作るのであれば、JavaDocなどはしっかり整備して、再利用する人が迷わないようにしましょう。
 	</p>
 
-	<h2 id="actionassist">ActionをAssistするAssistクラス</h2>
+	<div class="inucolumn">
+		<h2 id="nologicweb">No more, Logic が WEB に依存!?</h2>
+		<p>
+			もっと、"それ以前" 的な話ですが...
+			時々見かけるコードにこういうのがあります。
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic {
+
+    <span class="keyword">public void</span> land(<span class="point">SeaForm</span> form) { <span class="comment">// ★絶対やっちゃダメ</span>
+    }
+}
+</code></pre>
+		<p>
+			先の通り、<em class="keyword">Logicは再利用を目的</em> にしているため、とある固有の画面のFormクラスを参照すると、別の画面で再利用がしづらくなります。
+			FormクラスはWEBサイドに特化しているので、こちらも先に述べた潜在的にWEBに依存したロジックとなってしまいます。
+		</p>
+		<p>
+			仮に、B画面がA画面のFormをnewして無理矢理再利用したとしましょう。
+			でも、A画面のFormはA画面に最適化されていて、いかにもA画面だけで使っていそうなクラス名やパッケージに見えます。
+			でも実はB画面が使っている...となると、<em class="keyword">B画面やLogicのことを気にせずにA画面都合の修正が入り、B画面やLogicが落ちる</em>
+			というトラブルが発生しやすくなります。ひとりで作っていればそんなことはないだろうと思われるかもしれませんが、インクリメンタル開発では様々な人が入れ替わり立ち替わりコードを修正することが想定されるため、再利用すべきもの再利用すべきでないものは明確にしたいという気持ちがあります。
+		</p>
+		<p>
+			アーキテクチャ的にも、完全に逆参照となります。
+		</p>
+		<div class="relatedpage"><a href="../../tutorial/laimpl.html#architecture">アーキテクチャ概念マップ</a></div>
+		<p>
+			Logicは、ずばり <em class="mark">ビジネスロジック</em> ということで、極端な話 "バッチのプログラムから呼ばれても大丈夫"
+			というような状態をキープするものです。少なくとも、LastaFluteではそのように想定しています。
+			なので、Session や Cookie にも依存してはいけません。
+		</p>
+		<p>
+			どうしても引数が多くてまとめたい場合は、別途パラメータークラスを作成すると良いでしょう。
+		</p>
+<pre><span class="codetitle">e.g. Parameter class for SeaInPark @Java</span><code>
+<span class="keyword">public class</span> SeaInParkParam {
+
+    <span class="keyword">public</span> Integer piariId;
+    <span class="keyword">public</span> String bonvoName;
+    <span class="keyword">public</span> LocalDate dstoreDate;
+    <span class="keyword">public</span> LocalDateTime ambaDateTime;
+    <span class="keyword">public</span> Boolean miraco;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">e.g. Logic accepts Param @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic {
+
+    <span class="keyword">public void</span> land(SeaInParkParam param) {
+    }
+}
+</code></pre>
+<pre><span class="codetitle">e.g. package of parameter class @Directory</span><code>
+app
+ |-logic
+ |  |-sea
+ |  |  |-SeaInParkLogic.java
+ |  |  |-<span class="point">SeaInParkParam.java</span>
+ |-web
+ |  |-sea
+ |  |  |-SeaAction.java
+ |  |  |-SeaForm.java
+</code></pre>
+		<p>
+			概念的な話が難しければ、<em class="keyword">app.logicパッケージからapp.webパッケージを参照してしまっていないか？</em>
+			という視点で考えて頂ければと。
+		</p>
+		<p>
+			どうしても、WEBに依存した状態で再利用がしたければ、それは ActionAssist を使いましょう。
+		</p>
+		<div class="detailpage"><a href="#actionassist">this - ActionをアシストするAssistクラス</a></div>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nologicaction">No more, Logic が Action 継承!?</h2>
+		<p>
+			よく新人プログラマーの実装で見かけることがあるかと思います。
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic <span class="keyword">extends</span> DocksideBaseAction { <span class="comment">// ★絶対やっちゃダメ</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			<em class="keyword">Logic は Action ではありません。</em>つまり、<em class="mark">"is a" の関係</em>になっていません。 
+		</p>
+		<p>
+			では、なぜ "is a" の関係になっていないといけないのでしょうか？
+		</p>
+		<p>
+			Actionのスーパークラスは、Actionに最適化しています。Actionを形づけるために存在しています。
+			<em class="keyword">Logicのために存在しているわけではない</em> のです。
+		</p>
+		<p>
+			ゆえに...
+		</p>
+		<p>
+			<em class="keyword">(Actionを継承している)Logicに都合の悪い修正が平気で入ります</em>。
+		</p>
+		<p>
+			もし、Actionのスーパークラスの修正で、それを継承している Logic
+			が落ちたとしたら、Action を継承している Logic の方が良くないと言えます。
+		</p>
+		<p>
+			もともとオブジェクト指向の目的として、<em class="bigmark">意味</em>
+			を重視して、概念ごとにクラスを取り扱うことでプログラムを整備しやすいという点があります。
+			"XxxLogic は Action である" と自然言語にして <em class="keyword">しっくりくるかどうか？</em>
+			ここがポイントです。
+		</p>
+		<p>
+			便利なメソッドが欲しければ、Logicがその便利なクラスに依存すればよいと考えます。
+			それが、Actionのスーパークラスにベタッと書いてあったのであれば、別途クラスに抽出して再利用して使うようにしましょう。
+		</p>
+		<p>
+			一方で、Logicのスーパークラスを作っても悪いわけではありませんが、スーパークラスのメインの役割は <em class="bigmark">その概念を形づける</em>
+			なので、特に Logic を共通的に形づけるものはあまりないかなと考えるので<span class="frm">(Actionが非常に定型的で特殊と言えます)</span>、大抵の場合は全体共通のスーパークラスはあまり必要ではないと考えています。
+			もちろん、まとまった業務単位で必要であれば作っても良いでしょう。
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nologicaction">No more, アバウトLogic!?</h2>
+		<p>
+			よく巨大な Logic を見かけませんか？
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
+<span class="keyword">public class</span> SeaLogic {
+
+    <span class="comment">// ここにメソッド100個くらい...ってちょっとおおげさだけど、ちょーたくさん</span>
+}
+</code></pre>
+		<p>
+			大抵、MemberLogic, ProductLogic というアバウトな名前のクラスであることが多いです。
+			Memberに関するLogicだから、Memberに関するものがなんでも入ります。
+		</p>
+		<p>
+			こういったクラスがすでに存在していると、後から実装する人は、当然 Member
+			に関するものは MemberLogic に入れます。"ちょっとでかいなぁ、やだなぁ"
+			と思っても、そのまま MemberLogic に入れることがほとんどでしょう。MemberLogic
+			がすでにあるのに、MemberSignupLogic は作りづらいですから。
+			<span class="frm">(すでにあるクラスに入れる方が楽と思うでしょうし...MemberLogicに入れなきゃいけないんだと思うでしょう)</span>
+		</p>
+		<p>
+			Logicはどういう単位で作っていくべきでしょうか？
+		</p>
+		<p>
+			これは難題です。恐らくちゃんとやるなら、DDD的なアプローチが必要になるでしょう。
+			でも、スタートアップではなかなか最初から徹底するのは難しいものです。
+		</p>
+		<p>
+			でも、Logicを作って再利用はしたい...
+		</p>
+		<p>
+			少なくとも、<em class="keyword">モノ + Logic だけのクラスは作らないこと</em>。そう、MemberLogic です。
+		</p>
+		<p>
+			小さな提案、最低限 <em class="bigmark">モノ + 業務 + Logic</em> にすること。
+			MemberSignupLogic です。もし、業務自体で暗黙にモノが特定できるなら、<em class="mark">業務 + Logic</em>
+			だけでも良いでしょう。SignupLogic ですね。でも、モノ+Logicにはしない。
+		</p>
+<pre><span class="codetitle">e.g. object + business + logic @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic { <span class="comment">// SeaにInParkするLogic</span>
+
+    <span class="comment">// さすがに In する以外のメソッドが追加されることは...あまりないはず</span>
+}
+</code></pre>
+		<p>
+			PurchaseLogic は迷いますね。Purchaseはモノなのか業務なのか...
+			でも、購入というイベントにも色々なものがあるかと思います。
+			購入フロー自体に加えて、購入商品の支払い、購入履歴の確認、購入のキャンセルなどなど、購入というデータに対して、様々な振舞いが存在します。
+			安易に PurchaseLogic を作ると、それらがすべて後からどんどん追加されていきます。
+		</p>
+		<p>
+			その結果、一つしかメソッドがLogicができるかもしれませんが、別にそれは構わないかと思います。
+			インクリメンタル開発では、後で追加される可能性は大ですから。
+		</p>
+		<p>
+			<em class="keyword">モノは名詞とは限らないし、業務が動詞とは限りません。</em>
+			そこが難しいのかもしれませんが、少なくとも Logic を作るときにちょっと考えてみると、良い名前が見つかるかもしれません。
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nomorecaossuper">No more, ごちゃごちゃスーパークラス</h2>
+		<p>
+			BaseAction にどんどん業務メソッドが追加されていくという現象があります。
+		</p>
+<pre><span class="codetitle">e.g. No way, many business methods in  @Java</span><code>
+<span class="keyword">public abstract class</span> MaihamaBaseAction <span class="keyword">extends</span> <span class="abbreviation">...</span> {
+
+    <span class="comment">// どかどか業務メソッドが追加されていく。。。</span>
+}
+</code></pre>
+		<p>
+			<em class="keyword">スーパークラスの役割は、その概念を形づけること</em>
+		</p>
+		<p>
+			ある程度、便利メソッドの入り口になる役割として使ってしまうこともありますが、<em class="keyword">それは特定の業務に(できるだけ)依存せず、Actionとしての役割を支援するもの</em>
+			に限ります。あくまで、フレームワークとしての役割を担う場所がスーパークラスです。
+		</p>
+		<p>
+			ですが、スーパークラスというもの、特に Action のスーパークラスは目の前にあり、手軽に全体に影響させることのできるものです。
+			ついついサクッとメソッドを追加してしまいがちです。
+		</p>
+		<p>
+			WEB依存のLogicを作らないとなると、WEB依存の処理を再利用したいとなると、確かにどこに？という感じになるかもしれません。
+			そこで、ActionAssist です。
+		</p>
+		<div class="detailpage"><a href="#actionassist">this - ActionをアシストするActionAssist</a></div>
+		<p>
+			それでも、"スーパークラスにあってもいいかなぁ" と思うような処理があったとします。
+			メソッド追加する前にひとつ質問 <em class="keyword">そのメソッドを利用する Action って特定できますか？</em>
+			できるのであれば、やっぱりAssistクラスでしょう。
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nomorecaosref">No more, あっちらこっちら参照</h2>
+		<p>
+			インクリメンタルでよく発生する問題は、"A画面を直したら気付いたらB画面が動かなくなっている"
+			というような間接デグレです。スタートアップではある程度そのリスクは覚悟する必要はありますが、安易に起きるのもつらいものです。
+		</p>
+		<p>
+			そのよくある二つの典型的なパターン、まず一つ目...
+		</p>
+		<p>
+			<em class="keyword">再利用できるレイヤに(本来)再利用できないメソッドが定義されている</em> というパターン。
+			例えば、Logic に実質的潜在的にA画面に依存したメソッドがあると、Logicは再利用メソッドを置く領域なので、B画面がついつい使ってしまうかもしれません。
+			でも、A画面のディベロッパーは知らずにA画面の都合で修正してしまうでしょう。A画面のActionで書くべき、もしくは、もっと細かい部品単位で再利用するようにすべきでしょう。
+			これは Logic に何を書くべきか？をさんざんこのページで議論してきましたのでここでは話はおしまい。
+		</p>
+		<p>
+			ということで、二つ目がポイントです。
+		</p>
+		<p>
+			<em class="keyword">A画面専用のクラスっぽい風貌なのに、実はB画面からも使われている</em>
+			というパターン。
+		</p>
+		<p>
+			例えば、SeaAction に対する SeaForm クラスがあったとして、パッケージも sea の下、なのに、land
+			パッケージの LandAction で SeaForm が使われているようなケース。
+		</p>
+		<p>
+			ディベロッパーとしては、直したらIDEの機能を使うなりしてクラスの参照を辿って影響範囲を特定すべきところですが、スタートアップの現場ではなかなかそれを徹底させることは現実できませんし、
+			いかにも共通っぽいクラスであればまだディベロッパーは気をつける意識が強くなりますが、A画面専用っぽい見た目をしていたらなかなか見逃してしまいます。
+			もうその場合は、そういう <em class="mark">不意打ちのような再利用</em> をした方が良くないと言えるでしょう。
+		</p>
+		<p>
+			ひとつ提案です。以下のようなポリシーでクラス作りをしてみてはいかがでしょう？
+		</p>
+		<ul>
+			<li><em class="smallmark">app.web.[業務固有のパッケージ]</em> から、他の業務固有のパッケージのクラスは参照しない</li>
+			<li>WEB依存のものを再利用するなら <em class="mark">app.web.base.[再利用業務パッケージ]</em> に置く</li>
+			<li>もちろん、ビジネスロジックとして再利用できるなら Logic にする</li>
+		</ul>
+		<p>
+			なかなか厳密にやるのは難しいのですが、できるだけ...
+		</p>
+		<p>
+			<em class="keyword">再利用されないクラスと再利用されるクラスを明確にわけることが大切だと考えます。</em>
+		</p>
+	</div>
+
+	<h2 id="actionassist">ActionをアシストするActionAssist</h2>
+	<h3 id="easywebclass">WEB依存でちょこっとまとめたい</h3>
 	<p>
-		さて、それでも、再利用しないものだけでもそれなりのロジックが Action
-		に入ってきて、ちょっとさすがに外に出したいと思ったら、Assistクラスを使いましょう。
+		Assistクラスは、単なるActionのアシストです。
+		<em class="keyword">WEBや画面に依存してるので Action の中で記述するべきものだけど、ちょこっとまとまったクラスにしたい</em>
+		というときに使います。
+	</p>
+	<ul>
+		<li>Actionの中のprivateメソッドがでかくなってきたので、ちょっと外に出したい</li>
+		<li>WEB依存した処理を、A画面とB画面でちょっと再利用したい</li>
+	</ul>
+	<p>
+		そういうときに作ります。
+	</p>
+	<h3 id="assistpackage">Assistクラスのパッケージ</h3>
+	<p>
+		再利用しないなら、その Assist を使う Action クラスの隣でいいかと思います。
+	</p>
+<pre><span class="codetitle">e.g. package of no-recycled assit class @Directory</span><code>
+app
+ |-web
+ |  |-sea
+ |  |  |-SeaAction.java <span class="comment">// use SeaAssist</span>
+ |  |  |-<span class="point">SeaAssist.java</span>
+ |  |  |-SeaForm.java
+</code></pre>
+	<p>
+		再利用するのであれば web.base パッケージに、任意のパッケージを作って再利用すると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. package of recycled assit class @Directory</span><code>
+app
+ |-web
+ |  |-base
+ |  |  |-maihama
+ |  |  |  |-<span class="point">ResortAssist.java</span>
+ |  |-sea
+ |  |  |-SeaAction.java <span class="comment">// use ResortAssist</span>
+ |  |  |-SeaForm.java
+ |  |-land
+ |  |  |-LandAction.java <span class="comment">// use ResortAssist</span>
+ |  |  |-LandForm.java
+</code></pre>
+	<h3 id="assistknowweb">AssistクラスはWEBに依存してOK</h3>
+	<p>
+		RequestManager や SessionManager や CookieManager などガッツリ使ってOKです。
+		どちらかというと、そういったWEBに絡んだ処理を再利用するためのものと言えるでしょう。
+	</p>
+	<h3 id="assistknowfront">Assistクラスは画面に依存してOK!?</h3>
+	<p>
+		画面に依存していいいかどうかは、再利用するのかどうか次第です。
 	</p>
 	<p>
-		Assistクラスは、単なるActionのAssistです。
-		Actionの中で記述するべきものを、ちょっとまとまったクラスにしたいというときに使います。
+		再利用しない Assist であれば、べったり呼び出し元の Action に依存させてOKです。
+		つまり、FormクラスやBodyクラスも参照しちゃってOKです。パッケージ的にも不自然ではありません。
+		この場合の Assist の役割は、単に Action で書くのがちょっと量が多いので外に出すという感じですね。
 	</p>
 	<p>
-		TODO jflute
+		再利用する Assist であれば、もちろんとある固定の画面に依存することはできませんが、
+		例えば Form や Body 自体を再利用しているとかであれば<span class="frm">(その場合、Form や Body も base パッケージに)</span>、
+		その Form や Body を Assist から参照しても良いでしょう。
+	</p>
+	<h3 id="assistcandi">Assistクラスも普通にDIできる</h3>
+	<p>
+		Actionクラスの中で、普通に DI できます。
+	</p>
+	<p>
+		また Assistクラスの中で、様々なコンポーネントをDIすることもできます。
+	</p>
+	<h3 id="suppressweblogic">WEBに依存したロジックを作らないためにも</h3>
+	<p>
+		どうしても、WEBに依存したまとまった処理を再利用したいと考えることがあります。
+	</p>
+	<p>
+		一方で、Action はバウンダリ、かつ、ファサード、Logicには再利用するものだけを記述する、という方式を追求すると、
+		それなりに Action には処理が入り込む可能性があります。
+	</p>
+	<p>
+		そうしたとき、ちょっと気軽にWEB依存したままのクラスを作ってしまえばいいなと、Assistがないアーキテクチャで開発していたときに思っていました。
+		でも、アーキテクチャにそういう概念がないと、なかなか誰も新しいクラスを作ろうとはしません。
+		そのしわ寄せが Logic に行くのです。
+	</p>
+	<h3 id="suppressweblogic">チグハグなスーパークラスにを作らないためにも</h3>
+	<p>
+		というか、これはチグハグなスーパークラスにさせないためのものでもあります。
+		LogicをWEB依存させないようにすると、しわ寄せがスーパークラスに来ます。
+	</p>
+	<p>
+		先の通り、スーパークラスは概念を形づけるためのものです。
+		ある程度の便利にするためのメソッドが入り込むのは仕方ないとしても、特定の業務的なものは入れるものところではありません。
+	</p>
+	<p>
+		それなら、ActionAssist を使って、再利用しましょう。
 	</p>
 
 </div>
