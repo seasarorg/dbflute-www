@@ -364,8 +364,8 @@
 <span class="keyword">public class</span> SeaInParkParam {
 
     <span class="keyword">public</span> Integer piariId;
-    <span class="keyword">public</span> String bonvoName;
-    <span class="keyword">public</span> LocalDate dstoreDate;
+    <span class="keyword">public</span> String dstoreName;
+    <span class="keyword">public</span> LocalDate bonvoDate;
     <span class="keyword">public</span> LocalDateTime ambaDateTime;
     <span class="keyword">public</span> Boolean miraco;
     <span class="abbreviation">...</span>
@@ -513,7 +513,7 @@ app
 		<p>
 			BaseAction にどんどん業務メソッドが追加されていくという現象があります。
 		</p>
-<pre><span class="codetitle">e.g. No way, many business methods in  @Java</span><code>
+<pre><span class="codetitle">e.g. No way, many business methods in super class @Java</span><code>
 <span class="keyword">public abstract class</span> MaihamaBaseAction <span class="keyword">extends</span> <span class="abbreviation">...</span> {
 
     <span class="comment">// ★どかどか業務メソッドが追加されていく。。。</span>
@@ -568,10 +568,21 @@ app
 			例えば、SeaAction に対する SeaForm クラスがあったとして、パッケージも sea の下、なのに、land
 			パッケージの LandAction で SeaForm が使われているようなケース。
 		</p>
+<pre><span class="codetitle">e.g. stileto reference @Directory</span><code>
+app
+ |-web
+ |  |-sea
+ |  |  |-SeaAction.java
+ |  |  |-<span class="subpoint">SeaForm.java</span>
+ |  |-land
+ |  |  |-LandAction.java <span class="comment">// use SeaForm</span>
+</code></pre>
 		<p>
-			ディベロッパーとしては、直したらIDEの機能を使うなりしてクラスの参照を辿って影響範囲を特定すべきところですが、スタートアップの現場ではなかなかそれを徹底させることは現実できませんし、
+			ディベロッパーとしては、直したらIDEの機能を使うなりしてクラスの参照を辿って影響範囲を特定すべきところですが、スタートアップの現場ではなかなかそれを徹底させることは現実的には難しいもので、
 			いかにも共通っぽいクラスであればまだディベロッパーは気をつける意識が強くなりますが、A画面専用っぽい見た目をしていたらなかなか見逃してしまいます。
-			もうその場合は、そういう <em class="mark">不意打ちのような再利用</em> をした方が良くないと言えるでしょう。
+		</p>
+		<p>
+			もうその場合は、そういう <em class="keyword">不意打ちのような再利用</em> をした方が良くないと言えるでしょう。
 		</p>
 		<p>
 			ひとつ提案です。以下のようなポリシーでクラス作りをしてみてはいかがでしょう？
@@ -579,8 +590,28 @@ app
 		<ul>
 			<li><em class="smallmark">app.web.[業務固有のパッケージ]</em> から、他の業務固有のパッケージのクラスは参照しない</li>
 			<li>WEB依存のものを再利用するなら <em class="mark">app.web.base.[再利用業務パッケージ]</em> に置く</li>
+			<li><em class="smallmark">app.web.[業務固有のパッケージ]</em> の同じパッケージ(サブ含む)なら参照してもOK</li>
 			<li>もちろん、ビジネスロジックとして再利用できるなら Logic にする</li>
 		</ul>
+<pre><span class="codetitle">e.g. use base for recycle @Directory</span><code>
+app
+ |-web
+ |  |-<span class="point">base</span>
+ |  |  |-<span class="subpoint">sea</span> <span class="comment">// rename if better name exists</span>
+ |  |  |  |-<span class="subpoint">SeaForm</span>
+ |  |  |-MaihamaBaseAction
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-sea
+ |  |  |-SeaAction <span class="comment">// use base.sea.SeaForm</span>
+ |  |-land
+ |  |  |-LandAction <span class="comment">// use base.sea.SeaForm</span>
+ |  |-piari
+ |  |  |-dstore
+ |  |  |  |-PiariDstoreAction <span class="comment">// use PiariForm</span>
+ |  |  |-PiariDetailAction <span class="comment">// use PiariForm</span>
+ |  |  |-PiariEditAction <span class="comment">// use PiariForm</span>
+ |  |  |-<span class="subpoint">PiariForm</span> <span class="comment">// cane be recycled in same package</span>
+</code></pre>
 		<p>
 			なかなか厳密にやるのは難しいのですが、できるだけ...
 		</p>
@@ -593,6 +624,14 @@ app
 	<h3 id="easywebclass">WEB依存でちょこっとまとめたい</h3>
 	<p>
 		Assistクラスは、単なるActionのアシストです。
+	</p>
+<pre><span class="codetitle">e.g. Assist class @Java</span><code>
+<span class="keyword">public class</span> SeaAssist {
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
 		<em class="keyword">WEBや画面に依存してるので Action の中で記述するべきものだけど、ちょこっとまとまったクラスにしたい</em>
 		というときに使います。
 	</p>
