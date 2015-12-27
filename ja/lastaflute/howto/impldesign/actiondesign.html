@@ -353,11 +353,6 @@
 		</p>
 		<div class="relatedpage"><a href="../../tutorial/laimpl.html#architecture">アーキテクチャ概念マップ</a></div>
 		<p>
-			Logicは、ずばり <em class="mark">ビジネスロジック</em> ということで、極端な話 "バッチのプログラムから呼ばれても大丈夫"
-			というような状態をキープするものです。少なくとも、LastaFluteではそのように想定しています。
-			なので、Session や Cookie にも依存してはいけません。
-		</p>
-		<p>
 			どうしても引数が多くてまとめたい場合は、別途パラメータークラスを作成すると良いでしょう。
 		</p>
 <pre><span class="codetitle">e.g. Parameter class for SeaInPark @Java</span><code>
@@ -393,6 +388,22 @@ app
 			概念的な話が難しければ、<em class="keyword">app.logicパッケージからapp.webパッケージを参照してしまっていないか？</em>
 			という視点で考えて頂ければと。
 		</p>
+		<p>
+			Logicは、ずばり <em class="mark">ビジネスロジック</em> ということで、極端な話 "バッチのプログラムから呼ばれても大丈夫"
+			というような状態をキープするものです。少なくとも、LastaFluteではそのように想定しています。
+			なので、Session や Cookie にも依存してはいけません<span class="frm">(SessionManager や CookieManager を DI してはいけません)</span>。
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not depend on web @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic {
+
+    @Resource
+    <span class="keyword">private</span> RequestManager requestManager; <span class="comment">// ★絶対ダメ</span>
+    @Resource
+    <span class="keyword">private</span> SessionManager sessionManager; <span class="comment">// ★絶対ダメ</span>
+    @Resource
+    <span class="keyword">private</span> CookieManager cookieManager; <span class="comment">// ★絶対ダメ</span>
+}
+</code></pre>
 		<p>
 			どうしても、WEBに依存した状態で再利用がしたければ、それは ActionAssist を使いましょう。
 		</p>
