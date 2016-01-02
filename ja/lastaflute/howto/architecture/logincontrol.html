@@ -179,19 +179,20 @@
 		Webアプリであれば、DocksideLoginAssist となります。
 	</p>
 <pre><span class="codetitle">e.g. LoginLogic の階層構造、Maihamaプロジェクトなら @Structure</span><code>
-LoginAssistable  <span class="comment">// ログインの操作が定義されているインターフェース</span>
+LoginManager  <span class="comment">// ログインの操作が定義されているインターフェース</span>
  |   |
  |   +------------------------------------------------------------+
  |                                                                |
  |                                                                |
- |-TypicalLoginAssist <span class="comment">// フレームワーク提供の典型的なベースクラス</span>         |
+ |-TypicalLoginAssist <span class="comment">// フレームワーク提供の典型的なベースクラス</span>          |
     |                                                             |
-    |   +---------------------------------------------------------+
-    |   |
-    |  LoginManager <span class="comment">// フレームワーク用インターフェース</span>
-    |   |
-    |-<span class="subpoint">MaihamaLoginAssist</span> <span class="comment">// プロジェクト共通のベースクラス</span>
-       |
+    |-<span class="subpoint">MaihamaLoginAssist</span> <span class="comment">// プロジェクト共通のベースクラス</span>               |
+       |                                                          |
+       |      +---------------------------------------------------+
+       |      |
+       |      |
+       |     PrimaryLoginManager <span class="comment">// 主要のLoginManager (複数あったら一つだけに)</span>
+       |      |
        |-<span class="spotlight"><span class="point">DocksideLoginAssist</span></span> <span class="comment">// Webアプリのクラス (スマートデプロイ対象)</span>
 </code></pre>
 	<p>
@@ -202,6 +203,11 @@ LoginAssistable  <span class="comment">// ログインの操作が定義され�
 		なので、DocksideLoginAssist にはあまり実装はたくさんありません。
 		どのテーブルにアクセスするのか？どこに履歴を残すのか？など、ピンポイントで必要な情報をスーパークラスに渡してあげるだけになります。
 		もちろん、とある処理だけをオーバーライドして独自の挙動にすることもできます(権限チェックなどはそのように)。
+	</p>
+	<p>
+		PrimaryLoginManager は、ひとつのWEBアプリ内で LoginAssist
+		が複数あったときに、主要な Assist をユニークに識別するためのインターフェースです。
+		そういう状況にならない限りはあまり重要なものではありませんが、しっかりと付けておきましょう。
 	</p>
 	<h3 id="asssitfitting">LoginAssistの現場フィット</h3>
 	<p>
@@ -229,7 +235,7 @@ LoginAssistable  <span class="comment">// ログインの操作が定義され�
 		ログイン処理やチェック処理の一部だけを行う部品的なメソッドなどがあります。
 	</p>
 	<p>
-		メソッドの一覧が見たければ、<em class="smallmark">LoginAssistable</em> のソースを読むとよいでしょう。
+		メソッドの一覧が見たければ、<em class="smallmark">LoginManager</em> のソースを読むとよいでしょう。
 		詳しい処理に関しては、<em class="smallmark">TypicalLoginAssist</em> を読んでみましょう。
 	</p>
 	<h3 id="abouttypical">Typicalは提案!?</h3>
