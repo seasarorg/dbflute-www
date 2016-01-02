@@ -67,6 +67,7 @@
 		<li><a href="#jsonbeanvalidation">番外. JSON Bean のバリデーション</a>
 			<ul>
 				<li><a href="#alsobeanlastadoc">LastaDocに載るのでフロント側に伝えやすい</a></li>
+				<li><a href="#beanvalidationgroups">groupsでバリデーションの分岐</a></li>
 				<li><a href="#exceptproduction">本番ではチェックしない、とか、警告だけとか</a></li>
 			</ul>
 		</li>
@@ -296,10 +297,10 @@
 <pre><span class="codetitle">e.g. Required annotation in Bean class @Java</span><code>
 <span class="keyword">public class</span> SeaLandBean {
 
-    @Required
+    <span class="subpoint">@Required</span>
     <span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
 
-    @Required
+    <span class="subpoint">@Required</span>
     <span class="keyword">public</span> String <span class="attribute">memberName</span>;
 
     <span class="abbreviation">...</span>
@@ -307,7 +308,7 @@
 </code></pre>
 <pre><span class="codetitle">e.g. asJson() in Action class @Java</span><code>
 @Execute
-<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index() {
     <span class="abbreviation">...</span>
     SeaLandBean <span class="localvar">bean</span> = <span class="abbreviation">...</span>
     <span class="keyword">return</span> asJson(<span class="localvar">bean</span>); <span class="comment">// validated in this method</span>
@@ -321,6 +322,35 @@
 	<p>
 		凝り過ぎてもつらいので、例えば <em class="keyword">Required だけチェックする</em>
 		というような割り切りがオススメです。フロントサイドのディベロッパーと相談してみましょう。
+	</p>
+	<h3 id="beanvalidationgroups">groupsでバリデーションの分岐</h3>
+	<p>
+		同じ JSON Bean でも、状況によってバリデーションの内容が異なる場合は、Hibernate Validator の
+		groups の機能を使うとよいでしょう。
+	</p>
+	<p>
+		例えば、mysticId はデフォルトのときに必須、Landが指定されたら onemanDate
+		の方が必須<span class="frm">(そのときは、mysticIdは必須ではない)</span>、というようなときは以下のようになります。
+	</p>
+<pre><span class="codetitle">e.g. groups in JSON Bean @Java</span><code>
+@Required
+<span class="keyword">public</span> Integer <span class="attribute">mysticId</span>;
+
+@Required(<span class="attribute">groups</span>=<span class="point">Land.class</span>)
+<span class="keyword">public</span> LocalDate <span class="attribute">onemanDate</span>;
+</code></pre>
+<pre><span class="codetitle">e.g. asJson() with groups in action @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index() {
+    <span class="abbreviation">...</span>
+    SeaLandBean <span class="localvar">bean</span> = <span class="abbreviation">...</span>
+    <span class="keyword">boolean</span> <span class="localvar">land</span> = <span class="abbreviation">...</span>
+    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>).<span class="point">groupValidator</span>(<span class="localvar">land</span> ? Land.<span class="keyword">class</span> : <span class="keyword">null</span>);
+}
+</code></pre>
+
+	<p>
+		
 	</p>
 	<h3 id="exceptproduction">本番ではチェックしない、とか、警告だけとか</h3>
 	<p>
