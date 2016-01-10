@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ストレートなジョブ (Job) | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ストレートなジョブ (Job)</h1>
+	<p>
+		LastaFluteの特徴の一つです。
+	</p>
+	<div class="relatedpage"><a href="../../index.html">LastaFluteトップページ</a></div>
+	<div class="relatedpage"><a href="../../tutorial/laimpl.html">LastaFluteの実装チュートリアル</a></div>
+	<ul class="indexlist">
+		<li><a href="#overview">Java上でスケジューリング</a></li>
+		<li><a href="#prepare">まずは、Jobの環境準備</a></li>
+		<li><a href="#scheduling">Jobのスケジューリング</a></li>
+		<li><a href="#howtojob">Jobの実装の仕方</a></li>
+	</ul>
+
+	<h2 id="overview">Java上でスケジューリング</h2>
+	<p>
+		<em class="keyword">cron 書いたら、その時間に Job が動く</em>
+	</p>
+	<p>
+		スケジューリングする仕組みが別に用意されている場合は全く問題ありませんが、
+		Java上で気軽にスケジューリングしてバッチを実装するための仕組みも捨てがたいです。
+		そんなに大げさなことをしないのであれば、インフラ用意せずにJava上だけで "cron書いたら、その時間に Job 動く"
+		くらいでサクッと実装したいものです。
+	</p>
+
+	<h2 id="prepare">まずは、Jobの環境準備</h2>
+	<p>
+		pom.xml に lasta-job を定義します。
+	</p>
+<pre><span class="codetitle">e.g. Lasta Job dependency @pom.xml</span><code>
+&lt;lasta.job.version&gt;<span class="literal">0.2.0</span>&lt;/lasta.job.version&gt;
+
+<span class="abbreviation">...</span>
+
+&lt;dependency&gt;
+    &lt;groupId&gt;<span class="literal">org.lastaflute.job</span>&lt;/groupId&gt;
+    &lt;artifactId&gt;<span class="literal">lasta-job</span>&lt;/artifactId&gt;
+    &lt;version&gt;<span class="literal">${lasta.job.version}</span>&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+	<p>
+		[App]CurtainBeforeHook で LastaJobStarter を start() します。
+	</p>
+<pre><span class="codetitle">e.g. start Job when curtain before @Java</span><code>
+<span class="keyword">public class</span> MaihamaCurtainBeforeHook <span class="keyword">implements</span> CurtainBeforeHook {
+
+    <span class="keyword">public void</span> hook(FwAssistantDirector assistantDirector) {
+        processDBFluteSystem();
+        <span class="keyword">new</span> LastaJobStarter().<span class="point">start()</span>;
+    }
+
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+
+	<h2 id="scheduling">Jobのスケジューリング</h2>
+	<p>
+		app.job.AllJobScheduler クラスを作成して、Jobクラスを cron 登録します。
+	</p>
+<pre><span class="codetitle">e.g. AllJobScheduler package @Directory</span><code>
+org.docksidestage
+ |-app <span class="comment">// application package</span>
+ |  |-<span class="subpoint">job</span>
+ |  |  |-<span class="point">AllJobScheduler</span>
+ |  |  |-<span class="subpoint">SeaJob</span>
+ |  |  |-<span class="subpoint">LandJob</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-web <span class="comment">// web package</span>
+ |     |-AbcAction
+ |     |-AbcForm
+ |-bizfw
+ |-dbflute
+ |-mylasta
+</code></pre>
+	<p>
+		AllJobScheduler は、LaJobSchedulerインターフェースを implements します。
+	</p>
+<pre><span class="codetitle">e.g. AllJobScheduler implementation @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> AllJobScheduler <span class="keyword">implements</span> LaJobScheduler {
+
+    <span class="keyword">protected static final</span> String <span class="attribute">APP_TYPE</span> = <span class="literal">"JOB"</span>;
+
+    @Resource
+    <span class="keyword">private</span> TimeManager <span class="attribute">timeManager</span>;
+    @Resource
+    <span class="keyword">private</span> DocksideConfig <span class="attribute">docksideConfig</span>;
+    @Resource
+    <span class="keyword">private</span> AccessContextLogic <span class="attribute">accessContextLogic</span>;
+
+    @Override
+    <span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, () -&gt; <span class="subpoint">SeaJob</span>.<span class="keyword">class</span>);
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, () -&gt; <span class="subpoint">LandJob</span>.<span class="keyword">class</span>);
+        <span class="abbreviation">...</span>
+    }
+
+    @Override
+    <span class="keyword">public</span> LaJobRunner createRunner() {
+        <span class="keyword">return new</span> LaJobRunner().useAccessContext(<span class="localvar">resource</span> -&gt; {
+            <span class="keyword">return</span> accessContextLogic.create(<span class="localvar">resource</span>, () -&gt; OptionalThing.empty(), () -&gt; OptionalThing.empty(), () -&gt; <span class="attribute">APP_TYPE</span>);
+        });
+    }
+}
+</code></pre>
+
+	<h2 id="howtojob">Jobの実装の仕方</h2>
+	<p>
+		app.job の下に Job クラスを作成します。
+	</p>
+<pre><span class="codetitle">e.g. AllJobScheduler package @Directory</span><code>
+org.docksidestage
+ |-app <span class="comment">// application package</span>
+ |  |-<span class="subpoint">job</span>
+ |  |  |-AllJobScheduler
+ |  |  |-<span class="point">SeaJob</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-web <span class="comment">// web package</span>
+ |     |-AbcAction
+ |     |-AbcForm
+ |-bizfw
+ |-dbflute
+ |-mylasta
+</code></pre>
+	<p>
+		Job は、LaJobインターフェースを implements します。
+	</p>
+<pre><span class="codetitle">e.g. Job implementation @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> SeaJob <span class="keyword">implements</span> LaJob {
+
+    @Resource
+    <span class="keyword">private</span> TransactionStage <span class="attribute">stage</span>;
+    @Resource
+    <span class="keyword">private</span> MemberBhv <span class="attribute">memberBhv</span>;
+
+    @Override
+    <span class="keyword">public void</span> run(LaJobRuntime runtime) {
+        <span class="abbreviation">...</span> = <span class="attribute">memberBhv</span>.select<span class="abbreviation">...</span>;  <span class="comment">// you can select</span>
+
+        <span class="attribute">stage</span>.required(tx -&gt; { <span class="comment">// you can use transaction</span>
+            memberBhv</span>.update<span class="abbreviation">...</span>;  <span class="comment">// you can update</span>
+            <span class="abbreviation">...</span>
+        });
+    }
+}
+</code></pre>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
