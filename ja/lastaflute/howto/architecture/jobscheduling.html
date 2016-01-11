@@ -77,18 +77,15 @@
 &lt;/dependency&gt;
 </code></pre>
 	<p>
-		[App]CurtainBeforeHook で LastaJobStarter を start() します。
+		app.xml で lasta_job.xml を include します。
 	</p>
-<pre><span class="codetitle">e.g. start Job when curtain before @Java</span><code>
-<span class="keyword">public class</span> MaihamaCurtainBeforeHook <span class="keyword">implements</span> CurtainBeforeHook {
-
-    <span class="keyword">public void</span> hook(FwAssistantDirector assistantDirector) {
-        processDBFluteSystem();
-        <span class="keyword">new</span> LastaJobStarter().<span class="point">start()</span>;
-    }
-
-    <span class="abbreviation">...</span>
-}
+<pre><span class="codetitle">e.g. include Lasta Job @app.xml</span><code>
+&lt;components>
+	&lt;include path="convention.xml"/&gt;
+	&lt;include path="dbflute.xml"/&gt;
+	&lt;include path="lastaflute.xml"/&gt;
+	<span class="point">&lt;include path="lasta_job.xml"/&gt;</span>
+&lt;/components>
 </code></pre>
 
 	<h2 id="scheduling">Jobのスケジューリング</h2>
@@ -130,8 +127,8 @@ org.docksidestage
 
     @Override
     <span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
-        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, () -&gt; <span class="subpoint">SeaJob</span>.<span class="keyword">class</span>);
-        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, () -&gt; <span class="subpoint">LandJob</span>.<span class="keyword">class</span>);
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">SeaJob</span>.<span class="keyword">class</span>);
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">LandJob</span>.<span class="keyword">class</span>);
         <span class="abbreviation">...</span>
     }
 
