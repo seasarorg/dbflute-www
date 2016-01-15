@@ -128,15 +128,15 @@ org.docksidestage
 
     @Override
     <span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
-        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">SeaJob</span>.<span class="keyword">class</span>);
-        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">LandJob</span>.<span class="keyword">class</span>);
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">SeaJob</span>.<span class="keyword">class</span>, waitIfConcurrent(), op -&gt; {});
+        <span class="localvar">cron</span>.<span class="point">register</span>(<span class="literal">"* * * * *"</span>, <span class="subpoint">LandJob</span>.<span class="keyword">class</span>, quitIfConcurrent(), op -&gt; {});
         <span class="abbreviation">...</span>
     }
 
     @Override
     <span class="keyword">public</span> LaJobRunner createRunner() {
         <span class="keyword">return new</span> LaJobRunner().useAccessContext(<span class="localvar">resource</span> -&gt; {
-            <span class="keyword">return</span> accessContextLogic.create(<span class="localvar">resource</span>, () -&gt; OptionalThing.empty(), () -&gt; OptionalThing.empty(), () -&gt; <span class="attribute">APP_TYPE</span>);
+            <span class="keyword">return</span> <span class="attribute">accessContextLogic</span>.create(<span class="localvar">resource</span>, () -&gt; OptionalThing.empty(), () -&gt; OptionalThing.empty(), () -&gt; <span class="attribute">APP_TYPE</span>);
         });
     }
 }
@@ -194,9 +194,8 @@ org.docksidestage
 		<dt>findJobByKey()</dt><dd>JobKeyでJobを検索</dd>
 		<dt>findJobByUniqueOf()</dt><dd>アプリ指定のユニークコードでJobを検索</dd>
 		<dt>getJobList()</dt><dd>すべてのJobを取得</dd>
-		<dt>registerJob()</dt><dd>Jobを新たに登録 <span class="frm">(システムが動いてる途中で登録できる)</span></dd>
-		<dt>clearClosedJob()</dt><dd>closeされたJobをJobListからクリア <span class="frm">(Jobをcloseした後に行う)</span></dd>
-		<dt>destroySchedule()</dt><dd>登録されたスケジュールを完全に破棄 <span class="frm">(完全に初期化、普通やらない)</span></dd>
+		<dt>schedule()</dt><dd>Jobを新たに登録 <span class="frm">(システムが動いてる途中で登録できる)</span></dd>
+		<dt>destroy()</dt><dd>登録されたスケジュールを完全に破棄 <span class="frm">(完全に初期化、普通やらない)</span></dd>
 	</dl>
 	<p>
 		find した <em class="mark">LaScheduledJob</em> で、個々の Job に対して操作することもできます。
@@ -205,11 +204,14 @@ org.docksidestage
 		<dt>getJobKey()</dt><dd>JobKeyを取得</dd>
 		<dt>getJobUnique()</dt><dd>アプリ指定のユニークコードを取得 <span class="frm">(あれば)</span></dd>
 		<dt>getCronExp()</dt><dd>cron設定を取得</dd>
+		<dt>getJobType()</dt><dd>Jobコンポーネントの型を取得</dd>
 		<dt>isExecutingNow()</dt><dd>このJobがいま動いているかどうか？</dd>
 		<dt>launchNow()</dt><dd>このJobをいま動かす <span class="frm">(スケジュールと関係なしに)</span></dd>
 		<dt>stopNow()</dt><dd>このJobが動いていたら停止(停止要求を出す) <span class="frm">(要求に応じるかは実装次第)</span></dd>
-		<dt>closeNow()</dt><dd>このJobをcloseする、もう動かない <span class="frm">(いま動いているものは最後まで動く)</span></dd>
-		<dt>isClosed()</dt><dd>このJobがcloseされたかどうか？</dd>
+		<dt>reschedule()</dt><dd>このJobのcronをリスケする <span class="frm">(いま動いているものは最後まで動く)</span></dd>
+		<dt>unschedule()</dt><dd>このJobを外す、もう動かない <span class="frm">(いま動いているものは最後まで動く)</span></dd>
+		<dt>becomeNonCron()</dt><dd>このJobをcronなし状態にする、勝手には動かない <span class="frm">(launchNow()だけで動かせる)</span></dd>
+		<dt>isUnscheduled()</dt><dd>このJobがunscheduleされたかどうか？</dd>
 	</dl>
 
 </div>
