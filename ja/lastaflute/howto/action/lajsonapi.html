@@ -59,6 +59,13 @@
 		</li>
 		<li><a href="#tellbylastadoc">JSON を LastaDocで伝える</a></li>
 		<li><a href="#nativemapping">ネイティヴ型のマッピング</a></li>
+		<li><a href="#restapi">REST APIにするには？</a>
+			<ul>
+				<li><a href="#restmethod">HTTPメソッドごとにマッピングする方法</a></li>
+				<li><a href="#restword">URLパラメーターの場所を入れ替える方法</a></li>
+				<li><a href="#restver">バージョンをURLに埋め込む方法</a></li>
+			</ul>
+		</li>
 		<li><a href="#apifailurehook">忘れられないApiFailureHook</a></li>
 	</ul>
 
@@ -281,6 +288,57 @@
     }
 }
 </code></pre>
+
+	<h2 id="restapi">REST APIにするには？</h2>
+	<h3 id="restmethod">HTTPメソッドごとにマッピングする方法</h3>
+	<p>
+		例えば、/sea/land/ というURL で、GET のときと POST のときで処理を切り替えるためには、(SeaActionを前提として)Executeメソッド名を以下のようにします。
+	</p>
+	<dl class="valuemainlist">
+		<dt>GET</dt><dd>get$land()</dd>
+		<dt>POST</dt><dd>post$land()</dd>
+	</dl>
+	<p>
+		indexでも使えます。例えば、/sea/ の GET であれば get$index() となります。
+	</p>
+	<h3 id="restword">URLパラメーターの場所を入れ替える方法</h3>
+	<p>
+		例えば、/sea/3/land/ というように、URLパラメーターを固定のキーワードの途中に挟むためには、urlPattern で @word
+		を使います。メソッド名に相当するキーワードの位置を調整できます。
+	</p>
+<pre><span class="codetitle">e.g. word in urlPattern for REST API @Java</span><code>
+<span class="keyword">public class</span> SeaAction <span class="keyword">extends</span> DocksideBaseAction {
+
+    @Execute(urlPattern=<span class="literal">"{}/@word"</span>) <span class="comment">// /sea/3/land/</span>
+    <span class="keyword">public</span> JsonResponse&lt;<span class="abbreviation">...</span>&gt; get$land(Integer seaId) {
+    }
+}
+</code></pre>
+	<p>
+		例えば、/sea/3/land/4/piari というように、メソッド名に相当するキーワードが二つある場合は、メソッド名の中でキャメルケースで含めて、@word
+		を二つ使います。
+	</p>
+<pre><span class="codetitle">e.g. double words in urlPattern for REST API @Java</span><code>
+<span class="keyword">public class</span> SeaAction <span class="keyword">extends</span> DocksideBaseAction {
+
+    @Execute(urlPattern=<span class="literal">"{}/@word/{}/@word"</span>) <span class="comment">// /sea/3/land/4/piary</span>
+    <span class="keyword">public</span> JsonResponse&lt;<span class="abbreviation">...</span>&gt; get$landPiari(Integer seaId, Integer landId) {
+    }
+}
+</code></pre>
+	<p>
+		TODO jflute この機能はもっと使いやすさを追求していかなければならない <span class="frm">(Actionクラスのwordを...)</span>
+	</p>
+	<h3 id="restver">バージョンをURLに埋め込む方法</h3>
+	<p>
+		例えば、/v1/sea/ という URL で、v1 はバージョンだとしたときは、ActionAdjustmentProvider
+		の customizeActionMappingRequestPath() にて調整します。
+	</p>
+	<p>
+		このメソッドでバージョンを抜き出して、マッピングのためのURLは filter
+		し、抜き出したバージョンはリクエスト属性に入れるなりして Action に引き継いで利用するとよいでしょう。
+	</p>
+	<div class="relatedpage"><a href="./adjustment.html#actionmapping">Actionマッピングの調整</a></div>
 
 	<h2 id="apifailurehook">忘れられないApiFailureHook</h2>
 	<p>
