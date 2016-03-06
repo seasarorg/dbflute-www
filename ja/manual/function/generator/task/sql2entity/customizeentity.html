@@ -58,6 +58,7 @@
 				<li><a href="#cursor">CursorHandling</a></li>
 				<li><a href="#scalar">ScalarHandling</a></li>
 				<li><a href="#domain">DomainHandling</a></li>
+				<li><a href="#recylclingentity">他の自動生成Entityは指定できない!?</a></li>
 				<li><a href="#forcedtype">プログラム型の強制指定</a></li>
 			</ul>
 		</li>
@@ -231,6 +232,7 @@
 </code></pre>
 	<p>
 		フリースタイル形式では単に第三引数にスカラ型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
+		<span class="frm">(ちなみに、フリースタイル形式は、1.1より outside().traditionalStyle() という呼び出しに変わっています)</span>
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../../../ormapper/outsidesql/howto.html#scalar"> -->外だしSQLの使い方 - スカラ検索<!-- </a> --></span></div>
 	<h3 id="domain">DomainHandling</h3>
@@ -249,6 +251,29 @@
 </code></pre>
 	<p>
 		フリースタイル形式では単に第三引数に DomainEntity 型を指定すれば良いだけなので、これは TypedParameterBean に対してのみ有効のオプションです。
+		<span class="frm">(ちなみに、フリースタイル形式は、1.1より outside().traditionalStyle() という呼び出しに変わっています)</span>
+	</p>
+	<h3 id="recylclingentity">他の自動生成Entityは指定できない!?</h3>
+	<p>
+		例えば、sea.sql で自動生成した CustomizeEntity を、land.sql で再利用しようと思ってもできません。
+		もし land.sql で sea.sql の Entity 名を指定しても重複エラーとなります。
+	</p>
+	<p>
+		それができてしまうと、land.sql の方では結局自動生成の恩恵を受けることができず、SQLとEntityの "ズレ"
+		を検知することができません。land.sql の select 句でスペルミスなどがあってもコンパイルで検知されません。
+	</p>
+	<p>
+		では、もし二つのSQLで select 句が全く同じな場合、どうすれば良いのでしょう？
+	</p>
+	<p>
+		sea.sql, land.sql ではそれぞれ普通に自動生成し、select 句の項目に合わせた getter
+		メソッドを列挙したインターフェースを(手動)作成し、それぞれの CustomizeEntity の Ex
+		クラスにて implements するやり方をオススメしています。
+	</p>
+	<p>
+		実際に、検索されたデータを取り扱うロジックでは、インターフェースで受け取るようにします。
+		インターフェースの手動作成の分少々面倒ですが、そのまま自動生成の恩恵を受けることができ、sea と land のズレを防ぎます。
+		<span class="frm">(どうしても面倒なのであれば、フリースタイル形式で)</span>
 	</p>
 	<h3 id="forcedtype">プログラム型の強制指定</h3>
 	<p>
