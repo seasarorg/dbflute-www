@@ -79,7 +79,7 @@
 		<li>正式会員</li>
 	</ul>
 	<p>
-		を、"サービス会員" として扱うというような業務仕様があったとして...
+		を、"特別過ぎる優待会員" として扱うというような業務仕様があったとして...
 	</p>
 <pre><span class="codetitle">e.g. ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員を検索 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -93,7 +93,8 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
 		まあ、こんな感じの実装になります。
 	</p>
 	<p>
-		そして、その条件をアプリ上で何度も使うってとき...
+		そして、その条件を複数箇所で使うとなったら...べたべたコピペ...あっ!?
+		"特別過ぎる優待会員" の条件が変更されたら？ひー
 	</p>
 	<p>
 		<em class="keyword">誰か一人が実装して、それをみんなが再利用</em>
@@ -101,15 +102,15 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
 	</p>
 	<h3 id="wholerecycle">まるごと一緒なら...まあいいけど</h3>
 	<p>
-		もし、このサービス会員の条件を利用する複数箇所において、取得したいテーブル(select句)やソート順までが全く同じ仕様になる、
+		もし、この特別過ぎる優待会員の条件を利用する複数箇所において、取得したいテーブル(select句)やソート順までが全く同じ仕様になる、
 		つまり、検索まるごと再利用できるのであれば、Behaviorの "Exクラス" に独自のメソッドを作って再利用するやり方でも問題ありません。
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../domainlogicrecycle/index.html"> -->現場フィット - ドメインロジックの再利用<!-- </a> --></span></div>
 	<h3 id="varioustablesort">取得したいテーブルやソートは違うもの</h3>
 	<p>
-		しかし、業務仕様はなかなかそういうものではなく、プロセス毎に "サービス会員"
-		のソートの仕方が違ったり、一緒に取得したい関連テーブルが違ったり、そもそも検索の基点テーブルが違ったり(例えば、"サービス会員"
-		の購入リストを検索するとか)と、"サービス会員"
+		しかし、業務仕様はなかなかそういうものではなく、プロセス毎に "特別過ぎる優待会員"
+		のソートの仕方が違ったり、一緒に取得したい関連テーブルが違ったり、そもそも検索の基点テーブルが違ったり(例えば、"特別過ぎる優待会員"
+		の購入リストを検索するとか)と、"特別過ぎる優待会員"
 		という検索条件は様々な場面で様々な利用方法が考えられます。つまり、<em class="keyword">再利用したいポイントはwhere句の一部条件</em>
 		なのです。
 	</p>
@@ -117,7 +118,7 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
 	<h3 id="cqexclass">ConditionQueryのExクラスにて！</h3>
 	<p>
 		そのような場合は、<em class="keyword">ConditionQuery の "Exクラス" にまとまった条件を設定するメソッド</em>
-		を作って再利用するのが一番です。そのようにしておくことで、DB変更などでサービス会員の条件が変わった場合も修正は一箇所で済みます。
+		を作って再利用するのが一番です。そのようにしておくことで、DB変更などで特別過ぎる優待会員の条件が変わった場合も修正は一箇所で済みます。
 	</p>
 	<div class="relatedpage"><a href="../../../ormapper/conditionbean/about.html#conditionquery">ConditionQueryとは？</a></div>
 	<div class="relatedword"><a href="../../../../reference/dictionary/alphabet/we.html#exclass">ExClass (Exクラス)</a></div>
@@ -141,7 +142,7 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
     <span class="abbreviation">...</span>
 
     <span class="comment">/**</span>
-    <span class="comment"> * すっごい特別過ぎる会員</span>
+    <span class="comment"> * 特別過ぎる優待会員</span>
     <span class="comment"> */</span>
     <span class="keyword">public void</span> arrangeServiceMember() {
         setMemberName_PrefixSearch(<span class="literal">"S"</span>);
@@ -157,7 +158,7 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
 		再利用メソッドが定義されていれば、後はディベロッパーはConditionBean実装時にそのメソッドを呼び出すだけです。
 		プログラム上は業務的な目的の指定だけとなり、業務仕様への依存性が減ります。
 	</p>
-<pre><span class="codetitle">e.g. サービス会員を検索 @Java</span><code>
+<pre><span class="codetitle">e.g. 特別過ぎる優待会員を検索 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().<span class="point">arrangeServiceMember()</span>; 
 cb.query().addOrderBy_...();
@@ -166,7 +167,7 @@ cb.query().addOrderBy_...();
 	<p>
 		(ConditionBeanでなく)ConditionQueryのExクラスに定義することで関連テーブルでも利用可能です。
 	</p>
-<pre><span class="codetitle">e.g. サービス会員の購入リストを検索 @Java</span><code>
+<pre><span class="codetitle">e.g. 特別過ぎる優待会員の購入リストを検索 @Java</span><code>
 PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
 cb.query().queryMember().<span class="point">arrangeServiceMember()</span>;
 cb.query().addOrderBy_...();
@@ -194,7 +195,7 @@ cb.query().addOrderBy_...();
 			<li>正式会員</li>
 		</ul>
 		<p>
-			これをひとことで言うと？.........サービス会員！
+			これをひとことで言うと？.........特別過ぎる優待会員！
 		</p>
 		<p>
 			<em class="keyword">業務上の目的を導き出すこと</em>、これが再利用の始まりです。
