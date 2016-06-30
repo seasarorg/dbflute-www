@@ -150,7 +150,7 @@
 				<li>会員ステータスのデータ自体は要らない</li>
 				<li>その次には、会員の会員IDの降順で並べる</li>
 				<li>会員ステータスのデータが取れていないことをアサート</li>
-				<li>会員が会員ステータスごとに固まって並んでいることをアサート</li>
+				<li>会員が会員ステータスごとに固まって並んでいることをアサート <span class="frm">(順序は問わない)</span></li>
 			</ul>
 		</dd>
 		<!-- SetupSelect as Nested, Query(Relation) to IsNotNull
@@ -223,29 +223,41 @@
 				<li>それら日付を、ArrangeやActの中では一切動かさずに実現すること <span class="frm">(日付型に変換するのはOK)</span></li>
 				<li>会員ステータス名称、リマインダ質問と回答、退会理由入力テキストも取得(ログ出力)</li>
 				<li>若い順だが生年月日が null のデータを最初に並べる</li>
-				<li>生年月日が指定された条件に合致することをアサート</li>
-				<li>1974年生まれの人が含まれていることをアサート</li>
+				<li>生年月日が指定された条件に合致することをアサート <span class="frm">(1975年1月1日なら落ちるように)</span></li>
+				<li>Arrangeで "きわどいデータ" ※1 を作ってみましょう <span class="frm">(Behavior の updateNonstrict() ※2 を使って)</span></li>
+				<li>検索で含まれるはずの "きわどいデータ" が検索されてることをアサート <span class="frm">(アサート自体の保証のため)</span></li>
 				<li>生まれが不明の会員が先頭になっていることをアサート</li>
 			</ul>
 		</dd>
-		<!-- InvalidCondition, IsNull, ManualOrder, FromTo(as Month) -->
-		<dt>[9] 無効な条件は無視されることを確認しつつ生年月日のない会員を検索</dt>
 		<dd>
-			<ul class="supplementlist">
-				<li>会員名称の等値条件に null を設定</li>
-				<li>会員アカウントの等値条件に空文字を設定</li>
-				<li>生年月日がない、という条件を設定</li>
-				<li>2005年6月に正式会員になった会員は先にして、会員IDの降順で並べる</li>
-				<li>"2005/06/01" という文字列がリクエストされたと想定 <span class="frm">(Arrangeで宣言)</span></li>
-				<li>それら日付を、ArrangeやActの中では一切動かさずに実現すること <span class="frm">(日付型に変換するのはOK)</span></li>
-				<li>会員名称や会員アカウントの条件がないことをログで確認すること</li>
-				<li>検索された会員の生年月日が存在しないことをアサート</li>
-				<li>2005年6月に正式会員になった会員が先に並んでいることをアサート</li>
-			</ul>
+			<span class="frm">
+				※1: 1974年12月31日生まれの人、1975年1月1日生まれの人。前者は検索に含まれて、後者は含まれない。
+				テストデータに存在しない、もしくは、存在に依存するのがためらうほどのピンポイントのデータは、自分で作っちゃうというのも一つの手。
+				(エクササイズ 6 や 7 でやっていた adjust がまさしくそれ)
+			</span>
+			<div class="relatedpage"><a href="http://dbflute.seasar.org/ja/manual/topic/dbdesign/testdata.html#updatedata">ちょこっと更新でテストデータ作成</a></div>
 		</dd>
 		<dd>
-			<span class="frm">※Java8 (DBFlute-1.1) なら、cb.ignoreNullOrEmptyQuery()を使うとよいでしょう</span>
-			<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20140813/strict11">外部サイト - jfluteの日記 - DBFlute-1.1になったらStrict</a></div>
+			<span class="frm">
+				※2: 1 から 9 までの任意の会員IDを選び updateNonstrict() してみましょう。
+				まあ、一桁代の会員IDが存在すること自体への依存は割り切りで。最低限それだけのテストデータで用意されていないとお話にならないってことで。
+			</span>
+		</dd>
+		<dd>
+			<span class="frm">
+				※今後、"きわどいデータ" を作ってアサートを確かなものにするかどうかは自分の判断で。
+			</span>
+		</dd>
+		<!-- InvalidCondition, IsNull, ManualOrder, FromTo(as Month) -->
+		<dt>[9] 2005年6月に正式会員になった会員を先に並べて生年月日のない会員を検索</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>"2005/06/01" という文字列がリクエストされたと想定 <span class="frm">(Arrangeで宣言)</span></li>
+				<li>テストコード内で "2005/06/01" 以外の日付は作らずに条件を実現すること</li>
+				<li>第二ソートキーは会員IDの降順</li>
+				<li>検索された会員の生年月日が存在しないことをアサート</li>
+				<li>2005年6月に正式会員になった会員が先に並んでいることをアサート <span class="frm">(先頭だけじゃなく全体をチェック)</span></li>
+			</ul>
 		</dd>
 	</dl>
 

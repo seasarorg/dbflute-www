@@ -152,11 +152,11 @@ dbflute-hands-on
     <span class="comment">/**
      * [3] 会員セキュリティ情報のリマインダ質問で2という文字が含まれている会員を検索
      * o 会員セキュリティ情報のデータ自体は要らない
+     * o (Actでの検索は本番でも実行されることを想定し、テスト都合でパフォーマンス劣化させないこと)
      * o リマインダ質問に2が含まれていることをアサート
      * o アサートするために別途検索処理を入れても誰も文句は言わない
-     * ※Actでの検索は本番でも実行されることを想定して、テスト都合でパフォーマンス劣化させないように
-     * ※実装できたら、こんどはアサートのための検索の回数が一回になるようにしてみましょう(もし、複数回検索しているのであれば)。
-     * また、それもできたら、会員名称とリマインダ質問を会員ごとに一行のログに出力してみましょう。
+     * ※実装できたら、Assert内の検索が一回になるようにしてみましょう(もし複数回検索しているなら)。
+     * ※さらに実装できたら、(Arrange, Actは変更せずに) 会員名称とリマインダ質問を会員ごとに一行のログに出力するようにしてみましょう。
      */</span>
     <span class="keyword">public void</span> test_3() <span class="keyword">throws</span> Exception {
         <span class="comment">// ## Arrange ##</span>
@@ -237,7 +237,7 @@ dbflute-hands-on
      * o 会員ステータスのデータ自体は要らない
      * o その次には、会員の会員IDの降順で並べる
      * o 会員ステータスのデータが取れていないことをアサート
-     * o 会員が会員ステータスごとに固まって並んでいることをアサート
+     * o 会員が会員ステータスごとに固まって並んでいることをアサート (順序は問わない)
      */</span>
     <span class="keyword">public void</span> test_4() <span class="keyword">throws</span> Exception {
         <span class="comment">// ## Arrange ##</span>
@@ -319,7 +319,7 @@ dbflute-hands-on
      * o 購入に紐づく会員の生年月日が存在することをアサート
      * ※ログ出力は、スーパークラスの log() メソッドが利用できる。可変長引数でカンマ区切り出力になる。
      */</span>
-    public void test_5() throws Exception {
+    <span class="keyword">public void</span> test_5() throws Exception {
         <span class="comment">// ## Arrange ##
         // ## Act ##</span>
         ListResultBean&lt;Purchase&gt; purchaseList = <span class="attribute">purchaseBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
@@ -355,7 +355,7 @@ dbflute-hands-on
      * ※実装できたら、こんどはスーパークラスのメソッド adjustMember_FormalizedDatetime_...() を使って、10月1日ジャスト(時分秒なし)の正式会員日時を持つ会員データを作成してテスト実行してみましょう。 もともと一件しかなかった検索結果が「二件」になるはずです。
      * @throws Exception
      */</span>
-    public void test_6() throws Exception {
+    <span class="keyword">public void</span> test_6() throws Exception {
         <span class="comment">// ## Arrange ##</span>
         LocalDateTime fromDate = <span class="keyword">new</span> HandyDate("2005/10/01").getLocalDateTime();
         LocalDateTime toDate = <span class="keyword">new</span> HandyDate("2005/10/03").getLocalDateTime();
@@ -402,7 +402,7 @@ dbflute-hands-on
      * ※実装できたら、こんどはスーパークラスのメソッド adjustPurchase_PurchaseDatetime_...() を呼び出し、調整されたデータによって検索結果が一件増えるかどうか確認してみましょう。 もし増えないなら、なぜ増えないのか...
      * @throws Exception
      */</span>
-    public void test_7() throws Exception {
+    <span class="keyword">public void</span> test_7() throws Exception {
         <span class="comment">// ## Arrange ##</span>
         adjustPurchase_PurchaseDatetime_fromFormalizedDatetimeInWeek();
 
@@ -442,24 +442,34 @@ dbflute-hands-on
 
     <span class="comment">/**
      * [8] 1974年までに生まれた、もしくは不明の会員を検索
+     * o "1974/01/01" という文字列がリクエストされたと想定 (Arrangeで宣言)
+     * o それら日付を、ArrangeやActの中では一切動かさずに実現すること (日付型に変換するのはOK)
      * o 会員ステータス名称、リマインダ質問と回答、退会理由入力テキストも取得(ログ出力)
      * o 若い順だが生年月日が null のデータを最初に並べる
-     * o 生年月日が指定された条件に合致することをアサート
-     * o 1974年生まれの人が含まれていることをアサート
+     * o 生年月日が指定された条件に合致することをアサート (1975年1月1日なら落ちるように)
+     * o Arrangeで "きわどいデータ" ※1 を作ってみましょう (Behavior の updateNonstrict() ※2 を使って)
+     * o 検索で含まれるはずの "きわどいデータ" が検索されてることをアサート (アサート自体の保証のため)
      * o 生まれが不明の会員が先頭になっていることをアサート
+     * ※1: 1974年12月31日生まれの人、1975年1月1日生まれの人。前者は検索に含まれて、後者は含まれない。
+     * テストデータに存在しない、もしくは、存在に依存するのがためらうほどのピンポイントのデータは、自分で作っちゃうというのも一つの手。
+     * (エクササイズ 6 や 7 でやっていた adjust がまさしくそれ)
+     * ※2: 1 から 9 までの任意の会員IDを選び updateNonstrict() してみましょう。
+     * まあ、一桁代の会員IDが存在すること自体への依存は割り切りで。最低限それだけのテストデータで用意されていないとお話にならないってことで。
+     * ※今後、"きわどいデータ" を作ってアサートを確かなものにするかどうかは自分の判断で。
      * @throws Exception
      */</span>
-    public void test_8() throws Exception {
+    <span class="keyword">public void</span> test_8() throws Exception {
         <span class="comment">// ## Arrange ##</span>
-        <span class="keyword">int</span> <span class="localvar">inputYear</span> = <span class="literal">1974</span>; <span class="comment">// 画面から検索条件として飛んできたと想定</span>
-        LocalDate <span class="localvar">targetDate</span> = LocalDate.of(inputYear, <span class="literal">1</span>, <span class="literal">1</span>);
+        LocalDate <span class="localvar">targetDate</span> = <span class="keyword">new</span> HandyDate(<span class="literal">"1974-01-01"</span>).getLocalDate();
+        LocalDate limitDate = adjustExercise8_Birthdate_asLimitDate(targetDate);
+        LocalDate overDate = adjustExercise8_Birthdate_asOverDate(targetDate);
 
         <span class="comment">// ## Act ##</span>
         ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
             <span class="localvar">cb</span>.setupSelect_MemberStatus();
             <span class="localvar">cb</span>.setupSelect_MemberSecurityAsOne();
             <span class="localvar">cb</span>.setupSelect_MemberWithdrawalAsOne();
-            <span class="localvar">cb</span>.query().setBirthdate_FromTo(null, targetDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().allowOneSide().orIsNull());
+            <span class="localvar">cb</span>.query().setBirthdate_FromTo(<span class="keyword">null</span>, targetDate, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().allowOneSide().orIsNull());
             <span class="comment">// おもいで</span>
             <span class="comment">//<span class="localvar">cb</span>.orScopeQuery(orCB -&gt; {
             //    orCB.query().setBirthdate_FromTo(null, targetDate, op -&gt; op.compareAsYear().allowOneSide());
@@ -470,8 +480,7 @@ dbflute-hands-on
 
         <span class="comment">// ## Assert ##</span>
         assertHasAnyElement(<span class="localvar">memberList</span>);
-        LocalDate <span class="localvar">nextYear</span> = targetDate.plusYears(<span class="literal">1</span>);
-        <span class="keyword">boolean</span> <span class="localvar">existsTarget</span> = <span class="keyword">false</span>;
+        <span class="keyword">boolean</span> <span class="localvar">existsLimitDate</span> = <span class="keyword">false</span>;
         <span class="keyword">for</span> (Member <span class="localvar">member</span> : <span class="localvar">memberList</span>) {
             MemberStatus <span class="localvar">status</span> = member.getMemberStatus().get();
             MemberSecurity <span class="localvar">security</span> = <span class="localvar">member</span>.getMemberSecurityAsOne().get();
@@ -480,40 +489,49 @@ dbflute-hands-on
 
             LocalDate <span class="localvar">birthdate</span> = <span class="localvar">member</span>.getBirthdate();
             <span class="keyword">if</span> (<span class="localvar">birthdate</span> != <span class="keyword">null</span>) {
-                assertTrue(<span class="localvar">birthdate</span>.isBefore(<span class="localvar">nextYear</span>));
-                <span class="keyword">if</span> (<span class="localvar">birthdate</span>.getYear() == <span class="localvar">targetDate</span>.getYear()) {
-                    <span class="localvar">existsTarget</span> = <span class="keyword">true</span>;
+                assertTrue(<span class="localvar">birthdate</span>.isBefore(<span class="localvar">overDate</span>));
+                <span class="keyword">if</span> (<span class="localvar">birthdate</span>.isEqual(limitDate) {
+                    <span class="localvar">existsLimitDate</span> = <span class="keyword">true</span>;
                 }
             }
         }
-        assertTrue(<span class="localvar">existsTarget</span>);
+        assertTrue(<span class="localvar">existsLimitDate</span>);
         assertNull(<span class="localvar">memberList</span>.get(<span class="literal">0</span>).getBirthdate()); <span class="comment">// 先頭なのでこれでOK</span>
     }
 
+    <span class="keyword">private</span> LocalDate adjustExercise8_Birthdate_asLimitDate(LocalDate <span class="localvar">targetDate</span>) {
+        LocalDate limitDate = <span class="keyword">new</span> HandyDate(targetDate).moveToYearTerminal().getLocalDate())
+        Member <span class="localvar">member</span> = <span class="keyword">new</span> Member();
+        <span class="localvar">member</span>.setMemberId(<span class="literal">3</span>);
+        <span class="localvar">member</span>.setBirthdate(limitDate);
+        <span class="attribute">memberBhv</span>.updateNonstrict(<span class="localvar">member</span>);
+        <span class="keyword">return</span> limitDate;
+    }
+
+    <span class="keyword">private</span> LocalDate adjustExercise8_Birthdate_asOverDate(LocalDate <span class="localvar">targetDate</span>) {
+        LocalDate <span class="localvar">overDate</span> = <span class="localvar">targetDate</span>.plusYears(1);
+        Member <span class="localvar">member</span> = <span class="keyword">new</span> Member();
+        <span class="localvar">member</span>.setMemberId(<span class="literal">5</span>);
+        <span class="localvar">member</span>.setBirthdate(<span class="localvar">overDate</span>);
+        <span class="attribute">memberBhv</span>.updateNonstrict(<span class="localvar">member</span>);
+        <span class="keyword">return</span> <span class="localvar">overDate</span>;
+    }
+
     <span class="comment">/**
-     * [9] 無効な条件は無視されることを確認しつつ生年月日のない会員を検索
-     * o 会員名称の等値条件に null を設定
-     * o 会員アカウントの等値条件に空文字を設定
-     * o 生年月日がない、という条件を設定
-     * o 2005年6月に正式会員になった会員は先にして、会員IDの降順で並べる
-     * o 会員名称や会員アカウントの条件がないことをログで確認すること
+     * [9] 2005年6月に正式会員になった会員を先に並べて生年月日のない会員を検索
+     * o "2005/06/01" という文字列がリクエストされたと想定 (Arrangeで宣言)
+     * o テストコード内で "2005/06/01" 以外の日付は作らずに条件を実現すること
+     * o 第二ソートキーは会員IDの降順
      * o 検索された会員の生年月日が存在しないことをアサート
-     * o 2005年6月に正式会員になった会員が先に並んでいることをアサート
-     * ※Java8 (DBFlute-1.1) なら、<span class="localvar">cb</span>.ignoreNullOrEmptyQuery()を使うとよいでしょう
+     * o 2005年6月に正式会員になった会員が先に並んでいることをアサート (先頭だけじゃなく全体をチェック)
      * @throws Exception
      */</span>
     <span class="keyword">public void</span> test_9() <span class="keyword">throws</span> Exception {
         <span class="comment">// ## Arrange ##</span>
-        <span class="keyword">int</span> <span class="localvar">inputYear</span> = <span class="literal">2005</span>; <span class="comment">// 画面から検索条件として飛んできたと想定</span>
-        <span class="keyword">int</span> <span class="localvar">inputMonth</span> = <span class="literal">6</span>; <span class="comment">// 上に同じ</span>
-        LocalDate <span class="localvar">fromDate</span> = LocalDate.of(<span class="localvar">inputYear</span>, <span class="localvar">inputMonth</span>, <span class="literal">1</span>);
+        LocalDate <span class="localvar">fromDate</span> = <span class="keyword">new</span> HandyDate(<span class="literal">"2005-06-01"</span>).getLocalDate();
 
         <span class="comment">// ## Act ##</span>
-        ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = memberBhv.selectList(<span class="localvar">cb</span> -&gt; {
-            <span class="localvar">cb</span>.ignoreNullOrEmptyQuery();
-            <span class="localvar">cb</span>.query().setMemberName_Equal(<span class="keyword">null</span>);
-            <span class="localvar">cb</span>.query().setMemberAccount_Equal(<span class="literal">""</span>);
-            <span class="localvar">cb</span>.query().setBirthdate_IsNull();
+        ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
             <span class="localvar">cb</span>.query().addOrderBy_FormalizedDatetime_Asc().withManualOrder(<span class="localvar">op</span> -&gt; {
                 <span class="localvar">op</span>.when_FromTo(<span class="localvar">fromDate</span>, <span class="localvar">fromDate</span>, <span class="localvar">ftOp</span> -&gt; <span class="localvar">ftOp</span>.compareAsMonth());
             });
@@ -568,7 +586,7 @@ dbflute-hands-on
         // MySQL's found_rows() is used here
         //  data  : select sql_calc_found_rows ... limit 0, 3
         //  count : select found_rows()</span>
-        PagingResultBean<Member> page = memberBhv.selectPage(<span class="localvar">cb</span> -> {
+        PagingResultBean<Member> page = <span class="attribute">memberBhv</span>.selectPage(<span class="localvar">cb</span> -> {
             <span class="localvar">cb</span>.setupSelect_MemberStatus();
             <span class="localvar">cb</span>.query().addOrderBy_MemberId_Asc();
             <span class="localvar">cb</span>.paging(pageSize, pageNumber);
@@ -580,7 +598,7 @@ dbflute-hands-on
             log(member.getMemberId(), member.getMemberName(), member.getMemberStatus().get().getMemberStatusName());
         });
         <span class="keyword">int</span> allRecordCount = page.getAllRecordCount();
-        assertEquals(memberBhv.selectCount(<span class="localvar">cb</span> -> {}), allRecordCount);
+        assertEquals(<span class="attribute">memberBhv</span>.selectCount(<span class="localvar">cb</span> -> {}), allRecordCount);
         assertEquals((allRecordCount / pageSize) + (allRecordCount % pageSize > <span class="literal">0</span> ? <span class="literal">1</span> : <span class="literal">0</span>), page.getAllPageCount());
         assertEquals(pageSize, page.getPageSize());
         assertEquals(pageNumber, page.getCurrentPageNumber());
@@ -610,7 +628,7 @@ dbflute-hands-on
         Set&lt;String&gt; statusSet = new HashSet&lt;String&gt;();
 
         <span class="comment">// ## Act ##</span>
-        memberBhv.selectCursor(<span class="localvar">cb</span> -> {
+        <span class="attribute">memberBhv</span>.selectCursor(<span class="localvar">cb</span> -> {
             <span class="localvar">cb</span>.setupSelect_MemberStatus();
             <span class="localvar">cb</span>.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
             <span class="localvar">cb</span>.query().addOrderBy_MemberId_Desc();
@@ -645,7 +663,7 @@ dbflute-hands-on
         //    left outer join member_security dfrel_1 on dfloc.MEMBER_ID = dfrel_1.MEMBER_ID
         //    inner join member_withdrawal dfrel_3 on dfloc.MEMBER_ID = dfrel_3.MEMBER_ID
         // where dfrel_3.WITHDRAWAL_DATETIME >= '2015-10-15 14:49:56.608'</span>
-        memberBhv.selectList(cb -> {
+        <span class="attribute">memberBhv</span>.selectList(cb -> {
             cb.setupSelect_MemberStatus();
             cb.setupSelect_MemberSecurityAsOne();
             cb.setupSelect_MemberWithdrawalAsOne();
