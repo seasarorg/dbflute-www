@@ -554,15 +554,6 @@ src/main/java
 		ここでは、ログインしていることが前提なので、戻り値の OptionalThing は問答無用で get() してしまいます。
 	</p>
 	<p>
-		ちなみに、文字列をnullと空文字で分岐させる場合、isEmpty(), isNotEmpty()
-		というメソッドが用意されています。必須ではない検索条件のときに利用するとよいでしょう。
-	</p>
-<pre><span class="codetitle">e.g. isEmpty(), isNotEmpty() @Java</span><code>
-<span class="keyword">if</span> (<span class="point">isNotEmpty</span>(<span class="localvar">form</span>.<span class="attribute">name</span>)) {
-    <span class="localvar">cb</span>.query().setMemberName_LikeSearch(<span class="localvar">form</span>.<span class="attribute">name</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likePrefix());
-}
-</code></pre>
-	<p>
 		まだ、ラフスケッチ中なので、完璧な実装じゃなくてもOKです。とりあえずなんか検索できれば。
 	</p>
 	<h3 id="htmlbean">表示データの HTML Bean を作る</h3>
@@ -628,7 +619,7 @@ src/main/java
     ListResultBean&lt;Purchase&gt; <span class="localvar">purchaseList</span> = <span class="attribute">purchaseBhv</span>.selectList(cb -&gt; {
         <span class="abbreviation">...</span>
     });
-    List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">purchaseList</span>.<span class="point">mappingList</span>(<span class="localvar">purchase</span> -&gt; {
+    List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">purchaseList</span>.stream().map(<span class="localvar">purchase</span> -&gt; {
         SeaLandRowBean <span class="localvar">bean</span> = <span class="keyword">new</span> SeaLandRowBean();
         <span class="localvar">bean</span>.<span class="attribute">purchaseId</span> = <span class="localvar">purchase</span>.getPurchaseId();
         <span class="localvar">purchase</span>.getMember().alwaysPresent(<span class="localvar">member</span> -&gt; {
@@ -641,7 +632,7 @@ src/main/java
         <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
         <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
         <span class="keyword">return</span> <span class="localvar">bean</span>;
-    });
+    }).collect(Collections.toList());
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>); 
 }
 </code></pre>
@@ -709,7 +700,7 @@ src/main/java
             });
             <span class="localvar">cb</span>.query().addOrderBy_PurchaseDatetime_Desc();
         });
-        List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">purchaseList</span>.mappingList(<span class="localvar">purchase</span> -&gt; {
+        List&lt;SeaLandRowBean&gt; <span class="localvar">beans</span> = <span class="localvar">purchaseList</span>.stream().map(<span class="localvar">purchase</span> -&gt; {
             SeaLandRowBean <span class="localvar">bean</span> = <span class="keyword">new</span> SeaLandRowBean();
             <span class="localvar">bean</span>.<span class="attribute">purchaseId</span> = <span class="localvar">purchase</span>.getPurchaseId();
             <span class="localvar">purchase</span>.getMember().alwaysPresent(<span class="localvar">member</span> -&gt; {
@@ -722,7 +713,7 @@ src/main/java
             <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
             <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
             <span class="keyword">return</span> <span class="localvar">bean</span>;
-        });
+        }).collect(Collections.toList());
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>).renderWith(<span class="localvar">data</span> -&gt; {
             <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
         });
@@ -744,7 +735,7 @@ src/main/java
 <span class="keyword">public class</span> HarborBoot { <span class="comment">// #change_it_first</span>
 
     <span class="keyword">public static void</span> main(String[] args) { <span class="comment">// e.g. java -Dlasta.env=production -jar harbor.war</span>
-        <span class="keyword">new</span> JettyBoot(<span class="literal">8090</span>, <span class="literal">"/harbor"</span>).useTldDetect().asDevelopment(isNoneEnv()).bootAwait();
+        <span class="keyword">new</span> JettyBoot(<span class="literal">8090</span>, <span class="literal">"/harbor"</span>).asDevelopment(isNoneEnv()).bootAwait();
     }
 
     <span class="keyword">private static boolean</span> isNoneEnv() {
