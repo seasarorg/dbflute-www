@@ -1,0 +1,479 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,チュートリアル,Tutorial,Deveploer,Architect" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFlute移行 0.8.2 to 0.8.3 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFlute移行 0.8.2 to 0.8.3</h1>
+	<ul class="indexlist">
+		<li><a href="#summerrefactoring">LastaFlute, 2016夏のリファクタリング</a></li>
+		<li><a href="#actionsupermethod">Action のスーパークラスのメソッド</a>
+			<ul>
+				<li><a href="#lastaaction">LastaAction</a></li>
+				<li><a href="#typicalaction">TypicalAction</a></li>
+			</ul>
+		</li>
+		<li><a href="#forcedclienterror">クライアントエラーの例外クラス</a></li>
+		<li><a href="#logininterface">ログインのインターフェース</a></li>
+		<li><a href="#exampledefault">Exampleデフォルトの変更</a></li>
+	</ul>
+
+	<h2 id="summerrefactoring">LastaFlute, 2016夏のリファクタリング</h2>
+	<p>
+		まずはこちらをご覧ください。
+	</p>
+	<div class="detailpage"><a href="https://groups.google.com/forum/#!topic/dbflute/mc5EUqdCTwc">DBFluteユーザーの集い - LastaFlute, 2016夏のリファクタリング</a></div>
+
+	<h2 id="actionsupermethod">Action のスーパークラスのメソッド</h2>
+	<h3 id="lastaaction">LastaAction</h3>
+	<p>
+		Actionの継承クラスである LastaAction から async() や required()
+		が削除されました。以下、削除されたメソッドと今後の対応について。
+	</p>
+	<dl class="keymainlist">
+		<dt>async()</dt><dd>AsyncManagerをDIして利用</dd>
+		<dt>required()</dt><dd>TransactionStageをDIして利用</dd>
+	</dl>
+	<p>
+		あまり頻繁に使うメソッドではないので、必要なコンポーネントをつどDIするようにお願いします。
+	</p>
+
+	<h3 id="typicalaction">TypicalAction</h3>
+	<p>
+		Actionの継承クラスである TypicalAction から
+		verifyParameterExists() や currentDate(), isNotEmpty()
+		などが削除されました。以下、削除されたメソッドと今後の対応について。
+	</p>
+	<dl class="longkeymainlist">
+		<dt>verifyParameterExists()</dt><dd>FormやBodyで@Required(ClientError.class)を利用</dd>
+		<dt>verifyParameterTrue()</dt><dd>verifyOrClientError()を利用</dd>
+		<dt>verifyTrueOr404NotFound()</dt><dd>verifyOrClientError()を利用</dd>
+		<dt>verifyTrueOrIllegalTransition()</dt><dd>今verifyOrIllegalTransition()を利用</dd>
+		<dt>throw404()</dt><dd>throw responseManager.new404()を利用</dd>
+		<dt>of404()</dt><dd>responseManager.new404()を利用</dd>
+		<dt>throwIllegalTransition()</dt><dd>verifyOrIllegalTransition()を利用</dd>
+		<dt>ofIllegalTransition()</dt><dd>verifyOrIllegalTransition()を利用</dd>
+		<dt>currentDate()</dt><dd>timeManager.currentDate()を利用</dd>
+		<dt>currentDateTime()</dt><dd>timeManager.currentDateTime()を利用</dd>
+		<dt>getUserMessage()</dt><dd>messageManager.getMessage(...)を利用</dd>
+		<dt>isEmpty()</dt><dd>LaStringUtil.isEmpty() もしくは StringUtils など利用</dd>
+		<dt>isNotEmpty()</dt><dd>LaStringUtil.isNotEmpty() もしくは StringUtils など利用</dd>
+		<dt>isCls()</dt><dd>FormやBodyでCDef型をプロパティとして利用</dd>
+		<dt>toCls()</dt><dd>FormやBodyでCDef型をプロパティとして利用</dd>
+	</dl>
+	<p>
+		すでに多くの箇所で利用して修正が大変な場合は、[App]BaseAction にて必要なメソッドを以下のコードからコピーするようお願いします。
+		<span class="frm">(若干、そのままコピーしても動かないところがあるかもしれませんので、微調整お願いします)</span>
+	</p>
+<pre><span class="codetitle">e.g. TypicalAction の削除されたところ @Java</span><code>
+
+    // ===================================================================================
+    //                                                                     Verify Anything
+    //                                                                     ===============
+    // -----------------------------------------------------
+    //                                      Verify Parameter
+    //                                      ----------------
+    protected void verifyParameterExists(Object parameter) { // application may call
+        if (parameter == null || (parameter instanceof String && ((String) parameter).isEmpty())) {
+            handleParameterFailure("Not found the parameter: " + parameter);
+        }
+    }
+
+    protected void verifyParameterTrue(String msg, boolean expectedBool) { // application may call
+        if (!expectedBool) {
+            handleParameterFailure(msg);
+        }
+    }
+
+    protected void handleParameterFailure(String msg) {
+        // no server error because it can occur by user's trick easily e.g. changing GET parameter
+        throw404(msg);
+    }
+
+    // -----------------------------------------------------
+    //                                         Verify or ...
+    //                                         -------------
+    /**
+     * Check the condition is true or it throws 404 not found forcedly. &lt;br&gt;
+     * You can use this in your action process against invalid URL parameters.
+     * @param msg The message for exception message. (NotNull)
+     * @param expectedBool The expected determination for your business, true or false. (false: 404 not found)
+     */
+    protected void verifyTrueOr404NotFound(String msg, boolean expectedBool) { // application may call
+        if (!expectedBool) {
+            throw404(msg);
+        }
+    }
+
+    /**
+     * Check the condition is true or it throws illegal transition forcedly. &lt;br&gt;
+     * You can use this in your action process against strange request parameters.
+     * @param msg The message for exception message. (NotNull)
+     * @param expectedBool The expected determination for your business, true or false. (false: illegal transition)
+     */
+    protected void verifyTrueOrIllegalTransition(String msg, boolean expectedBool) { // application may call
+        if (!expectedBool) {
+            throwIllegalTransition(msg);
+        }
+    }
+
+    /**
+     * Throw 404 exception, and show 404 error page.
+     * &lt;pre&gt;
+     * if (...) {
+     *     &lt;span style="color: #CC4747"&gt;throw404&lt;/span&gt;("...");
+     * }
+     * &lt;/pre&gt;
+     * @param msg The debug message for developer (not user message). (NotNull)
+     */
+    protected void throw404(String msg) { // e.g. used by error handling of validation for GET parameter
+        throw of404(msg);
+    }
+
+    /**
+     * Create exception of 404, for e.g. orElseThrow() of Optional.
+     * &lt;pre&gt;
+     * }).orElseThrow(() &lt;span style="color: #90226C; font-weight: bold"&gt;&lt;span style="font-size: 120%"&gt;-&lt;/span&gt;&gt;&lt;/span&gt; {
+     *     return &lt;span style="color: #CC4747"&gt;of404&lt;/span&gt;("Not found the product: " + productId);
+     * });
+     * &lt;/pre&gt;
+     * @param msg The debug message for developer (not user message). (NotNull)
+     * @return The new-created exception of 404. (NotNull)
+     */
+    protected ForcedRequest404NotFoundException of404(String msg) {
+        assertArgumentNotNull("msg for 404", msg);
+        return new ForcedRequest404NotFoundException(msg);
+    }
+
+    /**
+     * Throw illegal transition exception, as application exception.
+     * &lt;pre&gt;
+     * if (...) {
+     *     &lt;span style="color: #CC4747"&gt;throwIllegalTransition&lt;/span&gt;("...");
+     * }
+     * &lt;/pre&gt;
+     * @param msg The debug message for developer (not user message). (NotNull)
+     */
+    protected void throwIllegalTransition(String msg) {
+        throw ofIllegalTransition(msg);
+    }
+
+    /**
+     * Create exception of illegal transition as application exception, for e.g. orElseThrow() of Optional.
+     * &lt;pre&gt;
+     * }).orElseThrow(() &lt;span style="color: #90226C; font-weight: bold"&gt;&lt;span style="font-size: 120%"&gt;-&lt;/span&gt;&gt;&lt;/span&gt; {
+     *     return &lt;span style="color: #CC4747"&gt;ofIllegalTransition&lt;/span&gt;("Not found the product: " + productId);
+     * });
+     * &lt;/pre&gt;
+     * @param msg The debug message for developer (not user message). (NotNull)
+     * @return The new-created exception of 404. (NotNull)
+     */
+    protected ForcedIllegalTransitionException ofIllegalTransition(String msg) {
+        assertArgumentNotNull("msg for illegal transition", msg);
+        final String transitionKey = newTypicalEmbeddedKeySupplier().getErrorsAppIllegalTransitionKey();
+        return new ForcedIllegalTransitionException(msg, transitionKey);
+    }
+
+    // ===================================================================================
+    //                                                                        Small Facade
+    //                                                                        ============
+    // -----------------------------------------------------
+    //                                          Current Date
+    //                                          ------------
+    /**
+     * Get the date that specifies current date for business. &lt;br&gt;
+     * The word 'current' means transaction beginning in transaction if default setting of Framework. &lt;br&gt;
+     * You can get the same date (but different instances) in the same transaction.
+     * @return The local date that has current date. (NotNull)
+     */
+    protected LocalDate currentDate() {
+        return timeManager.currentDate();
+    }
+
+    /**
+     * Get the date-time that specifies current time for business. &lt;br&gt;
+     * The word 'current' means transaction beginning in transaction if default setting of Framework. &lt;br&gt;
+     * You can get the same date (but different instances) in the same transaction.
+     * @return The local date-time that has current time. (NotNull)
+     */
+    protected LocalDateTime currentDateTime() {
+        return timeManager.currentDateTime();
+    }
+
+    /**
+     * Get the message for currently-requested user locale from message resources.
+     * @param key The key of message managed by message resources. (NotNull)
+     * @return The found message, specified locale resolved. (NotNull: if not found, throws exception)
+     * @throws MessageKeyNotFoundException When the message is not found.
+     */
+    protected String getUserMessage(String key) {
+        return messageManager.getMessage(requestManager.getUserLocale(), key);
+    }
+
+    /**
+     * Get the message for currently-requested user locale from message resources.
+     * @param key The key of message managed by message resources. (NotNull)
+     * @param args The varying arguments for the message. (NotNull, EmptyAllowed)
+     * @return The found message, specified locale resolved. (NotNull: if not found, throws exception)
+     * @throws MessageKeyNotFoundException When the message is not found.
+     */
+    protected String getUserMessage(String key, Object... args) {
+        return messageManager.getMessage(requestManager.getUserLocale(), key, args);
+    }
+
+    // -----------------------------------------------------
+    //                                        Empty Handling
+    //                                        --------------
+    /**
+     * @param str might be empty. (NullAllowed: if null, return true)
+     * @return true if null or empty, false if blank or has characters.
+     */
+    protected boolean isEmpty(String str) {
+        return LaStringUtil.isEmpty(str);
+    }
+
+    /**
+     * @param str might not be empty. (NullAllowed: if null, return false)
+     * @return true if blank or has characters, false if null or empty.
+     */
+    protected boolean isNotEmpty(String str) {
+        return LaStringUtil.isNotEmpty(str);
+    }
+
+    // -----------------------------------------------------
+    //                                        Classification
+    //                                        --------------
+    protected boolean isCls(Class&lt;? extends Classification&gt; cdefType, Object code) {
+        assertArgumentNotNull("cdefType", cdefType);
+        return LaDBFluteUtil.invokeClassificationCodeOf(cdefType, code) != null;
+    }
+
+    protected &lt;CLS extends Classification&gt; OptionalThing&lt;CLS&gt; toCls(Class&lt;CLS&gt; cdefType, Object code) {
+        assertArgumentNotNull("cdefType", cdefType);
+        if (code == null || (code instanceof String && isEmpty((String) code))) {
+            return OptionalThing.ofNullable(null, () -&gt; {
+                throw new IllegalStateException("Not found the classification code for " + cdefType.getName() + ": " + code);
+            });
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            final CLS cls = (CLS) LaDBFluteUtil.toVerifiedClassification(cdefType, code);
+            return OptionalThing.of(cls);
+        } catch (ClassificationUnknownCodeException e) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("Cannot convert the code to the classification:");
+            sb.append("\n[Classification Convert Failure]");
+            try {
+                sb.append("\n").append(LaActionRuntimeUtil.getActionRuntime());
+            } catch (RuntimeException continued) { // just in case
+                logger.info("Not found the action runtime when toCls() called: " + cdefType.getName() + ", " + code, continued);
+            }
+            sb.append("\ncode=").append(code);
+            //sb.append("\n").append(e.getClass().getName()).append("\n").append(e.getMessage());
+            final String msg = sb.toString();
+            throw new ForcedRequest404NotFoundException(msg, e);
+        }
+    }
+</code></pre>
+
+	<h2 id="forcedclienterror">クライアントエラーの例外クラス</h2>
+	<p>
+		例外クラスの名前が変わりました。ForcedRequest404NotFoundException が Forced404NotFoundException
+		という名前に変わっています。<span class="frm">(その他、400 や 403 も同様です)</span>
+	</p>
+	<p>
+		もともと、throw404() や of404()
+		などのメソッド経由で利用されることが前提なのであまり利用箇所はないと想定されますが、[App]MultipartRequestHandler
+		でコンパイルエラーになる可能性があります。また、コンストラクタ引数で UserMessages
+		が必須になっていますので、メッセージが特にない場合は UserMessages.empty() を指定するようにお願いします。
+	</p>
+<pre><span class="codetitle">e.g. 新しい Forced404NotFoundException を使った場合 @Java</span><code>
+throw new Forced404NotFoundException(msg, UserMessages.empty());
+</code></pre>
+
+	<h2 id="logininterface">ログインのインターフェース</h2>
+	<p>
+		email, password固定のインターフェースではなく、抽象化された LoginCredetial
+		を使って様々なログインの形式に対応できるようにしました。
+	</p>
+	<p>
+		そのため、login(), loginRedirect() などのメソッドの引数の形が変わっていますので、ログイン画面のActionなどでコンパイルエラーになります。
+		UserPasswordCredential を使ってユーザー名とパスワードを渡すようにお願いします。
+	</p>
+	<dl class="keymainlist">
+		<dt>checkUserLoginable()</dt><dd>new UserPasswordCredential(user, password) を引数に</dd>
+		<dt>login()</dt><dd>同じ</dd>
+		<dt>loginRedirect()</dt><dd>同じ</dd>
+	</dl>
+<pre><span class="codetitle">e.g. 新しい loginRedirect() を Credential で呼び出し @Java</span><code>
+<span class="keyword">return</span> <span class="attribute">loginAssist</span>.loginRedirect(<span class="subpoint">createCredential</span>(form), op -&gt; op.rememberMe(form.rememberMe), () -&gt; {
+    <span class="keyword">return</span> redirect(MypageAction.<span class="keyword">class</span>);
+});
+
+<span class="keyword">private</span> UserPasswordCredential <span class="subpoint">createCredential</span>(SigninForm form) {
+    <span class="keyword">return new</span> <span class="point">UserPasswordCredential</span>(form.account, form.password);
+}
+</code></pre>
+	<p>
+		また、[App]LoginAssist でのユーザー探しのメソッドの形式が変わっています。
+	</p>
+	<dl class="longkeymainlist">
+		<dt>doCheckUserLoginable()</dt><dd>checkCredential() に変更 <span class="frm">(Credentialごとにチェック)</span></dd>
+		<dt>doFindLoginUser(user, pwd)</dt><dd>resolveCredential() に変更 <span class="frm">(Credentialごとに解決)</span></dd>
+		<dt>doFindLoginUser(id)</dt><dd>ID指定の方は何も変わっていない <span class="frm">(identityLogin()で呼ばれる方)</span></dd>
+	</dl>
+	<p>
+		パスワードの暗号化は、スーパークラス組み込みではなく、[App]LoginAssist の中で encryptPassword()
+		を呼び出す形になっていますので、忘れずにお願いします。
+	</p>
+<pre><span class="codetitle">e.g. 新しい LoginAssist のユーザー探しのメソッドたち @Java</span><code>
+// ===================================================================================
+//                                                                           Find User
+//                                                                           =========
+@Override
+<span class="keyword">protected void</span> <span class="point">checkCredential</span>(CredentialChecker checker) {
+    checker.<span class="subpoint">check</span>(UserPasswordCredential.<span class="keyword">class</span>, credential -&gt; {
+        <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectCount(cb -> arrangeLoginByCredential(cb, credential)) &gt; 0;
+    });
+}
+
+@Override
+<span class="keyword">protected void</span> <span class="point">resolveCredential</span>(CredentialResolver resolver) {
+    resolver.<span class="subpoint">resolve</span>(UserPasswordCredential.<span class="keyword">class</span>, credential -&gt; {
+        <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectEntity(cb -&gt; arrangeLoginByCredential(cb, credential));
+    });
+}
+
+<span class="keyword">private void</span> arrangeLoginByCredential(MemberCB cb, UserPasswordCredential credential) {
+    cb.query().arrangeLogin(credential.getUser(), encryptPassword(credential.getPassword()));
+}
+
+@Override
+<span class="keyword">protected</span> OptionalEntity&lt;Member&gt; doFindLoginUser(Integer userId) {
+    <span class="keyword">return</span> <span class="attribute">memberBhv</span>.selectEntity(cb -&gt; cb.query().arrangeLoginByIdentity(userId));
+}
+</code></pre>
+	<p>
+		また、LoginAssist の getSessionUserBean() が getSavedUserBean() に変わっています。
+		getSessionUserBean() は非推奨になっているので、[App]BaseAction の getUserBean() で警告がでます。
+		getSavedUserBean() に変更をお願いします。
+	</p>
+<pre><span class="codetitle">e.g. [App]BaseAction の getUserBean() で 新しい getSavedUserBean() を使う @Java</span><code>
+@Override
+<span class="keyword">protected</span> OptionalThing&lt;HarborUserBean&gt; getUserBean() { // application may call, overriding for co-variant
+    <span class="keyword">return</span> loginAssist.<span class="point">getSavedUserBean()</span>;
+}
+</code></pre>
+
+	<h2 id="exampledefault">Exampleデフォルトの変更</h2>
+	<p>
+		Exampleデフォルトは、LastaFlute組み込みのクラスではないため、
+	</p>
+	<p>
+		かきとちゅう
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
