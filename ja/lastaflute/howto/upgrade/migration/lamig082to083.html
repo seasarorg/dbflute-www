@@ -48,7 +48,17 @@
 		</li>
 		<li><a href="#forcedclienterror">クライアントエラーの例外クラス</a></li>
 		<li><a href="#logininterface">ログインのインターフェース</a></li>
-		<li><a href="#exampledefault">Exampleデフォルトの変更</a></li>
+		<li><a href="#webclsappcls">webcls を appcls に変更</a></li>
+		<li><a href="#exampledefault">Exampleデフォルトの変更</a>
+			<ul>
+				<li><a href="#exampletodate">Action の toDate() を DisplayAssist に</a></li>
+				<li><a href="#exampletodate">Action のページング関連メソッドを PagingAssist に</a></li>
+				<li><a href="#exampleactiondoc">[App]BaseAction のdocumentメソッドオーバーライドやめ</a></li>
+				<li><a href="#exampledivariablename">[App]LoginAssist や [App]Config のインスタンス変数名</a></li>
+				<li><a href="#exampleheaderbean">[App]HeaderBean を HeaderBean に</a></li>
+				<li><a href="#exampleuserinfo">[App]BaseAction の User Info の定義順序など</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="summerrefactoring">LastaFlute, 2016夏のリファクタリング</h2>
@@ -398,13 +408,106 @@ throw new Forced404NotFoundException(msg, UserMessages.empty());
 }
 </code></pre>
 
+	<h2 id="webclsappcls">webcls を appcls に変更</h2>
+	<p>
+		Web区分値をやめ、アプリ区分値に変更しました。DB区分値でもなくWebでもない区分値を定義できるようにするためです。
+	</p>
+	<p>
+		appcls は、<em class="keyword">2016/8/6 のパッチの当たった DBFlute-1.1.1</em>
+		にて利用できます。すでに 1.1.1 の場合は、DBFluteエンジンをダウンロードして上書きしてください(DBFluteランタイムは関係ありません)。
+		manage の upgrade は、同じバージョンで自分自身を上書きできないので、手動でダウンロードして差し替えてください。
+	</p>
+	<div class="relatedpage"><a href="../../../../environment/newest.html">DBFluteの最新バージョン</a></div>
+	<p>
+		DBFluteのアップグレードができたら、以下の修正をします。
+	</p>
+	<ul>
+		<li>lastafluteMap.dfprop の freeGenList の中の webcls を appcls に変更</li>
+		<li>src/main/resources の下の [app]-webcls.dfprop を  [app]-appcls.dfprop に変更</li>
+		<li>WebCDef.java を削除。FreeGen を叩くと AppCDef.java が自動生成される</li>
+	</ul>
+	<p>
+		詳しくは、lastaflute-example-harbor のソースコードをご覧ください。
+	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-harbor/">Github - lastaflute-example-harbor</a></div>
+	<p>
+		そもそも webcls なんて使ってない、src/main/resources の下に [app]-webcls.dfprop
+		ファイルが存在しない方は、新たに appcls を導入してぜひ活用してください。独自の enum をあまり作る必要がなくなります。
+	</p>
+
 	<h2 id="exampledefault">Exampleデフォルトの変更</h2>
 	<p>
-		Exampleデフォルトは、LastaFlute組み込みのクラスではないため、
+		Exampleデフォルトは、LastaFlute組み込みのクラスではないため、互換性的には気にする必要はありません。
+		ただ、LastaFluteのポリシー追従という意味合いで影響する部分があれば、移行できると良いでしょう。
 	</p>
 	<p>
-		かきとちゅう
+		詳しくは、lastaflute-example-harbor のソースコードをご覧ください。
 	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-harbor/">Github - lastaflute-example-harbor</a></div>
+	<h3 id="exampletodate">Action の toDate() を DisplayAssist に</h3>
+	<p>
+		[App]BaseAction にあった、toDate() や toStringDate() を、DisplayAssist クラスに移しました。
+		他の Manager たちと同様に、意識して DI して利用するようにしています。
+		<span class="frm">(DisplayAssist が適切な名前かどうかはまだちょっと議論がありますが...)</span>
+	</p>
+	<h3 id="exampletodate">Action のページング関連メソッドを PagingAssist に</h3>
+	<p>
+		[App]BaseAction にあった、registerPagingNavi() など、PagingAssist クラスに移しました。
+		他の Manager たちと同様に、意識して DI して利用するようにしています。
+	</p>
+	<p>
+		また、[app]_config.properties からページング関連のコンフィグが削除されています。
+		<span class="frm">(ページングのページサイズなどは画面によって変わることも多く、あまりコンフィグに入れる意義が少ないだろうと判断して)</span>
+	</p>
+	<h3 id="exampleactiondoc">[App]BaseAction のdocumentメソッドオーバーライドやめ</h3>
+	<p>
+		ApplicationオリジナルのFacedeメソッドがなくなったので、オーバーライドをやめています。
+	</p>
+	<h3 id="exampledivariablename">[App]LoginAssist や [App]Config のインスタンス変数名</h3>
+	<p>
+		[App]LoginAssist や [App]Config を DI したときのインスタンス変数名 を、[app]部分は省略してシンプルにしました。
+		[App]LoginAssist なら loginAssist, [App]Config なら config となっています。 
+	</p>
+	<h3 id="exampleheaderbean">[App]HeaderBean を HeaderBean に</h3>
+	<p>
+		[App]HeaderBean を HeaderBean に変更して、かつ、viewパッケージの下に移動しています。
+	</p>
+	<h3 id="exampleuserinfo">[App]BaseAction の User Info の定義順序など</h3>
+	<p>
+		[App]BaseAction の User Info の定義順序を調整、サブタグコメントで Application Info や Login Info
+		と分けています。<span class="frm">(ログインを使わないアプリの場合に、識別しやすいように)</span>
+	</p>
+<pre><span class="codetitle">e.g. 新しい harbor の [App]BaseAction の User Info 部分 @Java</span><code>
+// ===================================================================================
+//                                                                           User Info
+//                                                                           =========
+// -----------------------------------------------------
+//                                      Application Info
+//                                      ----------------
+@Override
+protected String myAppType() { // for framework
+    return APP_TYPE;
+}
+
+// -----------------------------------------------------
+//                                            Login Info
+//                                            ----------
+// #app_customize return empty if login is unused
+@Override
+protected OptionalThing&lt;HarborUserBean&gt; getUserBean() { // application may call, overriding for co-variant
+    return loginAssist.getSavedUserBean();
+}
+
+@Override
+protected OptionalThing&lt;String&gt; myUserType() { // for framework
+    return OptionalObject.of(USER_TYPE);
+}
+
+@Override
+protected OptionalThing&lt;LoginManager&gt; myLoginManager() { // for framework
+    return OptionalThing.of(loginAssist);
+}
+</code></pre>
 
 </div>
 </div>
