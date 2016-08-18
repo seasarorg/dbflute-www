@@ -42,6 +42,8 @@
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#fewuse">めったに使わない</a></li>
+				<li><a href="#performance">稀な状況でのパフォーマンス</a></li>
 				<li><a href="#attention">InnerJoin の利用上の注意</a></li>
 				<li><a href="#twoedgedsword">諸刃の剣</a></li>
 			</ul>
@@ -66,12 +68,34 @@
 	<p>
 		指定されたリレーションの結合方式を内部結合(inner join)にします。
 	</p>
+	<h3 id="fewuse">めったに使わない</h3>
 	<p>
 		ConditionBeanの結合方式は、基本的に外部結合(left outer join)が利用されます。
 	</p>
 	<div class="relatedpage"><a href="./relation.html#joinway">Query(Relation) - 結合方式の基本は外部結合</a></div>
 	<p>
-		ただし、ごく稀な状況で、外部結合から内部結合に変えることでパフォーマンスが改善することがあります。
+		ConditionBeanのポリシーとして、<em class="keyword">結合するだけでレコードが絞り込まれる</em>
+		ってのは避けた方がいいと考えています。なので、絞り込みを目的に、この (Manual)InnerJoin
+		の機能は使わない方が良いでしょう。many-to-one, one-to-one の関連テーブルが存在するという絞り込みをしたいのであれば...
+	</p>
+<pre><span class="codetitle">e.g. InnerJoinの実装手順 (Eclipseでコード補完) {MemberStatus} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+
+<span class="comment">// 結合先のPKが存在する (つまり、結合先のデータが存在する)</span>
+cb.query().queryMemberWithdrawalAsOne().setMemberId_IsNotNull();
+</code></pre>
+	<p>
+		という風にやると良いでしょう。また、この条件を入れると InnerJoinAutoDetect の機能で自然と inner join
+		になるので、パフォーマンス的な意味合いでの inner join も同時に満たされます。
+	</p>
+	<div class="relatedpage"><a href="../sidebar/innerjoinautodetect.html">InnerJoinAutoDetect</a></div>
+	<p>
+		こういった状況以外で、どうしても left outer join を強制的に inner join
+		にしなければならないとパフォーマンスが出ない、というときに (Manual)InnerJoin を使います。
+	</p>
+	<h3 id="performance">稀な状況でのパフォーマンス</h3>
+	<p>
+		ごく稀な状況で、外部結合から内部結合に変えることでパフォーマンスが改善することがあります。
 		例えば、数百万件を超えるデータ、古いバージョンのDBMS、様々な要素が絡み合ってそういう状況が発生する可能性があります。
 		そういったパフォーマンス上の調整のために、どの結合を内部結合にするかを手動で指定 <em class="keyword">(Manual)InnerJoin</em> できるようになっています。
 	</p>
@@ -111,8 +135,11 @@ MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().queryMemberStatus().setDisplayOrder_LessThan(<span class="literal">3</span>);
 cb.query().queryMemberStatus().inn <span class="comment">// .inn と打って enter</span>
 --
-cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
+cb.query().queryMemberStatus().<span class="point">innerJoin()</span>; <span class="comment">// [何のためかコメント]</span>
 </code></pre>
+	<p>
+		<em class="keyword">※何のための innerJoin() なのか、コメントで書きましょう。</em>
+	</p>
 <pre><span class="codetitle">e.g. 会員ステータスの結合を内部結合に @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
@@ -129,7 +156,7 @@ cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
 <pre><span class="codetitle">e.g. SetupSelectしたリレーションを内部結合に {MemberStatus} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus();
-cb.query().queryMemberStatus().<span class="point">innerJoin()</span>;
+cb.query().queryMemberStatus().<span class="point">innerJoin()</span>; <span class="comment">// [何のためかコメント]</span>
 </code></pre>
 <pre><span class="codetitle">e.g. SetupSelectしたリレーションを内部結合に {MemberStatus} @DisplaySql</span><code>
 <span class="keyword">select</span> dfloc.MEMBER_ID, dfloc.MEMBER_NAME, <span class="abbreviation">...</span>

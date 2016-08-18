@@ -47,6 +47,7 @@
 				<li><a href="#mappingnullempty">マッピング定義のワイルドカード</a></li>
 				<li><a href="#mappingnullempty">マッピング定義のNullや空文字</a></li>
 				<li><a href="#linereplace">分解前の行文字列を変換対象に</a></li>
+				<li><a href="#stringfilter">String型文字列の微調整</a></li>
 				<li><a href="#timestampfilter">Timestamp型文字列の微調整</a></li>
 			</ul>
 		</li>
@@ -103,9 +104,13 @@
 </code></pre>
 	<h3 id="mappingnullempty">マッピング定義のワイルドカード</h3>
 	<ul>
-		<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象となる <span class="frm">@since 0.9.7.5</span></li>
+		<li>カラム名に $$ALL$$ と指定すると全てのカラムが変換対象 <span class="frm">@since 0.9.7.5</span></li>
+		<li>カラム名に $$type(VARCHAR)$$ と指定するとVARCHAR型のカラムが変換対象 <span class="frm">@since 1.1.1</span></li>
 		<li>カラム名に $$LINE$$ と指定すると分解する前の一行の文字列に対して置換(後述) <span class="frm">@since 0.9.8.2</span></li>
 	</ul>
+	<p>
+		<span class="frm">※$$type(VARCHAR)$$ の VARCHAR は任意のJDBC型に置き換えられます。(e.g. INTEGER, DATE)</span>
+	</p>
 <pre><span class="codetitle">e.g. 全てのカラムにおいて "\n" という文字を本物の改行に変換する @convertValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
     ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
@@ -117,20 +122,16 @@
 	<h3 id="mappingnullempty">マッピング定義のNullや空文字</h3>
 	<ul>
 		<li>null や空文字を、それぞれ $$null$$ と $$empty$$ と指定できる <span class="frm">@since 0.9.8.2</span></li>
-		<li>TSVやCSVファイルの空っぽのデータは $$empty$$ でヒットさせることができる</li>
-		<li>エクセルの空っぽセルのデータは $$null$$ でヒットさせることができる</li>
+		<li>TSVやCSVファイルの空っぽのデータは $$empty$$ でヒットさせることができる <span class="frm">@until 1.1.1</span></li>
+		<li>TSVやCSVファイルの空っぽのデータは $$null$$ でヒットさせることができる <span class="frm">@since 1.1.2</span></li>
+		<li>エクセルの空っぽのデータは $$null$$ でヒットさせることができる <span class="frm">@until 1.1.0-sp9</span></li>
 	</ul>
-<pre><span class="codetitle">e.g. TSVデータにおいて、空っぽの値を空文字として登録 @convertValueMap.dataprop</span><code>
+	<p>
+		<span class="frm">※どのバージョンでも、どのファイル形式でも、デフォルトでは空データは null で登録されます。</span>
+	</p>
+<pre><span class="codetitle">e.g. VARCHAR型の空っぽの値(セル)を空文字として登録 @convertValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">$$empty$$</span> = <span class="attribute">$$empty$$</span>
-    }
-    <span class="abbriviation">...</span>
-}
-</code></pre>
-<pre><span class="codetitle">e.g. エクセルデータにおいて、空っぽの値(セル)を空文字として登録 @convertValueMap.dataprop</span><code>
-<span class="keyword">map:</span>{
-    ; <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{
+    ; <span class="attribute">$$type(VARCHAR)$$</span> = <span class="keyword">map:</span>{
         ; <span class="attribute">$$null$$</span> = <span class="attribute">$$empty$$</span>
     }
     <span class="abbriviation">...</span>
@@ -161,6 +162,16 @@
     <span class="abbriviation">...</span>
 }
 </code></pre>
+	<h3 id="stringfilter">String型文字列の微調整</h3>
+	<p>
+		String特有の微調整変換処理を施すことができます。<span class="frm">@since 1.1.2</span>
+	</p>
+<pre><span class="codetitle">e.g. 全ての String 型のカラムにて、null (値が存在しない) だったら空文字にする @convertValueMap.dataprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{ <span class="attribute">$$String$$</span> = <span class="attribute">$$NullToEmpty$$</span> }
+    ; ...
+}
+</code></pre>
 	<h3 id="timestampfilter">Timestamp型文字列の微調整</h3>
 	<p>
 		Timestamp特有の微調整変換処理を施すことができます。<span class="frm">@since 0.9.9.0A</span>
@@ -171,10 +182,10 @@
 		8 ミリ秒が指定されたとみなされます。
 	</p>
 	<p>
-		これを、プロジェクトの特性上、"2011-07-29 12:34:56.800" と認識したいという場合は、変換前の値に $$timestamp$$
+		これを、プロジェクトの特性上、"2011-07-29 12:34:56.800" と認識したいという場合は、変換前の値に $$Timestamp$$
 		を指定し、変換後の値として $$ZeroSuffixMillis$$ を指定すると、Timestamp型のカラムの挙動がそのように変更されます。
 	</p>
-<pre><span class="codetitle">e.g. 全ての Timestamp 型のカラムにおいて、不足桁のミリ秒の後ろに 0 を埋める @convertValueMap.dataprop</span><code>
+<pre><span class="codetitle">e.g. 全ての Timestamp 型のカラムにて、不足桁のミリ秒の後ろに 0 を埋める @convertValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
     <span class="attribute">$$ALL$$</span> = <span class="keyword">map:</span>{ <span class="attribute">$$timestamp$$</span> = <span class="attribute">$$ZeroSuffixMillis$$</span> }
     ; ...
