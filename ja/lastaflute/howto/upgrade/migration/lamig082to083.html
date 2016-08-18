@@ -59,6 +59,14 @@
 				<li><a href="#exampleuserinfo">[App]BaseAction の User Info の定義順序など</a></li>
 			</ul>
 		</li>
+		<li><a href="#tomcatboot">TomcatBoot-0.5.0</a></li>
+		<li><a href="#utflute">UTFlute-0.6.1A</a>
+			<ul>
+				<li><a href="#utactiondef">[App]ActionDefTest にメソッドを二つ追加</a></li>
+				<li><a href="#utnoloose">☆テストケースのDIがルーズではなくなった</a></li>
+			</ul>
+		</li>
+		<li><a href="#dbflute">DBFlute-1.1.1 (patch-20160818)</a></li>
 	</ul>
 
 	<h2 id="summerrefactoring">LastaFlute, 2016夏のリファクタリング</h2>
@@ -66,6 +74,18 @@
 		まずはこちらをご覧ください。
 	</p>
 	<div class="detailpage"><a href="https://groups.google.com/forum/#!topic/dbflute/mc5EUqdCTwc">DBFluteユーザーの集い - LastaFlute, 2016夏のリファクタリング</a></div>
+	<p>
+		アップグレードしたライブラリは以下の通りです。
+	</p>
+	<ul>
+		<li>LastaFlute-0.8.3</li>
+		<li>LastaThymeleaf-0.2.8</li>
+		<li>LastaTaglib-0.7.1</li>
+		<li>JettyBoot-0.4.3</li>
+		<li>TomcatBoot-0.5.0</li>
+		<li>UTFlute-0.6.1A</li>
+		<li>DBFlute-1.1.1 (エンジンのみ)</li>
+	</ul>
 
 	<h2 id="actionsupermethod">Action のスーパークラスのメソッド</h2>
 	<h3 id="lastaaction">LastaAction</h3>
@@ -508,6 +528,77 @@ protected OptionalThing&lt;LoginManager&gt; myLoginManager() { // for framework
     return OptionalThing.of(loginAssist);
 }
 </code></pre>
+
+	<h2 id="tomcatboot">TomcatBoot-0.5.0</h2>
+	<p>
+		TomcatBoot-0.5.0 から、デフォルトで jasper への依存を無くしました。
+		なので、もし JSP を利用されている場合は、TomcatBoot の dependency に加えて、jasper の dependency
+		を追加してください。
+	</p>
+<pre><span class="codetitle">e.g. TomcatBoot-0.5.0 から、JSPを使うためには jasper を追加 @Java</span><code>
+<!-- tomcat -->
+&lt;dependency&gt;
+	&lt;groupId&gt;org.dbflute.tomcat&lt;/groupId&gt;
+	&lt;artifactId&gt;tomcat-boot&lt;/artifactId&gt;
+	&lt;version&gt;${tomcat.boot.version}&lt;/version&gt;
+&lt;/dependency&gt;
+<span class="point">&lt;dependency&gt; &lt;!-- for jsp --&gt;
+	&lt;groupId&gt;org.apache.tomcat&lt;/groupId&gt;
+	&lt;artifactId&gt;tomcat-jasper&lt;/artifactId&gt;
+	&lt;version&gt;8.5.4&lt;/version&gt;
+&lt;/dependency></span>
+</code></pre>
+
+	<h2 id="utflute">UTFlute-0.6.1A</h2>
+	<p>
+		UTFlute が 0.6.1A にアップグレードしたときの移行です。
+	</p>
+	<h3 id="utactiondef">[App]ActionDefTest にメソッドを二つ追加</h3>
+	<p>
+		test_injectedResourceDefinitionPolice() と test_lastaPresentsSomethingPolice() の二つ。
+	</p>
+	<dl class="textlist">
+		<dt>test_injectedResourceDefinitionPolice()</dt>
+		<dd>@ResourceアノテーションによるDI定義のポリシーチェック e.g. 必ずprivateフィールドに</dd>
+		<dt>test_lastaPresentsSomethingPolice()</dt>
+		<dd>Lastaが将来的に何かをチェック (気付いた時点で新しいUTFluteに入れていく)</dd>
+	</dl>
+<pre><span class="codetitle">e.g. [App]ActionDefTest に新しく追加 @Java</span><code>
+public void test_injectedResourceDefinitionPolice() throws Exception {
+    policeStoryOfJavaClassChase(new InjectedResourceDefinitionPolice().shouldBePrivateField(field -> {
+        return true; // means all fields
+    }));
+}
+
+public void test_lastaPresentsSomethingPolice() throws Exception {
+    policeStoryOfJavaClassChase(new LastaPresentsSomethingPolice());
+}
+</code></pre>
+	<h3 id="utnoloose">☆テストケースのDIがルーズではなくなった</h3>
+	<p>
+		今まで、テストケースのクラスでは、@Resourceを付けなくてもDIが可能でした<span class="frm">(S2Unitのポリシーをずっと継承していた)</span>。
+		かなりルーズなDIを許していましたが、非常に紛らわしいことが多々ありましたので、普通のクラスと同様のルールでDIするようにしています。
+	</p>
+<pre><span class="codetitle">e.g. テストケースの中でのDIでも、ちゃんと @Resource を付けるように @Java</span><code>
+<span class="point">@Resource</span>
+private MemberBhv memberBhv;
+</code></pre>
+	<p>
+		もし、修正範囲がたくさんあり過ぎて一気に直し切れない場合は、アプリのテストケースのスーパークラスにて、isUseTestCaseLooseBinding()
+		をオーバーライドして、true を戻すようにしてください。以前と同じ挙動になります。
+	</p>
+
+	<h2 id="dbflute">DBFlute-1.1.1 (patch-20160818)</h2>
+	<p>
+		DBFluteエンジンの 1.1.1 がパッチ更新されました。
+		LastaFluteのアップグレードと同時に、最新版のDBFluteエンジンをダウンロードして、アップグレードしてください。
+		既に 1.1.1 の場合は、上書きしてください。アップグレードしたら、テーブルクラスの自動生成、および、FreeGen を叩きます。
+	</p>
+	<div class="relatedpage"><a href="../../../../environment/newest.html">DBFluteの最新バージョン (このページからダウンロードできる)</a></div>
+	<p>
+		特に移行で気をつけるところはありませんが、CDef に Optional を戻すメソッドが追加されていたりと、便利になっています。
+	</p>
+	<div class="relatedpage"><a href="../../../../environment/changelog/index.html">Change Log</a></div>
 
 </div>
 </div>
