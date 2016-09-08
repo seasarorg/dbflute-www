@@ -610,6 +610,12 @@ src/main/java
 		ただ、日付に関しては、デフォルトのフォーマットで都合が悪ければ、必要に応じて String に変換しましょう。
 	</p>
 <pre><span class="codetitle">e.g. renderWith() in Action class @Java</span><code>
+
+@Resource
+<span class="keyword">private</span> PurchaseBhv <span class="attribute">purchaseBhv</span>;
+@Resource
+<span class="keyword">private</span> DisplayAssist <span class="attribute">displayAssist</span>;
+
 @Execute
 <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
     validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
@@ -629,10 +635,10 @@ src/main/java
             <span class="localvar">bean</span>.<span class="attribute">productName</span> = <span class="localvar">product</span>.getProductName();
             <span class="localvar">bean</span>.<span class="attribute">productHandleCode</span> = <span class="localvar">product</span>.getProductHandleCode();
         });
-        <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
+        <span class="localvar">bean</span>.purchaseDate = <span class="attribute">displayAssist</span>.toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
         <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
         <span class="keyword">return</span> <span class="localvar">bean</span>;
-    }).collect(Collections.toList());
+    }).collect(Collectors.toList());
     <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>); 
 }
 </code></pre>
@@ -677,7 +683,9 @@ src/main/java
 <span class="keyword">public class</span> SeaLandAction <span class="keyword">extends</span> HarborBaseAction {
 
     @Resource
-    <span class="keyword">private</span> <span class="point">PurchaseBhv</span> <span class="attribute">purchaseBhv</span>;
+    <span class="keyword">private</span> PurchaseBhv <span class="attribute">purchaseBhv</span>;
+    @Resource
+    <span class="keyword">private</span> DisplayAssist <span class="attribute">displayAssist</span>;
 
     @Execute
     <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
@@ -713,7 +721,7 @@ src/main/java
             <span class="localvar">bean</span>.purchaseDate = toStringDate(<span class="localvar">purchase</span>.getPurchaseDatetime()).get();
             <span class="localvar">bean</span>.purchasePrice = <span class="localvar">purchase</span>.getPurchasePrice();
             <span class="keyword">return</span> <span class="localvar">bean</span>;
-        }).collect(Collections.toList());
+        }).collect(Collectors.toList());
         <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>).renderWith(<span class="localvar">data</span> -&gt; {
             <span class="localvar">data</span>.<span class="subpoint">register</span>(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
         });
