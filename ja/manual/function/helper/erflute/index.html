@@ -68,6 +68,7 @@
 				<li><a href="#thenerflute">そして、ERFluteは...</a></li>
 			</ul>
 		</li>
+		<li><a href="#migration">ERMasterからの移行</a></li>
 		<li><a href="#forcommitter">コミッタ向け情報</a>
 			<ul>
 				<li><a href="#repository">Githubリポジトリ</a></li>
@@ -75,6 +76,7 @@
 				<li><a href="#classworldmap">ERFluteアーキテクチャマップ</a></li>
 				<li><a href="#editorobjectsmap">ERFlute Editor ClassWorldマップ</a></li>
 				<li><a href="#pullreqreq">プルリクリクエスト</a></li>
+				<li><a href="#otherimpl">その他実装情報</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -266,26 +268,54 @@
 		ERMaster でのあともうちょい、ERMaster-b でのあともうちょいを直し、
 		シンプル性をキープしながら、スタートアップ＆インクリメンタル開発でフィットしやすいERDツールを目指していきます。
 	</p>
-	<p>
-		まずは引き算の修正をしています。
-	</p>
+	<h4>まずは引き算の修正</h4>
 	<ul>
-		<li>翻訳機能を削除</li>
-		<li>辞書機能を削除</li>
-		<li>変更履歴機能を削除</li>
-		<li>Hibernateのクラス自動生成を削除</li>
-		<li>HTML,Excel出力機能を削除</li>
+		<li>翻訳機能を削除 <span class="frm">(シンプル化のため、暴発して変な名前になることもあるため)</span></li>
+		<li>辞書機能を削除 <span class="frm">(シンプル化のため、時々トラブルもあるため)</span></li>
+		<li>変更履歴機能を削除 <span class="frm">(他のツールでできるだめ)</span></li>
+		<li>Hibernateのクラス自動生成を削除 <span class="frm">(他のツールでできるだめ)</span></li>
+		<li>HTML,Excel出力機能を削除 <span class="frm">(他のツールでできるだめ)</span></li>
+		<li>日本語表示を削除 <span class="frm">(英語とのダブルメンテはつらいため)</span></li>
+		<li>Viewオブジェクトの機能を削除 <span class="frm">(ERDで管理する必要があまりないため)</span></li>
+		<li>トリガーの機能を削除 <span class="frm">(ERDで管理する必要があまりないため)</span></li>
+		<li>カラム自動作成Relationship追加機能を削除 <span class="frm">(選択肢を減らして使い方をシンプルにするため)</span></li>
+		<li>N:NのRelationship追加機能を削除 <span class="frm">(選択肢を減らして使い方をシンプルにするため)</span></li>
+		<li>PhysicalName と LogicalName の連携機能を削除 <span class="frm">(意味のないLogicalNameにならないように)</span></li>
 		<li>細かい使わなそうな機能を削除</li>
-		<li>データ型マッピングのシンプル化</li>
-		<li>コードのがっつりリファクタリング</li>
 	</ul>
 	<p>
-		そして、ポイントとなる修正をしています。
+		<span class="frm">※やっぱり欲しい機能であれば、また整理整頓した上で追加します。それよりもまずはシンプル化を。</span>
 	</p>
+	<h4>そしてポイントとなる修正</h4>
 	<ul>
-		<li>XMLの順序固定化</li>
-		<li>XMLのシンプル化</li>
+		<li>o 保存のたびにXMLの順序が変わらないように <span class="frm">(ID参照をやめて名前参照にするなど)</span></li>
+		<li>o 閲覧だけでXMLが変わらないように <span class="frm">(その代わり、直前の閲覧情報は保持されない)</span></li>
+		<li>o XMLのシンプル化、手でも修正できるくらい <span class="frm">(不要なタグ削除、定義順序など)</span></li>
+		<li>o テーブル名やカラム名や制約名のユニークチェック <span class="frm">(XMLの固定化のためにも必要)</span></li>
+		<li>o PhysicalName を必須に <span class="frm">(XMLの固定化のためにも必要)</span></li>
+		<li>o ユニーク制約名、インデックス名を必須に <span class="frm">(XMLの固定化のためにも必要)</span></li>
+		<li>o FK制約名のデフォルト値設定、入力促進 <span class="frm">(XMLの固定化のためにも必要)</span></li>
+		<li>v コードのがっつりリファクタリング <span class="frm">(永遠にやり続ける)</span></li>
+		<li>x データ型マッピングのシンプル化 <span class="frm">(新しいデータ型追加のために、でもまだできてない)</span></li>
 	</ul>
+
+	<h2 id="migration">ERMasterからの移行</h2>
+	<p>
+		そのまま、.ermファイルを ERFlute で開いて保存すれば移行完了です。
+	</p>
+	<ol>
+		<li>ERMasterをアンインストール</li>
+		<li>ERFluteをインストール</li>
+		<li>ermファイルをERFluteで開く <span class="frm">(ERMaster形式のXMLを読み込み)</span></li>
+		<li>テーブルダイアログ開いて特に何もせず閉じて保存 <span class="frm">(ERFlute形式でXMLを保存)</span></li>
+		<li>いったんそのermファイルを閉じる</li>
+		<li>もう一度ermファイルをERFluteで開く</li>
+		<li>DDL出力して、ERMasterのときのDDLと変化がないことを確認</li>
+		<li>模擬的なDB変更をして期待通りのDDLになることを確認 <span class="frm">(確認後は忘れずに変更を破棄しましょう)</span></li>
+	</ol>
+	<p>
+		<span class="frm">※トリガーなど、ERFluteで削除された機能を利用している場合はDDLが同じにはならない可能性あり。</span>
+	</p>
 
 	<h2 id="forcommitter">コミッタ向け情報</h2>
 	<h3 id="repository">Githubリポジトリ</h3>
@@ -311,10 +341,17 @@
 		以下の機能を募集しています。
 	</p>
 	<ul>
-		<li>アウトライン上で選択した仮想ダイアグラムをEnterやSpaceで開く</li>
+		<li>アウトライン上で選択した仮想ダイアグラムを Enter や Space で開く</li>
 		<li>起動した直後の再描画 (現状カラム名が表示されない)</li>
 		<li>仮想ダイアグラムでテーブルをドラッグ＆ドロップしたときの再描画</li>
 		<li>グループ名を修正した後の再描画</li>
+		<li>ユニーク制約へのFKが読み込めない</li>
+	</ul>
+	<h3 id="otherimpl">その他実装情報</h3>
+	<ul>
+		<li>管理しづらいので message の properties は、徐々に使わない方向で。<span class="frm">(ハードコードしていきます)</span></li>
+		<li>不要な "this." は削除していく方向で</li>
+		<li>不要な空行は削除していく方向で</li>
 	</ul>
 
 </div>
