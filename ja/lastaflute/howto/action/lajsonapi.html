@@ -47,6 +47,8 @@
 				<li><a href="#validateapi">API用のvalidateApi()</a></li>
 				<li><a href="#publicfield">Resultのプロパティはpublicフィールド</a></li>
 				<li><a href="#nativetypeproperty">Resultのプロパティはネイティヴ型</a></li>
+				<li><a href="#nativetypewrapper">ネイティヴ型は基本的にWrapper型</a></li>
+				<li><a href="#nativedateformat">LocalDate型の日付フォーマット</a></li>
 				<li><a href="#resultvalidator">JsonResultもバリデーション</a></li>
 			</ul>
 		</li>
@@ -59,6 +61,16 @@
 		</li>
 		<li><a href="#tellbylastadoc">JSON を LastaDocで伝える</a></li>
 		<li><a href="#nativemapping">ネイティヴ型のマッピング</a></li>
+		<li><a href="#jsapitogether">JS/APIひとまとめパターン</a>
+			<ul>
+				<li><a href="#fixedapiperfix">JSON API の URL には固定の /api を</a></li>
+				<li><a href="#removeapiprefix">ApiProductListAction にならないように</a></li>
+				<li><a href="#exceptnonapirequest">/api でないURLでAction探さないように</a></li>
+				<li><a href="#jsapiadjustment">二つ足し合わせると...</a></li>
+				<li><a href="#jsapiintro">DBFlute Introが参考実装に</a></li>
+			</ul>
+		</li>
+		<li><a href="#jsapiseparate">JS/API別サーバーパターン</a></li>
 		<li><a href="#restapi">REST APIにするには？</a>
 			<ul>
 				<li><a href="#restmethod">HTTPメソッドごとにマッピングする方法</a></li>
@@ -67,6 +79,7 @@
 			</ul>
 		</li>
 		<li><a href="#apifailurehook">忘れられないApiFailureHook</a></li>
+		<li><a href="#dateserverclient">日付フォーマットはサーバーで解決？それとも、クライアントで解決？</a></li>
 	</ul>
 
 	<h2 id="returnjson">JSON戻すActionの実装</h2>
@@ -162,14 +175,40 @@
     <span class="abbreviation">...</span>
 }
 </code></pre>
+	<h3 id="nativetypewrapper">ネイティヴ型は基本的にWrapper型</h3>
 	<p>
-		LocalDate などは、デフォルトでは ISO の yyyy-MM-dd, yyyy-MM-dd'T'HH:mm:ss
-		で解釈されます。これを調整したい場合は、option で指定します。
+		プロパティの型に、int, long や boolean などの primitive 型も定義できますが、オススメしません。
 	</p>
+	<p>
+		後述される Validator Annotation
+		との相性を考えると、全体的に <em class="keyword">プロパティの型にはWrapper型を使う</em> というポリシーがよいでしょう。
+		<span class="frm">(primitive 型だと、setし忘れても0やfalseなどのデフォルト値が入ってしまうので必須チェックできない)</span>
+	</p>
+	<h3 id="nativedateformat">LocalDate型の日付フォーマット</h3>
+	<p>
+		LocalDate などの日付型は、<em class="mark">yyyy-MM-dd</em>, <em class="mark">yyyy-MM-dd'T'HH:mm:ss.SSS</em>
+		(ISOの日付フォーマット) で解釈されます。一応、これを調整しようと思えばできます。
+	</p>
+	<p>
+		ただ、日付のフォーマットをサーバーで解決するのか？クライアントで解決するのか？
+		これはプロジェクトのポリシーとして決まっているべきことです。
+		ディベロッパーが勝手に判断してはいけないので、迷う場合は必ず確認をしましょう。
+	</p>
+	<dl class="longvaluemainlist">
+		<dt>サーバーで決定</dt><dd>何かしらの方法で、LocalDateのフォーマットを変更</dd>
+		<dt>クライアントで決定</dt><dd>そのまま転送用の日付フォーマットで通信(ISOのデフォルトフォーマット)</dd>
+	</dl>
+	<p>
+		もし、サーバーで決定するのであれば、どのレベルで調整するのか次第でやり方が変えましょう。
+	</p>
+	<dl class="longvaluemainlist">
+		<dt>ぜんぶ調整</dt><dd>option でネイティヴ型のフォーマットを変更</dd>
+		<dt>そこだけ調整</dt><dd>@JsonDatePatternアノテーションで変更</dd>
+	</dl>
 	<div class="relatedpage"><a href="#nativemapping">this - ネイティヴ型のマッピング</a></div>
 	<p>
-		一方で、int, long や boolean などの primitive 型も定義できますが、オススメしません。後述される Validator Annotation
-		との相性を考えると、全体的に <em class="keyword">プロパティの型にはWrapper型を使う</em> というポリシーがよいでしょう。
+		いずれにせよ、国際化対応などで独自の変換ロジックを必要としない限り、日付を String
+		で定義する必要はないでしょう。LocalDate, LocalDateTime を積極的に使っていきましょう。
 	</p>
 	<h3 id="resultvalidator">JsonResultもバリデーション</h3>
 	<p>
@@ -267,7 +306,7 @@
 	</p>
 	<div class="detailpage"><a href="../dbflute/lastadoc.html">Actionのドキュメント自動生成(LastaDoc)</a></div>
 	<p class="imgbox">
-		<span class="working"><!-- <a href="../../../../data/model/lastaflute/lastaflute-LastaDoc-json-execute.png" title="JSONスタイルのExecuteメソッド詳細"> --><img src="../../../../data/model/lastaflute/lastaflute-LastaDoc-json-execute.png" alt="JSONスタイルのExecuteメソッド詳細" width="550" height="380" /><!-- </a> --></span>
+		<a href="../../../../data/snapshot/lastaflute/lastaflute-lastadoc-json-execute-snapshot.png" title="JSONスタイルのExecuteメソッド詳細"><img src="../../../../data/snapshot/lastaflute/lastaflute-lastadoc-json-execute-snapshot.png" alt="JSONスタイルのExecuteメソッド詳細" width="550" height="380" /></a>
 	</p>
 
 	<h2 id="nativemapping">ネイティヴ型のマッピング</h2>
@@ -292,6 +331,110 @@
     }
 }
 </code></pre>
+
+	<h2 id="jsapitogether">JS/APIひとまとめパターン</h2>
+	<p>
+		HTML/JavaScriptのリソースと JSON API
+		を <em class="keyword">ひとつのサーバーにひとまとめに</em>
+		するパターン、つまり、一つのwarファイルに両方のリソースを入れて同じドメインで運用する場合のコツについて。
+	</p>
+	<h3 id="fixedapiperfix">JSON API の URL には固定の /api を</h3>
+	<p>
+		HTML/JavaScriptのリソースと JSON API へのリクエストを区分けするために、JSON API の方の URL には固定の <em class="bigmark">/api</em> を付与するようにします。
+		<span class="frm">(別に /api でなくてもいいです。例えばということで)</span>
+	</p>
+	<dl class="keymainlist">
+		<dt>HTML/JavaScript</dt><dd>/api ではないURL <em class="smallmark">e.g /index.js</em></dd>
+		<dt>JSON API</dt><dd>/api で始まるURL <em class="smallmark">e.g. /api/product/list</em></dd>
+	</dl>
+	<h3 id="removeapiprefix">ApiProductListAction にならないように</h3>
+	<p>
+		そうすると、Actionクラス名には必ず Api という prefix をつけることになります。パッケージも app.api.xxx
+		というように、api パッケージを挟むことになります。固定的にすべての Action に Api
+		が付くことになるので、さすがに除去したいです。
+	</p>
+	<p>
+		そこで、ActionAdjustmentProvider の customizeActionMappingRequestPath()
+		をオーバーライドして、ActionのマッピングURLから /api
+		を除去します。すると、パッケージもクラス名も、/api に対応する名前をつける必要はありません。
+		<span class="frm">(/api/product/list でも、app.product.ProductListAction でOK )</span>
+	</p>
+	<p>
+		もし、Maihamaプロジェクトであれば、mylasta.direction.sponsor.MaihamaActionAdjustmentProvider になります。
+	</p>
+<pre><span class="codetitle">e.g. remove /api prefix from action mapping URL @Java</span><code>
+<span class="keyword">public class</span> MaihamaActionAdjustmentProvider <span class="keyword">implements</span> ActionAdjustmentProvider {
+
+    @Override
+    <span class="keyword">public</span> String <span class="point">customizeActionMappingRequestPath</span>(String <span class="localvar">requestPath</span>) {
+        <span class="comment">// action class name does not need 'Api' prefix</span>
+        <span class="keyword">return</span> DfStringUtil.substringFirstRear(<span class="localvar">requestPath</span>, <span class="literal">"/api"</span>);
+    }
+}
+</code></pre>
+	<h3 id="exceptnonapirequest">/api でないURLでAction探さないように</h3>
+	<p>
+		必須ではありませんが、パフォーマンス考慮のために、/api でないURL で Action クラスを探しにいかないようにするとよいでしょう。
+		もともと .js, .css, .html などの拡張子の付いた URL なら Action
+		クラスを探しにいかないですが、/operate/maihamadb/ というような URL だと探しに行ってしまいます。
+		<span class="frm">(探しに行って見つからなければ JavaScript 側でつかまえて動作はしますが、無駄な処理が走ります)</span>
+	</p>
+	<p>
+		ActionAdjustmentProvider の isForcedRoutingExcept()
+		をオーバーライドして、/api ではないものを除外するようにします。
+	</p>
+<pre><span class="codetitle">e.g. except non /api request as action mapping @Java</span><code>
+<span class="keyword">public class</span> MaihamaActionAdjustmentProvider <span class="keyword">implements</span> ActionAdjustmentProvider {
+
+    @Override
+    <span class="keyword">public boolean</span> <span class="point">isForcedRoutingExcept</span>(HttpServletRequest <span class="localvar">request</span>, String <span class="localvar">requestPath</span>) {
+        <span class="comment">// of course, request to angular resources does not need routing</span>
+        <span class="comment">// (requestPath might contain /dbflute-intro/ so use contains())</span>
+        <span class="keyword">return</span> !<span class="localvar">requestPath</span>.contains(<span class="literal">"/api"</span>);
+    }
+}
+</code></pre>
+	<h3 id="jsapiadjustment">二つ足し合わせると...</h3>
+	<p>
+		mylasta.direction.sponsor.MaihamaActionAdjustmentProvider
+		は、それら二つの実装を足し合わせるとこのような実装になります。<span class="frm">(メソッドの定義順序は、インターフェースに合わせています)</span>
+	</p>
+<pre><span class="codetitle">e.g. adjustment for JS/API together pattern @Java</span><code>
+<span class="keyword">public class</span> MaihamaActionAdjustmentProvider <span class="keyword">implements</span> ActionAdjustmentProvider {
+
+    <span class="keyword">protected static final</span> String <span class="attribute">API_URL_PREFIX</span> = <span class="literal">"/api"</span>; <span class="comment">// to be separated from angular request</span>
+
+    @Override
+    <span class="keyword">public boolean</span> <span class="point">isForcedRoutingExcept</span>(HttpServletRequest <span class="localvar">request</span>, String <span class="localvar">requestPath</span>) {
+        <span class="comment">// of course, request to angular resources does not need routing</span>
+        <span class="comment">// (requestPath might contain /dbflute-intro/ so use contains())</span>
+        <span class="keyword">return</span> !<span class="localvar">requestPath</span>.contains(<span class="attribute">API_URL_PREFIX</span>);
+    }
+
+    @Override
+    <span class="keyword">public</span> String <span class="point">customizeActionMappingRequestPath</span>(String <span class="localvar">requestPath</span>) {
+        <span class="comment">// action class name does not need 'Api' prefix</span>
+        <span class="keyword">return</span> DfStringUtil.substringFirstRear(<span class="localvar">requestPath</span>, <span class="attribute">API_URL_PREFIX</span>);
+    }
+}
+</code></pre>
+	<h3 id="jsapiintro">DBFlute Introが参考実装に</h3>
+	<p>
+		DBFlute Intro がまさしく "JS/APIひとまとめパターン"  なっていますので参考にしてみてください。
+	</p>
+	<div class="relatedpage"><a href="https://github.com/dbflute/dbflute-intro">DBFlute Intro | Github</a></div>
+	<div class="relatedpage"><a href="http://dbflute.seasar.org/ja/manual/function/helper/intro/index.html">DBFlute Intro | DBFlute</a></div>
+
+	<h2 id="jsapiseparate">JS/API別サーバーパターン</h2>
+	<p>
+		互いに独立しているので、クラスやURLなどで調整することは基本的にありません。
+	</p>
+	<p>
+		ただ、CORS対応をする必要があるでしょう。
+	</p>
+	<p>
+		TODO jflute AssistantDirector にて、CORS の設定する説明を書く
+	</p>
 
 	<h2 id="restapi">REST APIにするには？</h2>
 	<h3 id="restmethod">HTTPメソッドごとにマッピングする方法</h3>
@@ -355,6 +498,31 @@
 		です。これ自体はインターフェースなので、実装クラスは Maihama プロジェクトであれば、<em class="mark">MaihamaApiFailureHook</em> というクラスとなり、AssistantDirectorで登録されます。
 	</p>
 	<div class="detailpage"><a href="./apifailure.html">忘れられないApiFailureHook</a></div>
+
+	<div class="inucolumn">
+		<h2 id="dateserverclient">日付フォーマットはサーバーで解決？それとも、クライアントで解決？</h2>
+		<p>
+			JSON上の日付フォーマットを、サーバーで解決するのか？クライアントで解決するのか？大きな別れ道です。
+			プロジェクトの最初に必ず決めておかなければならないでしょう。
+		</p>
+		<dl class="keymainlist">
+			<dt>サーバーで解決</dt><dd>日付フォーマットが変わったらデプロイし直し、サーバー再起動</dd>
+			<dt>クライアントで解決</dt><dd>日付フォーマットが変わったらクライアントの修正</dd>
+		</dl>
+		<p>
+			あと、サーバーで解決した場合、クライアントごとにフォーマットが変わる場合は対応できません。
+		</p>
+		<p>
+			システム要件や運用的な話や組織的な話など色々と関連するため、一概にどちらにすべしと言えません。
+			その現場その現場でメリットデメリット考えてどちらにするか決める必要があります。
+		</p>
+		<p>
+			jflute個人的には、フォーマット変更のためだけにサーバーを再起動するのはちょっとつらい場面が多いかなと感じるので、特に問題なければクライアントで解決するようにします。
+		</p>
+		<p>
+			いずれにせよ、最初に決めてないとですね。バラバラになるのが一番つらい。
+		</p>
+	</div>
 
 </div>
 </div>
