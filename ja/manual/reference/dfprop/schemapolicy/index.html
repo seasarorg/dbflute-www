@@ -1,0 +1,367 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,DBFluteプロパティ,DBFluteProperty,schemaPolicyMap.dfprop" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>typeMappingMap | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>schemaPolicyMap</h1>
+	<ul class="indexlist">
+		<li><a href="#about">schemaPolicyMapとは？</a></li>
+		<li><a href="#property">プロパティ</a>
+			<ul>
+				<li><a href="#tableexceptlist">tableExceptList</a></li>
+				<li><a href="#tabletargetlist">tableTargetList</a></li>
+				<li><a href="#columnexcecptmap">columnExcecptMap <span class="frm">(@since 1.1.2)</span></a></li>
+				<li><a href="#ismainschemaonly">isMainSchemaOnly</a></li>
+				<li><a href="#wholemap">wholeMap <span class="frm">(@since 1.1.2)</span></a></li>
+				<li><a href="#tablemap">tableMap</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="about">schemaPolicyMapとは？</h2>
+	<p>
+		SchemaPolicyCheck のためのポリシーを設定する dfprop です<span class="frm">(@since 1.1.1)</span>。この dfprop
+		ファイルに設定が追加されると、Docタスクにて SchemaPolicyCheck が実行されます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/generator/task/doc/index.html">Docタスク</a></div>
+
+	<h2 id="property">プロパティ</h2>
+	<p>
+		<em class="keyword">map型プロパティ</em> で、JDBC型とプログラム型の関連を key-value 形式で定義します。
+	</p>
+<pre><span class="codetitle">schemaPolicyMapの仕様 @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    ; <span class="attribute">tableExceptList</span> = <span class="keyword">list:</span>{ [table-hints for exccept] }
+    ; <span class="attribute">tableTargetList</span> = <span class="keyword">list:</span>{ [table-hints for target] }
+    ; <span class="attribute">columnExceptMap</span> = <span class="keyword">map:</span>{
+        ; [table-hint] = <span class="keyword">list:</span>{ [column-hints for exccept] }
+    }
+    ; <span class="attribute">isMainSchemaOnly</span> = [true or false]
+
+    ; <span class="attribute">wholeMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+    }
+    ; <span class="attribute">tableMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{ [statements] }
+    }
+    ; <span class="attribute">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{ [statements] }
+    }
+}
+</code></pre>
+	<p>
+		<em class="bigmark">theme</em> は、DBFlute側が提供するお決まりのパターンポリシーです。例えば、tableMap にて upperCaseBasis
+		とすれば、テーブル名は大文字であることがチェックされます。
+	</p>
+	<p>
+		<em class="bigmark">statement</em> は、アプリ側が独自に設定するポリシーです。"もし...だったら、これは...である"
+		というような形式で指定します。
+	</p>
+<pre><span class="codetitle">e.g. カラム名が _FLG で終わっていたら、データ型は INTEGER であること @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; <span class="attribute">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ <span class="abbreviation">...</span> }
+        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{
+            ; <span class="point">if columnName is suffix:_FLG then dbType is INTEGER</span>
+        }
+    }
+}
+</code></pre>
+	<p>
+		以下、(*)の付いたプロパティは必須です。
+	</p>
+	<h3 id="tableexceptlist">tableExceptList</h3>
+	<p>
+		チェックの除外テーブルのリスト。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブル名のlist型プロパティ</dd>
+		<dt>デフォルト</dt><dd>なし (除外するものなし)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>tableTargetList の指定がされている場合は無効 (target優先)</li>
+				<li>前方一致: "prefix:前方一致させる文字列" という形式で指定</li>
+				<li>後方一致: "suffix:後方一致させる文字列" という形式で指定</li>
+				<li>部分一致: "contain:部分一致させる文字列" という形式で指定</li>
+				<li>正規表現: "pattern:マッチさせる正規表現文字列" という形式で指定 <span class="frm">@since 1.1.2</span></li>
+				<li>正規表現を除き、大文字小文字の区別なし (ただし実体と合わせることを推奨)</li>
+				<li>複数指定時は、and 条件として扱われる (e.g. Aでもない、Bでもない)</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		基本的な使い方は、databaseInfoMap.dfprop の tableExceptList と似ています。
+	</p>
+	<div class="relatedpage"><a href="../databaseinfo/index.html#tableexceptlist">databaseInfoMap.dfprop - tableExceptList</a></div>
+	<h3 id="tabletargetlist">tableTargetList</h3>
+	<p>
+		チェックの対象テーブルのリスト。(特に指定がなければ全テーブルが対象)
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブル名のlist型プロパティ</dd>
+		<dt>デフォルト</dt><dd>なし (全テーブルが対象)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>指定方法は、基本的に <a href="#tableexceptlist">tableExceptList</a> と同じ</li>
+				<li>複数指定時は、and 条件として扱われる (A もしくは B)</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		基本的な使い方は、databaseInfoMap.dfprop の tableTargetList と似ています。
+	</p>
+	<div class="relatedpage"><a href="../databaseinfo/index.html#tabletargetlist">databaseInfoMap.dfprop - tableExceptList</a></div>
+	<h3 id="columnexcecptmap">columnExcecptMap <span class="frm">(@since 1.1.2)</span></h3>
+	<p>
+		チェックの除外カラムのリスト。(テーブル名とカラム名で指定なのでmap)
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブル名とカラム名のmap型プロパティ</dd>
+		<dt>デフォルト</dt><dd>なし (全てのカラムが対象)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>テーブル名の指定では、<a href="#tableexceptlist">tableExceptList</a> のように prefix: などが使える</li>
+				<li>カラム名リストの指定方法は、基本的に <a href="#tableexceptlist">tableExceptList</a> と同じ</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		基本的な使い方は、databaseInfoMap.dfprop の columnExcecptMap と似ていますが、若干違う部分があります。
+		例えば、テーブル名での prefix: などの利用可否が違います<span class="frm">(@now 1.1.2)</span>。
+	</p>
+	<div class="relatedpage"><a href="../databaseinfo/index.html#columnexceptmap">databaseInfoMap.dfprop - columnExceptMap</a></div>
+	<h3 id="ismainschemaonly">isMainSchemaOnly</h3>
+	<p>
+		チェックの対象が、メインスキーマだけかどうか？ (AdditionalSchemaを除外するかどうか？)
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>テーブル名とカラム名のmap型プロパティ</dd>
+		<dt>デフォルト</dt><dd>なし (全てのカラムが対象)</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>テーブル名の指定では、<a href="#tableexceptlist">tableExceptList</a> のように prefix: などが使える</li>
+				<li>カラム名リストの指定方法は、基本的に <a href="#tableexceptlist">tableExceptList</a> と同じ</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		AdditionalSchema のテーブルも一緒にチェックされます。
+		もし、スキーマごとにポリシーが違うとチェックがやりづらいので、メインスキーマだけに絞ることができます。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/projectfit/additionalschema/index.html">現場フィット - AdditionalSchema</a></div>
+	<p>
+		それぞれの AdditionalSchema に独自のポリシーを設定することはできないため、
+		AdditionalSchema のテーブルのポリシーチェックは、別途そのスキーマ専用のDBFluteクライアントを用意すると良いでしょう。
+	</p>
+	<h3 id="wholemap">wholeMap <span class="frm">(@since 1.1.2)</span></h3>
+	<p>
+		スキーマ全体に対するポリシー。themeList だけが利用できます。(statementListは不可)
+	</p>
+<pre><span class="codetitle">e.g. テーブルの別名がユニーク、カラム名が同じならカラムの別名も同じ @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; <span class="attribute">wholeMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ uniqueTableAlias ; sameColumnAliasIfSameColumnName }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h4>themeList</h4>
+	<p>
+		利用できる theme は以下の通りです。
+	</p>
+	<dl class="lolongkeymainlist">
+		<dt>uniqueTableAlias</dt><dd>テーブルの別名がユニークである</dd>
+		<dt>sameColumnAliasIfSameColumnName</dt><dd>カラム名が同じならカラムの別名も同じ</dd>
+		<dt>sameColumnDbTypeIfSameColumnName</dt><dd>カラム名が同じならカラムのデータ型も同じ</dd>
+		<dt>sameColumnSizeIfSameColumnName</dt><dd>カラム名が同じならカラムのサイズも同じ</dd>
+		<dt>sameColumnNameIfSameColumnAlias</dt><dd>カラムの別名が同じならカラム名も同じ</dd>
+	</dl>
+	<p>
+		そもそも別名が定義されていないテーブルやカラムは比較対象になりません。
+		別名の必須チェックなどは、別途 tableMap や columnMap の statement にて表現すると良いでしょう。
+	</p>
+	<h4>statementList</h4>
+	<p>
+		wholeMap で statementList は利用できません。
+	</p>
+	<h3 id="tablemap">tableMap</h3>
+	<p>
+		テーブルに対するポリシー。
+	</p>
+<pre><span class="codetitle">e.g. テーブルの別名がユニーク、カラム名が同じならカラムの別名も同じ @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; <span class="attribute">tableMap</span> = <span class="keyword">map:</span>{
+        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ hasPK ; upperCaseBasis ; identityIfPureIDPK }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h4>themeList</h4>
+	<p>
+		利用できる theme は以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>hasPK</dt><dd>全てのテーブルがPKを持っている</dd>
+	"resource/css/sub-content.css"	<dt>upperCaseBasis</dt><dd>テーブル名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>lowerCaseBasis</dt><dd>テーブル名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>identityIfPureIDPK</dt><dd>FKではない _ID のPKカラムにはIdentityが付与される</dd>
+		<dt>hasCommonColumn</dt><dd>共通カラムを持っている</dd>
+		<dt>hasAlias</dt><dd>別名が存在する <span class="frm">(DBコメントの一部を別名として認識する設定が前提)</span></dd>
+		<dt>hasComment</dt><dd>テーブルのコメントが存在する (別名部分を除く)</dd>
+	</dl>
+	<p>
+		upperCaseBasis, lowerCaseBasis の大文字小文字判定では、DBFluteが管理するSQL上のテーブル名 (ConditionBeanのSQLで利用)
+		の大文字小文字ルールを利用します。例えば、upperCaseBasis をポリシーにしたとき、DBMSのメタデータが小文字であっても、littleAdjustmentMap.dfprop
+		にて isTableSqlNameUpperCase が true に設定されていればセーフです。
+	</p>
+	<p>
+		identityIfPureIDPK は、Sequence では効果ありません。
+	</p>
+	<p>
+		hasCommonColumn は、共通カラムのすべてのカラムを持っていればOKです。
+	</p>
+	<p>
+		hasAlias は、documentMap.dfprop の aliasDelimiterInDbComment が設定されていることが前提です。
+		<span class="frm">(DBFluteには、DBコメントの中の一部文字列を別名として扱う機能があります)</span>
+	</p>
+	<p>
+		hasComment は、別名設定がされていれば、DBコメントから別名の除いた部分だけで比較されます。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/engine/index.html">DBFluteエンジン</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/manage/index.html">Manage</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha (Eclipse Plugin)</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/intro/index.html">DBFlute Intro</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/saflute/index.html">SAFlute</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/utflute/index.html">UTFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
