@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>typeMappingMap | DBFlute</title>
+	<title>schemaPolicyMap | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -48,6 +48,9 @@
 				<li><a href="#ismainschemaonly">isMainSchemaOnly</a></li>
 				<li><a href="#wholemap">wholeMap <span class="frm">(@since 1.1.2)</span></a></li>
 				<li><a href="#tablemap">tableMap</a></li>
+				<li><a href="#tabletheme">table's <em class="smallmark">themeList</em></a></li>
+				<li><a href="#tablestatement">table's <em class="smallmark">statementList</em></a></li>
+				<li><a href="#columnmap">columnMap</a></li>
 			</ul>
 		</li>
 	</ul>
@@ -65,23 +68,23 @@
 	</p>
 <pre><span class="codetitle">schemaPolicyMapの仕様 @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
-    ; <span class="attribute">tableExceptList</span> = <span class="keyword">list:</span>{ [table-hints for exccept] }
-    ; <span class="attribute">tableTargetList</span> = <span class="keyword">list:</span>{ [table-hints for target] }
-    ; <span class="attribute">columnExceptMap</span> = <span class="keyword">map:</span>{
+    ; <span class=""localvar"">tableExceptList</span> = <span class="keyword">list:</span>{ [table-hints for exccept] }
+    ; <span class=""localvar"">tableTargetList</span> = <span class="keyword">list:</span>{ [table-hints for target] }
+    ; <span class=""localvar"">columnExceptMap</span> = <span class="keyword">map:</span>{
         ; [table-hint] = <span class="keyword">list:</span>{ [column-hints for exccept] }
     }
-    ; <span class="attribute">isMainSchemaOnly</span> = [true or false]
+    ; <span class=""localvar"">isMainSchemaOnly</span> = [true or false]
 
-    ; <span class="attribute">wholeMap</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+    ; <span class=""localvar"">wholeMap</span> = <span class="keyword">map:</span>{
+        ; <span class=""localvar"">themeList</span> = <span class="keyword">list:</span>{ [themes] }
     }
-    ; <span class="attribute">tableMap</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
-        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{ [statements] }
+    ; <span class=""localvar"">tableMap</span> = <span class="keyword">map:</span>{
+        ; <span class=""localvar"">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+        ; <span class=""localvar"">statementList</span> = <span class="keyword">list:</span>{ [statements] }
     }
-    ; <span class="attribute">columnMap</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ [themes] }
-        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{ [statements] }
+    ; <span class=""localvar"">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class=""localvar"">themeList</span> = <span class="keyword">list:</span>{ [themes] }
+        ; <span class=""localvar"">statementList</span> = <span class="keyword">list:</span>{ [statements] }
     }
 }
 </code></pre>
@@ -96,9 +99,9 @@
 <pre><span class="codetitle">e.g. カラム名が _FLG で終わっていたら、データ型は INTEGER であること @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     <span class="abbreviation">...</span>
-    ; <span class="attribute">columnMap</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ <span class="abbreviation">...</span> }
-        ; <span class="attribute">statementList</span> = <span class="keyword">list:</span>{
+    ; <span class="localvar">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ <span class="abbreviation">...</span> }
+        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
             ; <span class="point">if columnName is suffix:_FLG then dbType is INTEGER</span>
         }
     }
@@ -230,23 +233,26 @@
 	<p>
 		テーブルに対するポリシー。
 	</p>
-<pre><span class="codetitle">e.g. テーブルの別名がユニーク、カラム名が同じならカラムの別名も同じ @schemaPolicyMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. テーブルに対するポリシー、別名がユニークとか、FKの名前がFK_とか @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     <span class="abbreviation">...</span>
     ; <span class="attribute">tableMap</span> = <span class="keyword">map:</span>{
-        ; <span class="attribute">themeList</span> = <span class="keyword">list:</span>{ hasPK ; upperCaseBasis ; identityIfPureIDPK }
+        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ hasPK ; upperCaseBasis ; identityIfPureIDPK }
+        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
+            ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">$$ALL$$</span> <span class="keyword">then</span> fkName <span class="keyword">is</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+        }
     }
     <span class="abbreviation">...</span>
 }
 </code></pre>
-	<h4>themeList</h4>
+	<h3 id="tabletheme">table's <em class="smallmark">themeList</em></h3>
 	<p>
 		利用できる theme は以下の通りです。
 	</p>
 	<dl class="keymainlist">
 		<dt>hasPK</dt><dd>全てのテーブルがPKを持っている</dd>
-	"resource/css/sub-content.css"	<dt>upperCaseBasis</dt><dd>テーブル名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
-		<dt>lowerCaseBasis</dt><dd>テーブル名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>upperCaseBasis</dt><dd>テーブル名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>lowerCaseBasis</dt><dd>テーブル名は小文字 <span class="frm">(SQL上の名前で判定)</span></dd>
 		<dt>identityIfPureIDPK</dt><dd>FKではない _ID のPKカラムにはIdentityが付与される</dd>
 		<dt>hasCommonColumn</dt><dd>共通カラムを持っている</dd>
 		<dt>hasAlias</dt><dd>別名が存在する <span class="frm">(DBコメントの一部を別名として認識する設定が前提)</span></dd>
@@ -269,6 +275,93 @@
 	</p>
 	<p>
 		hasComment は、別名設定がされていれば、DBコメントから別名の除いた部分だけで比較されます。
+	</p>
+	<h3 id="tablestatement">table's <em class="smallmark">statementList</em></h3>
+	<h4>if の主語</h4>
+	<p>
+		利用できる statement の if の主語は以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>tableName</dt><dd>テーブル名 <span class="frm">e.g. if tableName is prefix:CLS_</span></dd>
+		<dt>alias</dt><dd>テーブルの別名(和名) <span class="frm">e.g. if alias is prefix:商品</span></dd>
+		<dt>pk_dbType</dt><dd>PKのデータ型 <span class="frm">e.g. if pk_dbType is CHAR</span></dd>
+		<dt>pk_size</dt><dd>PKのデータサイズ、少数点はカンマ空白区切り(*1) <span class="frm">e.g. if pk_size is 3</span></dd>
+		<dt>pk_dbType_with_size</dt><dd>PKのデータ型サイズ付き <span class="frm">e.g. if pk_dbType_with_size is char(3)</span></dd>
+	</dl>
+	<p>
+		<span class="frm">(*1): 例えば、decimal型とかであれば、"8, 3" となる e.g. if pk_size is 8, 3</span>
+	</p>
+	<h4>then の "isなし" 表現</h4>
+	<p>
+		利用できる statement の then の "isなし" 表現は以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>bad</dt><dd>もうそれダメ <span class="frm">e.g. if ... is ... then bad</span></dd>
+		<dt>hasCommonColumn</dt><dd>共通カラムを持っているはず <span class="frm">e.g. if ... is ... then hasCommonColumn</span></dd>
+	</dl>
+	<p>
+		利用できる statement の then の "isあり" 表現は以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>tableName</dt><dd>テーブル名 <span class="frm">e.g. then tableName is prefix:CLS_</span></dd>
+		<dt>alias</dt><dd>テーブルの別名(和名) <span class="frm">e.g. then alias is prefix:商品</span></dd>
+	</dl>
+	<p>
+		利用できる構文調整は以下の通りです。
+	</p>
+	<dl class="textlist">
+		<dt>not</dt><dd>否定、is not, then not <span class="frm">e.g. if tableName is not prefix:CLS_</span></dd>
+		<dt>and/or</dt>
+		<dd>かつ、もしくは <span class="frm">e.g. if tableName is prefix:CLS_ and pk_dbType is CHAR</span></dd>
+		<dd>二つの文章を連結させる and/or と、値を連結させる and/or がある。</dd>
+	</dl>
+	<p>
+		TODO jflute now writing...
+	</p>
+	<h3 id="columnmap">columnMap</h3>
+	<p>
+		カラムに対するポリシー。
+	</p>
+<pre><span class="codetitle">e.g. カラムに対するポリシー、大文字とか、_FLG は NotNull とか @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+    ; <span class="localvar">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ upperCaseBasis }
+        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
+            ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> notNull
+        }
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h4>column's <em class="smallmark">themeList</em></h4>
+	<p>
+		利用できる theme は以下の通りです。
+	</p>
+	<dl class="keymainlist">
+		<dt>upperCaseBasis</dt><dd>カラム名は大文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>lowerCaseBasis</dt><dd>カラム名は小文字 <span class="frm">(SQL上の名前で判定)</span></dd>
+		<dt>hasAlias</dt><dd>別名が存在する <span class="frm">(DBコメントの一部を別名として認識する設定が前提)</span></dd>
+		<dt>hasComment</dt><dd>カラムのコメントが存在する (別名部分を除く)</dd>
+	</dl>
+	<p>
+		<span class="frm">(テーブルに方とほぼ同じ内容です)</span>
+		upperCaseBasis, lowerCaseBasis の大文字小文字判定では、DBFluteが管理するSQL上のカラム名 (ConditionBeanのSQLで利用)
+		の大文字小文字ルールを利用します。例えば、upperCaseBasis をポリシーにしたとき、DBMSのメタデータが小文字であっても、littleAdjustmentMap.dfprop
+		にて isColumnSqlNameUpperCase が true に設定されていればセーフです。
+	</p>
+	<p>
+		<span class="frm">(テーブルに方とほぼ同じ内容です)</span>
+		hasAlias は、documentMap.dfprop の aliasDelimiterInDbComment が設定されていることが前提です。
+		<span class="frm">(DBFluteには、DBコメントの中の一部文字列を別名として扱う機能があります)</span>
+	</p>
+	<p>
+		<span class="frm">(テーブルに方とほぼ同じ内容です)</span>
+		hasComment は、別名設定がされていれば、DBコメントから別名の除いた部分だけで比較されます。
+	</p>
+	<h4>column's <em class="smallmark">statementList</em></h4>
+	<p>
+		TODO jflute now writing...
 	</p>
 
 </div>
