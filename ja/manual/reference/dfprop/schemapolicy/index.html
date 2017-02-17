@@ -38,6 +38,10 @@
 
 <div id="content">
 	<h1>schemaPolicyMap</h1>
+	<p>
+		このページは、DBFlute-1.1.2 以降を前提としています。
+		<span class="frm">(1.1.1 は機能が少ないため、SchemaPolicyCheckをしっかり使うなら 1.1.2 以降へのアップグレードをオススメします)</span>
+	</p>
 	<ul class="indexlist">
 		<li><a href="#about">schemaPolicyMapとは？</a></li>
 		<li><a href="#property">プロパティ</a>
@@ -525,11 +529,16 @@
         }
         ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
             ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">$$ALL$$</span> <span class="keyword">then</span> fkName <span class="keyword">is</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+            ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">$$ALL$$</span> <span class="keyword">then</span> indexName <span class="keyword">is</span> <span class="attribute">prefix:</span>IX_<span class="attribute">$$table$$</span> <span class="keyword">or</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
         }
     }
     ; <span class="localvar">columnMap</span> = <span class="keyword">map:</span>{
         ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ upperCaseBasis }
         ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
+            <span class="comment"># CODE column</span>
+            ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">prefix:</span>CLS_ <span class="keyword">and</span> column <span class="keyword">is</span> pk <span class="keyword">then</span> classification <span class="keyword">=&gt;</span> set classification dfprop
+
+            <span class="comment"># FLG column</span>
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLAG <span class="keyword">then</span> bad
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> notNull
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> dbType is INTEGER
