@@ -47,9 +47,37 @@
 		<li><a href="#overview">Java上でスケジューリング</a></li>
 		<li><a href="#architecture">LastaJobのアーキテクチャ</a></li>
 		<li><a href="#prepare">まずは、Jobの環境準備</a></li>
-		<li><a href="#scheduling">Jobのスケジューリング</a></li>
-		<li><a href="#howtojob">Jobの実装の仕方</a></li>
+		<li><a href="#scheduling">Jobのスケジューリング</a>
+			<ul>
+				<li><a href="#schedulerpackage">AllJobSchedulerのパッケージ</a></li>
+				<li><a href="#schedulerimpl">AllJobSchedulerの実装</a></li>
+				<li><a href="#concurrenttype">二重起動防止のタイプ</a></li>
+				<li><a href="#variousoption">様々なオプション</a></li>
+				<li><a href="#jobrunner">LaJobRunnerのカスタマイズ</a></li>
+			</ul>
+		</li>
+		<li><a href="#howtojob">Jobの実装の仕方</a>
+			<ul>
+				<li><a href="#jobpackage">Jobクラスのパッケージ</a></li>
+				<li><a href="#jobimpl">Jobクラスの実装</a></li>
+				<li><a href="#transactionstage">トランザクションはTransactionStage</a></li>
+				<li><a href="#systemexception">システム例外のcatchは不要</a></li>
+				<li><a href="#jobassist">JobAssistも使える</a></li>
+				<li><a href="#letsendtitleroll">EndTitleRollを活用しよう</a></li>
+			</ul>
+		</li>
+		<li><a href="#noticelog">Jobの実行通知ログ</a>
+			<ul>
+				<li><a href="#beginendlog">開始ログ、終了ログ</a></li>
+				<li><a href="#endtitleroll">EndTitleRoll</a></li>
+				<li><a href="#exceptionlogging">例外ログ</a></li>
+			</ul>
+		</li>
+		<li><a href="#unittest">JobクラスのUnitTest</a></li>
 		<li><a href="#jobmanager">JobManagerでマネジメント</a></li>
+		<li><a href="#example">Example実装は maihama-orleans にて</a></li>
+		<li><a href="#batchscreen">バッチ管理画面の作成</a></li>
+		<li><a href="#outsidecron">外だしスケジューラー方式</a></li>
 	</ul>
 
 	<h2 id="overview">Java上でスケジューリング</h2>
@@ -98,6 +126,7 @@
 </code></pre>
 
 	<h2 id="scheduling">Jobのスケジューリング</h2>
+	<h3 id="schedulerpackage">AllJobSchedulerのパッケージ</h3>
 	<p>
 		app.job.AllJobScheduler クラスを作成して、Jobクラスを cron 登録します。
 	</p>
@@ -116,6 +145,7 @@ org.docksidestage
  |-dbflute
  |-mylasta
 </code></pre>
+	<h3 id="schedulerimpl">AllJobSchedulerの実装</h3>
 	<p>
 		AllJobScheduler は、LaJobSchedulerインターフェースを implements します。
 	</p>
@@ -153,12 +183,79 @@ org.docksidestage
 		ここで、cron(起動時間)をハードコードするのか、configから取るのか、はたまた別のところから取るのかはアプリの自由です。
 		必要に応じて調整しましょう。
 	</p>
+	<p>
+		同じJobクラスを複数登録できます。クラスは同じでも、パラメーターを変えたりして、少し違う挙動をする別のJobとして振る舞えるようにしています。
+		その場合、内部管理的にも別Job扱いとなります。ゆえに、例えば "同じJob"
+		という表現をするときは、明示的にクラスという言葉が付いていなければ、登録単位で同じかどうかを示すます。
+	</p>
+	<h3 id="concurrenttype">二重起動防止のタイプ</h3>
+	<p>
+		register()メソッドでは、必ず二重起動防止のタイプを指定します。
+	</p>
+	<dl class="keymainlist">
+		<dt>waitIfConcurrent()</dt><dd>同じJobが実行中だったら先Jobが終わるのを待つ</dd>
+		<dt>quitIfConcurrent()</dt><dd>同じJobが実行中だったら後Jobが実行を静かに諦める</dd>
+		<dt>errorIfConcurrent()</dt><dd>同じJobが実行中だったら後Jobがエラーになる</dd>
+	</dl>
+	<p>
+		同じJob同士での二重起動防止ですが、厳密にはJobクラス単位ではなく、cronに登録した単位です。
+		同じJobクラスを違うパラメーターで複数登録できますが、その場合は別Job扱いとなります。
+	</p>
+	<h3 id="variousoption">様々なオプション</h3>
+	<p>
+		それぞれのJobに対して、様々なオプションを付与することができます。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>op.title(...)</dt><dd>人が見るための、Jobのタイトル <span class="frm">(Job管理画面などで使うこと想定)</span> <span class="frm">(@since 0.2.6)</span></dd>
+		<dt>op.uniqueBy(...)</dt><dd>Job特定のための、Jobのユニークコード <span class="frm">(アプリが付与する不変の文字列を想定)</span></dd>
+		<dt>op.params(...)</dt><dd>Jobに与えるパラメーター <span class="frm">(検索範囲の日付などを想定)</span></dd>
+	</dl>
+	<p>
+		ユニークコードは、JobManagerでJobを探すのに使えます。
+		Jobを特定するためのキーは、デフォルトで JobKey
+		が付与されていますが、再起動のたびに変わる内部管理用の文字列です。
+		システム外からもJobを制御するために不変のコードを付与したい場合は、ユニークコードを使うと良いでしょう。
+	</p>
+	<p>
+		タイトルやユニークコードは、それぞれ LaScheduledJob から取得できます。
+		パラメーターは、Jobクラスの中で LaJobRuntime から取得できます。
+	</p>
+	<h3 id="jobrunner">LaJobRunnerのカスタマイズ</h3>
+	<p>
+		LastaJobでは、Jobを実行する LaJobRunner をカスタマイズすることで、様々な Job
+		に対する共通処理や挙動の変更などを実現できます。LaJobRunner はアプリが new しますので、好きなようにオーバーライドできます。
+	</p>
+	<p>
+		例えば、すべてのJobでエラーが発生した時にメールを飛ばしたかったら、logJobException()
+		をオーバーライドすると良いでしょう<span class="frm">(@since 0.2.7)</span>。
+	</p>
+<pre><span class="codetitle">e.g. override job runner for error mail sending @Java</span><code>
+@Override
+<span class="keyword">public</span> LaJobRunner createRunner() {
+    <span class="keyword">return new</span> LaJobRunner() {
+        @Override
+        <span class="keyword">protected void</span> <span class="point">logJobException</span>(LaJobRuntime <span class="localvar">runtime</span>, String <span class="localvar">msg</span>, Throwable <span class="localvar">cause</span>) {
+            <span class="keyword">super</span>.logJobException(<span class="localvar">runtime</span>, <span class="localvar">msg</span>, <span class="localvar">cause</span>); <span class="comment">// これ消さないで！</span>
+            <span class="comment">// 例えば、ここでメールを飛ばすとか！</span>
+            <span class="comment">// msgにはスタックトレースなど含まれているので必要に応じてメール本文に</span>
+        }
+    }.useAccessContext(<span class="localvar">resource</span> -&gt; {
+        <span class="keyword">return</span> <span class="attribute">accessContextLogic</span>.create(<span class="localvar">resource</span>, () -&gt; OptionalThing.empty(), () -&gt; OptionalThing.empty(), () -&gt; <span class="attribute">APP_TYPE</span>);
+    });
+}
+</code></pre>
+	<p>
+		大抵の場合、DBFluteの共通カラムの設定は、必ずやる必要があるでしょう。
+		LastaFlute の Example では、最初から設定されています。Actionクラスのものと再利用するために、Logicクラスに切り出されています(AccessContextLogic)。
+	</p>
+	<div class="relatedpage"><a href="#example">this - Example実装は maihama-orleans にて</a></div>
 
 	<h2 id="howtojob">Jobの実装の仕方</h2>
+	<h3 id="jobpackage">Jobクラスのパッケージ</h3>
 	<p>
 		app.job の下に Job クラスを作成します。
 	</p>
-<pre><span class="codetitle">e.g. AllJobScheduler package @Directory</span><code>
+<pre><span class="codetitle">e.g. Job package @Directory</span><code>
 org.docksidestage
  |-app <span class="comment">// application package</span>
  |  |-<span class="subpoint">job</span>
@@ -172,6 +269,7 @@ org.docksidestage
  |-dbflute
  |-mylasta
 </code></pre>
+	<h3 id="jobimpl">Jobクラスの実装</h3>
 	<p>
 		Job は、LaJobインターフェースを implements します。
 	</p>
@@ -197,6 +295,196 @@ org.docksidestage
     }
 }
 </code></pre>
+	<h3 id="transactionstage">トランザクションはTransactionStage</h3>
+	<p>
+		Actionとは違い、トランザクションはデフォルトではかかっていません。バッチ処理は細かくトランザクションを分ける可能性が非常に高いからです。
+		なので、TransactionStage を DI して、うまくトランザクションをロジックの中に組み込みましょう
+	</p>
+	<h3 id="systemexception">システム例外のcatchは不要</h3>
+	<p>
+		Actionと同じく、システム例外(要はバグ)は自分で catch
+		してログに出す必要はありません。そのまま throw すれば、LastaJob が catch して ERROR
+		レベルでログを出力します。
+	</p>
+	<p>
+		Jobの実行管理情報を付与して出力してくれるので、アプリでは throw
+		する例外のメッセージをいかにデバッグしやすいものにするかに注力しましょう。
+		<span class="frm">(例外のきっかけになった値をメッセージに載せる)</span>
+	</p>
+	<h3 id="jobassist">JobAssistも使える</h3>
+	<p>
+		Action の ActionAssist と同じような感じで、Job も JobAssist
+		が使えます。再利用するようなものではないけど、クラス分けして整理整頓したいという場合にどんどん利用していきましょう。
+	</p>
+	<div class="relatedpage"><a href="../impldesign/actiondesign.html">Actionの実装デザイン</a></div>
+	<p>
+		jobパッケージの下に、Assistで終わる名前のクラスであれば Quick Component
+		として認識されるので、JobクラスでDIして利用することができます。
+	</p>
+<pre><span class="codetitle">e.g. job assist @Package</span><code>
+app
+ |-job
+ |  |-AllJobScheduler
+ |  |-sea
+ |  |  |-SeaJob.java
+ |  |  |-<span class="point">SeaAssist.java</span>
+ |  |-land
+ |-web
+</code></pre>
+	<h3 id="letsendtitleroll">EndTitleRollを活用しよう</h3>
+	<p>
+		例えば、どの会員を処理した？何件処理した？何件中何件は失敗した？などの情報をログとして残すことは、バッチの実装における必須要件とも言えるでしょう。
+		自前でログに出してもOKではありますが、LastaJobではそういった情報を出力するための領域が用意されています。
+	</p>
+	<div class="detailpage"><a href="#noticelog">this - Jobの実行通知ログ</a></div>
+<pre><span class="codetitle">e.g. simple EndTitleRoll on Job @Java</span><code>
+<span class="localvar">runtime</span>.<span class="point">showEndTitleRoll</span>(<span class="localvar">data</span> -&gt; {
+    <span class="localvar">data</span>.register(<span class="literal">"targetMember"</span>, <span class="localvar">memberId</span>);
+});
+</code></pre>
+	<h2 id="noticelog">Jobの実行通知ログ</h2>
+	<h3 id="beginendlog">開始ログ、終了ログ</h3>
+	<p>
+		バッチで不可欠な、実行通知ログがデフォルトで組み込まれています。
+		INFOレベルなので、本番でも出力されます。<span class="frm">(設定次第ですが、LastaFlute の Startup のデフォルト設定ではINFOも本番出力)</span>
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>開始ログ</dt><dd>cron(時間)とJobクラスなどの情報</dd>
+		<dt>終了ログ</dt><dd>Jobクラスなどの情報に加えて、Jobの結果</dd>
+	</dl>
+	<p>
+		Jobの結果ではシステム的な情報が表示されます。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>パフォーマンスビュー</dt><dd>そのJobの実行にどれだけ時間がかかったか？</dd>
+		<dt>SQL発行回数</dt><dd>そのJobの実行でどれだけDBアクセスしたか？ <span class="frm">(DBFluteと連携)</span></dd>
+		<dt>メール送信回数</dt><dd>そのJobの実行でどれだけメール送信したか？ <span class="frm">(MailFluteと連携)</span></dd>
+		<dt>Jobのランタイム情報</dt><dd>LaJobRuntime の toString() <span class="frm">(フレームワーク内部情報)</span></dd>
+		<dt>EndTitleRoll</dt><dd>Jobクラスの中で指定された業務上の結果 <span class="frm">(アプリで指定、処理件数などを想定)</span></dd>
+	</dl>
+<pre><span class="codetitle">e.g. Job Notice Log @Log</span><code>
+<span class="abbreviation">...</span> INFO  (<span class="abbreviation">...</span>) - #flow #job <span class="point">...Running job</span>: * * * * * SeaJob@run()
+
+<span class="abbreviation">...</span>
+
+<span class="abbreviation">...</span> INFO  (<span class="abbreviation">...</span>) - #flow #job <span class="point">...Finishing job</span>: SeaJob@run()
+<span class="subpoint">[Job Result]</span>
+ <span class="localvar">performanceView</span>: 00m01s328ms
+ <span class="localvar">sqlCount</span>: {total=3, selectCB=1, entityUpdate=2, queryUpdate=0, outsideSql=0, procedure=0}
+ <span class="localvar">runtime</span>: Cron4jRuntime:{* * * * *, SeaJob@run(), params={}}@74469155
+ <span class="localvar">endTitleRoll</span>:
+   <span class="localvar">targetMember</span>: 3
+</code></pre>
+	<h3 id="endtitleroll">EndTitleRoll</h3>
+	<p>
+		EndTitleRoll は、Jobクラスの中で指定します。
+		例えば、どの会員を処理した？何件処理した？何件中何件は失敗した？など、仕組みの中では判別できない業務情報を載せると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. EndTitleRoll on Job @Java</span><code>
+@Override
+<span class="keyword">public void</span> run(LaJobRuntime <span class="localvar">runtime</span>) {
+    <span class="keyword">int</span> <span class="localvar">memberId</span> = 3; <span class="comment">// #simple_for_example</span>
+    <span class="attribute">stage</span>.required(tx -&gt; {
+        Member <span class="localvar">before</span> = <span class="attribute">memberBhv</span>.selectByPK(<span class="localvar">memberId</span>).get();
+        updateMember(<span class="localvar">before</span>.getMemberId());
+        restoreMember(<span class="localvar">before</span>.getMemberId(), <span class="localvar">before</span>.getMemberName()); <span class="comment">// for test</span>
+    });
+    <span class="localvar">runtime</span>.<span class="point">showEndTitleRoll</span>(<span class="localvar">data</span> -&gt; {
+        <span class="localvar">data</span>.register(<span class="literal">"targetMember"</span>, <span class="localvar">memberId</span>);
+    });
+}
+</code></pre>
+	<p>
+		自前で出さずに、EndTitleRollとして出力するメリットは:
+	</p>
+	<dl class="textlist">
+		<dt>どんな情報をログに出しているかわかりやすい</dt>
+		<dd>プログラムの中にあれこれ挟むのではなく、最後に register するのでログ要件のレビューもしやすい。</dd>
+		<dt>他のログと紛れない</dt>
+		<dd>別々のJobが同時に実行されていても、一回の終了ログでまとめて出すことで他のログと紛れない。</dd>
+		<dt>UnitTestでテストしやすくなる</dt>
+		<dd>EndTitleRoll自体を、UnitTestの中で参照してアサートすることができる。</dd>
+	</dl>
+	<h3 id="exceptionlogging">例外ログ</h3>
+	<p>
+		例外が発生したら、ERRORレベルで例外メッセージとスタックトレースなどの情報が出力されます。
+		ゆえに、Jobクラスの中で自前でtry-catchしてエラーログに出力する必要はありません。
+		<span class="frm">(処理を続行するような場合はまたちょっと話は別ですが、処理が中断して良い状態であればthrowしちゃってOK)</span>
+	</p>
+<pre><span class="codetitle">e.g. Exception log for Job @Java</span><code>
+2017-02-19 10:38:00,051 [job_7f80fef4] ERROR (LaJobRunner@handleJobException():323) - Failed to run the job process: #flow #job
+<span class="subpoint">/= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =: org.docksidestage.app.job.SeaJob</span>
+  <span class="localvar">jobRuntime</span>=Cron4jRuntime:{* * * * *, SeaJob@run(), params={}}@67b2c004
+  ; <span class="localvar">accessContext</span>=AccessContext:{localDateTimeProvider=org.docksidestage.app.logic.context.AccessContextLogic$$Lambda$96/1603633761@3fa058c5, userProvider=org.docksidestage.app.logic.context.AccessContextLogic$$Lambda$98/710322753@73e22d87}
+  ; <span class="localvar">callbackContext</span>=CallbackContext:{behaviorCommandHook=null, sqlFireHook=RomanticTraceableSqlFireHook@4d899cf5, sqlLogHandler=null, sqlResultHandler=RomanticTraceableSqlResultHandler@3c4ac7a0, sqlStringFilter=RomanticTraceableSqlStringFilter@111d69c}
+  ; <span class="localvar">sqlCount</span>={total=0, selectCB=0, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
+<span class="subpoint">= = = = = = = = = =/ [00m00s014ms] #47667fab</span>
+<span class="point">java.lang.IllegalStateException</span>: exception test
+	at org.docksidestage.app.job.SeaJob.run(SeaJob.java:45)
+	at org.lastaflute.job.LaJobRunner.actuallyRun(LaJobRunner.java:169)
+	at org.lastaflute.job.LaJobRunner.doRun(LaJobRunner.java:154)
+	at org.lastaflute.job.LaJobRunner.run(LaJobRunner.java:118)
+	at org.lastaflute.job.cron4j.Cron4jTask.runJob(Cron4jTask.java:153)
+	at org.lastaflute.job.cron4j.Cron4jTask.doExecute(Cron4jTask.java:140)
+	at org.lastaflute.job.cron4j.Cron4jTask.execute(Cron4jTask.java:104)
+	at it.sauronsoftware.cron4j.TaskExecutor$Runner.run(Unknown Source)
+	at java.lang.Thread.run(Thread.java:745)
+2017-02-19 10:38:00,061 [job_7f80fef4] INFO  (JobNoticeLog@log():40) - #flow #job ...Finishing job: SeaJob@run()
+[Job Result]
+ performanceView: 00m00s022ms
+ sqlCount: {total=0, selectCB=0, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
+ runtime: Cron4jRuntime:{* * * * *, SeaJob@run(), params={}}@67b2c004
+ <span class="subpoint">cause: IllegalStateException *Read the exception message! #47667fab</span>
+</code></pre>
+	<p>
+		ERRORレベルの例外情報に加えて、INFOの終了ログも出ます。互いのログの紐付けは、ハッシュコード
+		(Exampleだと #47667fab) を見ることで判断できます。<span class="frm">@since 0.2.7</span>
+	</p>
+
+	<h2 id="unittest">JobクラスのUnitTest</h2>
+	<h3 id="newinjectrun">new して inject して run()</h2>
+	<p>
+		普通に UTFlute のやり方で、new して inject して run() メソッドを呼び出せます。
+	</p>
+<pre><span class="codetitle">e.g. Job Unit Test on Job @Java</span><code>
+<span class="keyword">public class</span> SeaJobTest <span class="keyword">extends</span> UnitOrleansTestCase {
+
+    <span class="keyword">public void</span> test_run_basic() {
+        <span class="comment">// ## Arrange ##</span>
+        SeaJob <span class="localvar">job</span> = <span class="keyword">new</span> SeaJob();
+        inject(<span class="localvar">job</span>);
+        MockJobRuntime <span class="localvar">runtime</span> = <span class="subpoint">MockJobRuntime.of</span>(job.getClass());
+
+        <span class="comment">// ## Act ##</span>
+        <span class="localvar">job</span>.<span class="point">run</span>(<span class="localvar">runtime</span>);
+
+        <span class="comment">// ## Assert ##</span>
+        <span class="comment">// BehaviorをDIして、DBの状態とかのアサートをやると良いでしょう</span>
+        <span class="abbreviation">...</span>
+
+        <span class="comment">// EndTitleRollのアサートやると良いでしょう</span>
+        Map<String, Object> <span class="localvar">rollMap</span> = <span class="localvar">runtime</span>.getEndTitleRollMap();
+        log(<span class="localvar">rollMap</span>);
+        assertEquals(<span class="literal">3</span>, <span class="localvar">rollMap</span>.get(<span class="literal">"targetMember"</span>));
+    }
+}
+</code></pre>
+	<h3 id="mockjobruntime">run() の引数に MockJobRuntime</h2>
+	<p>
+		引数の LaJobRuntime は、MockJobRuntime.of() で Mock を作れます<span class="frm">(@since 0.2.7)</span>。
+	</p>
+	<p>
+		大抵の場合は、他の情報を付与する必要はありませんが、Jobクラスの中でパラメーターなどを参照している場合は、必要に応じて設定しましょう。
+		of() のオーバーロードメソッドで指定できます。
+	</p>
+	<h3 id="assertendtitleroll">アサートで EndTitleRoll も</h2>
+	<p>
+		EndTitleRollのアサートはしっかりやると良いでしょう。やはりバッチは本番の運用が大事です。
+		業務は満たしていても、運用で必要なログが出ていなければつらいものです。
+	</p>
+	<p>
+		内容は、runtime の getEndTitleRollMap() から Map で取れます<span class="frm">(@since 0.2.7)</span>。
+	</p>
 
 	<h2 id="jobmanager">JobManagerでマネジメント</h2>
 	<p>
@@ -213,8 +501,9 @@ org.docksidestage
 		find した <em class="mark">LaScheduledJob</em> で、個々の Job に対して操作することもできます。
 	</p>
 	<dl class="shortkeymainlist">
-		<dt>getJobKey()</dt><dd>JobKeyを取得</dd>
-		<dt>getJobUnique()</dt><dd>アプリ指定のユニークコードを取得 <span class="frm">(あれば)</span></dd>
+		<dt>getJobKey()</dt><dd>Job特定のための、内部発行したJobキーを取得</dd>
+		<dt>getJobTitle()</dt><dd>人が見るための、アプリ指定のタイトルを取得 <span class="frm">(あれば)</span> <span class="frm">(@since 0.2.6)</span></dd>
+		<dt>getJobUnique()</dt><dd>Job特定のための、アプリ指定のユニークコードを取得 <span class="frm">(あれば)</span></dd>
 		<dt>getCronExp()</dt><dd>cron設定を取得</dd>
 		<dt>getJobType()</dt><dd>Jobコンポーネントの型を取得</dd>
 		<dt>isExecutingNow()</dt><dd>このJobがいま動いているかどうか？</dd>
@@ -225,6 +514,111 @@ org.docksidestage
 		<dt>becomeNonCron()</dt><dd>このJobをcronなし状態にする、勝手には動かない <span class="frm">(launchNow()だけで動かせる)</span></dd>
 		<dt>isUnscheduled()</dt><dd>このJobがunscheduleされたかどうか？</dd>
 	</dl>
+
+	<h2 id="example">Example実装は maihama-orleans にて</h2>
+	<p>
+		LastaJobのExample実装は、マルチプロジェクトのExampleであれば、maihamaプロジェクトの
+		maihama-orleans にあります。
+	</p>
+	<p>
+		<a href="https://github.com/lastaflute/lastaflute-example-maihama">https://github.com/lastaflute/lastaflute-example-maihama.git</a>
+	</p>
+
+	<div class="inucolumn">
+		<h2 id="batchscreen">バッチ管理画面の作成</h2>
+		<p>
+			バッチが落ちたときにリカバリ実行するためなど、様々な場面でバッチ管理画面があると役に立ちます。
+			cronを一時的に5分後に設定して再起動してリリースして終わったら元に戻す...なんて運用はしたくないものです。
+		</p>
+		<p>
+			画面を作ることも想定して、LastaJob は LastaFlute の上で動いています。バッチだから Tomcat
+			じゃなくても良いのでは？と普通は思いますが、バッチ管理画面とセットになっていた方が環境構築の手間も省けるので何かと世話ないのです。
+			<span class="frm">(プロセス分割とかしないシンプルな構成であれば)</span>
+		</p>
+		<p>
+			例えば、Job一覧画面を作成するのであれば、Actionクラスで JobManager@getJobList()
+			を呼んで画面に表示すればOKです。JobManager が Job のデータベースの入り口のようなものです。
+		</p>
+		<p>
+			そこで選択されたJobを実行するのであれば、Actionクラスで JobManager@findJobByなんとか()
+			を呼んで、LaScheduledJob@launchNow() を呼べばOKです。isExecutingNow()
+			で実行状態も確認できるので、細かい制御も入れることができます。
+		</p>
+		<p>
+			Jobの実行中にアプリを再起動しないように、実行状態を表示しておくのも良いでしょう。再起動する前提で、すべての Job
+			を一気に unschedule するのも良いでしょう。現場の要件に合わせてうまく JobManager を使っていきましょう。
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="outsidecron">外だしスケジューラー方式</h2>
+		<p>
+			例えば、バッチサーバーをスケールさせたり、Jobごとに実行プロセスを分けてリリースのライフサイクルで互いに影響し合わないようにするなど、
+			インフラ的な解決が必要な場合は、LastaJobのスケジューリングの機能は利用せず、別途ツールでスケジューリングをする必要があるでしょう。
+		</p>
+		<p>
+			その場合でも、LastaJob は利用できるでしょう。
+			<em class="keyword">JobをCron設定せずに登録</em> すると、JobManager@launchNow() 経由のみで実行できる状態となります。
+		</p>
+<pre><span class="codetitle">e.g. NonCron Job registration @Java</span><code>
+@Override
+<span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
+    <span class="comment">//cron.register("* * * * *", SeaJob.class, waitIfConcurrent(), ...);</span>
+    <span class="localvar">cron</span>.<span class="point">registerNonCron</span>(<span class="subpoint">SeaJob</span>.<span class="keyword">class</span>, waitIfConcurrent(), op -&gt; {});
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			外部からJobを特定するための業務上の <em class="mark">Jobユニークコード</em> を設定しておくと良いでしょう。
+		</p>
+<pre><span class="codetitle">e.g. uniqueBy() to specify one Job @Java</span><code>
+@Override
+<span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
+    <span class="localvar">cron</span>.registerNonCron(<span class="subpoint">SeaJob</span>.<span class="keyword">class</span>, waitIfConcurrent(), op -&gt; {
+        op.<span class="point">uniqueBy</span>(<span class="literal">"sea"</span>); <span class="comment">// seaという名前で Job を特定できる</span>
+    });
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			そして、<em class="keyword">外部のスケジューラーから信号(リクエスト)を受けたら該当の Job を実行する</em> ような Action
+			クラスを一つ作ってしまえばOKです。
+		</p>
+<pre><span class="codetitle">e.g. NonCron Job registration @Java</span><code>
+@Resource
+<span class="keyword">private</span> JobManager <span class="attribute">jobManager</span>;
+
+@Override
+<span class="keyword">public</span> JsonResponse&lt;Void&gt; index(String <span class="localvar">uniqueCode</span>) {
+    LaJobUnique <span class="localvar">jobUnique</span> = LaJobUnique.of(<span class="localvar">uniqueCode</span>);
+    LaScheduledJob <span class="localvar">job</span> = <span class="attribute">jobManager</span>.findJobByUniqueOf(jobUnique).orElseTranslatingThrow(<span class="localvar">cause</span> -&gt; {
+        <span class="abbreviation">...</span> <span class="comment">// 存在しなかった時の処理: クライアントエラーとか!?</span>
+    });
+    <span class="localvar">job</span>.launchNow(); <span class="comment">// Jobの実行！</span>
+    <span class="keyword">return</span> JsonResponse.asEmptyBody();
+}
+</code></pre>
+		<p>
+			でも、これだったら別に Job じゃなくて、普通の Action
+			クラスでバッチ処理を書いても良さそうに一見思えますが、LataJob の Job として実装することにメリットがあります。
+		</p>
+		<dl class="shortkeymainlist">
+			<dt>Jobの二重起動防止</dt><dd>同じJavaVM内での二重起動防止は効く <span class="frm">(Actionにはない)</span></dd>
+			<dt>Jobの状態確認</dt><dd>そのJobがいま実行中か？JobManagerで判別できる <span class="frm">(Actionにはない)</span></dd>
+			<dt>Jobの中断要求</dt><dd>Jobに少し実装入れれば、JobManagerで要求できる <span class="frm">(Actionにはない)</span></dd>
+			<dt>Jobの実行結果ログ</dt><dd>本番想定の通知ログの仕組みが組み込まれている <span class="frm">(Actionにはない)</span></dd>
+			<dt>Jobの一覧管理</dt><dd>Jobの一覧情報をJobManagerから取得できる</dd>
+			<dt>Jobだけの共通処理</dt><dd>JobはJobとまとめっていることで、区別した処理を入れやすい</dd>
+		</dl>
+		<p>
+			なので、JavaでDBアクセスしてバッチ処理を実装する限りは、スケジューリングを外出しにするか LastaJob
+			に任せるかに関わらず、バッチ処理は Job で実装するのが自然でしょう。
+		</p>
+		<p>
+			バッチだけ別の言語!?というのも無きにしも非ずですが、DBアクセスポイントを複数にするとDB変更がしづらくなりますので、やはり LastaFlute
+			を使っているのであれば、その選択肢はあまり考えにくいでしょう。
+		</p>
+	</div>
 
 </div>
 </div>
