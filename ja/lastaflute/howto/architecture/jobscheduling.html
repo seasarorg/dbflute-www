@@ -76,6 +76,7 @@
 		<li><a href="#unittest">JobクラスのUnitTest</a></li>
 		<li><a href="#jobmanager">JobManagerでマネジメント</a></li>
 		<li><a href="#example">Example実装は maihama-orleans にて</a></li>
+		<li><a href="#jobnetarekore">ジョブネットあれこれ</a></li>
 		<li><a href="#batchscreen">バッチ管理画面の作成</a></li>
 		<li><a href="#outsidecron">外だしスケジューラー方式</a></li>
 	</ul>
@@ -523,6 +524,56 @@ app
 	<p>
 		<a href="https://github.com/lastaflute/lastaflute-example-maihama">https://github.com/lastaflute/lastaflute-example-maihama.git</a>
 	</p>
+
+	<div class="inucolumn">
+		<h2 id="jobnetarekore">ジョブネットあれこれ</h2>
+		<p>
+			例えば、SeaJob が終わったら、LandJob を実行したい、という場合...
+		</p>
+		<p>
+			もし、LandJob が独立して起動する Job でないのであれば、単純に SeaJob
+			の中の一つの処理として組み込んでしまえば良いでしょう。JobAssist を使ってクラス分けしても良いでしょう。
+		</p>
+<pre><span class="codetitle">e.g. Sea process to Land process @Java</span><code>
+@Override
+<span class="keyword">public void</span> run(LaJobRuntime <span class="localvar">runtime</span>) {
+    <span class="comment">// SeaJob としての本処理</span>
+    seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
+    <span class="keyword">if</span> (success) { <span class="comment">// SeaJobが成功したら</span>
+        landAssist.execute(); <span class="comment">// LandJob としての本処理</span>
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			<span class="frm">※実際は、Seaの失敗は例外を投げれば済むかもなので、単に順番に呼ぶだけでOKかもしれませんが。</span>
+		</p>
+		<p>
+			ただ、確かにこれだと、実行結果などのログは、Sea と Land で同居することになります。別にそれで構わない
+		</p>
+		<p>
+			もし、SeaJob とは関係なく、別途 LandJob が独立して起動するのであれば、Job として LandJob を呼んでしまえば良いでしょう。
+		</p>
+<pre><span class="codetitle">e.g. SeaJob calls LandJob @Java</span><code>
+@Override
+<span class="keyword">public void</span> run(LaJobRuntime <span class="localvar">runtime</span>) {
+    <span class="comment">// SeaJob としての本処理</span>
+    seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
+    <span class="keyword">if</span> (success) { <span class="comment">// SeaJobが成功したら</span>
+        jobManager.findJobByUniqueOf("landJob").alwaysPresent(job -&gt; {
+            job.launchNow(); <span class="comment">// LandJob に起動要求</span>
+        });
+    }
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			現時点 (0.2.6) では、ジョブネットの仕組みはありませんが、
+		</p>
+		<p>
+			TODO jflute now writing...
+		</p>
+	</div>
 
 	<div class="inucolumn">
 		<h2 id="batchscreen">バッチ管理画面の作成</h2>
