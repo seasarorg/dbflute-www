@@ -538,7 +538,7 @@ app
 @Override
 <span class="keyword">public void</span> run(LaJobRuntime <span class="localvar">runtime</span>) {
     <span class="comment">// SeaJob としての本処理</span>
-    seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
+    <span class="keyword">boolean</span> success = seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
     <span class="keyword">if</span> (success) { <span class="comment">// SeaJobが成功したら</span>
         landAssist.execute(); <span class="comment">// LandJob としての本処理</span>
     }
@@ -558,7 +558,7 @@ app
 @Override
 <span class="keyword">public void</span> run(LaJobRuntime <span class="localvar">runtime</span>) {
     <span class="comment">// SeaJob としての本処理</span>
-    seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
+    <span class="keyword">boolean</span> success = seaAssist.execute(); <span class="comment">// SeaJob としての本処理</span>
     <span class="keyword">if</span> (success) { <span class="comment">// SeaJobが成功したら</span>
         jobManager.findJobByUniqueOf("landJob").alwaysPresent(job -&gt; {
             job.launchNow(); <span class="comment">// LandJob に起動要求</span>
@@ -590,14 +590,37 @@ app
 			例えば、Job一覧画面を作成するのであれば、Actionクラスで JobManager@getJobList()
 			を呼んで画面に表示すればOKです。JobManager が Job のデータベースの入り口のようなものです。
 		</p>
+<pre><span class="codetitle">e.g. getJobList() at Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index() {
+    List&lt;LaScheduledJob&gt; <span class="localvar">jobList</span> = <span class="attribute">jobManager</span>.<span class="point">getJobList()</span>;
+    List&lt;JobRowBean&gt; <span class="localvar">beans</span> = mappingToBeans(<span class="localvar">jobList</span>);
+    <span class="keyword">return</span> asHtml(<span class="attribute">path_Job_JobListHtml</span>).renderWith(<span class="localvar">data</span> -&gt; {
+        <span class="localvar">data</span>.register(<span class="literal">"beans"</span>, <span class="localvar">beans</span>);
+    });
+}
+</code></pre>
 		<p>
-			そこで選択されたJobを実行するのであれば、Actionクラスで JobManager@findJobByなんとか()
-			を呼んで、LaScheduledJob@launchNow() を呼べばOKです。isExecutingNow()
-			で実行状態も確認できるので、細かい制御も入れることができます。
+			そこで選択されたJobを実行するなら、Actionクラスで JobManager@findJobByなんとか()
+			を呼んで、LaScheduledJob@launchNow() を呼べばOKです。
 		</p>
+<pre><span class="codetitle">e.g. launchNow() at Action class @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;Void&gt; launch(String <span class="localvar">jobKey</span>) { <span class="comment">// Ajax想定</span>
+    <span class="attribute">jobManager</span>.<span class="point">findJobByKey</span>(LaJobKey.of(<span class="localvar">jobKey</span>)).ifPresent(<span class="localvar">job</span> -&gt; {
+        <span class="localvar">job</span>.launchNow(); <span class="comment">// 実行要求 (別スレッドで実行される)</span>
+    }).orElse(() -&gt; {
+        <span class="keyword">throw</span> <span class="attribute">responseManager</span>.new404(<span class="literal">"Not found the job: "</span> + <span class="localvar">jobKey</span>);
+    });
+    <span class="keyword">return</span> JsonResponse.asEmptyBody();
+}
+</code></pre>
 		<p>
 			Jobの実行中にアプリを再起動しないように、実行状態を表示しておくのも良いでしょう。再起動する前提で、すべての Job
 			を一気に unschedule するのも良いでしょう。現場の要件に合わせてうまく JobManager を使っていきましょう。
+		</p>
+		<p>
+			単純に、<em class="keyword">マスターメンテナンス画面を一つ作るだけ</em> という風に考えてください。
 		</p>
 	</div>
 
