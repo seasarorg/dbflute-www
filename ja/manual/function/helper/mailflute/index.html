@@ -54,6 +54,7 @@
 				<li><a href="#headercomment">ヘッダーコメント <span class="frm">(タイトル、説明)</span></a></li>
 				<li><a href="#subject">subject: <span class="frm">(メールの件名)</span></a></li>
 				<li><a href="#option">option: <span class="frm">(メールのオプション)</span></a></li>
+				<li><a href="#nodetectprop">自動判別できないプロパティの宣言</a></li>
 				<li><a href="#pmcomment">パラメータコメント <span class="frm">(外だしSQLライク)</span></a></li>
 				<li><a href="#orelse">orElseオプション</a></li>
 			</ul>
@@ -63,6 +64,12 @@
 				<li><a href="#loopbeansdeflist">1. テンプレートに List&lt;XxxBean&gt; の宣言をする</a></li>
 				<li><a href="#loopbeansmakebean">2. SeaRowBean を Postcard と同じパッケージに作る</a></li>
 				<li><a href="#loopbeansforcomment">3. テンプレートで、FORコメントでXxxBeanをループさせる</a></li>
+			</ul>
+		</li>
+		<li><a href="#unittest">UTFlute で UnitTest</a>
+			<ul>
+				<li><a href="#reservemailassertion">reserveMailAssertion() でアサート予約</a></li>
+				<li><a href="#assertionpolicy">メールをどのくらいアサートするか？</a></li>
 			</ul>
 		</li>
 		<li><a href="#postcard">Postcard, PostOffice</a></li>
@@ -141,13 +148,13 @@ Thanks
 	<p>
 		コメントや subject など、メールBodyのメタ情報 (Body Meta) を <em class="mark">&gt;&gt;&gt;</em> 区切りで定義します。
 	</p>
-	<dl class="shortkeymainlist">
-		<dt>*HeaderComment</dt><dd>ヘッダー部に書かれたメールに関する開発用コメント、タイトルと説明がある</dd>
+	<dl class="keymainlist">
+		<dt>*HeaderComment</dt><dd>メールに関する開発用コメント、タイトルと説明がある</dd>
 		<dt>*Title</dt><dd>メールを一行で要約する開発用コメント、[...]形式で書く</dd>
 		<dt>*Description</dt><dd>メールを自由に説明する開発用コメント、Titleの下に書く</dd>
 		<dt>*subject:</dt><dd>メールの件名、文言の中で動的パラメーターが利用できる</dd>
 		<dt>option:</dt><dd>メールのオプション、HTMLメールも飛ばすなら option: +html</dd>
-		<dt>-- !![type] abc!!</dt><dd>自動判別できないプロパティを明示的宣言をして自動生成</dd>
+		<dt>-- !![type] [name]!!</dt><dd>自動判別できないプロパティを明示的宣言をして自動生成</dd>
 	</dl>
 <pre><span class="codetitle">e.g. Body Meta の属性が勢ぞろい @welcome_member.dfmail</span><code>
 <span class="comment">/*
@@ -156,7 +163,7 @@ Thanks
 */</span>
 <span class="attribute">subject:</span> Welcome to your sign up, <span class="comment">/*pmb.memberName*/</span>
 <span class="attribute">option:</span> +html
-<span class="attribute">-- !!</span>List&lt;Integer&gt;<span class="attribute"> abcList!!</span>
+<span class="attribute">-- !!</span>List&lt;Integer&gt; <span class="attribute">seaList!!</span>
 <span class="point">&gt;&gt;&gt;</span>
 Hello, <span class="comment">/*pmb.memberName*/</span>
 
@@ -216,6 +223,24 @@ src/main/resources
  |  |  |-welcome_member.dfmail      <span class="comment">// plain text</span>
 <span class="abbreviation">...</span>
 </code></pre>
+	<h3 id="nodetectprop">自動判別できないプロパティの宣言</h3>
+	<p>
+		外だしSQLのSql2Entityと同じような感じで、自動判別できないプロパティが存在するので、その場合は明示的に宣言をします。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/parameterbean.html#basicspec">Sql2Entity - ParameterBeanの基本仕様</a></div>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/pmbautodetect.html">Sql2Entity - ParameterBeanの自動判別</a></div>
+<pre><span class="codetitle">e.g. 自動判別できないプロパティの宣言 @dfmail</span><code>
+<span class="abbreviation">...</span>
+<span class="attribute">subject:</span> Welcome to your sign up, <span class="comment">/*pmb.memberName*/</span>
+<span class="point">-- !!List&lt;Integer&gt; seaList!!</span>
+<span class="attribute">&gt;&gt;&gt;</span>
+Hello, <span class="comment">/*pmb.memberName*/</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		FORコメントで使うプロパティが代表的な例です。
+	</p>
+	<div class="relatedpage"><a href="#loopbeans">this - メール上で表データを表現</a></div>
 	<h3 id="pmcomment">パラメータコメント <span class="frm">(外だしSQLライク)</span></h3>
 	<p>
 		DBFluteの外だしSQLと同じようなパラメータコメントが使えます。<span class="frm">(同じようなというか、DBFluteのクラスをそのまま使っています)</span>
@@ -301,6 +326,7 @@ src/main/java
 	<p>
 		FORコメントで seaList をループさせて、それぞれのプロパティを利用します。
 	</p>
+	<div class="relatedpage"><a href="../../ormapper/outsidesql/pmcomment.html#forcomment">パラメータコメント - FORコメント</a></div>
 <pre><span class="codetitle">e.g. FORコメントでBeanをループ、ここでは単なるカンマ区切りで @sea.dfmail</span><code>
 Hello,
 
@@ -309,6 +335,59 @@ Hello,
 <span class="comment">/*END*/</span>
 <span class="abbreviation">...</span>
 </code></pre>
+
+	<h2 id="unittest">UTFlute で UnitTest</h2>
+	<p>
+		UTFlute <span class="frm">(for LastaFlute)</span> を使っていれば、メール送信のテストがしやすくなります。
+	</p>
+	<h3 id="reservemailassertion">reserveMailAssertion() でアサート予約</h3>
+	<p>
+		Actの実行をする前に、reserveMailAssertion() でアサート予約をしておきます。
+		すると、UnitTestが終わる直前に予約したアサートが実行されます。メール本文に対するチェックが可能です。
+	</p>
+<pre><span class="codetitle">e.g. UnitTestでメール送信のアサート @Java</span><code>
+<span class="comment">// ## Arrange ##</span>
+SeaAction <span class="localvar">action</span> = <span class="keyword">new</span> SeaAction(); <span class="comment">// メールを飛ばしているAction</span>
+inject(<span class="localvar">action</span>);
+<span class="point">reserveMailAssertion</span>(<span class="localvar">mailData</span> -&gt; {
+    <span class="comment">// SeaPostcardのメールが飛んでるはず、そして、メール本文にseaが含まれているはず</span>
+    <span class="localvar">mailData</span>.<span class="subpoint">required</span>(SeaPostcard.<span class="keyword">class</span>).forEach(<span class="localvar">message</span> -&gt; {
+        <span class="localvar">message</span>.<span class="subpoint">assertPlainTextContains</span>(<span class="literal">"sea"</span>);
+    });
+});
+
+<span class="comment">// ## Act ##</span>
+JsonResponse<String> <span class="localvar">response</span> = <span class="localvar">action</span>.index(); <span class="comment">// ここでメールを飛ばしているはず</span>
+
+<span class="comment">// ## Assert ##</span>
+<span class="comment">// (もうここでは、メールに関するアサートは特になし)</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		メール送信が非同期(Async)になっていても利用できます。
+		<span class="frm">(asyncされるのはメールの送信処理だけであって、アプリで送信を行ったこと自体は記録され、メール本文も保持されているので問題なく利用できる)</span>
+	</p>
+	<p>
+		<em class="mark">mailData.required(...class)</em> にて、指定した Postcard のメールが飛んでいることをアサートしています。
+		そして、そのメールで送信したメッセージが送信回数分が戻り値として取得できます。
+	</p>
+	<p>
+		<em class="mark">message.assertPlainTextContains("...")</em> にて、メール本文に対するアサートができます。
+		様々なメソッドが用意されているので、業務的なアサートを適度にやっていくと良いでしょう。
+	</p>
+	<dl class="keymainlist">
+		<dt>required...()</dt><dd>存在することをチェックしながら、その値を戻り値で取得</dd>
+		<dt>assert...Contains()</dt><dd>そのテキストに、指定された文字列が存在するはず</dd>
+	</dl>
+	<h3 id="assertionpolicy">メールをどのくらいアサートするか？</h3>
+	<p>
+		やり始めたらキリがないものですが、少なくとも "適切な状態で送られたかどうか？"
+		そして "重要な動的項目が想定通りメール本文にあるか？" などをチェックすると良いでしょう。
+	</p>
+	<p>
+		バインド変数コメントは値がnullならエラーになり、IFコメントも文法エラーで実行時に厳しくチェックされ、メール送信処理が行われたことを保証するだけでもチェックの効果は高いです。
+		メールは変なのが飛んでもしまうと業務上の後始末が大変なので、UnitTestに割ける時間が少なくても、最低限のチェックだけでもしておきたいものです。
+	</p>
 
 	<h2 id="postcard">Postcard, PostOffice</h2>
 	<p>
