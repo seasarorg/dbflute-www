@@ -59,7 +59,13 @@
 				<li><a href="#columnstatement">column's <em class="smallmark">statementList</em></a></li>
 			</ul>
 		</li>
-		<li><a href="#example">Example</a></li>
+		<li><a href="#example">Example</a>
+			<ul>
+				<li><a href="#simpleexample">シンプルなポリシーのExample</a></li>
+				<li><a href="#variousexample">様々なポリシーのExample</a></li>
+				<li><a href="#insteadofidentity">identityIfPureIDPK で除外テーブル</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">schemaPolicyMapとは？</h2>
@@ -272,7 +278,9 @@
 	</p>
 	<p>
 		identityIfPureIDPK は、Sequence では効果ありません。
+		また、テーブル除外設定はできないので、除外したいテーブルがある場合は statement の方で実現します。
 	</p>
+	<div class="relatedpage"><a href="#insteadofidentity">this - identityIfPureIDPKでテーブル除外</a></div>
 	<p>
 		hasCommonColumn は、共通カラムのすべてのカラムを持っていればOKです。
 	</p>
@@ -482,6 +490,7 @@
 	</p>
 
 	<h2 id="example">Example</h2>
+	<h3 id="simpleexample">シンプルなポリシーのExample</h3>
 <pre><span class="codetitle">e.g. シンプルなポリシー @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     <span class="abbreviation">...</span>
@@ -506,6 +515,7 @@
     }
 }
 </code></pre>
+	<h3 id="variousexample">様々なポリシーのExample</h3>
 <pre><span class="codetitle">e.g. 様々なポリシー @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
     <span class="abbreviation">...</span>
@@ -543,6 +553,35 @@
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> notNull
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> dbType is INTEGER
             ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> classification
+        }
+    }
+}
+</code></pre>
+	<h3 id="insteadofidentity">identityIfPureIDPK で除外テーブル</h3>
+	<p>
+		備え付けの theme は使わず、column.statement で細かく設定すればテーブル除外ありの identityIfPureIDPK
+		を実現することができます。
+	</p>
+<pre><span class="codetitle">e.g. identityIfPureIDPK をテーブル除外 @schemaPolicyMap.dfprop</span><code>
+<span class="keyword">map:</span>{
+    <span class="abbreviation">...</span>
+
+    ; <span class="localvar">tableMap</span> = <span class="keyword">map:</span>{
+        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{
+            <span class="comment"># unused here, see check it by column.statement to except specified tables</span> 
+            <span class="comment">#; identityIfPureIDPK</span>
+        }
+        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
+            <span class="abbreviation">...</span>
+        }
+    }
+    ; <span class="localvar">columnMap</span> = <span class="keyword">map:</span>{
+        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ upperCaseBasis }
+        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
+            <span class="comment"># ID column</span>
+            <span class="point">; if tableName is not prefix:MST_ and column is pk and columnName is suffix:_ID and column is not fk then identity => instead of identityIfPureIDPK</span>
+
+            <span class="abbreviation">...</span>
         }
     }
 }
