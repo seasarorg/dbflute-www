@@ -70,7 +70,11 @@
 				<li><a href="#jsapiintro">DBFlute Introが参考実装に</a></li>
 			</ul>
 		</li>
-		<li><a href="#jsapiseparate">JS/API別サーバーパターン</a></li>
+		<li><a href="#jsapiseparated">JS/API別サーバーパターン <span class="frm">(CORS)</span></a>
+			<ul>
+				<li><a href="#cors">CORS対応</a></li>
+			</ul>
+		</li>
 		<li><a href="#restapi">REST APIにするには？</a>
 			<ul>
 				<li><a href="#restmethod">HTTPメソッドごとにマッピングする方法</a></li>
@@ -426,15 +430,55 @@
 	<div class="relatedpage"><a href="https://github.com/dbflute/dbflute-intro">DBFlute Intro | Github</a></div>
 	<div class="relatedpage"><a href="http://dbflute.seasar.org/ja/manual/function/helper/intro/index.html">DBFlute Intro | DBFlute</a></div>
 
-	<h2 id="jsapiseparate">JS/API別サーバーパターン</h2>
+	<h2 id="jsapiseparated">JS/API別サーバーパターン <span class="frm">(CORS)</span></h2>
 	<p>
 		互いに独立しているので、クラスやURLなどで調整することは基本的にありません。
 	</p>
+	<h3 id="cors">CORS対応</h3>
 	<p>
-		ただ、CORS対応をする必要があるでしょう。
+		ただ、CORS (Cross-Origin Resource Sharing) 対応をする必要があるでしょう。
 	</p>
 	<p>
-		TODO jflute AssistantDirector にて、CORS の設定する説明を書く
+		prepareWebDirection() にて、directCors() で CorsHook を指定します。
+	</p>
+	<p>
+		Exampleプロジェクト Maihama の Hangar にてExample実装されています。
+		マルチプロジェクトなので、prepareWebDirection() をオーバーライドして、superを呼びつつ CORS
+		の設定をしています。
+	</p>
+<pre><span class="codetitle">e.g. CORS for JS/API separated pattern @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> HangarFwAssistantDirector <span class="keyword">extends</span> MaihamaFwAssistantDirector {
+
+    @Override
+    <span class="keyword">protected void</span> setupAppConfig(List<String> nameList) {
+        nameList.add("hangar_config.properties"); <span class="comment">// base point</span>
+        nameList.add("hangar_env.properties");
+    }
+
+    @Override
+    <span class="keyword">protected void</span> setupAppMessage(List<String> nameList) {
+        nameList.add("hangar_message"); <span class="comment">// base point</span>
+        nameList.add("hangar_label");
+    }
+
+    @Override
+    <span class="keyword">protected</span> ListedClassificationProvider createListedClassificationProvider() {
+        <span class="keyword">return new</span> HangarListedClassificationProvider();
+    }
+
+    @Override
+    <span class="keyword">protected void</span> prepareWebDirection(FwWebDirection <span class="localvar">direction</span>) {
+        <span class="keyword">super</span>.prepareWebDirection(<span class="localvar">direction</span>);
+        <span class="keyword">final</span> String <span class="localvar">allowOrigin</span> = <span class="subpoint">"http://localhost:3000"</span>; <span class="comment">// #simple_for_example should be environment configuration</span>
+        <span class="localvar">direction</span>.<span class="point">directCors</span>(<span class="keyword">new</span> CorsHook(<span class="localvar">allowOrigin</span>)); <span class="comment">// #change_it</span>
+    }
+}
+</code></pre>
+	<p>
+		allowOrigin は、環境ごとに変わるのであれば [app]_env.properties に定義すると良いでしょう。
 	</p>
 
 	<h2 id="restapi">REST APIにするには？</h2>
