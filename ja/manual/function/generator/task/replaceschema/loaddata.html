@@ -60,10 +60,12 @@
 				<li><a href="#issuppressbatchupdate">isSuppressBatchUpdate</a></li>
 				<li><a href="#issuppresscolumndefcheck">isSuppressColumnDefCheck</a></li>
 				<li><a href="#dateadjustmentmap">dateAdjustmentMap</a></li>
+				<li><a href="#largetextfilemap">largeTextFileMap</a></li>
 			</ul>
 		</li>
 		<li><a href="#isincrementsequencetodatamax">シーケンス値の調整</a></li>
 		<li><a href="#binary">バイナリデータの登録</a></li>
+		<li><a href="#largetext">ラージテキストの登録 <span class="frm">(外部ファイル)</span></a></li>
 		<li><a href="#debug">登録エラーが発生したら？</a>
 			<ul>
 				<li><a href="#anywaymsg">とにかくログを</a></li>
@@ -268,6 +270,11 @@ repsEnvType = it
 		エクセルやTSV上の日付データに対する相対的な日付調整を指定することができます。
 	</p>
 	<div class="detailpage"><a href="./loadingcontrol.html#dateadjustmentmap">データ登録制御 - dateAdjustmentMap</a></div>
+	<h3 id="largetextfilemap">largeTextFileMap</h3>
+	<p>
+		外部のテキストファイルから文字列を取得して、データを登録することができます。
+	</p>
+	<div class="detailpage"><a href="#largetext">ラージテキストの登録 (外部ファイル)</a></div>
 
 	<h2 id="isincrementsequencetodatamax">シーケンス値の調整</h2>
 	<p>
@@ -346,6 +353,29 @@ playsql
 	<p>
 		該当カラムがバイト配列にマッピングされるデータ型で、かつ、指定されたデータが文字列の場合において、バイナリデータとしての登録だと判断されます。
 		参照先にファイルがない場合は例外となります。
+	</p>
+
+	<h2 id="largetext">ラージテキストの登録 <span class="frm">(外部ファイル)</span></h2>
+	<p>
+		ラージサイズのテキストを登録するのに、外部のテキストファイルから文字列を取得して登録することができます。
+	</p>
+	<p>
+		loadingControlMap.dataprop の largeTextFileMap にて、対象となるカラムを指定する。
+	</p>
+	<div class="relatedpage"><a href="#loadingcontrolmap">this - データ登録制御(dataprop)</a></div>
+<pre><span class="codetitle">e.g. largeTextFileMapを設定 @loadingControlMap.dataprop</span><code>
+    ; largeTextFileMap = <span class="keyword">map:</span>{
+        MEMBER = <span class="keyword">list:</span>{ MEMBER_LARGE_NAME }
+    }
+</code></pre>
+	<p>
+		TSV や XLS では、スラッシュ区切りの相対パスで外部ファイルを指定します。
+		すると、そのファイルの内容を読み込んでデータとして登録するようになります。
+		<span class="frm">(絶対パスも使えますが、あまり使いどころがないかも...)</span>
+	</p>
+	<p>
+		FreeGenなど、他の都合で外部ファイルになっていた方が良い場合にも活用できます。
+		<span class="frm">(LastaFluteだと、メールテンプレートをDB管理する時など)</span>
 	</p>
 
 	<h2 id="debug">登録エラーが発生したら？</h2>
