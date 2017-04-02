@@ -196,10 +196,59 @@
 
 	<h2 id="overridemap">規約の微調整 <span class="frm">(overrideMap)</span></h2>
 	<p>
-		DBFluteにて組み込まれている規約をちょっと違うものにしたい場合は...
+		DBFluteにて組み込まれている規約をちょっと違うものにしたい場合...
 	</p>
 	<p>
-		TODO jflute
+		例えば、"MailFluteのメールテンプレートをDB管理にしたいけど、テストデータをXLSやTSVで管理するのはつらいので、ReplaceSchemaで外部ファイル読み込みで
+		.dfmail ファイルののままで管理したいけど、置き場所が違うので自動生成できなくなっちゃう"
+		というような場合、overrideMap を使うことで置き場所を変更できます。
+	</p>
+	<p>
+		まず、置き場所を例えば playsql/data/ut/mail にしたとします。
+	</p>
+<pre><span class="codetitle">e.g. Maihamaプロジェクトの lastafluteMap.dfprop @Directory</span><code>
+dbflute_maihamadb
+ |-playsql
+ |  |-data
+ |  |  |-ut
+ |  |  |  |-<span class="point">mail</span>
+ |  |  |  |  |-welcome_to_sea.dfmail
+ |  |  |  |  |-welcome_to_land.dfmail
+ |  |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |  |-<span class="abbreviation">...</span>
+ |-<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		そして、ReplaceSchema の方の設定で、XLSやTSVからそれらの.dfmailのテキスト内容をDBに登録するようにします。
+		<span class="frm">(loadingControlMap.dataprop で largeTextFileMap を定義して、XLSやTSVでパス指定)</span>
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../../mainual/function/generator/task/replaceschema/loaddata.html#largetext"> -->ReplaceSchema - ラージテキストの登録 (外部ファイル <!-- </a> --></span></div>
+	<p>
+		でもって、lastafluteMap.dfprop にて overrideMap
+		を指定します。mail のディレクトリを指定するプロパティは、[app].freeGen.mail.targetDir です。 
+	</p>
+<pre><span class="codetitle">e.g. lastafluteMap.dfprop で overrideMap を定義、メールの場所を変更 @lastafluteMap.dfprop</span><code>
+<span class="comment"># settings for web applications</span>
+; appMap = <span class="keyword">map:</span>{
+    ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
+        ; path = <span class="literal">../../maihama-dockside</span>
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+    ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
+        ; path = <span class="literal">../../maihama-hangar</span>
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+}
+
+; <span class="point">overrideMap</span> = <span class="keyword">map:</span>{
+    ; dockside.freeGen.mail.targetDir = <span class="literal">./playsql/data/ut/mail</span>
+}
+</code></pre>
+	<p>
+		ソースコード的には、DfLastaFluteFreeGenReflector です。
 	</p>
 
 </div>
