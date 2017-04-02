@@ -98,6 +98,15 @@
 				<li><a href="#wheremyexcep">マイ例外、どこに作る？</a></li>
 			</ul>
 		</li>
+		<li><a href="#selectentitynodata">一件検索でデータ無かったとき</a>
+			<ul>
+				<li><a href="#whynodata">データが見つからないってどういうこと？</a></li>
+				<li><a href="#nodataasbiz">基本的には業務例外として</a></li>
+				<li><a href="#fixedmsgex">メッセージと例外は固定でOK</a></li>
+				<li><a href="#lastanodata">LastaFluteなら組み込み</a></li>
+				<li><a href="#likenodata">排他制御例外やユニーク制約違反も</a></li>
+			</ul>
+		</li>
 		<li><a href="#watchinfolog">通知ログの監視って？</a></li>
 		<li><a href="#exceptiondept">例外ハンドリングこそ負債になりやすい？</a></li>
 	</ul>
@@ -402,6 +411,7 @@ verifyOrClientError(<span class="literal">"<span class="abbreviation">...</span>
 		また、DBFluteがthrowする例外の中に、アプリとしては業務例外として扱った方が良いだろうという例外もあります。
 		LastaFluteでは、それらも組み込まれて業務例外として扱われます。
 	</p>
+	<div class="relatedpage"><a href="#selectentitynodata">this - 一件検索でデータ無かったとき</a></div>
 	<dl class="valuemainlist">
 		<dt>一件検索データなし例外</dt><dd>EntityAlreadyDeletedException <span class="frm">(selectEntity()など)</span></dd>
 		<dt>排他制御例外</dt><dd>EntityAlreadyUpdatedException <span class="frm">(update()など)</span></dd>
@@ -602,6 +612,46 @@ app.web
 		作ってるときは再利用できるのかどうかわからないケースが多いと思うので、まずは近いところ <span class="frm">(再利用しないケースの場所)</span>
 		に置いておくでも良いかとは思います。再利用するときに移動すればと。
 	</p>
+
+	<div class="inucolumn">
+		<h2 id="selectentitynodata">一件検索でデータ無かったとき</h2>
+		<h3 id="whynodata">データが見つからないってどういうこと？</h3>
+		<p>
+			データベースに検索してデータが見つからないってどういうことでしょうか？
+			HTMLレスポンスなら詳細画面で "すれ違い" やGETパラメーターの "いたずら" であり得ます。JSONレスポンスなら一件データ取得として (クライアント次第で様々でしょうが) 似たような感じであり得るかと思います。
+		</p>
+		<h3 id="nodataasbiz">基本的には業務例外として</h3>
+		<p>
+			いずれにせよ、システム例外(サーバーサイドの不具合)ではないので、単に普通の例外を投げれば良いというわけではないですし、メッセージも必要かもしれません。
+			ということで、<em class="keyword">基本的には業務例外として扱う</em> のが自然でしょう。
+		</p>
+		<h3 id="fixedmsgex">メッセージと例外は固定でOK</h3>
+		<p>
+			ただ、<em class="keyword">データの種別 (会員なのか商品なのか) によって、メッセージを変更する必要はあまりない</em> と考えらます。"すれ違い"
+			であれば排他制御を示す統一的なメッセージを戻せばユーザーはわかりますし、"いたずら"
+			であればそこまで気を使う必要はありません。<em class="keyword">例外クラスについても、つどつど違う例外を投げる必要はあまりない</em> と考えれます。
+			一回のリクエストで要求される一件データは多くのケースで単一種類であり、クライアントサイドもデータの種類を識別する必要はなく、逆に区別してしまうとクライアントサイドの統一的な処理の妨げになる可能性もあります。
+			なによりも、いちいち区別しているとサーバーサイドの実装が大変です<span class="frm">(不要なことはやらない)</span>。
+		</p>
+		<h3 id="lastanodata">LastaFluteなら組み込み</h3>
+		<p>
+			すでにこのページをしっかり読んでいれば、LastaFluteの思想がなんとなくわかるかと思います。EntityAlreadyDeletedException
+			が業務例外として組み込まれていますから、ここで書いた思想で仕組みが整備されており、Actionクラスの中でも DBFlute
+			で検索してデータが無かったときに発生する例外をそのままthrowすればOKです。
+		</p>
+		<p>
+			そして、"(統一の)メッセージ" や "Failure統一のJSON" を調整するなら...
+		</p>
+		<dl class="shortvaluemainlist">
+			<dt>(統一の)メッセージを調整</dt><dd>[app]_message.propertiesを修正</dd>
+			<dt>(Failure統一パターンの) failureType</dt><dd>[App]ApiFailureHookを修正</dd>
+		</dl>
+		<h3 id="likenodata">排他制御例外やユニーク制約違反も</h3>
+		<p>
+			排他制御例外 (EntityAlreadyUpdatedException) や、ユニーク制約違反 (EntityAlreadyExistsException)
+			もほぼ同じような話になり、LastaFluteとしてもその二つも加えて組み込んでいます。
+		</p>
+	</div>
 
 	<div class="inucolumn">
 		<h2 id="watchinfolog">通知ログの監視って？</h2>
