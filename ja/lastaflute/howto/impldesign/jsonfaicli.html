@@ -44,7 +44,7 @@
 	</p>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a></li>
-		<li><a href="#jsonimage">JSONのイメージ</a></li>
+		<li><a href="#jsonstyle">戻す JSON のかたち</a></li>
 		<li><a href="#vlerror">バリデーションエラーのJSON</a></li>
 		<li><a href="#bizerror">ビジネスエラーのJSON <span class="frm">(業務例外)</span></a></li>
 		<li><a href="#clienterror">クライアントエラーのJSON <span class="frm">(クライアント例外)</span></a></li>
@@ -53,6 +53,8 @@
 			<ul>
 				<li><a href="#faiexample">Failure統一パターンは、Exampleと同じ</a></li>
 				<li><a href="#errorsimpl">errors の 実装をどうしよう？</a></li>
+				<li><a href="#errorsvlerror">バリデーションエラーの errors 整備</a></li>
+				<li><a href="#errorsbizerror">ビジネスエラーの errors 整備</a></li>
 				<li><a href="#cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></a></li>
 				<li><a href="#cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></a></li>
 			</ul>
@@ -61,26 +63,37 @@
 
 	<h2 id="overview">概要</h2>
 	<p>
-		"JSON APIのJSONデザイン" で、以下のものを採用したときのパターンを紹介します。
-		<span class="frm">(身の回りでよく使われるでありながら、よく考えてデザインしてクライアントと共有しないと、"へんてこりん" になりがちだし、実装も少し工夫が必要なので)</span>
+		JSONデザインとして、以下を採用したときのパターンを <em class="mark">ふぇいくらパターン</em>
+		と呼んでいます。
 	</p>
 	<ul>
-		<li><span class="working"><!-- <a href="#jsonerrorexp"> -->B. エラー表現: Failure統一パターン<!-- </a> --></span></li>
-		<li><span class="working"><!-- <a href="#messagemanage"> -->E. メッセージ管理: クライアントメッセージ管理<!-- </a> --></span></li>
+		<li><a href="./jsondesign.html#jsonerrorexp">B. エラー表現: Failure統一パターン</a></li>
+		<li><a href="./jsondesign.html#messagemanage">E. メッセージ管理: クライアントメッセージ管理</a></li>
 	</ul>
-	<p>
-		これを <em class="mark">ふぇいくらパターン</em> とここでは呼びます。
-	</p>
 	<div class="relatedpage"><a href="./jsondesign.html">JSON APIのJSONデザイン</a></div>
 	<p>
-		ちなみに、このページの Example では、キーのケースは "スネークケース" にしています。
+		よく見かけるやり方でありながら、よく考えてデザインしてクライアントと共有しないと、"へんてこりん"
+		になりがちで、LastaFluteでも少し実装に工夫が必要なので、ここで特集して紹介します。
+	</p>
+	<p>
+		もし、このパターンを採用しているのであれば、具体的な "JSONや形" や "LastaFluteでの実装" の参考にと。
+		もちろん、必ずしもこのページの通りではなくても良いです。思想の共有になればと。
+	</p>
+	<p>
+		基本的には、"特定クライアント向けAPI" を想定しています。
 	</p>
 
-	<h2 id="jsonimage">JSONのイメージ</h2>
+	<h2 id="jsonstyle">戻す JSON のかたち</h2>
+	<p>
+		以下のような JSON を戻します。<span class="frm">(名前や構造などは、必ずしも一致しなくてもOKです)</span>
+	</p>
 <pre><span class="codetitle">e.g. "ふぇいくらパターン" で、バリデーションエラーのとき @Json</span><code>
 {
+    <span class="comment">// Failureの原因</span>
     <span class="localvar">cause</span> : <span class="literal">(VALIDATION_ERROR or BUSINESS_ERROR
             or CLIENT_ERROR or SERVER_ERROR)</span>
+
+    <span class="comment">// エラーの詳細</span>
     , <span class="localvar">errors</span> : [
          , <span class="localvar">field</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
          , <span class="localvar">code</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
@@ -89,6 +102,24 @@
     ], [
         <span class="abbreviation">...</span>
     ]
+}
+</code></pre>
+	<p>
+		そして、それを受け取るクライアントサイドでの実装イメージです。
+	</p>
+<pre><span class="codetitle">e.g. Failure統一パターンでのクライアントサイドのJSONパースの共通部品での実装イメージ @Java?</span><code>
+<span class="keyword">if</span> (HTTP Status: <span class="literal">200</span>) { <span class="comment">// success</span>
+    XxxJsonResult <span class="localvar">result</span> = parseJsonAsSuccess(<span class="localvar">response</span>);
+    <span class="comment">// do process per action</span>
+    <span class="abbreviation">...</span>
+} <span class="keyword">else if</span> (HTTP Status: <span class="literal">400</span>) { <span class="comment">// e.g. validation error, application exception, client exception</span>
+    FailureResult <span class="localvar">result</span> = parseJsonAsFailure(<span class="localvar">response</span>);
+    <span class="comment">// show result.errors or do process per result.cause</span>
+    <span class="abbreviation">...</span>
+} <span class="keyword">else if</span> (HTTP Status: <span class="literal">404</span>) { <span class="comment">// e.g. real not found, invalid parameter</span>
+    showNotFoundError();
+} <span class="keyword">else</span> { <span class="comment">// basically 500 or other client errors</span>
+    showSystemError();
 }
 </code></pre>
 
@@ -125,6 +156,10 @@
 </code></pre>
 
 	<h2 id="bizerror">ビジネスエラーのJSON <span class="frm">(業務例外)</span></h2>
+	<p>
+		ここで言うビジネスエラーとは、業務例外によって処理が中断された状態を表します。
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#bizhandling">業務例外ハンドリング</a></div>
 	<ul>
 		<li>field は、_global 固定 (特定の項目がないため) (LastaFluteのデフォルト)</li>
 		<li>code は、業務例外の種別を特定</li>
@@ -158,12 +193,17 @@
 
 	<h2 id="clienterror">クライアントエラーのJSON <span class="frm">(クライアント例外)</span></h2>
 	<p>
-		基本的には、クライアント例外はクライアントにとっての不具合なので、発生したらサーバーサイドのログを見て状況を把握してクライアントプログラムを修正します。
+		ここで言うクライアントエラーとは、クライアント例外によって処理が中断された状態を表します。
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#clihandling">クライアント例外ハンドリング</a></div>
+	<p>
+		基本的には、クライアントエラーはクライアントにとっての不具合なので、発生したらサーバーサイドのログを見て状況を把握してクライアントプログラムを修正します。
 		<span class="frm">(HTTPステータスが 400, 403, 404 の違いで若干状況は把握できますが、あまりデバッグとしてはそこまで重要ではないでしょう)</span>
 	</p>
 	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#clihandling">クライアント例外ハンドリング</a></div>
 	<p>
-		ゆえに、クライアント例外は、多くのケースでメッセージを必要としないので、errors は空っぽです。
+		ゆえに、クライアント例外は、多くのケースでメッセージを必要としないので errors は空っぽです。
+		<span class="frm">(ただ、必要であればビジネスエラーのときと同じようにerrorsに何か入れても良いでしょう)</span>
 	</p>
 <pre><span class="codetitle">e.g. クライアント例外のとき @Json</span><code>
 {
@@ -174,9 +214,14 @@
 
 	<h2 id="servererror">サーバーエラーのJSON <span class="frm">(システム例外)</span></h2>
 	<p>
-		
+		ここで言うサーバーエラーとは、システム例外によって処理が中断された状態を表します。
 	</p>
-<pre><span class="codetitle">e.g. サーバー例外のとき @Json</span><code>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#syshandling">システム例外ハンドリング</a></div>
+	<p>
+		基本的に、サーバーエラーはクライアントとしてはどうにもならないので、単に判断ができるだけで問題ないでしょう。
+		HTTPステータスが500になるので、なので実質的にJSON自体は不要であると考えられますが、念のため同じ形で戻せるようにしても良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. サーバーエラーのとき @Json</span><code>
 {
     <span class="localvar">cause</span> : <span class="literal">"SERVER_ERROR"</span>
     , <span class="localvar">errors</span> : []
@@ -202,6 +247,7 @@
 		というのは、Hibernate Validator からは、REQUIRED や MAX などの種別情報は取得できず、[app]_message.properties
 		のメッセージしか取得できないからです。<span class="frm">(constraints.Required.message ではなく、"is required" しか取得できない)</span>
 	</p>
+	<h3 id="errorsvlerror">バリデーションエラーの errors 整備</h3>
 	<p>
 		そこで、[app]_message.properties のメッセージに、code と values のために値を入れておきます。
 		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除します。
@@ -232,8 +278,9 @@ constraints.TypeLocalDate.message = <span class="literal">TYPE_DATE</span> <span
 		ただ、Integer か Long や LocalDate をクライアントに意識させる必要もないので、TYPE_NUMBER や TYPE_DATE
 		という風に少し翻訳しています。
 	</p>
+	<h3 id="errorsbizerror">ビジネスエラーの errors 整備</h3>
 	<p>
-		業務例外で追加するメッセージも、同じような構成で定義します。errors.code
+		ビジネスエラー(業務例外)で追加するメッセージも、同じような構成で定義します。errors.code
 		は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と values" を指します。
 		<span class="frm">(ちなみに、[app]_label.properties は基本的に使うことがないです)</span>
 	</p>
@@ -268,22 +315,35 @@ errors.<span class="abbreviation">...</span>=<span class="abbreviation">...</spa
 		に設定するロジックを実装しましょう。
 	</p>
 	<h3 id="cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
+	<h4>ApiFailureHookにて</h4>
 	<p>
-		causeだけを CLIENT_ERROR にして、errorsの実装は実質的に業務例外と同じで良いでしょう。メッセージがあればが設定されるし、なければ空っぽになるだけなので。
+		causeだけを CLIENT_ERROR にして、errorsの実装は実質的にビジネスエラー(業務例外)と同じで良いでしょう。メッセージがあればが設定されるし、なければ空っぽになるだけなので。
 	</p>
+	<h4>web.xmlにて最後の砦JSON</h4>
 	<p>
-		ただ、アプリケーションサーバーレベルの 404 なども JSON
-		でしっかり戻すのであれば、web.xml にて定義されている 400.html, 404.html などを 400.json, 404.json
+		もし、アプリケーションサーバー (e.g Tomcat) レベルの 404 なども JSON
+		でしっかり戻すのであれば、web.xml にて定義されている 400.html, 404.html などを <em class="mark">400.json, 404.json</em>
 		に変更して、アプリが戻すクライアント例外のJSONと一致する固定のJSONを定義しておくと良いでしょう。
 	</p>
-	<h3 id="cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></h3>
 	<p>
-		ApiFailureHookでは何もせず<span class="frm">(OptionalThing.empty()を戻す)</span>、web.xml
-		にて定義されている 500.html を 500.json に変更して、アプリが戻すJSONと一致する固定のJSONを定義しておくと良いでしょう。
+		ただし、そのアプリが純粋な JSON API ではなく、サーバーサイドHTMLも混じっているのであれば、この技は使えないです。
+		とはいえ、その場合だとなおさら、あまりクライアントがクライアントエラーを詳細にハンドリングする必要もないので、特に問題はないと想定されます。
+	</p>
+	<h3 id="cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></h3>
+	<h4>ApiFailureHookにて</h4>
+	<p>
+		errors に何か設定することはないので、ApiFailureHook
+		では何もせず<span class="frm">(OptionalThing.empty()を戻す)</span>、web.xml
+		の設定に任せるで良いでしょう。
+	</p>
+	<h4>web.xmlにて最後の砦JSON</h4>
+	<p>
+		web.xmlにて定義されている 500.html を <em class="mark">500.json</em> に変更して、アプリが戻すJSONと一致する固定のJSONを定義しておくと良いでしょう。
 	</p>
 	<p>
-		ただ、そもそもクライアントは、"HTTPステータスが 500
-		だったら中身も見ずにシステムエラーの処理をするだけ" という振舞いが想定されるので、あまり意味はないかもしれません。
+		こちらも同様に、そのアプリが純粋な JSON API
+		ではなく、サーバーサイドHTMLも混じっているのであれば、この技は使えないですが、そもそもクライアントは、<em class="keyword">HTTPステータスが 500
+		だったら中身も見ずにシステムエラーの処理をするだけ</em> という振舞いが想定されるので、特に問題はないと想定されます。
 	</p>
 
 </div>
