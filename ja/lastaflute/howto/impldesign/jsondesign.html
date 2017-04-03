@@ -47,7 +47,12 @@
 		一方で、jfluteもまだまだ研究中のテーマなので、何か要因が見つかれば随時更新していきます。
 	</p>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
+		<li><a href="#overview">概要</a>
+			<ul>
+				<li><a href="#atfirst">まず、これを決めましょう</a></li>
+				<li><a href="#firstapiforever">最初のAPIのデザインが会社標準デザイン</a></li>
+			</ul>
+		</li>
 		<li><a href="#jsonnuance">A. そもそもJSONをどんなニュアンスで戻す？</a>
 			<ul>
 				<li><a href="#resourceordisplay">元データ方式？表示データ方式？</a></li>
@@ -103,10 +108,18 @@
 			</ul>
 		</li>
 		<li><a href="#madamada">H. まだまだありそうだけど？</a></li>
-		<li><a href="#firstapiforever">最初のAPIのデザインが会社標準デザイン</a></li>
+		<li><a href="#egfaicli"><span class="frm">e.g.</span> Failure統一クライアントメッセージ</a>
+			<ul>
+				<li><a href="#egfaiclimsgjsonspec">JSONのイメージ <span class="frm">(of ふぇいくらパターン)</span></a></li>
+				<li><a href="#egfaiclivlerror">バリデーションエラーのJSON <span class="frm">(of ふぇいくらパターン)</span></a></li>
+				<li><a href="#egfaiclibizexp">業務例外のJSON <span class="frm">(of ふぇいくらパターン)</span></a></li>
+				<li><a href="#egfaiclilasta">LastaFluteでの実装 <span class="frm">(of ふぇいくらパターン)</span></a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
+	<h3 id="atfirst">まず、これを決めましょう</h3>
 	<p>
 		JSON APIを作ろうとしている人は、実装する前に必ずこれを決めましょう。
 	</p>
@@ -123,6 +136,28 @@
 		<span class="frm">※というか、JSON APIじゃなくても(サーバーサイドHTMLでも)、Ajax で JsonResponse
 		を受け取るメソッドをたくさん作るのであれば同じことです。</span>
 	</p>
+	<div class="inucolumn">
+		<h3 id="firstapiforever">最初のAPIのデザインが会社標準デザイン</h3>
+		<p>
+			よくあることです。最初に開発するAPIで決めたデザインが、気づいたら会社標準のデザインになっていた、なんてことよくあります。
+			これは、アーキテクチャマネジメントをしっかりやらない限り、自然とそうなりがちです。
+			その流れで、自然と外部(他社)に公開するAPIもそれになっていたってことも。
+		</p>
+		<p>
+			もう一度利用され始めた API のデザインは、変えられません。公開APIでなくても、クライアントサイドを修正するコストを払えないでしょう。
+			もう、向こう5年10年変わらないかもしれません。
+			<span class="frm">(多くの現場で、クライアントサイドとサーバーサイドで組織が違ったり、リリースタイミングが違ったりするので、なおさら足並み揃えて変更するというのは無理でしょう)</span>
+		</p>
+		<p>
+			そしてよくあるが、最初に開発したAPIの業務に引きづられたデザイン、それがそのまま全体の標準に。
+			でも、標準化するというのも呼び出す側からすると嬉しいことで非常に大切なことなので、一概に悪いわけではないです。
+			ただ、それがチグハグだと良くない...。
+		</p>
+		<p>
+			いま決めるものが、5年10年の会社の標準のJSONデザインになる(かもしれない)。
+			その覚悟を持って、<em class="keyword">しっかりと思想を持ってデザインすること！</em>
+		</p>
+	</div>
 
 	<h2 id="jsonnuance">A. そもそもJSONをどんなニュアンスで戻す？</h2>
 	<h3 id="resourceordisplay">元データ方式？表示データ方式？</h3>
@@ -737,6 +772,7 @@
 		に定義されている自然言語のメッセージを、キーと値だけにしてクライアントに戻せるようにすると良いでしょう。
 		<span class="frm">(クライアントサイドとしっかり取り決めをしましょう)</span>
 	</p>
+	<div class="detailpage"><a href="#egfaicli">this - e.g. Failure統一クライアントメッセージ</a></div>
 
 	<h2 id="keycase">F. キーのケース: <span class="frm">キャメル？スネーク？</span></h2>
 	<p>
@@ -848,25 +884,136 @@
 	</ul>
 
 	<div class="inucolumn">
-		<h2 id="firstapiforever">最初のAPIのデザインが会社標準デザイン</h2>
+		<h2 id="egfaicli"><span class="frm">e.g.</span> Failure統一クライアントメッセージ</h2>
 		<p>
-			よくあることです。最初に開発するAPIで決めたデザインが、気づいたら会社標準のデザインになっていた、なんてことよくあります。
-			これは、アーキテクチャマネジメントをしっかりやらない限り、自然とそうなりがちです。
-			その流れで、自然と外部(他社)に公開するAPIもそれになっていたってことも。
+			"Failure統一パターンでクライアントメッセージ管理方式" <em class="mark">(通称: ふぇいくらパターン)</em> の Example をここで紹介します。
+			<span class="frm">(身の回りでよく使われるでありながら、よく考えてデザインしてクライアントと共有しないと、"へんてこりん" になりがちだし、実装も少し工夫が必要なので)</span>
+		</p>
+		<h3 id="egfaiclimsgjsonspec">JSONのイメージ <span class="frm">(of ふぇいくらパターン)</span></h3>
+<pre><span class="codetitle">e.g. "Failure統一、Clientメッセージ" で、バリデーションエラーのとき @Json</span><code>
+{
+    <span class="localvar">failureType</span> : <span class="literal">(VALIDATION_ERROR or APPLICATION_EXCEPTION
+                  or CLIENT_EXCEPTION or SERVER_EXCEPTION)</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
+         , <span class="localvar">code</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
+         , <span class="localvar">values</span> : <span class="literal">(エラーのきっかけとなった定義値のリスト
+                    e.g. 数値チェックの最大値、長さチェックの最大長など)</span>
+    ], [
+        <span class="abbreviation">...</span>
+    ]
+}
+</code></pre>
+		<h3 id="egfaiclivlerror">バリデーションエラーのJSON <span class="frm">(of ふぇいくらパターン)</span></h3>
+		<ul>
+			<li>field は、ユニークとは限らない (一つの項目で二つエラーになり得るため)</li>
+			<li>field は、階層構造を表現 (受け取ったJSONの階層構造をドット区切りで表現)</li>
+			<li>code は、チェック処理の種別ごとで、基本的にValidatorアノテーションごと</li>
+			<li>values は、チェック処理で使った定義値 (メッセージに埋め込まれることを想定)</li>
+		</ul>
+<pre><span class="codetitle">e.g. "Failure統一、Clientメッセージ" で、バリデーションエラーのとき @Json</span><code>
+{
+    <span class="localvar">failureType</span> : <span class="literal">"VALIDATION_ERROR"</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">"product_name"</span>
+         , <span class="localvar">code</span> : <span class="literal">"REQUIRED"</span>
+         , <span class="localvar">values</span> : []
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"product_count"</span>
+         , <span class="localvar">code</span> : <span class="literal">"MAX"</span>
+         , <span class="localvar">values</span> : [<span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
+    ]
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
+         , <span class="localvar">code</span> : <span class="literal">"LENGTH"</span>
+         , <span class="localvar">values</span> : [<span class="literal">"50"</span>] <span class="comment">// 文字列の最大長</span>
+    ]
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
+         , <span class="localvar">code</span> : <span class="literal">"EMAIL"</span>
+         , <span class="localvar">values</span> : []
+    ]
+}
+</code></pre>
+		<h3 id="egfaiclibizexp">業務例外のJSON <span class="frm">(of ふぇいくらパターン)</span></h3>
+		<ul>
+			<li>field は、_global 固定 (特定の項目がないため) (LastaFluteのデフォルト)</li>
+			<li>code は、業務例外の種別を特定</li>
+			<li>values は、基本的に使うことはないが、必要なこともあるかもしれないので</li>
+		</ul>
+<pre><span class="codetitle">e.g. "Failure統一、Clientメッセージ" で、業務例外のとき @Json</span><code>
+{
+    <span class="localvar">failureType</span> : <span class="literal">"APPLICATION_EXCEPTION"</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">"_global"</span>
+         , <span class="localvar">code</span> : <span class="literal">"DATA_NOT_FOUND"</span>
+         , <span class="localvar">values</span> : []
+    ]
+}
+</code></pre>
+		<p>
+			failureType が直接 DATA_NOT_FOUND
+			になるやり方もあり得ますが、フラット構造になってしまってクライアントサイドが分岐をしづらいかもしれませんし、values
+			をどうやって渡すかを工夫しないといけないでしょう。
 		</p>
 		<p>
-			もう一度利用され始めた API のデザインは、変えられません。公開APIでなくても、クライアントサイドを修正するコストを払えないでしょう。
-			もう、向こう5年10年変わらないかもしれません。
-			<span class="frm">(多くの現場で、クライアントサイドとサーバーサイドで組織が違ったり、リリースタイミングが違ったりするので、なおさら足並み揃えて変更するというのは無理でしょう)</span>
+			field の _global は、実質クライアントは見ないかもしれません。APPLICATION_EXCEPTION
+			だったら、特定の項目に対するメッセージじゃないって割り切った判断をするかもしれませんので。
+			万が一、項目特化の業務例外があったときのためのものです。
 		</p>
 		<p>
-			そしてよくあるが、最初に開発したAPIの業務に引きづられたデザイン、それがそのまま全体の標準に。
-			でも、標準化するというのも呼び出す側からすると嬉しいことで非常に大切なことなので、一概に悪いわけではないです。
-			ただ、それがチグハグだと良くない...。
+			ちなみに業務例外の粒度ですが、これは "ふぇいくらパターン" に限らず、例外ハンドリングの "一件検索でデータ無かったとき"
+			のページを参考に。
+		</p>
+		<div class="detailpage"><a href="../architecture/exceptionhandling.html#selectentitynodata">開拓の例外ハンドリング - 一件検索でデータ無かったとき</a></div>
+		<h3 id="egfaiclilasta">LastaFluteでの実装 <span class="frm">(of ふぇいくらパターン)</span></h3>
+		<p>
+			すでにExampleの実装と近いので、ApiFailureHook でこのような構造の JSON Result
+			に調整し直せばOKという感じですが、errors.code や errors.values をどうやって定義して取得するかを少し考える必要があります。 
 		</p>
 		<p>
-			いま決めるものが、5年10年の会社の標準のJSONデザインになる(かもしれない)。
-			その覚悟を持って、<em class="keyword">しっかりと思想を持ってデザインすること！</em>
+			というのは、Hibernate Validator からは、REQUIRED や MAX などの種別情報は取得できず、[app]_message.properties
+			のメッセージしか取得できないからです。<span class="frm">(constraints.Required.message ではなく、"is required" しか取得できない)</span>
+		</p>
+		<p>
+			そこで、[app]_message.properties のメッセージに、code と values のために値を入れておきます。
+			もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除します。
+		</p>
+<pre><span class="codetitle">e.g. "ふぁいくらパターン" のために、[app]_message.properties を修正 @Properties</span><code>
+<span class="comment"># (key of message) = (errors.code, errors.values)</span>
+<span class="abbreviation">...</span>
+constraints.Max.message = <span class="literal">Max, {value}</span>
+constraints.Min.message = <span class="literal">Min, {value}</span>
+<span class="abbreviation">...</span>
+constraints.Length.message = <span class="literal">Length, {min}, {max}</span>
+<span class="abbreviation">...</span>
+constraints.Required.message = <span class="literal">Required</span>
+constraints.TypeAny.message = <span class="literal">TypeAny, {propertyType}</span>
+constraints.TypeInteger.message = <span class="literal">TypeNumber</span> <span class="comment">// これ新しく追加</span>
+constraints.TypeLong.message = <span class="literal">TypeNumber</span> <span class="comment">// これ新しく追加</span>
+constraints.TypeLocalDate.message = <span class="literal">TypeDate</span> <span class="comment">// これ新しく追加</span>
+<span class="abbreviation">...</span>
+</code></pre>
+		<p>
+			データ型変換エラーで、LocalDate や Integer など Java に依存した値を戻しても良くないので、
+			必要に応じて、TypeNumber, TypeLocalDate などのメッセージを追加すると良いでしょう。
+			<span class="frm">(TypeAnyは、データ型変換エラーのデフォルトのメッセージという扱い)</span>
+		</p>
+		<p>
+			バリデーションエラーの種別 (Required, Max など) と、errros.code
+			は必ずしも同じ値でしなくても良いですが、基本的には合わせておいたほうが間違いは少ないでしょう。
+			ただ、TypeLocalDate なんかは、クライアントに LocalDate
+			であることを意識させてもしょうがないので、errors.code は TypeDate にしています。
+			また、Integer か Long なのかをクライアントに意識させる必要もないので、一律 TypeNumber としています。
+		</p>
+		<p>
+			業務例外で追加するメッセージも、同じような構成で定義します。errors.code
+			は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と values" を指します。
+			<span class="frm">(ちなみに、[app]_label.properties は基本的に使うことがないです)</span>
+		</p>
+		<p>
+			ApiFailureHookにて、この "メッセージ" (errors.code, errors.values) をパースして、JSON Result
+			に設定するロジックを実装しましょう。
 		</p>
 	</div>
 
