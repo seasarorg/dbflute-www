@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>JSON API, Failure統一クライアントメッセージ | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>JSON API, Failure統一クライアントメッセージ</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<p>
+		jfluteもまだまだ研究中のテーマなので、何か要因が見つかれば随時更新していきます。
+	</p>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#jsonimage">JSONのイメージ</a></li>
+		<li><a href="#vlerror">バリデーションエラーのJSON</a></li>
+		<li><a href="#bizerror">ビジネスエラーのJSON <span class="frm">(業務例外)</span></a></li>
+		<li><a href="#clienterror">クライアントエラーのJSON <span class="frm">(クライアント例外)</span></a></li>
+		<li><a href="#servererror">サーバーエラーのJSON <span class="frm">(システム例外)</span></a></li>
+		<li><a href="#lasta">LastaFluteでの実装</a>
+			<ul>
+				<li><a href="#faiexample">Failure統一パターンは、Exampleと同じ</a></li>
+				<li><a href="#errorsimpl">errors の 実装をどうしよう？</a></li>
+				<li><a href="#cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></a></li>
+				<li><a href="#cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		"JSON APIのJSONデザイン" で、以下のものを採用したときのパターンを紹介します。
+		<span class="frm">(身の回りでよく使われるでありながら、よく考えてデザインしてクライアントと共有しないと、"へんてこりん" になりがちだし、実装も少し工夫が必要なので)</span>
+	</p>
+	<ul>
+		<li><span class="working"><!-- <a href="#jsonerrorexp"> -->B. エラー表現: Failure統一パターン<!-- </a> --></span></li>
+		<li><span class="working"><!-- <a href="#messagemanage"> -->E. メッセージ管理: クライアントメッセージ管理<!-- </a> --></span></li>
+	</ul>
+	<p>
+		これを <em class="mark">ふぇいくらパターン</em> とここでは呼びます。
+	</p>
+	<div class="relatedpage"><a href="./jsondesign.html">JSON APIのJSONデザイン</a></div>
+	<p>
+		ちなみに、このページの Example では、キーのケースは "スネークケース" にしています。
+	</p>
+
+	<h2 id="jsonimage">JSONのイメージ</h2>
+<pre><span class="codetitle">e.g. "ふぇいくらパターン" で、バリデーションエラーのとき @Json</span><code>
+{
+    <span class="localvar">cause</span> : <span class="literal">(VALIDATION_ERROR or BUSINESS_ERROR
+            or CLIENT_ERROR or SERVER_ERROR)</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
+         , <span class="localvar">code</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
+         , <span class="localvar">values</span> : <span class="literal">(エラーのきっかけとなった定義値のリスト
+                    e.g. 数値チェックの最大値、長さチェックの最大長など)</span>
+    ], [
+        <span class="abbreviation">...</span>
+    ]
+}
+</code></pre>
+
+	<h2 id="vlerror">バリデーションエラーのJSON</h2>
+	<ul>
+		<li>field は、ユニークとは限らない (一つの項目で二つエラーになり得るため)</li>
+		<li>field は、階層構造を表現 (受け取ったJSONの階層構造をドット区切りで表現)</li>
+		<li>code は、チェック処理の種別ごとで、基本的にValidatorアノテーションごと</li>
+		<li>values は、チェック処理で使った定義値 (メッセージに埋め込まれることを想定)</li>
+	</ul>
+<pre><span class="codetitle">e.g. "ふぇいくらパターン" で、バリデーションエラーのとき @Json</span><code>
+{
+    <span class="localvar">cause</span> : <span class="literal">"VALIDATION_ERROR"</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">"product_name"</span>
+         , <span class="localvar">code</span> : <span class="literal">"REQUIRED"</span>
+         , <span class="localvar">values</span> : []
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"product_count"</span>
+         , <span class="localvar">code</span> : <span class="literal">"MAX"</span>
+         , <span class="localvar">values</span> : [<span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
+    ]
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
+         , <span class="localvar">code</span> : <span class="literal">"LENGTH"</span>
+         , <span class="localvar">values</span> : [<span class="literal">"50"</span>] <span class="comment">// 文字列の最大長</span>
+    ]
+    ], [
+         , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
+         , <span class="localvar">code</span> : <span class="literal">"EMAIL"</span>
+         , <span class="localvar">values</span> : []
+    ]
+}
+</code></pre>
+
+	<h2 id="bizerror">ビジネスエラーのJSON <span class="frm">(業務例外)</span></h2>
+	<ul>
+		<li>field は、_global 固定 (特定の項目がないため) (LastaFluteのデフォルト)</li>
+		<li>code は、業務例外の種別を特定</li>
+		<li>values は、基本的に使うことはないが、必要なこともあるかもしれないので</li>
+	</ul>
+<pre><span class="codetitle">e.g. "ふぁいくらパターン" で、業務例外のとき @Json</span><code>
+{
+    <span class="localvar">cause</span> : <span class="literal">"BUSINESS_ERROR"</span>
+    , <span class="localvar">errors</span> : [
+         , <span class="localvar">field</span> : <span class="literal">"_global"</span>
+         , <span class="localvar">code</span> : <span class="literal">"ALREADY_DELETED"</span>
+         , <span class="localvar">values</span> : []
+    ]
+}
+</code></pre>
+	<p>
+		cause が直接 ALREADY_DELETED
+		になるやり方もあり得ますが、フラット構造になってしまってクライアントサイドが分岐をしづらいかもしれませんし、values
+		をどうやって渡すかを工夫しないといけないでしょう。
+	</p>
+	<p>
+		field の _global は、実質クライアントは見ないかもしれません。BUSINESS_ERROR
+		だったら、特定の項目に対するメッセージじゃないって割り切った判断をするかもしれませんので。
+		万が一、項目特化の業務例外があったときのためのものです。
+	</p>
+	<p>
+		ちなみに業務例外の粒度ですが、これは "ふぇいくらパターン" に限らず、例外ハンドリングの "一件検索でデータ無かったとき"
+		のページを参考に。
+	</p>
+	<div class="detailpage"><a href="../architecture/exceptionhandling.html#selectentitynodata">開拓の例外ハンドリング - 一件検索でデータ無かったとき</a></div>
+
+	<h2 id="clienterror">クライアントエラーのJSON <span class="frm">(クライアント例外)</span></h2>
+	<p>
+		基本的には、クライアント例外はクライアントにとっての不具合なので、発生したらサーバーサイドのログを見て状況を把握してクライアントプログラムを修正します。
+		<span class="frm">(HTTPステータスが 400, 403, 404 の違いで若干状況は把握できますが、あまりデバッグとしてはそこまで重要ではないでしょう)</span>
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#clihandling">クライアント例外ハンドリング</a></div>
+	<p>
+		ゆえに、クライアント例外は、多くのケースでメッセージを必要としないので、errors は空っぽです。
+	</p>
+<pre><span class="codetitle">e.g. クライアント例外のとき @Json</span><code>
+{
+    <span class="localvar">cause</span> : <span class="literal">"CLIENT_ERROR"</span>
+    , <span class="localvar">errors</span> : []
+}
+</code></pre>
+
+	<h2 id="servererror">サーバーエラーのJSON <span class="frm">(システム例外)</span></h2>
+	<p>
+		
+	</p>
+<pre><span class="codetitle">e.g. サーバー例外のとき @Json</span><code>
+{
+    <span class="localvar">cause</span> : <span class="literal">"SERVER_ERROR"</span>
+    , <span class="localvar">errors</span> : []
+}
+</code></pre>
+
+	<h2 id="lasta">LastaFluteでの実装</h2>
+	<h3 id="faiexample">Failure統一パターンは、Exampleと同じ</h3>
+	<p>
+		Failure統一パターンというところは、LastaFlute の Example と同じなので、harbor や maihama
+		プロジェクトの ApiFailureHook を参考に実装すればOKです。
+	</p>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-harbor/blob/master/src/main/java/org/docksidestage/mylasta/direction/sponsor/HarborApiFailureHook.java">HarborApiFailureHook.java | Github</a></div>
+	<div class="relatedpage"><a href="../action/apifailure.html">忘れられないApiFailureHook</a></div>
+	<p>
+		ただ、メッセージは、サーバーメッセージ管理方式なので、その辺を微調整する必要があります。
+	</p>
+	<h3 id="errorsimpl">errors の 実装をどうしよう？</h3>
+	<p>
+		errors.code や errors.values をどうやって定義して取得するかを少し考える必要があります。 
+	</p>
+	<p>
+		というのは、Hibernate Validator からは、REQUIRED や MAX などの種別情報は取得できず、[app]_message.properties
+		のメッセージしか取得できないからです。<span class="frm">(constraints.Required.message ではなく、"is required" しか取得できない)</span>
+	</p>
+	<p>
+		そこで、[app]_message.properties のメッセージに、code と values のために値を入れておきます。
+		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除します。
+	</p>
+<pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties のバリデーションメッセージを修正 @Properties</span><code>
+<span class="comment"># (key of message) = (errors.code, errors.values)</span>
+<span class="abbreviation">...</span>
+constraints.Max.message = <span class="literal">MAX, {value}</span>
+constraints.Min.message = <span class="literal">MIN, {value}</span>
+<span class="abbreviation">...</span>
+constraints.Length.message = <span class="literal">LENGTH, {min}, {max}</span>
+<span class="abbreviation">...</span>
+constraints.Required.message = <span class="literal">REQUIRED</span>
+constraints.TypeAny.message = <span class="literal">TYPE_ANY, {propertyType}</span>
+constraints.TypeInteger.message = <span class="literal">TYPE_NUMBER</span> <span class="comment">// これ新しく追加</span>
+constraints.TypeLong.message = <span class="literal">TYPE_NUMBER</span> <span class="comment">// これ新しく追加</span>
+constraints.TypeLocalDate.message = <span class="literal">TYPE_DATE</span> <span class="comment">// これ新しく追加</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		データ型変換エラーで、Integer や LocalDate など Java に依存した値を戻しても良くないので、
+		必要に応じて、TypeInteger, TypeLocalDate などのメッセージを追加すると良いでしょう。
+		<span class="frm">(TypeAnyは、データ型変換エラーのデフォルトのメッセージという扱い)</span>
+	</p>
+	<p>
+		バリデーションエラーの種別 (Required, Max など) と、errros.code
+		は必ずしも同じ値でしなくても良いですが、基本的には合わせておいたほうが間違いは少ないでしょう。
+		ただ、Integer か Long や LocalDate をクライアントに意識させる必要もないので、TYPE_NUMBER や TYPE_DATE
+		という風に少し翻訳しています。
+	</p>
+	<p>
+		業務例外で追加するメッセージも、同じような構成で定義します。errors.code
+		は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と values" を指します。
+		<span class="frm">(ちなみに、[app]_label.properties は基本的に使うことがないです)</span>
+	</p>
+<pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties の業務例外メッセージを修正 @Properties</span><code>
+<span class="abbreviation">...</span>
+<span class="comment"># ----------------------------------------------------------</span>
+<span class="comment">#                                      Application Exception</span>
+<span class="comment">#                                      ---------------------</span>
+<span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="comment"># six framework-embedded messages (don't change key names)</span>
+<span class="comment"># - - - - - - - - - -/</span>
+errors.login.failure=<span class="literal">LOGIN_FAILURE</span>
+errors.app.illegal.transition=<span class="literal">ILLEGAL_TRANSITION</span>
+errors.app.db.already.deleted=<span class="literal">ALREADY_DELETED</span>
+errors.app.db.already.updated=<span class="literal">ALREADY_UPDATED</span>
+errors.app.db.already.exists=<span class="literal">ALREADY_EXISTS</span>
+errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
+
+
+<span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment"># you can define your messages here:</span>
+<span class="comment"># e.g.</span>
+<span class="comment">#  errors.xxx = ...</span>
+<span class="comment">#  info.xxx = ...</span>
+<span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+
+errors.<span class="abbreviation">...</span>=<span class="abbreviation">...</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		ApiFailureHookにて、この "メッセージ" (errors.code, errors.values) をパースして、JSON Result
+		に設定するロジックを実装しましょう。
+	</p>
+	<h3 id="cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
+	<p>
+		causeだけを CLIENT_ERROR にして、errorsの実装は実質的に業務例外と同じで良いでしょう。メッセージがあればが設定されるし、なければ空っぽになるだけなので。
+	</p>
+	<p>
+		ただ、アプリケーションサーバーレベルの 404 なども JSON
+		でしっかり戻すのであれば、web.xml にて定義されている 400.html, 404.html などを 400.json, 404.json
+		に変更して、アプリが戻すクライアント例外のJSONと一致する固定のJSONを定義しておくと良いでしょう。
+	</p>
+	<h3 id="cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></h3>
+	<p>
+		ApiFailureHookでは何もせず<span class="frm">(OptionalThing.empty()を戻す)</span>、web.xml
+		にて定義されている 500.html を 500.json に変更して、アプリが戻すJSONと一致する固定のJSONを定義しておくと良いでしょう。
+	</p>
+	<p>
+		ただ、そもそもクライアントは、"HTTPステータスが 500
+		だったら中身も見ずにシステムエラーの処理をするだけ" という振舞いが想定されるので、あまり意味はないかもしれません。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
