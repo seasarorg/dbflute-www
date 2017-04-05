@@ -97,8 +97,8 @@
     , <span class="localvar">errors</span> : [
          , <span class="localvar">field</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
          , <span class="localvar">code</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
-         , <span class="localvar">values</span> : <span class="literal">(エラーのきっかけとなった定義値のリスト
-                    e.g. 数値チェックの最大値、長さチェックの最大長など)</span>
+         , <span class="localvar">data</span> : <span class="literal">(チェックに関連するデータ、長さチェックの最大長など
+                  e.g. min = "20", max = "50")</span>
     ], [
         <span class="abbreviation">...</span>
     ]
@@ -128,7 +128,7 @@
 		<li>field は、ユニークとは限らない (一つの項目で二つエラーになり得るため)</li>
 		<li>field は、階層構造を表現 (受け取ったJSONの階層構造をドット区切りで表現)</li>
 		<li>code は、チェック処理の種別ごとで、基本的にValidatorアノテーションごと</li>
-		<li>values は、チェック処理で使った定義値 (メッセージに埋め込まれることを想定)</li>
+		<li>data は、チェック処理で使った定義値など (メッセージに埋め込まれることを想定)</li>
 	</ul>
 <pre><span class="codetitle">e.g. "ふぇいくらパターン" で、バリデーションエラーのとき @Json</span><code>
 {
@@ -136,21 +136,21 @@
     , <span class="localvar">errors</span> : [
          , <span class="localvar">field</span> : <span class="literal">"product_name"</span>
          , <span class="localvar">code</span> : <span class="literal">"REQUIRED"</span>
-         , <span class="localvar">values</span> : []
+         , <span class="localvar">data</span> : {}
     ], [
          , <span class="localvar">field</span> : <span class="literal">"product_count"</span>
          , <span class="localvar">code</span> : <span class="literal">"MAX"</span>
-         , <span class="localvar">values</span> : [<span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
+         , <span class="localvar">data</span> : { max = <span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
     ]
     ], [
          , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">code</span> : <span class="literal">"LENGTH"</span>
-         , <span class="localvar">values</span> : [<span class="literal">"50"</span>] <span class="comment">// 文字列の最大長</span>
+         , <span class="localvar">data</span> : { min = <span class="literal">"20"</span>, max = <span class="literal">"50"</span>] <span class="comment">// 文字列の最大長</span>
     ]
     ], [
          , <span class="localvar">field</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">code</span> : <span class="literal">"EMAIL"</span>
-         , <span class="localvar">values</span> : []
+         , <span class="localvar">data</span> : {}
     ]
 }
 </code></pre>
@@ -163,7 +163,7 @@
 	<ul>
 		<li>field は、_global 固定 (特定の項目がないため) (LastaFluteのデフォルト)</li>
 		<li>code は、業務例外の種別を特定</li>
-		<li>values は、基本的に使うことはないが、必要なこともあるかもしれないので</li>
+		<li>data は、基本的に使うことはないが、必要なこともあるかもしれないので</li>
 	</ul>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" で、業務例外のとき @Json</span><code>
 {
@@ -171,13 +171,13 @@
     , <span class="localvar">errors</span> : [
          , <span class="localvar">field</span> : <span class="literal">"_global"</span>
          , <span class="localvar">code</span> : <span class="literal">"ALREADY_DELETED"</span>
-         , <span class="localvar">values</span> : []
+         , <span class="localvar">data</span> : {}
     ]
 }
 </code></pre>
 	<p>
 		cause が直接 ALREADY_DELETED
-		になるやり方もあり得ますが、フラット構造になってしまってクライアントサイドが分岐をしづらいかもしれませんし、values
+		になるやり方もあり得ますが、フラット構造になってしまってクライアントサイドが分岐をしづらいかもしれませんし、data
 		をどうやって渡すかを工夫しないといけないでしょう。
 	</p>
 	<p>
@@ -241,7 +241,7 @@
 	</p>
 	<h3 id="errorsimpl">errors の 実装をどうしよう？</h3>
 	<p>
-		errors.code や errors.values をどうやって定義して取得するかを少し考える必要があります。 
+		errors.code や errors.data をどうやって定義して取得するかを少し考える必要があります。 
 	</p>
 	<p>
 		というのは、Hibernate Validator からは、REQUIRED や MAX などの種別情報は取得できず、[app]_message.properties
@@ -249,19 +249,19 @@
 	</p>
 	<h3 id="errorsvlerror">バリデーションエラーの errors 整備</h3>
 	<p>
-		そこで、[app]_message.properties のメッセージに、code と values のために値を入れておきます。
-		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除します。
+		そこで、[app]_message.properties のメッセージに、code と data のために値を入れておきます。
+		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除して、パースし易い形で表現しておきます<span class="frm">(ここでは、dataに相当する部分をJSONとしてパースすることを想定)</span>。
 	</p>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties のバリデーションメッセージを修正 @Properties</span><code>
 <span class="comment"># (key of message) = (errors.code, errors.values)</span>
 <span class="abbreviation">...</span>
-constraints.Max.message = <span class="literal">MAX, {value}</span>
-constraints.Min.message = <span class="literal">MIN, {value}</span>
+constraints.Max.message = <span class="literal">MAX: max="{value}"</span>
+constraints.Min.message = <span class="literal">MIN: min="{value}"</span>
 <span class="abbreviation">...</span>
-constraints.Length.message = <span class="literal">LENGTH, {min}, {max}</span>
+constraints.Length.message = <span class="literal">LENGTH: min="{min}", max="{max}"</span>
 <span class="abbreviation">...</span>
 constraints.Required.message = <span class="literal">REQUIRED</span>
-constraints.TypeAny.message = <span class="literal">TYPE_ANY, {propertyType}</span>
+constraints.TypeAny.message = <span class="literal">TYPE_ANY: type="{propertyType}"</span>
 constraints.TypeInteger.message = <span class="literal">TYPE_NUMBER</span> <span class="comment">// これ新しく追加</span>
 constraints.TypeLong.message = <span class="literal">TYPE_NUMBER</span> <span class="comment">// これ新しく追加</span>
 constraints.TypeLocalDate.message = <span class="literal">TYPE_DATE</span> <span class="comment">// これ新しく追加</span>
