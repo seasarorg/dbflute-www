@@ -253,7 +253,7 @@
 		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除して、パースし易い形で表現しておきます<span class="frm">(ここでは、dataに相当する部分をJSONとしてパースすることを想定)</span>。
 	</p>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties のバリデーションメッセージを修正 @Properties</span><code>
-<span class="comment"># (key of message) = (errors.code, errors.values)</span>
+<span class="comment"># (key of message) = (errors.code, errors.data)</span>
 <span class="abbreviation">...</span>
 constraints.Max.message = <span class="literal">MAX | max:{value}</span>
 constraints.Min.message = <span class="literal">MIN | min:{value}</span>
@@ -281,7 +281,7 @@ constraints.TypeLocalDate.message = <span class="literal">TYPE_DATE</span> <span
 	<h3 id="errorsbizerror">ビジネスエラーの errors 整備</h3>
 	<p>
 		ビジネスエラー(業務例外)で追加するメッセージも、同じような構成で定義します。errors.code
-		は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と values" を指します。
+		は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と data" を指します。
 		<span class="frm">(ちなみに、[app]_label.properties は基本的に使うことがないです)</span>
 	</p>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties の業務例外メッセージを修正 @Properties</span><code>
@@ -311,7 +311,7 @@ errors.<span class="abbreviation">...</span>=<span class="abbreviation">...</spa
 <span class="abbreviation">...</span>
 </code></pre>
 	<p>
-		ApiFailureHookにて、この "メッセージ" (errors.code, errors.values) をパースして、JSON Result
+		ApiFailureHookにて、この "メッセージ" (errors.code, errors.data) をパースして、JSON Result
 		に設定するロジックを実装しましょう。
 	</p>
 	<h3 id="cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
