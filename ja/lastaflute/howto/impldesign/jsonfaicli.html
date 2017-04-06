@@ -52,11 +52,11 @@
 		<li><a href="#lasta">LastaFluteでの実装</a>
 			<ul>
 				<li><a href="#faiexample">Failure統一パターンは、Exampleと同じ</a></li>
-				<li><a href="#errorsimpl">errors の 実装をどうしよう？</a></li>
-				<li><a href="#errorsvlerror">バリデーションエラーの errors 整備</a></li>
-				<li><a href="#errorsbizerror">ビジネスエラーの errors 整備</a></li>
-				<li><a href="#cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></a></li>
-				<li><a href="#cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></a></li>
+				<li><a href="#laerrors">errorsの実装をどうしよう？</a></li>
+				<li><a href="#lamessages">[app]_message.propertiesの整備</a></li>
+				<li><a href="#lafailurehook">ApiFailureHookの実装</a></li>
+				<li><a href="#lacliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></a></li>
+				<li><a href="#laserverimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -231,26 +231,33 @@
 	<h2 id="lasta">LastaFluteでの実装</h2>
 	<h3 id="faiexample">Failure統一パターンは、Exampleと同じ</h3>
 	<p>
-		Failure統一パターンというところは、LastaFlute の Example と同じなので、harbor や maihama
-		プロジェクトの ApiFailureHook を参考に実装すればOKです。
+		このページで紹介したパターンを、そのまま Example で実装しています。Maihamaプロジェクトの Showbase アプリがそれになります。
 	</p>
-	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-harbor/blob/master/src/main/java/org/docksidestage/mylasta/direction/sponsor/HarborApiFailureHook.java">HarborApiFailureHook.java | Github</a></div>
-	<div class="relatedpage"><a href="../action/apifailure.html">忘れられないApiFailureHook</a></div>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-showbase">maihama-showbase | Github</a></div>
 	<p>
-		ただ、メッセージは、サーバーメッセージ管理方式なので、その辺を微調整する必要があります。
+		全く同じ構造なのであれば、コピーして名前の微調整だけで動く可能性もあります。ただ、(念のため、当然のことですが)しっかり理解をしてテストもしましょう。
 	</p>
-	<h3 id="errorsimpl">errors の 実装をどうしよう？</h3>
+	<h3 id="laerrors">errorsの実装をどうしよう？</h3>
 	<p>
-		errors.code や errors.data をどうやって定義して取得するかを少し考える必要があります。 
+		errors.code や errors.data をどうやって定義して取得するか？ここが実装のポイントとなります。 
 	</p>
 	<p>
 		というのは、Hibernate Validator からは、REQUIRED や MAX などの種別情報は取得できず、[app]_message.properties
 		のメッセージしか取得できないからです。<span class="frm">(constraints.Required.message ではなく、"is required" しか取得できない)</span>
 	</p>
-	<h3 id="errorsvlerror">バリデーションエラーの errors 整備</h3>
 	<p>
-		そこで、[app]_message.properties のメッセージに、code と data のために値を入れておきます。
-		もうサーバーサイドでメッセージは管理しないので、自然言語部分は削除して、パースし易い形で表現しておきます<span class="frm">(ここでは、dataに相当する部分をJSONとしてパースすることを想定)</span>。
+		なので、[app]_message.properties にて、自然言語のメッセージをやめて、種別情報とチェック関連の値を定義し、
+		ApiFailureHookにて、この "メッセージ" (errors.code, errors.data) をパースして、JSON Result
+		に設定するロジックを実装しましょう。
+	</p>
+	<h3 id="lamessages">[app]_message.propertiesの整備</h3>
+	<p>
+		Exampleはこちら:
+	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/resources/showbase_message.properties">showbase_message.properties | Github</a></div>
+	<h4>バリデーションエラーのメッセージ</h4>
+	<p>
+		バリデーションメッセージを、このように修正します。
 	</p>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties のバリデーションメッセージを修正 @Properties</span><code>
 <span class="comment"># (key of message) = (errors.code, errors.data)</span>
@@ -278,11 +285,9 @@ constraints.TypeLocalDate.message = <span class="literal">TYPE_DATE</span> <span
 		ただ、Integer か Long や LocalDate をクライアントに意識させる必要もないので、TYPE_NUMBER や TYPE_DATE
 		という風に少し翻訳しています。
 	</p>
-	<h3 id="errorsbizerror">ビジネスエラーの errors 整備</h3>
+	<h4>業務例外のメッセージ</h4>
 	<p>
-		ビジネスエラー(業務例外)で追加するメッセージも、同じような構成で定義します。errors.code
-		は業務例外の種別ごとに考えて定義しましょう。つまり、サーバーサイドの中では、"メッセージ" というのは実質的に "code と data" を指します。
-		<span class="frm">(ちなみに、[app]_label.properties は基本的に使うことがないです)</span>
+		そして、業務例外 (BUSINESS_ERROR) の方です。プロパティの追加もあります。
 	</p>
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" のために [app]_message.properties の業務例外メッセージを修正 @Properties</span><code>
 <span class="abbreviation">...</span>
@@ -306,15 +311,44 @@ errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
 <span class="comment">#  errors.xxx = ...</span>
 <span class="comment">#  info.xxx = ...</span>
 <span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+<span class="comment"># ========================================================================================</span>
+<span class="comment">#                                                                                  General</span>
+<span class="comment">#                                                                                  =======</span>
+<span class="comment"># ----------------------------------------------------------</span>
+<span class="comment">#                                      Application Validator</span>
+<span class="comment">#                                      ---------------------</span>
+<span class="comment"># e.g. </span>
+<span class="comment">#  org.docksidestage.validator.constraints.SeaLand.message = SEA_LAND</span>
 
-errors.<span class="abbreviation">...</span>=<span class="abbreviation">...</span>
+<span class="comment"># ----------------------------------------------------------</span>
+<span class="comment">#                                      Application Exceptionv
+<span class="comment">#                                      ---------------------</span>
+<span class="comment"># framework does not have own message so define here, used in your ApiFailureHook</span>
+<span class="subpoint">errors.login.required</span>=<span class="literal">LOGIN_REQUIRED</span>
+
+<span class="comment"># for no-message application exception, basically should not be used</span>
+<span class="subpoint">errors.unknown.business.error</span>=<span class="literal">UNKNOWN_BUSINESS_ERROR</span>
+
 <span class="abbreviation">...</span>
 </code></pre>
+	<h4>FreeGenを叩きましょう</h4>
 	<p>
-		ApiFailureHookにて、この "メッセージ" (errors.code, errors.data) をパースして、JSON Result
-		に設定するロジックを実装しましょう。
+		この後、ApiFailureHookで追加されたプロパティなどを利用するので、FreeGenを叩きましょう。
 	</p>
-	<h3 id="cliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
+	<h3 id="lafailurehook">ApiFailureHookの実装</h3>
+	<h4>もう、Exampleをがっつり読んでください</h4>
+	<p>
+		Exampleはこちら:
+	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/java/org/docksidestage/mylasta/direction/sponsor/ShowbaseApiFailureHook.java">ShowbaseApiFailureHook.java | Github</a></div>
+	<div class="relatedpage"><a href="../action/apifailure.html">忘れられないApiFailureHook</a></div>
+	<h3 id="lacommonorapp">commonか？appか？</h4>
+	<p>
+		Exampleは、マルチプロジェクトの中の一つのアプリプロジェクトだけが "ふぁいくらパターン"
+		なので、すべてのプロパティを怒涛の @Override でオーバーライドしています。もし、すべてのアプリプロジェクトで "ふぁいくらパターン"
+		なのであれば、これら修正は common でも良いでしょう。
+	</p>
+	<h3 id="lacliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
 	<h4>ApiFailureHookにて</h4>
 	<p>
 		causeだけを CLIENT_ERROR にして、errorsの実装は実質的にビジネスエラー(業務例外)と同じで良いでしょう。メッセージがあればが設定されるし、なければ空っぽになるだけなので。
@@ -325,11 +359,13 @@ errors.<span class="abbreviation">...</span>=<span class="abbreviation">...</spa
 		でしっかり戻すのであれば、web.xml にて定義されている 400.html, 404.html などを <em class="mark">400.json, 404.json</em>
 		に変更して、アプリが戻すクライアント例外のJSONと一致する固定のJSONを定義しておくと良いでしょう。
 	</p>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-showbase/src/main/webapp/error">src/main/webapp/error | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/webapp/WEB-INF/web.xml">webapp/WEB-INF/web.xml | Github</a></div>
 	<p>
 		ただし、そのアプリが純粋な JSON API ではなく、サーバーサイドHTMLも混じっているのであれば、この技は使えないです。
 		とはいえ、その場合だとなおさら、あまりクライアントがクライアントエラーを詳細にハンドリングする必要もないので、特に問題はないと想定されます。
 	</p>
-	<h3 id="cliimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></h3>
+	<h3 id="laserverimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></h3>
 	<h4>ApiFailureHookにて</h4>
 	<p>
 		errors に何か設定することはないので、ApiFailureHook
