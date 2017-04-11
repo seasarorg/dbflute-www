@@ -80,9 +80,10 @@
 				<li><a href="#jdbc">JDBCタスクの実行</a></li>
 				<li><a href="#doc">Docタスクの実行</a></li>
 				<li><a href="#generate">Generateタスクの実行</a></li>
-				<li><a href="#devtu">ディベロッパーのためのチュートリアル</a></li>
 			</ul>
 		</li>
+		<li><a href="#devtu">ディベロッパーのためのチュートリアル</a></li>
+		<li><a href="#reviewflute">jfluteのレビューポイント</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -518,33 +519,9 @@ PROJECT_ROOT
 	<h2 id="dfsetup">DBFluteのセットアップ</h2>
 	<h3 id="dfclient6">DBFluteクライアントの作成 <span class="frm">※Java6, 7</span></h3>
 	<p>
-		EMechaの機能を利用して、DBFluteエンジンをダウンロード、DBFluteクライアントを作成します。
-		<span class="frm">(講師によるDBFlute環境のお話あり)</span>
+		Java6,7の方は、別ページにて
 	</p>
-	<div class="relatedpage"><a href="../../manual/function/generator/client/index.html">DBFluteクライアント</a></div>
-	<div class="relatedpage"><a href="../../manual/function/generator/engine/index.html">DBFluteエンジン (モジュール)</a></div>
-	<p>
-		プロジェクトを右クリックして、"New" - "Other" で "DBFlute Wizards" の "DBFlute New Client"
-		を選択してウィザード画面を起動し、以下の内容を入力してください。
-	</p>
-	<div class="relatedpage"><a href="../../manual/function/helper/emecha/newclient/index.html">EMecha - DBFluteクライアントの新規作成</a></div>
-	<dl class="valuemainlist">
-		<dt>Client Project</dt><dd>maihamadb</dd>
-		<dt>Database</dt><dd>mysql</dd>
-		<dt>DI Container</dt><dd>seasar</dd>
-		<dt>Package Base</dt><dd>org.docksidestage.handson.dbflute</dd>
-		<dt>Driver</dt><dd>com.mysql.jdbc.Driver</dd>
-		<dt>Url</dt><dd>jdbc:mysql://localhost:43376/maihamadb</dd>
-		<dt>Schema</dt><dd>※空っぽ</dd>
-		<dt>User</dt><dd>maihamadb</dd>
-		<dt>Password</dt><dd>maihamadb</dd>
-		<dt>DBFlute Version</dt><dd>※"Latest Version" ボタンを押すと値が入る</dd>
-	</dl>
-	<p>
-		そして、"Download DBFlute" ボタンを押し、最新版のDBFluteがダウンロードしてください(若干待ちます)。そして、Finish
-		すると、プロジェクト直下に dbflute_example(DBFluteクライアント) と mydbflute(DBFluteエンジン) が配置されています。
-		<span class="frm">(もし、mydbflute配下にDBFluteのzipファイルが残っていたら削除してOKです。プラグインが削除し切れてないだけです)</span>
-	</p>
+	<div class="detailpage"><a href="./java67/sec1java67.html">Java6,7のセクション1切り出し</a></div>
 	<h3 id="dfclient8">DBFluteクライアントの作成 <span class="frm">※Java8</span></h3>
 	<p>
 		DBFlute Maven Plugin を使って、インストールします。
@@ -590,7 +567,7 @@ PROJECT_ROOT
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></div>
 	<h4>DBユーザ自動作成のための設定</h4>
 	<p>
-		DBFluteクライアント/dfprop配下の replaceSchemaMap.dfprop (旧replaceSchemaDefinitionMap.dfprop)
+		DBFluteクライアント/dfprop配下の <em class="mark">replaceSchemaMap.dfprop</em> (旧replaceSchemaDefinitionMap.dfprop)
 		の additionalUserMap プロパティを以下のように設定してください<span class="frm">(コメントアウトされた雛形があるので、そのコメントアウトを外して修正)</span>。
 		これは、システムユーザによるアプリユーザ、スキーマの作成を自動化するための準備です。
 	</p>
@@ -622,7 +599,7 @@ PROJECT_ROOT
 	</p>
 	<h4>DBユーザ、テーブル作成DDLの配置</h4>
 	<p>
-		tutorial/material/dbflute/playsql-createschema-ddl-1st.zip の playsql/replace-schema-00-system.sql と
+		<em class="smallmark">tutorial/material/dbflute/playsql-createschema-ddl-1st.zip</em> の playsql/replace-schema-00-system.sql と
 		replace-schema-10-basic.sql、この二つのファイルをDBFluteクライアントの playsql 配下に配置してください。
 		<span class="frm">(デフォルトで配置されている空っぽのreplace-schema.sqlは削除しちゃってOKです)</span>
 	</p>
@@ -658,13 +635,6 @@ PROJECT_ROOT
 		DBFluteタスクのログファイルである、DBFluteクライアント/log/dbflute.log でも確認することができます。
 		<span class="frm">(ハンズオンをどこかの Git で管理する場合は、logファイルを .gitignore に登録しておきましょう)</span>
 	</p>
-	<p>
-		もし、Mac OS X の Java8 環境にて UnsupportedClassVersionError が発生した場合は、JAVA_HOME
-		を Java8 に設定してください。<span class="frm">(これどうにかならないかなぁ...)</span>
-	</p>
-<pre><span class="codetitle">e.g. Macにて、JAVA_HOME を Java8 に設定 @Shell</span><code>
-export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
-</code></pre>
 	<p>
 		再度、MySQLにログインし、maihamadb データベースが作られていることを確認してください。
 	</p>
@@ -720,7 +690,7 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
 	<div class="relatedpage"><a href="#hierarchical">this - Package Presentation を Hierarchical に</a></div>
 
 	<div class="inucolumn">
-		<h3 id="devtu">ディベロッパーのためのチュートリアル</h3>
+		<h2 id="devtu">ディベロッパーのためのチュートリアル</h2>
 		<p>
 			さあ、ディベロッパーのためのチュートリアルをブックマークしましょう！
 		</p>
@@ -731,10 +701,23 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
 			まずは一度さらっと読んでみて、"ここにこういうことが書いてあるんだ"
 			となんとなく理解してみて、そして、このあと困ったことがあったら、このページを開いて情報を探していくとよいでしょう。
 		</p>
+	</div>
+	
+	<div class="inucolumn">
+		<h2 id="reviewflute">jfluteのレビューポイント</h2>
 		<p>
-			ちなみに、Java8のページ (DBFlute on Java8) もこちらから辿れるようになっています。
+			以下、改めてチェックしてみてください。
 		</p>
-		<div class="detailpage"><a href="../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+		<ul>
+			<li>Encodingや改行コードの設定、されていますか？</li>
+			<li>Encodingや改行コードの設定、workspace だけじゃなく project にも入ってますか？</li>
+			<li>フォーマッターや自動化の設定、されていますか？</li>
+			<li>フォーマッターや自動化の設定、project の設定になってますか？</li>
+			<li>そもそもコンパイルは通ってますか？ <span class="frm">(エラーになってないですか？)</span></li>
+		</ul>
+		<p>
+			環境構築を抜けなくやるというのも大切なことです。
+		</p>
 	</div>
 	
 	<h2 id="nextsection">次のセクション</h2>
