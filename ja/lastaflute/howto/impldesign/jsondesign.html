@@ -63,22 +63,28 @@
 		</li>
 		<li><a href="#jsonerrorexp">B. エラー表現 <span class="frm">(Failure統一？共通ヘッダー？)</span></a>
 			<ul>
-				<li><a href="#failureunified">Failure統一パターン</a></li>
-				<li><a href="#commonheader">共通ヘッダーパターン</a></li>
+				<li><a href="#failureunified">Failure統一パターンとは？</a></li>
+				<li><a href="#commonheader">共通ヘッダーパターンとは？</a></li>
+				<li><a href="#failuremerit">Failure統一パターンのメリット</a></li>
+				<li><a href="#commonheadermerit">共通ヘッダーパターンのメリット</a></li>
 				<li><a href="#failureorheader">Failure統一？共通ヘッダー？ or ...</a></li>
 			</ul>
 		</li>
 		<li><a href="#jsonresponse">C. JSONのデータ型 <span class="frm">型付き？型なし？</span></a>
 			<ul>
-				<li><a href="#typedjson">型付きJSONパターン</a></li>
-				<li><a href="#notypedjson">型なしJSONパターン</a></li>
+				<li><a href="#typedjson">型付きJSONパターンとは？</a></li>
+				<li><a href="#notypedjson">型なしJSONパターンとは？</a></li>
+				<li><a href="#typedjsonmerit">型付きJSONパターンのメリット</a></li>
+				<li><a href="#notypedjsonmerit">型なしJSONパターンのメリット</a></li>
 				<li><a href="#typedjsonbasis">かなり強めに型付きJSONが推奨？</a></li>
 			</ul>
 		</li>
 		<li><a href="#dateformat">D. 日付フォーマット <span class="frm">クライアント？サーバー？</span></a>
 			<ul>
-				<li><a href="#clientdateformat">クライアント日付フォーマット方式</a></li>
-				<li><a href="#serverdateformat">サーバー日付フォーマット方式</a></li>
+				<li><a href="#clientdateformat">クライアント日付フォーマット方式とは？</a></li>
+				<li><a href="#serverdateformat">サーバー日付フォーマット方式とは？</a></li>
+				<li><a href="#clientdateformatmerit">クライアント日付フォーマット方式のメリット</a></li>
+				<li><a href="#serverdateformatmerit">サーバー日付フォーマット方式のメリット</a></li>
 				<li><a href="#dependsonnuance">どんなニュアンスで戻すか？次第</a></li>
 				<li><a href="#dateformatanti">日付フォーマットのアンチパターン</a></li>
 				<li><a href="#lastadateformat">LastaFluteだと、どんな実装に？</a></li>
@@ -88,8 +94,11 @@
 		</li>
 		<li><a href="#messagemanage">E. メッセージ管理: <span class="frm">クライアント？サーバー？</span></a>
 			<ul>
-				<li><a href="#clientmessage">クライアントメッセージ管理方式</a></li>
-				<li><a href="#servermessage">サーバーメッセージ管理方式</a></li>
+				<li><a href="#clientmessage">クライアントメッセージ方式とは？</a></li>
+				<li><a href="#servermessage">サーバーメッセージ方式とは？</a></li>
+				<li><a href="#clientmessagemerit">クライアントメッセージ方式のメリット</a></li>
+				<li><a href="#servermessagemerit">サーバーメッセージ方式のメリット</a></li>
+				<li><a href="#hybridmessage">ハイブリッドメッセージ方式もあり？</a></li>
 			</ul>
 		</li>
 		<li><a href="#keycase">F. キーのケース: <span class="frm">キャメル？スネーク？</span></a>
@@ -225,7 +234,7 @@
 		様々なパターンがありますが、ここではざっくりと二つのパターンを紹介します。必ず実装する前に考えましょう。
 		<em class="mark">Failure統一パターン</em> と <em class="mark">共通ヘッダーパターン</em> です。
 	</p>
-	<h3 id="failureunified">Failure統一パターン</h3>
+	<h3 id="failureunified">Failure統一パターンとは？</h3>
 	<h4>正常系のJSON</h4>
 	<p>
 		正常なときは、普通にその業務の JSON を戻します。
@@ -285,40 +294,6 @@
     showSystemError();
 }
 </code></pre>
-	<h4>Failure統一パターンのメリット</h4>
-	<p>
-		共通ヘッダーパターンと比べてのメリットを挙げてみます。
-	</p>
-	<dl class="textlist">
-		<dt>正常系のJSONに余計なものがない</dt>
-		<dd>
-			正常系はいたってシンプル、その業務のJSONだけになる。
-		</dd>
-		<dd>
-			共通ヘッダーパターンだと、正常系でも必ずヘッダーが付くので、
-			(ほとんど使わない項目ばかりでも)その文字列の分の出力処理とパース処理に時間がかかり、JSON自体のサイズも大きくなる。
-		</dd>
-		<dt>クライアントサイドがシンプル</dt>
-		<dd>
-			HTTPの仕組みをある程度使うことで、<em class="keyword">既存の仕組みの乗っかって</em> 処理ができる。
-			例えば、アプリケーションサーバーやフレームワーク内で発生する 404 や 500 エラーも統一的にハンドリングできる。
-		</dd>
-		<dd>
-			共通ヘッダーパターンだと、正常でもエラーでもHTTPステータスが常に200のなので、200の中でのエラー分岐もするし、かつ、HTTPステータスの分岐も必要になる。
-		</dd>
-		<dt>インフラで正常系の判断がしやすい</dt>
-		<dd>
-			HTTPステータスを使っているので、例えばインフラ側でAPIの結果をキャッシュするなど仕組みを入れる場合に、
-			正常系だけをキャッシュ対象にしたいときなど、HTTPの仕組みだけで判断しやすくなる。
-			仕組みだけでなく目視確認でもアクセスログからも正常なのかエラーなのかが判断しやすくなる。
-		</dd>
-		<dd>
-			共通ヘッダーパターンだと、正常でもエラーでもHTTPステータスが常に200のなので、HTTPステータスだけでは判断できない。
-		</dd>
-	</dl>
-	<p>
-		<span class="frm">※デメリットは "共通ヘッダーパターンのメリットの逆" を考えると良いでしょう。</span>
-	</p>
 	<h4>限定的ヘッダーパターンはまた別</h4>
 	<p>
 		ページングの結果を戻すAPIときに、ページサイズやページ番号を戻すような共通的なヘッダーを付与するのは、
@@ -333,7 +308,7 @@
 		を育てていけばOKです。
 	</p>
 	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-harbor/blob/master/src/main/java/org/docksidestage/mylasta/direction/sponsor/HarborApiFailureHook.java#L37">HarborApiFailureHook.java | Github</a></div>
-	<h3 id="commonheader">共通ヘッダーパターン</h3>
+	<h3 id="commonheader">共通ヘッダーパターンとは？</h3>
 	<h4>正常系、エラー系に関係なく共通ヘッダー</h4>
 	<p>
 		正常系、エラー系に関係なく、一律共通ヘッダー的な項目を追加して、エラーかどうかの判定はすべてアプリ独自の項目で表現する。
@@ -345,7 +320,7 @@
 <pre><span class="codetitle">e.g. 共通ヘッダーパターンの正常系のときのJSON戻り、ここでは商品一覧 @Json</span><code>
 {
     <span class="localvar">"header"</span> : {
-        <span class="localvar">"resultStatus"</span> : SUCCESS
+        <span class="localvar">"businessStatus"</span> : SUCCESS
         , <span class="localvar">"messageMap"</span> : {} <span class="comment">// 正常系はメッセージがないのでだいたい空っぽ</span>
     }
     , <span class="localvar">"body"</span> : {
@@ -362,7 +337,7 @@
 <pre><span class="codetitle">e.g. 共通ヘッダーパターンのエラー系のときのJSON戻り、ここではバリデーションエラー @Json</span><code>
 {
     <span class="localvar">"header"</span> : {
-        <span class="localvar">"resultStatus"</span> : VALIDATION_ERROR
+        <span class="localvar">"businessStatus"</span> : VALIDATION_ERROR
         , <span class="localvar">"messageMap"</span> : {
             <span class="abbreviation">...</span>
         }
@@ -417,24 +392,6 @@
 		APIのバージョンを含める、というケースもよく見かけます。これが悪いとは言えませんが、HTTPヘッダーを使うという選択肢もあります。
 		その辺も踏まえてしっかりとデザインすると良いでしょう。
 	</p>
-	<h4>共通ヘッダーパターンのメリット</h4>
-	<p>
-		ごめんなさい、あまり思いつきませんでした...
-	</p>
-	<dl class="textlist">
-		<dt>正常系のメッセージの共通化</dt>
-		<dd>
-			正常系でもメッセージを共通化できる。
-			<span class="frm">(ただ、正常系でメッセージを戻す場面がそもそもあまり多くはないので、共通化のメリットはあまりないかも。常にメッセージを戻すようなシステムであればというところで)</span>
-		</dd>
-		<dt>HTTPという仕組みを一切に意識しない</dt>
-		<dd>
-			もし、HTTP通信していること自体を気にしたくないのであれば。<span class="frm">(この場合、もうクライアントもHTTPスタータスは一切見ずに、JSONだけを見るようにするとかでもいいのかも!?)</span>
-		</dd>
-	</dl>
-	<p>
-		<span class="frm">※デメリットは "Failure統一パターンのメリットの逆" を考えると良いでしょう。</span>
-	</p>
 	<h4>LastaFluteではどう実装する？</h4>
 	<p>
 		LastaFluteは、共通ヘッダーパターンに対して積極的なサポートをしていません。
@@ -444,6 +401,58 @@
 	</p>
 	<p>
 		この辺は、今後のフィードバックで共通ヘッダーパターンのメリットがもっと明確になってきたときにサポートを検討しようかなと思っています。
+	</p>
+	<h3 id="failuremerit">Failure統一パターンのメリット</h3>
+	<p>
+		共通ヘッダーパターンと比べてのメリットを挙げてみます。
+	</p>
+	<dl class="textlist">
+		<dt>正常系のJSONに余計なものがない</dt>
+		<dd>
+			正常系はいたってシンプル、その業務のJSONだけになる。
+		</dd>
+		<dd>
+			共通ヘッダーパターンだと、正常系でも必ずヘッダーが付くので、
+			(ほとんど使わない項目ばかりでも)その文字列の分の出力処理とパース処理に時間がかかり、JSON自体のサイズも大きくなる。
+		</dd>
+		<dt>クライアントサイドがシンプル</dt>
+		<dd>
+			HTTPの仕組みをある程度使うことで、<em class="keyword">既存の仕組みの乗っかって</em> 処理ができる。
+			例えば、アプリケーションサーバーやフレームワーク内で発生する 404 や 500 エラーも統一的にハンドリングできる。
+		</dd>
+		<dd>
+			共通ヘッダーパターンだと、正常でもエラーでもHTTPステータスが常に200のなので、200の中でのエラー分岐もするし、かつ、HTTPステータスの分岐も必要になる。
+		</dd>
+		<dt>インフラで正常系の判断がしやすい</dt>
+		<dd>
+			HTTPステータスを使っているので、例えばインフラ側でAPIの結果をキャッシュするなど仕組みを入れる場合に、
+			正常系だけをキャッシュ対象にしたいときなど、HTTPの仕組みだけで判断しやすくなる。
+			仕組みだけでなく目視確認でもアクセスログからも正常なのかエラーなのかが判断しやすくなる。
+		</dd>
+		<dd>
+			共通ヘッダーパターンだと、正常でもエラーでもHTTPステータスが常に200のなので、HTTPステータスだけでは判断できない。
+		</dd>
+	</dl>
+	<p>
+		<span class="frm">※デメリットは "共通ヘッダーパターンのメリットの逆" を考えると良いでしょう。</span>
+	</p>
+	<h3 id="commonheadermerit">共通ヘッダーパターンのメリット</h3>
+	<p>
+		ごめんなさい、あまり思いつきませんでした...
+	</p>
+	<dl class="textlist">
+		<dt>正常系のメッセージの共通化</dt>
+		<dd>
+			正常系でもメッセージを共通化できる。
+			<span class="frm">(ただ、正常系でメッセージを戻す場面がそもそもあまり多くはないので、共通化のメリットはあまりないかも。常にメッセージを戻すようなシステムであればというところで)</span>
+		</dd>
+		<dt>HTTPという仕組みを一切意識しない</dt>
+		<dd>
+			もし、HTTP通信していること自体を気にしたくないのであれば。<span class="frm">(この場合、もうクライアントもHTTPスタータスは一切見ずに、JSONだけを見るようにするとかでもいいのかも!?)</span>
+		</dd>
+	</dl>
+	<p>
+		<span class="frm">※デメリットは "Failure統一パターンのメリットの逆" を考えると良いでしょう。</span>
 	</p>
 	<div class="inucolumn">
 		<h3 id="failureorheader">Failure統一？共通ヘッダー？ or ...</h3>
@@ -474,8 +483,7 @@
 	<p>
 		JSONのデータ型をどうするか？
 	</p>
-	<h3 id="typedjson">型付きJSONパターン</h3>
-	<h4>普通のJSON</h4>
+	<h3 id="typedjson">型付きJSONパターンとは？</h3>
 	<p>
 		いわゆる普通のJSON。TSVなどと違ってJSONには型の概念があり、それを有効活用します。
 	</p>
@@ -488,7 +496,20 @@
     <span class="abbreviation">...</span>
 }
 </code></pre>
-	<h4>型付きJSONパターンのメリット</h4>
+	<h3 id="notypedjson">型なしJSONパターンとは？</h3>
+	<p>
+		型をなくしたAll文字列型のJSONで、TSVのようにすべて文字列で取り扱います。nullも "" として表現します。
+	</p>
+<pre><span class="codetitle">e.g. 型ありのJSONパターンのJSON @Json</span><code>
+{
+    <span class="localvar">"productId"</span> : <span class="literal">"7"</span>
+    , <span class="localvar">"productName"</span> : <span class="literal">"Sea"</span>
+    , <span class="localvar">"soldOutFlg"</span> : <span class="literal">"false"</span>
+    , <span class="localvar">"saleDatetime"</span> : <span class="literal">""</span> <span class="comment">// 値がないことを空文字で表現</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="typedjsonmerit">型付きJSONパターンのメリット</h3>
 	<p>
 		型なしに比べてのメリットを挙げてみます。
 	</p>
@@ -525,21 +546,7 @@
 	<p>
 		<span class="frm">※デメリットは "型なしJSONパターンのメリットの逆" を考えると良いでしょう。</span>
 	</p>
-	<h3 id="notypedjson">型なしJSONパターン</h3>
-	<h4>型をなくしたAll文字列型のJSON</h4>
-	<p>
-		TSVのように、すべて文字列で取り扱うJSON。nullも "" として表現する。
-	</p>
-<pre><span class="codetitle">e.g. 型ありのJSONパターンのJSON @Json</span><code>
-{
-    <span class="localvar">"productId"</span> : <span class="literal">"7"</span>
-    , <span class="localvar">"productName"</span> : <span class="literal">"Sea"</span>
-    , <span class="localvar">"soldOutFlg"</span> : <span class="literal">"false"</span>
-    , <span class="localvar">"saleDatetime"</span> : <span class="literal">""</span> <span class="comment">// 値がないことを空文字で表現</span>
-    <span class="abbreviation">...</span>
-}
-</code></pre>
-	<h4>型なしJSONパターンのメリット</h4>
+	<h3 id="notypedjsonmerit">型なしJSONパターンのメリット</h3>
 	<p>
 		ごめんなさい、あまり思いつきませんでした...
 	</p>
@@ -589,8 +596,7 @@
 	<p>
 		yyyy/MM/dd を、クライアントが決めますか？サーバーが決めますか？
 	</p>
-	<h3 id="clientdateformat">クライアント日付フォーマット方式</h3>
-	<h4>サーバーはISO標準フォーマットで戻す</h4>
+	<h3 id="clientdateformat">クライアント日付フォーマット方式とは？</h3>
 	<p>
 		サーバーはISO標準で戻して、クライアントで日付フォーマットする方式です。
 	</p>
@@ -599,7 +605,16 @@
     <span class="localvar">"seaBeginDatetime"</span> : <span class="point">"2001-09-04T12:34:56"</span> <span class="comment">// ISO標準</span>
 }
 </code></pre>
-	<h4>クライアント日付フォーマット方式のメリット</h4>
+	<h3 id="serverdateformat">サーバー日付フォーマット方式とは？</h3>
+	<p>
+		サーバーですでに日付フォーマットしてから戻して、クライアントでは単に表示する方式です。
+	</p>
+<pre><span class="codetitle">e.g. 日付を画面で表示する形で戻す @Json</span><code>
+{
+    <span class="localvar">"seaBeginDatetime"</span> : <span class="point">"2001/09/04 12:34:56"</span> <span class="comment">// 画面で表示する形</span>
+}
+</code></pre>
+	<h3 id="clientdateformatmerit">クライアント日付フォーマット方式のメリット</h3>
 	<dl class="textlist">
 		<dt>フォーマット修正でサーバーリリース不要</dt>
 		<dd>
@@ -610,19 +625,9 @@
 			iPhone や Android, JavaScript で表示ロジックが若干違ったとしても同じAPIを呼びやすくなります。
 		</dd>
 	</dl>
-	<h3 id="serverdateformat">サーバー日付フォーマット方式</h3>
-	<h4>クライアントはもう表示するだけ</h4>
-	<p>
-		サーバーですでに日付フォーマットしてから戻して、クライアントでは単に表示する方式です。
-	</p>
-<pre><span class="codetitle">e.g. 日付を画面で表示する形で戻す @Json</span><code>
-{
-    <span class="localvar">"seaBeginDatetime"</span> : <span class="point">"2001/09/04 12:34:56"</span> <span class="comment">// 画面で表示する形</span>
-}
-</code></pre>
-	<h4>サーバー日付フォーマット方式のメリット</h4>
+	<h3 id="serverdateformatmerit">サーバー日付フォーマット方式のメリット</h3>
 	<dl class="textlist">
-		<dt>日付フォーマットを一言管理しやすい</dt>
+		<dt>日付フォーマットを一元管理しやすい</dt>
 		<dd>
 			サーバーを直せば、すべてのクライアントでフォーマットが変わる。<span class="frm">(but それをしたいかどうか!?)</span>
 		</dd>
@@ -684,27 +689,43 @@
 	<p>
 		メッセージリソースを、クライアントで持ちますか？サーバーで持ちますか？
 	</p>
-	<h3 id="clientmessage">クライアントメッセージ管理方式</h3>
-	<h4>サーバーはキーと値だけ戻す</h4>
+	<h3 id="clientmessage">クライアントメッセージ方式とは？</h3>
 	<p>
 		クライアントで、メッセージリソースを保持する方式です。
 		例えば、サーバーサイドのバリデーションエラーのときは、サーバーはメッセージの "キー" と "値" だけを戻します。
 	</p>
-<pre><span class="codetitle">e.g. クライアントメッセージ管理方式で、バリデーションエラーを戻す @Json</span><code>
+<pre><span class="codetitle">e.g. クライアントメッセージ方式で、バリデーションエラーを戻す @Json</span><code>
 {
     <span class="localvar">"cause"</span> : <span class="literal">"VALIDATION_ERROR"</span>
     , <span class="localvar">"errors"</span> : [
          , <span class="localvar">"field"</span> : <span class="literal">"product_name"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"REQUIRED"</span>
-         , <span class="localvar">"values"</span> : []
+         , <span class="localvar">"data"</span> : {}
     ], [
          , <span class="localvar">"field"</span> : <span class="literal">"product_count"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"MAX"</span>
-         , <span class="localvar">"values"</span> : [<span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
+         , <span class="localvar">"data"</span> : { <span class="localvar">max</span> : <span class="literal">"100"</span> } <span class="comment">// 数値の最大値</span>
     ]
 }
 </code></pre>
-	<h4>クライアントメッセージ管理方式のメリット</h4>
+	<h3 id="servermessage">サーバーメッセージ方式とは？</h3>
+	<p>
+		サーバーで、メッセージリソースを保持する方式です。
+		例えば、サーバーサイドのバリデーションエラーのときは、サーバーはそのまま表示できるメッセージを戻します。
+	</p>
+<pre><span class="codetitle">e.g. サーバーメッセージ方式で、バリデーションエラーを戻す @Json</span><code>
+{
+    <span class="localvar">"cause"</span> : <span class="literal">"VALIDATION_ERROR"</span>
+    , <span class="localvar">"errors"</span> : [
+        <span class="localvar">"field"</span> : <span class="literal">"email"</span>
+        , <span class="localvar">"messages"</span> : <span class="subpoint">["メアドじゃない", "長っ。100文字までって言わなかったでしょうか？"]</span>
+    ], [
+        <span class="localvar">"field"</span> : "birthdate"
+        , <span class="localvar">"messages"</span> : <span class="subpoint">["まあ、いいけど"]</span>
+    ]
+}
+</code></pre>
+	<h3 id="clientmessagemerit">クライアントメッセージ方式のメリット</h3>
 	<dl class="textlist">
 		<dt>クライアントで現象ごとに独自処理できる</dt>
 		<dd>
@@ -719,25 +740,7 @@
 			表示領域や、表示ロジックの違いなどから、クライアントごとにメッセージの長さやニュアンスが変わったりする場合でも、難なく解決できる。
 		</dd>
 	</dl>
-	<h3 id="servermessage">サーバーメッセージ管理方式</h3>
-	<h4>クライアントはもう表示するだけ</h4>
-	<p>
-		サーバーで、メッセージリソースを保持する方式です。
-		例えば、サーバーサイドのバリデーションエラーのときは、サーバーはそのまま表示できるメッセージを戻します。
-	</p>
-<pre><span class="codetitle">e.g. サーバーメッセージ管理方式で、バリデーションエラーを戻す @Json</span><code>
-{
-    <span class="localvar">"cause"</span> : <span class="literal">"VALIDATION_ERROR"</span>
-    , <span class="localvar">"errors"</span> : [
-        <span class="localvar">"field"</span> : <span class="literal">"email"</span>
-        , <span class="localvar">"messages"</span> : <span class="subpoint">["メアドじゃない", "長っ。100文字までって言わなかったでしょうか？"]</span>
-    ], [
-        <span class="localvar">"field"</span> : "birthdate"
-        , <span class="localvar">"messages"</span> : <span class="subpoint">["まあ、いいけど"]</span>
-    ]
-}
-</code></pre>
-	<h4>サーバーメッセージ管理方式のメリット</h4>
+	<h3 id="servermessagemerit">サーバーメッセージ方式のメリット</h3>
 	<dl class="textlist">
 		<dt>メッセージの一元管理ができる</dt>
 		<dd>
@@ -761,6 +764,12 @@
 	<p>
 		ですが、クライアントの仕組み的にメッセージリソースの機能を持っていないことがあったりする可能性などを考えると、全体的には "元データ方式"
 		ここだけはその逆にするというのもあり得るかもしれません。
+	</p>
+	<h3 id="hybridmessage">ハイブリッドメッセージ方式もあり？</h3>
+	<p>
+		クライアントがあまり特定できないように環境での JSON API であれば、コードもメッセージも両方を戻すハイブリッドでもいいかもしれません。
+		サーバー提供のメッセージをそのまま使ってもいいし、クライアントが自分で用意してもいいしと。
+		<span class="frm">(Thanks, Wakipon)</span>
 	</p>
 	<h3 id="lastamessage">LastaFluteだと、どう実装する？</h4>
 	<p>
@@ -795,7 +804,7 @@
 	<p>
 		蛇っぽい。
 	</p>
-<pre><span class="codetitle">e.g. キャメルケース方式 @Json</span><code>
+<pre><span class="codetitle">e.g. スネークケース方式 @Json</span><code>
 {
     <span class="localvar">"sea_id"</span> : <span class="abbreviation">...</span>
     , <span class="localvar">"land_name"</span> : <span class="abbreviation">...</span>
@@ -901,21 +910,21 @@
     , <span class="localvar">"errors"</span> : [
          , <span class="localvar">"field"</span> : <span class="literal">"product_name"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"REQUIRED"</span>
-         , <span class="localvar">"values"</span> : []
+         , <span class="localvar">"data"</span> : {}
     ], [
          , <span class="localvar">"field"</span> : <span class="literal">"product_count"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"MAX"</span>
-         , <span class="localvar">"values"</span> : [<span class="literal">"100"</span>] <span class="comment">// 数値の最大値</span>
+         , <span class="localvar">"data"</span> : { <span class="localvar">max</span> : <span class="literal">"100"</span> } <span class="comment">// 数値の最大値</span>
     ]
     ], [
          , <span class="localvar">"field"</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"LENGTH"</span>
-         , <span class="localvar">"values"</span> : [<span class="literal">"50"</span>] <span class="comment">// 文字列の最大長</span>
+         , <span class="localvar">"data"</span> : { <span class="localvar">min</span> : <span class="literal">"20"</span>, <span class="localvar">max</span> : <span class="literal">"50"</span> } <span class="comment">// 文字列の最大長</span>
     ]
     ], [
          , <span class="localvar">"field"</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"EMAIL"</span>
-         , <span class="localvar">"values"</span> : []
+         , <span class="localvar">"data"</span> : {}
     ]
 }
 </code></pre>
