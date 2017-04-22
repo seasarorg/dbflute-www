@@ -472,7 +472,8 @@ verifyOrClientError(<span class="literal">"<span class="abbreviation">...</span>
 	</p>
 	<h3 id="howhandlingbiz">catchされた後は、どう処理される？</h3>
 	<p>
-		ひとまず通知ログ(INFO)が出力され、例外によって処理が大きく変わります。
+		ひとまず通知ログ(INFO)が出力され、どういうレスポンスが戻るかは例外によって変わります。
+		<span class="frm">(厳密には、通知ログが出力されるかどうか自体も、例外によって変わります)</span>
 	</p>
 	<h4>HTMLレスポンスなら</h4>
 	<p>
@@ -513,6 +514,12 @@ verifyOrClientError(<span class="literal">"<span class="abbreviation">...</span>
 		通常は不要ですが、厳密にはクライアント例外なのか？いたずらなのか？などなど曖昧なケースもあり得るので、LastaFluteではエラーログに出力するのではなく通知ログ(INFOレベル)で出力します。
 		そもそも、サーバーの例外ハンドリング自体のバグで発生している可能性もあるので、特にインクリメンタル開発のサービス運用であれば、念のため情報は残しておきたいところです。
 	</p>
+	<p>
+		ただ、Login関連の例外など、明らかに不要と言えるものに関しては、通知ログは抑制されています。
+		アプリで throw する例外も、例外を new した後に withoutInfo() を呼べば、通知ログを抑制することができます。
+		また、ActionAdjustmentProvider にて、統一的に通知ログを出すか出さないかの判定を調整することもできます。
+	</p>
+	<div class="relatedpage"><a href="../action/adjustment.html#appexhandling">ActionやJSONの微調整 - 業務例外のハンドリングを調整</a></div>
 	<p>
 		通知ログは、logback.xml の設定次第ですが、<em class="mark">app_[app].log</em> に出力されます。
 	</p>

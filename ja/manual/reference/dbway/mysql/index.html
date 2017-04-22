@@ -423,8 +423,9 @@ cb.query().addOrderBy_MemberId_Asc();
 		(少なくとも Connector/J-5.1.12 においては)
 	</p>
 	<p>
-		JDBCパラメータの FetchSize に Integer.MIN_VALUE を指定することで一件ずつフェッチの動作になるため、StatementConfig
-		を使って FetchSize を指定するか、カーソル検索におけるデフォルトの FetchSize を指定することで、大量件数の検索に対応できます。
+		JDBCパラメータの FetchSize に Integer.MIN_VALUE を指定すると一件ずつフェッチの動作になり、大量件数の検索に対応できます。
+		DBFluteでは、StatementConfig を使って FetchSize を指定するか、カーソル検索におけるデフォルトの FetchSize を指定することで実現できます。
+		<span class="frm">(useCursorFetchオプションについては後述)</span>
 	</p>
 	<div class="relatedpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#cursorselectfetchsize">DBFluteConfig - cursorSelectFetchSize</a></div>
 	<div class="relatedpage"><a href="../../dfprop/littleadjustment/index.html#cursorselectfetchsize">dfprop - cursorSelectFetchSize</a></div>
@@ -440,6 +441,18 @@ cb.query().addOrderBy_MemberId_Asc();
 		一応、DBFluteではそのパフォーマンス問題に悩む場合の回避機能があります。
 	</p>
 	<div class="detailpage"><a href="#betacursor">this - カーソル検索をべたページング方式で</a></div>
+	<p>
+		一方で、MySQLの接続URLのオプションで、useCursorFetch というのがあります。こちらであれば、fetchCursor
+		で指定サイズ分のフェッチができるので、Integer.MIN_VALUE技よりも効率的です。
+	</p>
+	<p>
+		なので、理想的には、接続URLに useCursorFetch
+		を指定しつつ、DBFlute の cursorSelectFetchSize で (例えば) 50 を指定すると、プログラム上では意識せずに大量データ検索ができます。
+		ただ、接続URLに useCursorFetchをついつい本番環境で忘れてしまったり、スペルを間違えてしまったりすると、いつの日か OutOfMemory
+		というのも怖いので<span class="frm">(スペルミスでもエラーにならないし...)</span>、しっかり確認をした方が良いでしょう。
+		<span class="frm">(その確認の時間が取れないなら、cursorSelectFetchSize で Integer.MIN_VALUE でも...)</span>
+	</p>
+	<div class="relatedpage"><a href="https://twitter.com/jflute/status/855670775063298048">useCursorFetchについてのjfluteのつぶやき</a></div>
 	<h3 id="queryupdate">QueryUpdate/Deleteの実現</h3>
 	<p>
 		update/delete 文の where 句のサブクエリにて更新対象のテーブルを参照できない、という制約があるため、QueryUpdate や QueryDelete
