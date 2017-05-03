@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development,Transaction,トランザクション" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Action の Transaction (トランザクション) | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Action の Transaction</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<div class="relatedpage"><a href="./index.html">LastaFlute の Action</a></div>
+	<ul class="indexlist">
+		<li><a href="#defaulttx">デフォルトTransaction</a>
+			<ul>
+				<li><a href="#firstimpact">まず、大前提</a></li>
+				<li><a href="#architectureconcept">アーキテクチャコンセプト</a></li>
+				<li><a href="#physicalcare">物理的な配慮</a></li>
+			</ul>
+		</li>
+		<li><a href="#aftertxcommit">コミット後に何か処理したい</a></li>
+		<li><a href="#txfinally">正常/異常に関わらず何か処理したい</a>
+			<ul>
+				<li><a href="#txfinallyintx">Transactionの中でもいいのであれば</a></li>
+				<li><a href="#txfinallyoutsidetx">Transactionの外じゃないとダメであれば</a></li>
+				<li><a href="#txfinallystage">Transactionの外だけど、つながりも深い</a></li>
+			</ul>
+		</li>
+		<li><a href="#rollbackappex">ロールバックしつつ画面遷移したい</a></li>
+	</ul>
+
+	<h2 id="defaulttx">デフォルトTransaction</h2>
+	<h3 id="firstimpact">まず、大前提</h3>
+	<p>
+		Action の Execute メソッドは、デフォルトで Transaction が発行されています。
+	</p>
+	<dl class="shortvaluemainlist">
+		<dt>正常終了 (例外throwなし)</dt><dd>自動的にコミット</dd>
+		<dt>例外発生 (Executeメソッドが中断)</dt><dd>自動的にロールバック</dd>
+	</dl>
+	<p>
+		Actionクラスのディベロッパーは、基本的に自分でTransaction制御をする必要はありません。
+		正常終了すればコミットされますし、例外が発生してExecuteメソッドが中断すればロールバックされます。
+	</p>
+	<h3 id="architectureconcept">アーキテクチャコンセプト</h3>
+	<p>
+		このようなコンセプトを元にしています。
+	</p>
+	<ul>
+		<li>ActionのほとんどのTransactionは、リクエスト単位で制御したい</li>
+		<li>LastaFlute の Action はフローコントロールも兼ねる (無駄なレイヤの排除) ※A</li>
+		<li>検索だけのリクエストでも、一貫性を保ったアクセスを推奨</li>
+		<li>検索だけのリクエストのとき、SQLごとの内部トランザクションコストを回避</li>
+	</ul>
+	<p>
+		 ※A: Actionの役割として、<em class="keyword">バウンダリ、かつ、ファサード</em> を想定しています。
+	</p>
+	<div class="relatedpage"><a href="../impldesign/actiondesign.html">Actionの実装デザイン</a></div>
+	<h3 id="physicalcare">物理的な配慮</h3>
+	<p>
+		これらは、ActionのTransactionに限らず、LastaFlute自体のTransactionの特徴となります。
+	</p>
+	<dl class="textlist">
+		<dt>実際のTransaction開始</dt>
+		<dd>
+			実際のTransaction開始は最初のDBアクセスからです。なので、DBアクセスのないリクエストは実質的にTransactionコストはありません。
+		</dd>
+		<dt>Transaction時間の提供</dt>
+		<dd>
+			Transaction内では、TimeManager が提供する現在日付 (currentDateTime()など) は固定でTransaction開始時間を戻します。
+			Transactionの中では業務的な時間経過を意識しないというコンセプトで、同じTransactionの中でのDBに保存される更新日時などを同一にします。
+		</dd>
+		<dt>更新時はTransaction必須</dt>
+		<dd>
+			Transaction内でのみ、AccessContext が利用可能です。実質的に更新処理は必ずTransactionが必要ということになります。
+			<span class="frm">(もちろん、共通カラムが存在しないテーブルだと更新はできてしまいますが)</span>
+		</dd>
+	</dl>
+
+	<h2 id="aftertxcommit">コミット後に何か処理したい</h2>
+	<p>
+		もし、コミット後に何か処理をしたいというときは、afterTxCommit()を使います。
+	</p>
+	<p>
+		例えば、Signupが終わった後に自動的にログイン処理を走らせたい時、コミットしてからじゃないとログイン処理の中のログイン履歴登録の非同期処理 (別トランザクションになる)
+		が動作しないので、そういうときに使うと良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. afterTxCommit() for signup'S login @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse signup(SignupForm <span class="localvar">form</span>) { <span class="comment">// already in transaction</span>
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; moreValidate(<span class="localvar">form</span>, <span class="localvar">messages</span>), () -> {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Signup_SignupHtml</span>);
+    });
+    Member <span class="localvar">member</span> = insertProvisionalMember(<span class="localvar">form</span>);
+    String <span class="localvar">token</span> = signupTokenAssist.saveSignupToken(<span class="localvar">member</span>);
+    sendSignupMail(<span class="localvar">form</span>, <span class="localvar">token</span>);
+    <span class="keyword">return</span> redirect(MypageAction.<span class="keyword">class</span>).<span class="point">afterTxCommit</span>(() -> {
+        <span class="attribute">loginAssist</span>.identityLogin(<span class="abbreviation">...</span>); <span class="comment">// after transaction committed</span>
+    });
+}
+</code></pre>
+
+	<h2 id="txfinally">正常/異常に関わらず何か処理したい</h2>
+	<h3 id="txfinallyintx">Transactionの中でもいいのであれば</h3>
+	<p>
+		あまり特別なことはありません。Java の try-finally を使えば実現できます。
+	</p>
+<pre><span class="codetitle">e.g. afterTxCommit() for signup's login @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse signup(SignupForm <span class="localvar">form</span>) { <span class="comment">// already in transaction</span>
+    validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; moreValidate(<span class="localvar">form</span>, <span class="localvar">messages</span>), () -> {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Signup_SignupHtml</span>);
+    });
+    <span class="keyword">try</span> {
+        <span class="keyword">return</span> doSignup(<span class="localvar">form</span>);
+    } <span class="keyword">finally</span> {
+        <span class="comment">// always executed in spite of transaction success/failure</span>
+        <span class="abbreviation">...</span>
+    }
+}
+
+<span class="keyword">private</span> HtmlResponse doSignup(SignupForm <span class="localvar">form</span>) {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		大抵のケースでは、これで問題ないと想定しています。
+	</p>
+	<h3 id="txfinallyoutsidetx">Transactionの外じゃないとダメであれば</h3>
+	<p>
+		そもそも独立性が高い処理であれば、ActionHook の hookFinally() を使うこともできます。
+	</p>
+	<div class="relatedpage"><a href="../architecture/actionhook.html#hook">気軽な前後処理 ActionHook - hookメソッド</a></div>
+<pre><span class="codetitle">e.g. hookFinally() for business process outside action transaction @Java</span><code>
+@Override
+<span class="keyword">public void</span> <span class="point">hookFinally</span>(ActionRuntime <span class="localvar">runtime</span>) { <span class="comment">// outside transaction</span>
+    <span class="keyword">super</span>.hookFinally(<span class="localvar">runtime</span>); <span class="comment">// don't forget super</span>
+    <span class="comment">// always executed in spite of transaction success/failure</span>
+    <span class="abbreviation">...</span>
+}
+
+@Execute
+<span class="keyword">public</span> HtmlResponse signup(SignupForm <span class="localvar">form</span>) { <span class="comment">// already in transaction</span>
+    <span class="keyword">return</span> <span class="abbreviation">...</span>;
+}
+</code></pre>
+	<p>
+		ただし、そのActionクラス内の別のExecuteメソッドでも実行されてしまいます。うまく分岐できなくはないかもですが、あまり強引になると良くないです。
+	</p>
+	<h3 id="txfinallystage">Transactionの外だけど、つながりも深い</h3>
+	<p>
+		Transactionの外じゃないとダメで、かつ、つながりも深いので、そのExecuteメソッド内じゃないと実装がしづらいというのであれば、
+		デフォルトのTransactionを抑制して、自前でTransaction制御をすると良いでしょう。
+	</p>
+	<dl class="shortvaluemainlist">
+		<dt>デフォルトTransactionの抑制</dt><dd>@Execute(suppressTransaction=true)</dd>
+		<dt>自前のTransaction制御</dt><dd>TransactionStage: requred(), requiresNew()</dd>
+	</dl>
+
+	<h2 id="rollbackappex">ロールバックしつつ画面遷移したい</h2>
+	<p>
+		業務例外の仕組みで実現すると良いでしょう。<span class="frm">(そもそもその状況は業務的な例外と言えます)</span>
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#bizhandling">開拓の例外ハンドリング - 業務例外ハンドリング</a></div>
+	<p>
+		業務例外を throw し、handleApplicationException() をオーバーライドして処理します。
+		個別のActionだけの話であれば、その個別のActionでオーバーライドして、どのActionでも共通する処理であれば、Actionのスーパークラスでオーバーライドしましょう。
+	</p>
+<pre><span class="codetitle">e.g. handleApplicationException() for specific exception @Java</span><code>
+@Override
+<span class="keyword">public void</span> <span class="point">handleApplicationException</span>(ActionRuntime <span class="localvar">runtime</span>, ApplicationExceptionHandler <span class="localvar">handler</span>) {
+    <span class="keyword">super</span>.handleApplicationException(<span class="localvar">runtime</span>, <span class="localvar">handler</span>); <span class="comment">// don't forget super</span>
+    <span class="localvar">handler</span>.handle(<span class="subpoint">SeaLandBothLimittedException</span>.<span class="keyword">class</span>, createMessages().addErrors<span class="abbreviation">...</span>(<span class="attribute">GLOBAL</span>), <span class="localvar">cause</span> -&gt; {
+         <span class="keyword">return</span> asHtml(<span class="attribute">path_</span><span class="abbreviation">...</span>);
+    });
+}
+
+<span class="keyword">private static class</span> SeaLandBothLimittedException <span class="keyword">extends</span> LaApplicationException {
+
+    <span class="abbreviation">...</span>
+}
+
+@Execute
+<span class="keyword">public</span> HtmlResponse signup(SignupForm <span class="localvar">form</span>) { <span class="comment">// already in transaction</span>
+    <span class="keyword">if</span> (<span class="abbreviation">...</span>) {
+        <span class="keyword">throw new</span> <span class="subpoint">SeaLandBothLimittedException</span>(<span class="abbreviation">...</span>);
+    }
+    <span class="keyword">return</span> <span class="abbreviation">...</span>;
+}
+</code></pre>
+	<p>
+		もし、メッセージが不要なのであれば、UserMessages は UserMessages.empty() を指定します。
+	</p>
+	<p>
+		業務例外は、LaApplicationException を継承して作成します。そのActionだけで閉じる局所的な例外であれば、インナークラスでも構わないでしょう。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
