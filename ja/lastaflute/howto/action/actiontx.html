@@ -57,6 +57,13 @@
 			</ul>
 		</li>
 		<li><a href="#rollbackappex">ロールバックしつつ画面遷移したい</a></li>
+		<li><a href="#manualtx">はちゃめちゃTransaction制御したい</a>
+			<ul>
+				<li><a href="#transactionstage">TransactionStageを連れてきて</a></li>
+				<li><a href="#stagemethod">TransactionStageのメソッド</a></li>
+				<li><a href="#nonannotation">アノテーションじゃないのは？</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="defaulttx">デフォルトTransaction</h2>
@@ -154,7 +161,7 @@
 }
 </code></pre>
 	<p>
-		大抵のケースでは、これで問題ないと想定しています。
+		大抵のケースでは、これで特に問題ないと想定しています。
 	</p>
 	<h3 id="txfinallyoutsidetx">Transactionの外じゃないとダメであれば</h3>
 	<p>
@@ -182,6 +189,7 @@
 		Transactionの外じゃないとダメで、かつ、つながりも深いので、そのExecuteメソッド内じゃないと実装がしづらいというのであれば、
 		デフォルトのTransactionを抑制して、自前でTransaction制御をすると良いでしょう。
 	</p>
+	<div class="relatedpage"><a href="#manualtx">this - はちゃめちゃTransaction制御したい</a></div>
 	<dl class="shortvaluemainlist">
 		<dt>デフォルトTransactionの抑制</dt><dd>@Execute(suppressTransaction=true)</dd>
 		<dt>自前のTransaction制御</dt><dd>TransactionStage: requred(), requiresNew()</dd>
@@ -224,6 +232,69 @@
 	<p>
 		業務例外は、LaApplicationException を継承して作成します。そのActionだけで閉じる局所的な例外であれば、インナークラスでも構わないでしょう。
 	</p>
+
+	<h2 id="manualtx">はちゃめちゃTransaction制御したい</h2>
+	<h3 id="transactionstage">TransactionStageを連れてきて</h3>
+	<p>
+		こうなったら、suppressTransaction=true しつつ、TransactionStage を DI して、好きなようにやりましょう。
+	</p>
+	<dl class="shortvaluemainlist">
+		<dt>デフォルトTransactionの抑制</dt><dd>@Execute(suppressTransaction=true)</dd>
+		<dt>自前のTransaction制御</dt><dd>TransactionStage: requred(), requiresNew()</dd>
+	</dl>
+<pre><span class="codetitle">e.g. suppressTransaction and TransactionStage @Java</span><code>
+@Resource
+<span class="keyword">private</span> TransactionStage <span class="attribute">transactionStage</span>;
+
+@Execute(<span class="subpoint">suppressTransaction</span>=<span class="keyword">true</span>)
+<span class="keyword">public</span> HtmlResponse signup(SignupForm <span class="localvar">form</span>) { <span class="comment">// already in transaction</span>
+    <span class="attribute">transactionStage</span>.<span class="point">required</span>(<span class="localvar">tx</span> -&gt; {
+        <span class="comment">// as you like it</span>
+        <span class="abbreviation">...</span>
+    });
+    String <span class="localvar">result</span> = (String)<span class="attribute">transactionStage</span>.<span class="point">required</span>(<span class="localvar">tx</span> -&gt; {
+        <span class="comment">// as you like it</span>
+        <span class="abbreviation">...</span>
+        <span class="localvar">tx</span>.returns(<span class="literal">"sea"</span>); <span class="comment">// you can return value for caller</span>
+    }).get();
+    <span class="attribute">logger</span>.debug(<span class="literal">"result: {}"</span>, <span class="localvar">result</span>); <span class="comment">// result: sea</span>
+    <span class="keyword">return</span> <span class="abbreviation">...</span>;
+}
+</code></pre>
+	<h3 id="stagemethod">TransactionStageのメソッド</h3>
+	<p>
+		TransactionStageのメソッドには、幾つかの種類があります。
+	</p>
+	<dl class="keymainlist">
+		<dt>required()</dt><dd>外側にトランザクションがあれば継承</dd>
+		<dt>requiresNew()</dt><dd>関係なくトランザクションを必ず発行</dd>
+		<dt>selectable()</dt><dd>そのどっちかを引数で指定</dd>
+	</dl>
+	<p>
+		どのメソッドでも、TransactionStage のコールバック処理の中で例外が発生すれば自動的にロールバックされます。
+		<span class="frm">(正常に終了すれば自動的にコミットされます)</span>
+	</p>
+	<p>
+		suppressTransactionしているのであれば、どちらでも挙動は変わらないので、UnitTestのときのことを考えて required()
+		の方が良いでしょう。UnitTestのときだけはUnitTestのTransactionを継承して全体ロールバックができるようになります。
+	</p>
+	<p>
+		ネストしたTransactionのときは、requiresNew() を使います。UnitTestのときは、UTFlute
+		の changeRequiresNewToRequired() を呼び出して、一時的に効果を調整すると良いでしょう。
+	</p>
+	<p>
+		TransactionStage の JavaDoc コメントをしっかり読んで使いましょう。
+	</p>
+	<div class="inucolumn">
+		<h3 id="nonannotation">アノテーションじゃないのは？</h3>
+		<p>
+			アノテーションを付けて AOP で実現しようとすると、クラスをエンハンスするコストがかかるため、アプリ起動時間などに影響が出ます。
+			また、本来privateでも良いメソッドをpublicにする必要もあるなど、何かとややこしいので、普通のプログラムで表現した方がわかりやすいだろうと判断しました。
+		</p>
+		<p>
+			ちなみに、アノテーションによるトランザクション制御も実はできます。
+		</p>
+	</div>
 
 </div>
 </div>
