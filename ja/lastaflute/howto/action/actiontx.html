@@ -56,7 +56,12 @@
 				<li><a href="#txfinallystage">Transactionの外だけど、つながりも深い</a></li>
 			</ul>
 		</li>
-		<li><a href="#rollbackappex">ロールバックしつつ画面遷移したい</a></li>
+		<li><a href="#rollbackappex">ロールバックしつつ画面遷移したい</a>
+			<ul>
+				<li><a href="#commonappex">共通的に画面を表示するのであれば</a></li>
+				<li><a href="#specificappex">固有の画面に遷移するのであれば</a></li>
+			</ul>
+		</li>
 		<li><a href="#manualtx">はちゃめちゃTransaction制御したい</a>
 			<ul>
 				<li><a href="#transactionstage">TransactionStageを連れてきて</a></li>
@@ -165,7 +170,8 @@
 	</p>
 	<h3 id="txfinallyoutsidetx">Transactionの外じゃないとダメであれば</h3>
 	<p>
-		そもそも独立性が高い処理であれば、ActionHook の hookFinally() を使うこともできます。
+		どうしてもトランザクションの外じゃないといけないというのであれば、そもそも独立性が高い処理ではないでしょうか？
+		であれば、ActionHook の hookFinally() を使うこともできます。
 	</p>
 	<div class="relatedpage"><a href="../architecture/actionhook.html#hook">気軽な前後処理 ActionHook - hookメソッド</a></div>
 <pre><span class="codetitle">e.g. hookFinally() for business process outside action transaction @Java</span><code>
@@ -182,7 +188,8 @@
 }
 </code></pre>
 	<p>
-		ただし、そのActionクラス内の別のExecuteメソッドでも実行されてしまいます。うまく分岐できなくはないかもですが、あまり強引になると良くないです。
+		そのActionクラス内の別のExecuteメソッドでも実行されてしまいますが、発生した例外とかで判断できるのであれば、引数の ActionRuntime
+		から例外を取得して分岐させることができます。
 	</p>
 	<h3 id="txfinallystage">Transactionの外だけど、つながりも深い</h3>
 	<p>
@@ -196,12 +203,22 @@
 	</dl>
 
 	<h2 id="rollbackappex">ロールバックしつつ画面遷移したい</h2>
+	<h3 id="commonappex">共通的に画面を表示するのであれば</h3>
 	<p>
-		業務例外の仕組みで実現すると良いでしょう。<span class="frm">(そもそもその状況は業務的な例外と言えます)</span>
+		すでに、LastaFluteの中で業務例外の仕組みが用意されています。MessageApplicationException などを throw することで、HtmlResponseであれば show_errors.html
+		に遷移し、JsonResponseであれば ApiFailureHook が呼ばれます。
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#bizhandling">開拓の例外ハンドリング - 業務例外ハンドリング</a></div>
+	<h3 id="specificappex">固有の画面に遷移するのであれば</h3>
+	<p>
+		こちらも同じく、業務例外の仕組みで実現すると良いでしょう。
+	</p>
+	<p>
+		そもそもロールバックするということは業務的な例外と言えますし、フレームワークを経由することで通知ログに記録されたりなどのメリットもあるので、単純な分岐で実現するのではなく仕組みの上でやりましょう。
 	</p>
 	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#bizhandling">開拓の例外ハンドリング - 業務例外ハンドリング</a></div>
 	<p>
-		業務例外を throw し、handleApplicationException() をオーバーライドして処理します。
+		業務例外を作成して throw し、handleApplicationException() をオーバーライドして処理します。
 		個別のActionだけの話であれば、その個別のActionでオーバーライドして、どのActionでも共通する処理であれば、Actionのスーパークラスでオーバーライドしましょう。
 	</p>
 <pre><span class="codetitle">e.g. handleApplicationException() for specific exception @Java</span><code>
