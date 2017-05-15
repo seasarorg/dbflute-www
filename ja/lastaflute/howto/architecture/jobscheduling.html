@@ -80,6 +80,7 @@
 		<li><a href="#example">Example実装は maihama-orleans にて</a></li>
 		<li><a href="#batchscreen">バッチ管理画面の作成</a></li>
 		<li><a href="#outsidecron">外だしスケジューラー方式</a></li>
+		<li><a href="#buttoncron">画面起動バッチ方式</a></li>
 	</ul>
 
 	<h2 id="overview">Java上でスケジューリング</h2>
@@ -652,7 +653,7 @@ app
 			そして、<em class="keyword">外部のスケジューラーから信号(リクエスト)を受けたら該当の Job を実行する</em> ような Action
 			クラスを一つ作ってしまえばOKです。
 		</p>
-<pre><span class="codetitle">e.g. NonCron Job registration @Java</span><code>
+<pre><span class="codetitle">e.g. action to execute Job @Java</span><code>
 @Resource
 <span class="keyword">private</span> JobManager <span class="attribute">jobManager</span>;
 
@@ -688,6 +689,49 @@ app
 			を使っているのであれば、その選択肢はあまり考えにくいでしょう。
 		</p>
 	</div>
+
+	<div class="inucolumn">
+		<h2 id="buttoncron">画面起動バッチ方式</h2>
+		<p>
+			この場合、外だしスケジューラー方式とそんなに変わりません。"画面から人がボタンを押して起動する"
+			という外だしスケジューラーだと思えば、サーバーサイドの実装に大きな違いはないからです。
+		</p>
+		<div class="detailpage"><a href="#outsidecron">this - 外だしスケジューラー方式</a></div>
+		<p>
+			Job を、<em class="mark">Jobユニークコード</em> 付きで NonCron として登録します。
+		</p>
+<pre><span class="codetitle">e.g. NonCron Job registration for button cron @Java</span><code>
+@Override
+<span class="keyword">public void</span> schedule(LaCron <span class="localvar">cron</span>) {
+    <span class="localvar">cron</span>.registerNonCron(<span class="subpoint">SeaJob</span>.<span class="keyword">class</span>, waitIfConcurrent(), op -&gt; {
+        op.<span class="point">uniqueBy</span>(<span class="literal">"sea"</span>); <span class="comment">// seaという名前で Job を特定できる</span>
+    });
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		バッチを起動する画面の起動ボタンの Action にて、Jobユニークコードを受け取り、Job を launchNow() します。
+	</p>
+<pre><span class="codetitle">e.g. action to execute Job for button cron @Java</span><code>
+@Resource
+<span class="keyword">private</span> JobManager <span class="attribute">jobManager</span>;
+
+@Override
+<span class="keyword">public</span> JsonResponse&lt;Void&gt; exec(String <span class="localvar">uniqueCode</span>) {
+    LaJobUnique <span class="localvar">jobUnique</span> = LaJobUnique.of(<span class="localvar">uniqueCode</span>);
+    LaScheduledJob <span class="localvar">job</span> = <span class="attribute">jobManager</span>.findJobByUniqueOf(jobUnique).orElseTranslatingThrow(<span class="localvar">cause</span> -&gt; {
+        <span class="abbreviation">...</span> <span class="comment">// 存在しなかった時の処理: クライアントエラーとか!?</span>
+    });
+    <span class="localvar">job</span>.launchNow(); <span class="comment">// Jobの実行！</span>
+    <span class="keyword">return</span> JsonResponse.asEmptyBody();
+}
+</code></pre>
+	</div>
+	<p>
+		もちろん、画面でも起動するし、時間でも動くようにすることもできます。二重起動防止も、しっかり画面からの起動と時間の起動で制御がかかります。
+		むしろ、リカバリ実行用の画面というのを作るケースは多いと思うので、形はどうあれらバッチ起動画面を作ることは多いと想定しています。
+	</p>
+	<div class="relatedpage"><a href="#batchscreen">this - バッチ管理画面の作成</a></div>
 
 </div>
 </div>
