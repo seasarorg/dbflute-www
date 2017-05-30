@@ -42,14 +42,17 @@
 	<ul class="indexlist">
 		<li><a href="#actionadjustment">ActionAdjustmentProvider</a>
 			<ul>
-				<li><a href="#indexedlimit">配列パラメータの上限</a></li>
+				<li><a href="#forced404notfoundrouting">強制404ルーティング対象の指定</a></li>
+				<li><a href="#forcedroutingexcept">強制ルーティング除外の指定</a></li>
+				<li><a href="#forcedroutingtarget">強制ルーティング対象の指定</a></li>
+				<li><a href="#actionmapping">Actionマッピングの調整</a></li>
+				<li><a href="#trailingslashredirect">後ろの'/'不足リダイレクト抑制</a></li>
+				<li><a href="#noroutingrequestas404notfound">ルーティング対象なしを404にする？</a></li>
 				<li><a href="#htmlpathfilter">HTMLパスのフィルタ</a></li>
 				<li><a href="#htmlretryword">HTMLパス探しのリトライ</a></li>
-				<li><a href="#forcedroutingtarget">強制ルーティング対象の指定</a></li>
-				<li><a href="#trailingslashredirect">後ろの'/'不足リダイレクト抑制</a></li>
-				<li><a href="#actionmapping">Actionマッピングの調整</a></li>
-				<li><a href="#responsejustbefore">ActionResponseの直前調整</a></li>
+				<li><a href="#indexedlimit">配列パラメータの上限</a></li>
 				<li><a href="#formmapping">Formのマッピングを調整</a></li>
+				<li><a href="#responsejustbefore">ActionResponseの直前調整</a></li>
 				<li><a href="#responsereflecting">レスポンスの反映処理を調整</a></li>
 				<li><a href="#validatorconfig">ValidatorのConfigを調整</a></li>
 				<li><a href="#appexhandling">業務例外のハンドリングを調整</a></li>
@@ -69,16 +72,19 @@
 		Actionクラスにまつわる色々な挙動を "統一的に" 調整できます。
 	</p>
 	<dl class="longkeymainlist">
-		<dt>配列パラメータの上限</dt><dd>provideIndexedPropertySizeLimit()</dd>
+		<dt>強制404ルーティング対象の指定</dt><dd>isForced404NotFoundRouting()</dd>
+		<dt>強制ルーティング除外の指定</dt><dd>isForcedRoutingExcept()</dd>
+		<dt>強制ルーティング対象の指定</dt><dd>isForcedRoutingTarget()</dd>
+		<dt>Actionマッピングの調整</dt><dd>customizeActionMappingRequestPath()</dd>
+		<dt>後ろの/不足リダイレクト抑制</dt><dd>isSuppressTrailingSlashRedirect()</dd>
+		<dt>ルーティング対象なしを404にする？</dt><dd>isNoRoutingRequestAs404NotFound()</dd>
 		<dt>HTMLパスのフィルタ</dt><dd>filterHtmlPath()</dd>
 		<dt>HTMLパス探しのリトライ</dt><dd>prepareHtmlRetryWordList()</dd>
-		<dt>強制ルーティング対象の指定</dt><dd>isForcedRoutingTarget()</dd>
-		<dt>後ろの/不足リダイレクト抑制</dt><dd>isSuppressTrailingSlashRedirect()</dd>
-		<dt>Actionマッピングの調整</dt><dd>customizeActionMappingRequestPath()</dd>
-		<dt>ActionResponseの直前調整</dt><dd>adjustActionResponseJustBefore()</dd>
+		<dt>配列パラメータの上限</dt><dd>provideIndexedPropertySizeLimit()</dd>
 		<dt>Formのマッピングを調整</dt><dd>adjustFormMapping()</dd>
-		<dt>レスポンスの反映処理を調整</dt><dd>adjustResponseReflecting()</dd>
 		<dt>ValidatorのConfigを調整</dt><dd>adjustValidatorConfig()</dd>
+		<dt>ActionResponseの直前調整</dt><dd>adjustActionResponseJustBefore()</dd>
+		<dt>レスポンスの反映処理を調整</dt><dd>adjustResponseReflecting()</dd>
 		<dt>業務例外のハンドリングを調整</dt><dd>adjustApplicationExceptionHandling()</dd>
 	</dl>
 	<p>
@@ -86,25 +92,17 @@
 		が用意されていますので、そのProviderクラスを直せば有効になります。
 		<span class="frm">(AssistantDirector で登録されています)</span>
 	</p>
-	<h3 id="indexedlimit">配列パラメータの上限</h3>
+	<h3 id="forced404notfoundrouting">強制404ルーティング対象の指定</h3>
 	<p>
-		TODO jflute リクエストパラメーターの sea[0] の 0 の上限、デフォルトは200くらい
+		TODO jflute もうこのURL来たらダメとか、SwaggerUIとかを指定する想定
 	</p>
-	<h3 id="htmlpathfilter">HTMLパスのフィルタ</h3>
+	<h3 id="forcedroutingexcept">強制ルーティング除外の指定</h3>
 	<p>
-		TODO jflute HTMLファイルのパスをフィルター、UserAgent見て携帯向けにhookするとか
-	</p>
-	<h3 id="htmlretryword">HTMLパス探しのリトライ</h3>
-	<p>
-		TODO jflute HTMLファイルがなかったときのリトライ調整、これも携帯向けとかで
+		TODO jflute JS/APIひとまとめパターンで/api以外は受け付けないというようなとき
 	</p>
 	<h3 id="forcedroutingtarget">強制ルーティング対象の指定</h3>
 	<p>
 		TODO jflute .pdf とか拡張子で終わってるURLもActionで受けたいとき、わりと使う
-	</p>
-	<h3 id="trailingslashredirect">後ろの'/'不足リダイレクト抑制</h3>
-	<p>
-		TODO jflute 後ろに'/'がなくてもリダイレクトをしないようにしたければ
 	</p>
 	<h3 id="actionmapping">Actionマッピングの調整</h3>
 	<p>
@@ -125,13 +123,33 @@
 		JSON API で URL にバージョンを入れるような場合<span class="frm">(e.g. /api/v1/...)</span>、このメソッドでバージョンを抜き出して filter
 		し、抜き出したバージョンはリクエスト属性に入れるなりして Action に引き継いで利用するとよいでしょう。
 	</p>
-	<h3 id="responsejustbefore">ActionResponseの直前調整</h3>
+	<h3 id="trailingslashredirect">後ろの'/'不足リダイレクト抑制</h3>
 	<p>
-		TODO jflute 一律、レスポンスHTTPヘッダーに何かを入れるなら
+		TODO jflute 後ろに'/'がなくてもリダイレクトをしないようにしたければ
+	</p>
+	<h3 id="noroutingrequestas404notfound">ルーティング対象なしを404にする？</h3>
+	<p>
+		TODO jflute Java以外にリソースがなく、404の制御もこちらでやりたい場合など
+	</p>
+	<h3 id="htmlpathfilter">HTMLパスのフィルタ</h3>
+	<p>
+		TODO jflute HTMLファイルのパスをフィルター、UserAgent見て携帯向けにhookするとか
+	</p>
+	<h3 id="htmlretryword">HTMLパス探しのリトライ</h3>
+	<p>
+		TODO jflute HTMLファイルがなかったときのリトライ調整、これも携帯向けとかで
+	</p>
+	<h3 id="indexedlimit">配列パラメータの上限</h3>
+	<p>
+		TODO jflute リクエストパラメーターの sea[0] の 0 の上限、デフォルトは200くらい
 	</p>
 	<h3 id="formmapping">Formのマッピングを調整</h3>
 	<p>
 		TODO jflute Eclipse Collections とか、定義されてないパラメーターあったらエラーとか
+	</p>
+	<h3 id="responsejustbefore">ActionResponseの直前調整</h3>
+	<p>
+		TODO jflute 一律、レスポンスHTTPヘッダーに何かを入れるなら
 	</p>
 	<h3 id="responsereflecting">レスポンスの反映処理を調整</h3>
 	<p>

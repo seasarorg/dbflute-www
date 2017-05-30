@@ -62,9 +62,9 @@
 				<li><a href="#lazyrecyle">再利用するときに切り出せばいい</a></li>
 			</ul>
 		</li>
-		<li><a href="#nomorelogicweb">No more, Logic が WEB に依存!?</a></li>
-		<li><a href="#nomorelogicaction">No more, Logic が Action 継承!?</a></li>
 		<li><a href="#nomoreaboutlogic">No more, アバウトLogic!?</a></li>
+		<li><a href="#nomorelogicaction">No more, Logic が Action 継承!?</a></li>
+		<li><a href="#nomorelogicweb">No more, Logic が WEB に依存!?</a></li>
 	</ul>
 
 	<h2 id="overview">いきなりまとめ</h2>
@@ -74,22 +74,26 @@
 		からのデフォルト実装デザインの提案です。
 	</p>
 	<dl class="textlist">
-		<dt><em class="bigmark">Action</em> <span class="frm">(すでにトランザクションかかっている)</span></dt>
-		<dd><em class="keyword">フローコントロール、再利用しない検索や更新 (ちょこっとロジック) を書く</em></dd>
-		<dd>検索の再利用は部品単位で <span class="frm">(ArrangeQueryを積極活用)</span></dd>
-		<dd>WEB依存 "する" 処理を再利用したいときは <em class="bigmark">ActionAssist</em></dd>
-		<dd>WEB依存 "しない" ビジネスロジックを再利用したいときは <em class="mark">Logic</em></dd>
+		<dt><em class="bigmark">Action</em> <span class="frm">(バウンダリ、かつ、ファサード: Transactionあり)</span></dt>
+		<dd><em class="keyword">フローコントロール、そして、再利用しない検索や更新など(ちょこっとロジック)を書く</em></dd>
+		<dd>WEB依存 "する" 処理の再利用や、ちょこっと役割分担は、<em class="bigmark">(Action)Assist</em></dd>
+		<dd>WEB依存 "しない" 処理の再利用は、<em class="mark">(Business)Logic</em></dd>
 		<dt><em class="bigmark">Logic</em> <span class="frm">(ビジネスロジック)</span></dt>
-		<dd><em class="keyword">再利用するものだけロジックに書く</em> <span class="frm">(二箇所以上で呼ばれて初めて Logic に)</span></dd>
-		<dd>WEB依存しないようにキープ <span class="frm">(Formを渡したりしない、Sessionは参照しない)</span></dd>
-		<dd>Actionを継承してはいけない <span class="frm">(当たり前ですが...)</span></dd>
-		<dd>Logicの名前は、モノ+Logic はダメ、"モノ+業務+Logic" or "業務+Logic"</dd>
+		<dd><em class="keyword">WEB依存しない再利用するものを書く</em> <span class="frm">(二箇所以上で呼ばれて初めて Logic に)</span></dd>
+		<dd>ただし、検索の再利用はできるだけ ArrangeQuery にて <span class="frm">(Logicでのまるごと再利用は限定的に)</span></dd>
+		<dd>Logicの名前は、"モノ+Logic" はダメ、できるだけ <em class="mark">"モノ+業務+Logic"</em></dd>
 	</dl>
+	<p class="imgbox">
+		<a href="../../../../data/model/lastaflute/lastaflute-actiondesign-view.png" title="LastaFlute ActionDesign"><img src="../../../../data/model/lastaflute/lastaflute-actiondesign-view.png" alt="LastaFlute ActionDesign" width="550" height="340" /></a>
+	</p>
 	<h3 id="actionhere">Action は、こちら</h3>
 	<p>
-		Actionはまた別途まとめています。
+		Actionは、また別途まとめています。
 	</p>
 	<div class="detailpage"><a href="./actiondesign.html">Actionの実装デザイン</a></div>
+	<p>
+		というか、<em class="keyword">Actionの方から先に読んだほうが良い</em> です。Actionの持つ役割の前提があってこそ、ここでの Logic になっています。
+	</p>
 
 	<h2 id="logicimpl">Logicに何を実装するか？</h2>
 	<p>
@@ -177,6 +181,115 @@
 	</p>
 
 	<div class="inucolumn">
+		<h2 id="nomoreaboutlogic">No more, アバウトLogic!?</h2>
+		<p>
+			よく巨大な Logic を見かけませんか？
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
+<span class="keyword">public class</span> SeaLogic { <span class="comment">// ★名前がアバウト</span>
+
+    <span class="comment">// ここにメソッド100個くらい...ってちょっとおおげさだけど、ちょーたくさん</span>
+}
+</code></pre>
+		<p>
+			大抵、MemberLogic, ProductLogic というアバウトな名前のクラスであることが多いです。
+			Memberに関するLogicだから、Memberに関するものがなんでも入ります。
+		</p>
+		<p>
+			こういったクラスがすでに存在していると、後から実装する人は、当然 Member
+			に関するものは MemberLogic に入れます。"ちょっとでかいなぁ、やだなぁ"
+			と思っても、そのまま MemberLogic に入れることがほとんどでしょう。MemberLogic
+			がすでにあるのに、MemberSignupLogic は作りづらいですから。
+			<span class="frm">(すでにあるクラスに入れる方が楽と思うでしょうし...MemberLogicに入れなきゃいけないんだと思うでしょう)</span>
+		</p>
+		<p>
+			Logicはどういう単位で作っていくべきでしょうか？
+		</p>
+		<p>
+			これは難題です。恐らくちゃんとやるなら、DDD的なアプローチが必要になるでしょう。
+			でも、スタートアップではなかなか最初から徹底するのは難しいものです。
+		</p>
+		<p>
+			でも、Logicを作って再利用はしたい...
+		</p>
+		<p>
+			少なくとも、<em class="keyword">モノ + Logic だけのクラスは作らないこと</em>。そう、MemberLogic です。
+		</p>
+		<p>
+			小さな提案、最低限 <em class="bigmark">モノ + 業務 + Logic</em> にすること。
+			MemberSignupLogic です。もし、業務自体で暗黙にモノが特定できるなら、<em class="mark">業務 + Logic</em>
+			だけでも良いでしょう。SignupLogic ですね。でも、モノ+Logicにはしない。
+		</p>
+<pre><span class="codetitle">e.g. object + business + logic @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic { <span class="comment">// SeaにInParkするLogic</span>
+
+    <span class="comment">// したら、さすがに In する以外のメソッドが追加されることは...あまりないはず</span>
+}
+</code></pre>
+		<p>
+			PurchaseLogic は迷いますね。Purchaseはモノなのか業務なのか...
+			でも、購入というイベントにも色々なものがあるかと思います。
+			購入フロー自体に加えて、購入商品の支払い、購入履歴の確認、購入のキャンセルなどなど、購入というデータに対して、様々な振舞いが存在します。
+			安易に PurchaseLogic を作ると、それらがすべて後からどんどん追加されていきます。
+		</p>
+		<p>
+			その結果、一つしかメソッドがLogicができるかもしれませんが、別にそれは構わないかと思います。
+			インクリメンタル開発では、後で追加される可能性は大ですから。
+		</p>
+		<p>
+			<em class="keyword">モノは名詞とは限らないし、業務が動詞とは限りません。</em>
+			そこが難しいのかもしれませんが、少なくとも Logic を作るときにちょっと考えてみると、良い名前が見つかるかもしれません。
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nomorelogicaction">No more, Logic が Action 継承!?</h2>
+		<p>
+			よく新人プログラマーの実装で見かけることがあるかと思います。
+		</p>
+<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
+<span class="keyword">public class</span> SeaInParkLogic <span class="keyword">extends</span> DocksideBaseAction { <span class="comment">// ★絶対ダメ</span>
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+		<p>
+			<em class="keyword">Logic は Action ではありません。</em>つまり、<em class="mark">"is a" の関係</em>になっていません。 
+		</p>
+		<p>
+			では、なぜ "is a" の関係になっていないといけないのでしょうか？
+		</p>
+		<p>
+			Actionのスーパークラスは、Actionに最適化しています。Actionを形づけるために存在しています。
+			<em class="keyword">Logicのために存在しているわけではない</em> のです。
+		</p>
+		<p>
+			ゆえに...
+		</p>
+		<p>
+			<em class="keyword">(Actionを継承している)Logicに都合の悪い修正が平気で入ります</em>。
+		</p>
+		<p>
+			もし、Actionのスーパークラスの修正で、それを継承している Logic
+			が落ちたとしたら、Action を継承している Logic の方が良くないと言えます。
+		</p>
+		<p>
+			もともとオブジェクト指向の目的として、<em class="bigmark">意味</em>
+			を重視して、概念ごとにクラスを取り扱うことでプログラムを整備しやすいという点があります。
+			"XxxLogic は Action である" と自然言語にして <em class="keyword">しっくりくるかどうか？</em>
+			ここがポイントです。
+		</p>
+		<p>
+			便利なメソッドが欲しければ、Logicがその便利なクラスに依存すればよいと考えます。
+			それが、Actionのスーパークラスにベタッと書いてあったのであれば、別途クラスに抽出して再利用して使うようにしましょう。
+		</p>
+		<p>
+			一方で、Logicのスーパークラスを作っても悪いわけではありませんが、スーパークラスのメインの役割は <em class="bigmark">その概念を形づける</em>
+			なので、特に Logic を共通的に形づけるものはあまりないかなと考えるので<span class="frm">(Actionが非常に定型的で特殊と言えます)</span>、大抵の場合は全体共通のスーパークラスはあまり必要ではないと考えています。
+			もちろん、まとまった業務単位で必要であれば作っても良いでしょう。
+		</p>
+	</div>
+
+	<div class="inucolumn">
 		<h2 id="nomorelogicweb">No more, Logic が WEB に依存!?</h2>
 		<p>
 			もっと、"それ以前" 的な話ですが...
@@ -259,115 +372,6 @@ app
 			どうしても、WEBに依存した状態で再利用がしたければ、それは ActionAssist を使いましょう。
 		</p>
 		<div class="detailpage"><a href="./actiondesign.html#actionassist">ActionをアシストするAssistクラス</a></div>
-	</div>
-
-	<div class="inucolumn">
-		<h2 id="nomorelogicaction">No more, Logic が Action 継承!?</h2>
-		<p>
-			よく新人プログラマーの実装で見かけることがあるかと思います。
-		</p>
-<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
-<span class="keyword">public class</span> SeaInParkLogic <span class="keyword">extends</span> DocksideBaseAction { <span class="comment">// ★絶対ダメ</span>
-    <span class="abbreviation">...</span>
-}
-</code></pre>
-		<p>
-			<em class="keyword">Logic は Action ではありません。</em>つまり、<em class="mark">"is a" の関係</em>になっていません。 
-		</p>
-		<p>
-			では、なぜ "is a" の関係になっていないといけないのでしょうか？
-		</p>
-		<p>
-			Actionのスーパークラスは、Actionに最適化しています。Actionを形づけるために存在しています。
-			<em class="keyword">Logicのために存在しているわけではない</em> のです。
-		</p>
-		<p>
-			ゆえに...
-		</p>
-		<p>
-			<em class="keyword">(Actionを継承している)Logicに都合の悪い修正が平気で入ります</em>。
-		</p>
-		<p>
-			もし、Actionのスーパークラスの修正で、それを継承している Logic
-			が落ちたとしたら、Action を継承している Logic の方が良くないと言えます。
-		</p>
-		<p>
-			もともとオブジェクト指向の目的として、<em class="bigmark">意味</em>
-			を重視して、概念ごとにクラスを取り扱うことでプログラムを整備しやすいという点があります。
-			"XxxLogic は Action である" と自然言語にして <em class="keyword">しっくりくるかどうか？</em>
-			ここがポイントです。
-		</p>
-		<p>
-			便利なメソッドが欲しければ、Logicがその便利なクラスに依存すればよいと考えます。
-			それが、Actionのスーパークラスにベタッと書いてあったのであれば、別途クラスに抽出して再利用して使うようにしましょう。
-		</p>
-		<p>
-			一方で、Logicのスーパークラスを作っても悪いわけではありませんが、スーパークラスのメインの役割は <em class="bigmark">その概念を形づける</em>
-			なので、特に Logic を共通的に形づけるものはあまりないかなと考えるので<span class="frm">(Actionが非常に定型的で特殊と言えます)</span>、大抵の場合は全体共通のスーパークラスはあまり必要ではないと考えています。
-			もちろん、まとまった業務単位で必要であれば作っても良いでしょう。
-		</p>
-	</div>
-
-	<div class="inucolumn">
-		<h2 id="nomoreaboutlogic">No more, アバウトLogic!?</h2>
-		<p>
-			よく巨大な Logic を見かけませんか？
-		</p>
-<pre><span class="codetitle">e.g. No way, logic should not extend action @Java</span><code>
-<span class="keyword">public class</span> SeaLogic { <span class="comment">// ★名前がアバウト</span>
-
-    <span class="comment">// ここにメソッド100個くらい...ってちょっとおおげさだけど、ちょーたくさん</span>
-}
-</code></pre>
-		<p>
-			大抵、MemberLogic, ProductLogic というアバウトな名前のクラスであることが多いです。
-			Memberに関するLogicだから、Memberに関するものがなんでも入ります。
-		</p>
-		<p>
-			こういったクラスがすでに存在していると、後から実装する人は、当然 Member
-			に関するものは MemberLogic に入れます。"ちょっとでかいなぁ、やだなぁ"
-			と思っても、そのまま MemberLogic に入れることがほとんどでしょう。MemberLogic
-			がすでにあるのに、MemberSignupLogic は作りづらいですから。
-			<span class="frm">(すでにあるクラスに入れる方が楽と思うでしょうし...MemberLogicに入れなきゃいけないんだと思うでしょう)</span>
-		</p>
-		<p>
-			Logicはどういう単位で作っていくべきでしょうか？
-		</p>
-		<p>
-			これは難題です。恐らくちゃんとやるなら、DDD的なアプローチが必要になるでしょう。
-			でも、スタートアップではなかなか最初から徹底するのは難しいものです。
-		</p>
-		<p>
-			でも、Logicを作って再利用はしたい...
-		</p>
-		<p>
-			少なくとも、<em class="keyword">モノ + Logic だけのクラスは作らないこと</em>。そう、MemberLogic です。
-		</p>
-		<p>
-			小さな提案、最低限 <em class="bigmark">モノ + 業務 + Logic</em> にすること。
-			MemberSignupLogic です。もし、業務自体で暗黙にモノが特定できるなら、<em class="mark">業務 + Logic</em>
-			だけでも良いでしょう。SignupLogic ですね。でも、モノ+Logicにはしない。
-		</p>
-<pre><span class="codetitle">e.g. object + business + logic @Java</span><code>
-<span class="keyword">public class</span> SeaInParkLogic { <span class="comment">// SeaにInParkするLogic</span>
-
-    <span class="comment">// したら、さすがに In する以外のメソッドが追加されることは...あまりないはず</span>
-}
-</code></pre>
-		<p>
-			PurchaseLogic は迷いますね。Purchaseはモノなのか業務なのか...
-			でも、購入というイベントにも色々なものがあるかと思います。
-			購入フロー自体に加えて、購入商品の支払い、購入履歴の確認、購入のキャンセルなどなど、購入というデータに対して、様々な振舞いが存在します。
-			安易に PurchaseLogic を作ると、それらがすべて後からどんどん追加されていきます。
-		</p>
-		<p>
-			その結果、一つしかメソッドがLogicができるかもしれませんが、別にそれは構わないかと思います。
-			インクリメンタル開発では、後で追加される可能性は大ですから。
-		</p>
-		<p>
-			<em class="keyword">モノは名詞とは限らないし、業務が動詞とは限りません。</em>
-			そこが難しいのかもしれませんが、少なくとも Logic を作るときにちょっと考えてみると、良い名前が見つかるかもしれません。
-		</p>
 	</div>
 
 </div>
