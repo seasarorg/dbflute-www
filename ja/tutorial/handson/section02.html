@@ -58,6 +58,7 @@
 		<li><a href="#testdata">テストデータの登録</a>
 			<ul>
 				<li><a href="#loadtestdata">テストデータを配置して再びReplaceSchema</a></li>
+				<li><a href="#repsagain">再び ReplaceSchema を実行</a></li>
 				<li><a href="#logreading">ログを読んでみましょう</a></li>
 				<li><a href="#defaultvalue">defaultValueMap.dataprop</a></li>
 				<li><a href="#checkoktestdata">テストが通ることを確認</a></li>
@@ -69,7 +70,6 @@
 				<li><a href="#howtosearch">ConditionBeanの機能を探したいときはどうする？</a></li>
 			</ul>
 		</li>
-		<li><a href="#optionalentity">Java8 なら OptionalEntity</a></li>
 		<li><a href="#flower">模範解答的な</a></li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
@@ -108,8 +108,8 @@
 </code></pre>
 	<h3 id="loadmaster">マスタデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql-loaddata-common.zip の <em class="mark">playsql/data/common/xls/10-master.xls</em>
-		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
+		<em class="smallmark">tutorial/material/dbflute/playsql-loaddata-common.zip</em> <span class="frm">(commonの方です)</span> を解凍して、<em class="smallmark">10-master.xls</em>
+		を、以下のように配置して、ReplaceSchemaを実行してください。
 	</p>
 <pre><span class="codetitle">e.g. マスタデータ用のエクセルファイルの配置場所 @Directory</span><code>
 PROJECT_ROOT
@@ -149,11 +149,6 @@ PROJECT_ROOT
 	<p>
 		_test と打って ctrl + space して enter するとテストメソッドの雛形が作成されます。
 	</p>
-	<p>
-		テストコードのお約束コメントの Arrange や Act のコメントが付与されているかと思います。
-		実はこれは、セクション１でエディターテンプレートを設定したからです。
-		このように、Eclipseのコード補完を拡張することができます。
-	</p>
 <pre><span class="codetitle">e.g. テストメソッドのコード補完 @Java</span><code>
 
 <span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
@@ -173,14 +168,15 @@ PROJECT_ROOT
     }
 }
 </code></pre>
+	<p>
+		テストコードのお約束コメントの Arrange や Act のコメントが付与されているかと思います。
+		実はこれは、セクション１で DBFlute のエディターテンプレートを設定したからです。
+	</p>
+	<div class="relatedpage"><a href="./section01.html#editortemplates">セクション１ - エディターテンプレートを設定</a></div>
 	<h3>メソッド名とBehaviorの宣言</h3>
 	<p>
 		テストメソッド名は、"test_existsTestData()" とし、MemberBhv を private のインスタンス変数として宣言してください。
-		Lasta Di では、@Resource というアノテーションを付けるとDI対象となります。<span class="frm">(厳密にはテストクラスではアノテーションは不要なのですが習慣として)</span>
-	</p>
-	<p>
-		インスタンス変数の名前の入力のところ (MemberBhvの後ろ一つ空白を空けたところ) で ctrl + space を押すと、memberBhv
-		という名前を候補として選べます。<span class="frm">(間違い防止のためにも積極的に利用しましょう)</span>
+		Lasta Di では、@Resource というアノテーションを付けるとDI対象フィールドとなります。<span class="frm">(_lap という補完を使うと少し楽になるかも)</span>
 	</p>
 <pre><span class="codetitle">e.g. test_existsTestData() の実装準備 @Java</span><code>
 <span class="keyword">public class</span> HandsOn02Test <span class="keyword">extends</span> UnitContainerTestCase {
@@ -199,19 +195,26 @@ PROJECT_ROOT
 </code></pre>
 	<h3 id="impltestcode">テストコードの実装</h3>
 	<p>
-		そして、条件なしのシンプルな検索処理を実装してみましょう。<span class="frm">(講師と一緒になぞって実装)</span>
+		そして、絞込み条件なしのシンプルな検索処理を実装してみましょう。<span class="frm">(いわゆる全件検索です)</span>
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></div>
 	<p>
 		Behavior の selectCount() を使って select count(*)
 		を実行し、assertTrue()メソッドを使ってアサートしてみましょう。
-		(assertTrue() は、"assT" とまで打って ctrl + space すれば補完できます)
+		<span class="frm">(assertTrue() は、"assT" とまで打って ctrl + space すれば補完できます)</span>
 	</p>
 	<h3 id="executetestcode">テストコードの実行</h3>
 	<p>
-		ConditionBeanを使って会員ステータスが存在することをアサートするテストを実装して実行し、テストが "落ちること"
-		を確認してください。テストが正しければ、データはまだ入っていないので例外が発生し、JUnitのバー表示が赤くなるはずです。
+		その UnitTest (test_existsTestData()) を実行して、落ちることを確認してください。
+		テストコードが正しく実装されていれば、テストデータはまだ入っていないので例外が発生し、JUnitのバー表示が赤くなる (redになる) はずです。
 	</p>
+	<h4>UnitTest は red から</h4>
+	<p>
+		ちなみに UnitTest は、最初 red になる状態で作っておいて、正しく修正した後に green になるようにしておくと良いです。
+		事前に何も実行せずに正しく修正してから green になっても、その UnitTest のプログラム自体がちゃんと正しいチェックをしているのかわからないからです。
+		<span class="frm">(もしかしたら、別に正しい修正をする前から green になっちゃってたのかも...)</span>
+	</p>
+	<h4>もし、Eclipse なら</h4>
 	<p>
 		テストを実行する際は、そのテストメソッドの中にカーソルがある状態で ctrl + 0
 		を押すと、そのテストが実行されます。これは Quick JUnit のショートカットです。
@@ -221,25 +224,58 @@ PROJECT_ROOT
 	<h2 id="testdata">テストデータの登録</h2>
 	<h3 id="loadtestdata">テストデータを配置して再びReplaceSchema</h3>
 	<p>
-		tutorial/material/dbflute/playsql-loaddata-ut.zip の <em class="mark">playsql/data/ut/xls/20-member.xls, 30-product.xls</em>
-		をDBFluteクライアントの playsql 配下に同じディレクトリ構造で配置し、ReplaceSchemaを実行してください。
+		<em class="smallmark">tutorial/material/dbflute/playsql-loaddata-ut.zip</em> <span class="frm">(さっきと違ってこんどは ut の方です)</span> を解凍して、<em class="smallmark">20-member.xls</em> と <em class="smallmark">30-product.xls</em>
+		を、以下のように配置してください。
 	</p>
+<pre><span class="codetitle">e.g. テストデータ用のエクセルファイルの配置場所 @Directory</span><code>
+PROJECT_ROOT
+ |-<span class="abbreviation">...</span>
+ |-dbflute_maihamadb
+ |  |-dfprop
+ |  |-<span class="abbreviation">...</span>
+ |  |-playsql
+ |  |  |-data
+ |  |  |  |-common
+ |  |  |  |  |-xls
+ |  |  |  |     |-10-master.xls
+ |  |  |  |-ut
+ |  |  |     |-xls
+ |  |  |        |-<span class="point">20-member.xls</span>
+ |  |  |        |-<span class="point">30-product.xls</span>
+ |  |  |-replace-schema-00-system.sql
+ |  |  |-replace-schema-10-basic.sql
+ <span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="repsagain">再び ReplaceSchema を実行</h3>
 	<p>
-		(...ReplaceSchema実行中)
+		さあ、実行してみてください。
 	</p>
 	<h3 id="logreading">ログを読んでみましょう</h3>
 	<p>
-		落ちるはずです。ログを追って <em class="keyword">何が起きたのか？</em> を掴んでみましょう。
+		落ちるはずです。ログを追って、<em class="keyword">何が起きたのか？</em> を把握してみましょう。
 		コンソールが見づらければ、DBFluteクライアント(dbflute_maihamadb)の log/dbflute.log
 		を見るとよいでしょう。
 	</p>
 	<div class="relatedpage"><a href="../../manual/topic/programming/java/beginners.html#exceptionstacktrace">例外メッセージとスタックトレース</a></div>
+	<p>
+		ログを読むものハンズオンです。DBFluteタスクが必ず成功するとは限りません。
+		設定にミスがあれば遠慮なく落ちますので、落ちたときの分析方法をしっかりと知っておきましょう。
+	</p>
+	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20130522/errorsinging">エラーメッセージ読め読め大合唱 | jfluteの日記</a></div>
+	<p>
+		ちなみに、問題分析と問題解決をごちゃまぜにしないようにしましょう。
+		まずは分析が大切です。分析の前に解決方法のことばかりを考えてると、解決のヒントを見逃してしまいがちで本末転倒です。
+	</p>
 	<h3 id="defaultvalue">defaultValueMap.dataprop</h3>
+	<p>
+		原因わかりましたでしょうか？...どういう風に解決していきましょうか。
+	</p>
 	<p>
 		20-member.xls を開いてみてみてください。NotNull制約のついている共通カラムのデータがありません。
 		ここでは、(DB上ではなく)ReplaceSchemaにデフォルト値を設定して解決しましょう。
 		同じディレクトリに以下の内容で defaultValueMap.dataprop というファイルを作成して、ReplaceSchemaを再実行してみましょう。
 	</p>
+	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/defaultvalue.html">ReplaceSchema - デフォルト値の設定</a></div>
 <pre><span class="codetitle">e.g. 共通カラムのデフォルトテストデータの設定 @defaultValueMap.dataprop</span><code>
 <span class="keyword">map:</span>{
     ; REGISTER_DATETIME = sysdate
@@ -251,14 +287,12 @@ PROJECT_ROOT
 </code></pre>
 	<h3 id="checkoktestdata">テストが通ることを確認</h3>
 	<p>
-		再度テストを実行し、テストが通ってJUnitのバー表示が緑になることを確認してください。
-		F11 を押すと、さっき実行したテストが再実行されます。これも Quick JUnit のショートカットです。
+		再度テストを実行し、テストが通ってJUnitのバー表示が green になることを確認してください。
 	</p>
-	<div class="relatedpage"><a href="../../manual/topic/programming/shortcut/uttestcut.html">単体テストショートカット</a></div>
 
 	<h2 id="watchdata">テストデータの閲覧</h2>
 	<p>
-		さて、ここでじっくり ConditionBean について学んでみましょう。<span class="frm">(講師によるCB談議あり)</span>
+		さて、ここでじっくり ConditionBean について学んでみましょう。
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/ormapper/conditionbean/index.html">ConditionBean</a></div>
 	<p>
@@ -292,8 +326,15 @@ PROJECT_ROOT
 		</dd>
 	</dl>
 	<p>
-		アサートだけでなく、データを確認する意味でのログの出力も実装すると良いでしょう。
-		ログに何を出力するかは自由です。(今後のテストも全て同様)
+		アサートだけでなく、テストコード自体が想定通りか？を確認する意味でのログの出力も実装すると良いでしょう。
+		テストコード内では、<em class="mark">log()メソッド</em> が利用できます。
+		ログに何を出力するかは自由です。ただ、<em class="keyword">ログも綺麗に</em> 出しましょう。
+	</p>
+	<p>
+		本来、UnitTestというのは、mainコード (src/main/java) を、testコード (src/test/java)
+		で呼び出して、検証をするというものですが、セクション５までは、シンプルな形で DBFlute
+		を体験してもらうために、<em class="keyword">Arrange と Act が main コード</em>
+		と想定して、Assert をしていきます。
 	</p>
 	<div class="inucolumn">
 		<h3 id="completion">コード補完を駆使して実装</h3>
@@ -326,18 +367,6 @@ PROJECT_ROOT
 		<p>
 			これは DBFlute に限らない話で、覚えることのあまりに多過ぎるこの世界でやっていくための、とても重要なスキルと言えると考えていますので、ぜひここで意識してみてください
 		</p>
-	</div>
-
-	<div class="inucolumn">
-		<h2 id="optionalentity">Java8 なら OptionalEntity</h2>
-		<p>
-			Java8であれば<span class="frm">(1.0.xでもisCompatibleBeforeJava8をfalseにしていれば)</span>、
-			selectEntity()の戻り値は OptionalEntity となります。Java8で導入された Optional を Entity に適用したものです。
-		</p>
-		<p>
-			詳しくは、selectEntity() のドキュメントをご覧ください。
-		</p>
-		<div class="detailpage"><a href="../../manual/function/ormapper/behavior/select/selectentity.html#java8">selectEntity() - Java8 なら OptionalEntity</a></div>
 	</div>
 
 	<h2 id="flower">模範解答的な</h2>

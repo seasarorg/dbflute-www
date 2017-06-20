@@ -43,39 +43,42 @@
 		<li><a href="#preread">まず読みましょう</a></li>
 		<li><a href="#firstenv">前提環境</a>
 			<ul>
-				<li><a href="#jdk">JDKのインストール</a></li>
-				<li><a href="#maven">Mavenのインストール</a></li>
-				<li><a href="#eclipse">Eclipseの準備</a></li>
+				<li><a href="#jdk">JDKのインストール <span class="frm">(もし、なければ)</span></a></li>
+				<li><a href="#maven">Mavenのインストール <span class="frm">(もし、なければ)</span></a></li>
+				<li><a href="#eclipse">Eclipseの準備 <span class="frm">(もし、Eclipseを使うなら)</span></a></li>
+				<li><a href="#intellij">IntelliJなら？</a></li>
 			</ul>
 		</li>
 		<li><a href="#prepare">環境準備</a>
 			<ul>
-				<li><a href="#workspace">ワークスペースの作成</a></li>
+				<li><a href="#workspace">workspaceの作成</a></li>
 				<li><a href="#clone">プロジェクトのclone</a></li>
 				<li><a href="#gitmaster">もし、社内でひな形が用意されてる場合は...</a></li>
 				<li><a href="#mysql">MySQLのセットアップ</a></li>
-				<li><a href="#plugin">プラグインのセットアップ</a></li>
+				<li><a href="#eclipseplugin">Eclipseプラグインのセットアップ <span class="frm">(if Eclipse)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#project">プロジェクトのセットアップ</a>
 			<ul>
-				<li><a href="#maveneclipse">Eclipseプロジェクトの作成</a></li>
+				<li><a href="#makepomxml">pom.xmlの作成</a></li>
+				<li><a href="#makeproject">プロジェクトの作成</a></li>
 				<li><a href="#workprojdiff">workspaceの設定とプロジェクトの設定</a></li>
-				<li><a href="#encoding">エンコーディングの調整 <span class="frm">#workspace #project</span></a></li>
-				<li><a href="#linecolor">行番号の表示、背景色の設定 <span class="frm">#workspace</span></a></li>
-				<li><a href="#typefilters">Type Filters を設定 <span class="frm">#workspace</span></a></li>
-				<li><a href="#mavensources">Maven の Download Artifact Sources を <span class="frm">#workspace</span></a></li>
-				<li><a href="#hierarchical">Package Presentation を Hierarchical に <span class="frm">#workspace</span></a></li>
-				<li><a href="#templates">エディターテンプレートを設定 <span class="frm">#workspace</span></a></li>
-				<li><a href="#miscsettings">その他いろいろとワークスペース設定 <span class="frm">#workspace</span></a></li>
-				<li><a href="#formatter">フォーマッタのインポート <span class="frm">#project</span></a></li>
-				<li><a href="#saveaction">フォーマッタ・インポート調整の自動化 <span class="frm">#project</span></a></li>
+				<li><a href="#encoding">エンコーディングの調整 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace #project</span></a></li>
+				<li><a href="#linecolor">行番号の表示、背景色の設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></a></li>
+				<li><a href="#typefilters">Type Filters を設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></a></li>
+				<li><a href="#mavensources">Maven の Sources の設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></a></li>
+				<li><a href="#hierarchical">Package Presentation の調整 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></a></li>
+				<li><a href="#editortemplates">エディターテンプレートを設定 <span class="frm">#workspace</span></a></li>
+				<li><a href="#miscsettings">その他いろいろworksace設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></a></li>
+				<li><a href="#formatter">フォーマッターのインポート <span class="frm">(if Eclipse)</span> <span class="frm">#project</span></a></li>
+				<li><a href="#saveaction">フォーマッターの自動化 <span class="frm">(if Eclipse)</span> <span class="frm">#project</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#dfsetup">DBFluteのセットアップ</a>
 			<ul>
 				<li><a href="#dfclient6">DBFluteクライアントの作成 <span class="frm">※Java6, 7</span></a></li>
 				<li><a href="#dfclient8">DBFluteクライアントの作成 <span class="frm">※Java8</span></a></li>
+				<li><a href="#adjustdfprop">DBFluteプロパティ(dfprop)の調整</a></li>
 				<li><a href="#replaceschema">ReplaceSchemaの実行</a></li>
 				<li><a href="#jdbc">JDBCタスクの実行</a></li>
 				<li><a href="#doc">Docタスクの実行</a></li>
@@ -89,7 +92,10 @@
 
 	<h2 id="overview">概要</h2>
 	<p>
-		まずは環境構築、そして、"DBFluteのセットアップから自動生成まで" を体験してみましょう。
+		まずは <em class="smallmark">環境構築</em>、そして、<em class="smallmark">DBFluteのセットアップから自動生成まで</em> を体験してみましょう。
+	</p>
+	<p>
+		<span class="frm">※環境構築やセットアップも、ハンズオンの一部です。くれぐれも油断なきよう...</span>
 	</p>
 
 	<h2 id="preread">まず読みましょう</h2>
@@ -102,32 +108,42 @@
 	</dl>
 
 	<h2 id="firstenv">前提環境</h2>
-	<h3 id="jdk">JDKのインストール</h3>
+	<h3 id="jdk">JDKのインストール <span class="frm">(もし、なければ)</span></h3>
 	<p>
-		(Java8以上の) JDKがインストールされていること。
+		(Java8以上の) JDKをインストールしてください。
 	</p>
 	<p>
-		<span class="frm">※インストール先は任意ですが、特にこだわりなければ C:\java\jdk8 などに</span>
+		Javaの開発をするには、JRE (実行環境) ではなく JDK (開発環境) が必要です。
 	</p>
-	<h3 id="maven">Mavenのインストール</h3>
+	<h3 id="maven">Mavenのインストール <span class="frm">(もし、なければ)</span></h3>
 	<p>
-		Maven がインストールされていること。(コマンドラインで mvn コマンドが利用できること)
-	</p>
-	<p>
-		<span class="frm">※インストール先は任意ですが、特にこだわりなければ C:\java\maven などに</span>
-	</p>
-	<h3 id="eclipse">Eclipseの準備</h3>
-	<p>
-		Eclipse-4.4 以上が利用できること。
+		Maven がインストールしてください。
 	</p>
 	<p>
-		<span class="frm">※幾つかの Eclipse プラグインをインストールするため、ハンズオン専用の Eclipse を用意することが推奨</span>
+		コマンドラインで mvn が利用できる状態にしましょう<span class="frm">(WindowsならPathの設定なども忘れずに)</span>。
+	</p>
+	<p>
+		DBFluteハンズオンでは、Eclipseを使う場合に maven-eclipse-plugin を使って連携することを想定してます。
+		勉強のためにあえてシンプルなやり方を採用しています。IntelliJなら...不要かもしれません。
+	</p>
+	<h3 id="eclipse">Eclipseの準備 <span class="frm">(もし、Eclipseを使うなら)</span></h3>
+	<p>
+		Eclipse-4.6 以上を用意してください。
+	</p>
+	<p>
+		<span class="frm">※幾つかの専用の Eclipse プラグインをインストールするため、ハンズオン専用の Eclipse を用意することが推奨</span>
+	</p>
+	<h3 id="intellij">IntelliJなら？</h3>
+	<p>
+		もともと、Eclipseを前提に作られたハンズオンなので、ところどころで "IntelliJだと違うな"
+		というポイントがあるかと思いますが、そこはいい感じに空気を読んでください。IntelliJでも問題なくハンズオンは進められます。
 	</p>
 
 	<h2 id="prepare">環境準備</h2>
-	<h3 id="workspace">ワークスペースの作成</h3>
+	<h3 id="workspace">workspaceの作成</h3>
 	<p>
-		新規でハンズオン専用のワークスペースを任意の場所に作成してください。
+		新規でハンズオン専用のworkspaceを任意の場所に作成してください。
+		<span class="frm">(workspaceは、DBFluteハンズオン作業用のディレクトリと考えてOKです。後のcloneするプロジェクトをここに配置する想定です)</span>
 	</p>
 <pre><span class="codetitle">e.g. DBFluteハンズオン用のワークスペース @Directory</span><code>
 <span class="comment">// Windowsなら</span>
@@ -143,16 +159,19 @@ C:\projects
        |-workspace  <span class="comment">// 例えばここ (場所は任意)</span>
 </code></pre>
 	<p>
-		あらかじめディレクトリを作成し、Eclipse を起動してそのディレクトリ (workspace)
-		を選んでください。起動直後に既に別の workspace が開いてしまう場合は、メニューの
-		"File" - "Switch Workspace" からワークスペースを切り替えてください。
-		<span class="frm">(workspaceの設定もハンズオン内で変更するので、独立した workspace が推奨されます)</span>
+		あらかじめディレクトリを作成しておきましょう。
+	</p>
+	<h4 id="booteclipse">Eclipseで起動しておきましょう <span class="frm">(if Eclipse)</span></h4>
+	<p>
+		もし Eclipse なら、 Eclipseを起動してそのディレクトリ (workspace)
+		を選んでください。起動直後に別の workspace が開いてしまう場合は、メニューの
+		"File" - "Switch Workspace" から workspace を切り替えてください。
+		workspaceの設定もハンズオンで変更するので、独立した workspace が推奨されます。
+		この時点ではプロジェクトは一つもなく空っぽの workspace となっています。
 	</p>
 	<p>
-		この時点ではプロジェクトは一つもなく空っぽのワークスペースとなっています。
-	</p>
-	<p>
-		<span class="frm">※Eclipseのworkspaceで利用するJavaは、JREではなくJDK。Preferences の Installed JREs で調整できます。</span>
+		Eclipseのworkspaceで利用するJavaは、JREではなくJDKです。
+		Preferences の Installed JREs で、JDKになっているか確認しましょう。JREになっている場合はそこで調整できます。
 	</p>
 	<h3 id="clone">プロジェクトのclone</h3>
 	<dl class="longvaluemainlist">
@@ -160,13 +179,14 @@ C:\projects
 		<dt>プロジェクト</dt><dd>dbflute-hands-on</dd>
 	</dl>
 	<p>
-		<em class="keyword">※社内でひな形が用意されている場合は、そちらを利用してください。</em>
+		<em class="keyword">※社内で別途 "gitリポジトリ" が用意されている場合は、そちらを利用してください。</em>
 	</p>
 	<p>
-		<span class="frm">(ひな形が用意されているかどうかわからない場合は、近くの人に聞いてみてください)</span>
+		<span class="frm">(用意されているかどうかわからない場合は、近くの人に聞いてみてください)</span>
 	</p>
+	<h4 id="egitflow">もし、EGitのときの参考手順 <span class="frm">(if Eclipse)</span></h4>
 	<p>
-		もし、EGit (GitクライアントのEclipseプラグイン) を使う場合は、以下のような手順になります。
+		EGit (GitクライアントのEclipseプラグイン) を使う場合は、このようになります。
 	</p>
 	<ol>
 		<li>Preferences の Team - Git - Configuration にて autocrlf が "もし" true になら false に</li>
@@ -199,10 +219,12 @@ C:\projects
 	<h3 id="mysql">MySQLのセットアップ</h3>
 	<p>
 		ハンズオンでは、3306ポートのMySQLではなく、専用のMySQLインスタンスを起動して利用します。
+		なので、すでに (3306ポートの) MySQL をインストールされている方も、セットアップが必要です。
 	</p>
+	<h4>ダウンロードと配置</h4>
 	<p>
 		MySQLのオフィシャルサイトからローカル環境に対応する MySQL のインストーラー無し版(ZIPアーカイブ版など)をダウンロードし、localdb/mysql に配置します。
-		<span class="frm">(以下の配置であれば、MySQL本体は Git のコミット対象になりません。gitignore に登録されています。間違っても MySQL 本体を Git にコミットすることないように)</span>
+		<span class="frm">(以下の配置であれば、MySQL本体は Git のコミット対象になりません。gitignore に登録されています。間違っても MySQL 本体を Git にコミットしないように)</span>
 	</p>
 	<div class="detailpage"><a href="http://dev.mysql.com/downloads/mysql/">Official Site - MySQL Download</a></div>
 <pre><span class="codetitle">e.g. MySQLの配置場所 @Directory</span><code>
@@ -217,6 +239,7 @@ PROJECT_ROOT
  |-script
  |-tutorial
 </code></pre>
+	<h4>Macの人は、初期化の手続きを</h4>
 	<p>
 		ちなみに Mac の人は、<em class="keyword">起動する前に</em> MySQL を初期化してあげる必要があります。
 	</p>
@@ -231,8 +254,9 @@ PROJECT_ROOT
 <pre><span class="codetitle">e.g. Macのときの MySQL-5.7 での初期化コマンド @Command</span><code>
 ./bin/mysqld --no-defaults --datadir=./data --basedir=./ --initialize-insecure
 </code></pre>
+	<h4>MySQLを起動してみましょう</h4>
 	<p>
-		そして、localdb/boot-mysql.bat|sh を実行し、MySQL を起動してください。
+		そして、<em class="smallmark">localdb/boot-mysql.bat|sh</em> を実行し、MySQL を起動してください。
 	</p>
 	<p>
 		さらに、login-mysql-root.bat|sh を実行し、MySQLのコマンドコンソールにて "show databases;" と打って enter
@@ -243,10 +267,9 @@ PROJECT_ROOT
 		を実行し、MySQLをシャットダウンし、そして、またハンズオンを再開するときは、boot-mysql.bat|sh を実行してください。
 		<span class="frm">(Windowsであれば、Eclipse上からbatファイルをダブルクリックで実行できます: ctrl+shift+Rで実行でもOKです)</span>
 	</p>
-	<h3 id="plugin">プラグインのセットアップ</h3>
+	<h3 id="eclipseplugin">Eclipseプラグインのセットアップ <span class="frm">(if Eclipse)</span></h3>
 	<p>
-		以下のプラグインをそれぞれインストールしてください。
-		<span class="frm">(既に入っているのであれば、スキップしてしまってOKです)</span>
+		以下のEclipseプラグインをそれぞれインストールしてください。
 	</p>
 	<dl class="textlist">
 		<dt>EMecha</dt>
@@ -271,25 +294,60 @@ PROJECT_ROOT
 	</dl>
 
 	<h2 id="project">プロジェクトのセットアップ</h2>
-	<h3 id="maveneclipse">Eclipseプロジェクトの作成</h3>
+	<h3 id="makepomxml">pom.xmlの作成</h3>
 	<p>
-		tutorial/material/eclipse/prototype-pom.xml をプロジェクト直下に pom.xml
+		Maven の設定ファイルである pom.xml を作成します。さすがに、0から作るのは大変なので、ハンズオンでひな形を用意しています。
+		<em class="smallmark">tutorial/material/eclipse/prototype-pom.xml</em> を、プロジェクト直下に <em class="mark">pom.xml</em>
 		という名前でコピーしましょう。ちなみに、pom.xml やその他幾つかのリソースは gitignore 設定となっています。
 	</p>
 	<p>
-		script 配下の maven-eclipse.bat|sh を実行し、コンソールのログを見て正常終了が確認できたらリフレッシュ(F5)し、その後 Eclipse
-		を再起動してしてください。ただし、M2_REPO が既に登録されている環境ではリフレッシュするだけでOKです。すると、そのプロジェクトが
-		Maven 管理された Java プロジェクトになり、既に存在している UnitContainerTestCase がコンパイルされます。
-		(ただし、この時点ではコンパイルエラーになっているはずです)
+		pom.xmlの中身を覗いてみましょう。どんな依存ライブラリがあるのか？など把握しておくと良いでしょう。
+		もし、依存ライブラリのバージョンが古ければ、ここで最新にしても良いでしょう。
+	</p>
+	<p>
+		ちなみに、pom.xmlって、こんな役割のものです。
+	</p>
+<pre><span class="codetitle">e.g. pom.xml concept model @Model</span><code>
+                  Java API (Stringとか) ←こいつだけじゃ足りない！
+  E                
+  c      ... <--(Download) sea-1.1.jar -> mystic-2.1.jar -> hangar-0.8.jar
+  l  M                         ↓       -> bigband-3.4.jar
+  i  2                     sea-1.5.jar -> mystic-2.4.jar -> hangar-1.7.jar
+  p  E-(直参照)-+                       -> bigband-3.7.jar -> piary-1.3.jar
+  s          +-+
+  e          |   あ  o     land-3.2.jar -> oneman-1.8.jar -> bigband-3.5.jar
+  ↓          |   ぷ /|\
+.classpath   |   り /\     piari-1.0.jar -> dstore-2.0.jar -> oneman-2.5.jar
+  ↑          +-↓
+  |           <<< pom.xml >>> ← sea と land と piary が欲しいぞと書いてある
+  |                   ↑
+  |                  M a v e n   ------------------+
+  +-(自動生成)--   (eclipse-plugin)                 ↓↓
+                                                Mavenセントラルサーバー
+                                                +------------------+
+                                                | sea.jar pom.xml  |
+                                                | land.jar pom.xml |
+                                                +------------------+
+</code></pre>
+	<h3 id="makeproject">プロジェクトの作成</h3>
+	<h4>もし、Eclipse なら</h4>
+	<p>
+		Eclipseの場合は、script 配下の maven-eclipse.bat|sh を実行し、コンソールのログを見て正常終了が確認できたらEclipse上でプロジェクトをリフレッシュ(F5)してください。
+	</p>
+	<p>
+		すると、そのプロジェクトが Maven 管理された Java プロジェクトになり、既に存在している UnitContainerTestCase がコンパイルされます。
+		ただし、この時点ではコンパイルエラーになっているはずです。コンパイルエラーで正常です。
 	</p>
 	<p>
 		<span class="frm">(ちなみに、この時点では、maven-eclipse.bat|sh の "call dbflute_maihamadb/manage.bat refresh"
 		において、そんなコマンドはないとエラーが発生しますが、Mavenのコマンドさえ成功していればOKです)</span>
 	</p>
+	<h4>もし、IntelliJ なら</h4>
 	<p>
-		IntelliJの場合は、pom.xmlを配置してMavenプロジェクトとして更新してください。
+		IntelliJの場合は、pom.xmlを指定してMavenプロジェクトとしてimportしてください。
 	</p>
 	<h3 id="workprojdiff">workspaceの設定とプロジェクトの設定</h3>
+	<h4>もし、Eclipse なら</h4>
 	<p>
 		workspace は、そのローカルPCの workspace ディレクトリのEclipse設定と考えてよいでしょう。
 		これらは Git 管理にはなりません(しません)ので、他の人と共有されません。
@@ -306,13 +364,17 @@ PROJECT_ROOT
 		他の人がこのプロジェクトを参照するとき、共有されるものとされないものがあるわけです。
 	</p>
 	<p>
-		IntelliJの場合は、workspaceとプロジェクトの区別がないので、すべてgitignoreになります。
-		<span class="frm">(厳密に見ていけば、共有していいものだめなものあるとは思いますが...)</span>
+		DBFluteハンズオンでは、それらの設定をすること自体もエクササイズです。
+		自分で別の環境を作るときには必要ですから、内容を把握しながら設定していきましょう。
 	</p>
-	<h3 id="encoding">エンコーディングの調整 <span class="frm">#workspace #project</span></h3>
+	<h4>もし、IntelliJ なら</h4>
 	<p>
-		<em class="mark">(Eclipseのみ)</em>
+		IntelliJの場合は、.idea ディレクトリの中にworkspaceの設定とプロジェクトの設定が混在しています。
+		ハンズオンでは、DBFluteを使う際に設定されておいたほうが良い IntelliJ
+		のオプションがすでにコミットされていますので、ハンズオンではそれが有効になっています。
+		<span class="frm">(逆に、そのへんの設定をするエクササイズはありません)</span>
 	</p>
+	<h3 id="encoding">エンコーディングの調整 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace #project</span></h3>
 	<p>
 		プロジェクトのエンコーディングを UTF-8 にしてください。プロジェクトを選択して、"alt + enter"
 		すると、プロジェクトの設定画面が開きますので、Resource の "Text file encoding" で UTF-8
@@ -327,21 +389,18 @@ PROJECT_ROOT
 		Windows なら流れるように <em class="keyword">alt -&gt; W -&gt; P</em> を押せば、Macなら <em class="keyword">command + , (カンマ)</em>
 		を押せば Preferences を開けます。<span class="frm">(この後、何度も開きますので...)</span>
 	</p>
-	<h3 id="linecolor">行番号の表示、背景色の設定 <span class="frm">#workspace</span></h3>
+	<h3 id="linecolor">行番号の表示、背景色の設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></h3>
 	<p>
-		<em class="mark">(Eclipseのみ)</em>
-	</p>
-	<p>
-		メニューの Window - Preferences の <em class="keyword">General - Editors - Text Editors</em> を選択。
+		Preferences の <em class="keyword">General - Editors - Text Editors</em> を選択。
 		ここでは、テキストエディターに関する様々な調整ができます。
 	</p>
 	<p>
 		行番号は必ず表示しておきましょう。スタックトレースやログなどからソースコードを追うために行番号は頻繁に利用します。"Show line numbers"
 		にチェックを入れます。また、Background color で好きな背景色を設定するととても落ち着くでしょう。
 	</p>
-	<h3 id="typefilters">Type Filters を設定 <span class="frm">#workspace</span></h3>
+	<h3 id="typefilters">Type Filters を設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></h3>
 	<p>
-		メニューの Window - Preferences の <em class="keyword">Java - Appearance - Type Filters</em> を選択。ここでは、クラス型の補完で "表示させたくない"
+		Preferences の <em class="keyword">Java - Appearance - Type Filters</em> を選択。ここでは、クラス型の補完で "表示させたくない"
 		パッケージやクラスを定義することができます。
 	</p>
 	<p>
@@ -375,27 +434,16 @@ PROJECT_ROOT
 	<p>
 		IntelliJでやられている方でも、似たような機能があると思われるので試してみてください。
 	</p>
-	<h3 id="mavensources">Maven の Download Artifact Sources を <span class="frm">#workspace</span></h3>
-	<p>
-		<em class="mark">(Eclipseのみ)</em>
-	</p>
+	<h3 id="mavensources">Maven の Sources の設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></h3>
 	<p>
 		Maven で管理されたライブラリのソースコードは、デフォルトではダウンロードされず関連付けもない状態である可能性があります。
 		すると、ソースコードが見られないだけでなく、パラメーターの補完などで変数名が arg0 とかになってしまうことがあります。
 	</p>
 	<p>
-		もし、ctrl + shift + T (Open Type) で HandyDate クラスを開いて、ソースが表示されないか、ソースが表示されても JavaDoc
-		が表示されていなければ、ソースコードがダウンロードされていません。
-	</p>
-	<p>
-		メニューの Window - Preferences の Maven にて、Download Artifact Sources のチェックが外れていたらチェックを付けます。
+		Preferences の Maven にて、Download Artifact Sources のチェックが外れていたらチェックを付けます。
 		そして、maven-eclipse.bat(sh) をもう一度叩いて、プロジェクトをF5してみましょう。
-		<span class="frm">(M2Eであれば、プロジェクトを右クリックして Maven の Download Sources となる)</span>
 	</p>
-	<h3 id="hierarchical">Package Presentation を Hierarchical に <span class="frm">#workspace</span></h3>
-	<p>
-		<em class="mark">(Eclipseのみ)</em>
-	</p>
+	<h3 id="hierarchical">Package Presentation の調整 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></h3>
 	<p>
 		これは好みによるので任意ですが、特にFlat形式にこだわりがなければやってみましょう。
 	</p>
@@ -412,24 +460,24 @@ PROJECT_ROOT
 		この時点では、"わからない人はまだよくわからない" と思われるので、この後DBFluteのクラスを自動生成した後に試してみると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="#generate">this - Generateタスクの実行</a></div>
-	<h3 id="templates">エディターテンプレートを設定 <span class="frm">#workspace</span></h3>
+	<h3 id="editortemplates">エディターテンプレートを設定 <span class="frm">#workspace</span></h3>
 	<p>
-		メニューの Window - Preferences の <em class="keyword">Java - Editor - Templates</em> を選択。
-		ここでは、コード補完のテンプレートを独自に定義することができます。
+		DBFlute固有のコード補完のテンプレートを設定しましょう。
 	</p>
+	<h4>もし、Eclipse なら</h4>
 	<p>
+		Preferences の <em class="keyword">Java - Editor - Templates</em> を選択。
 		まず、既存のテンプレートをすべて選択して、Remove してください<span class="frm">(これをやらないと二重に登録される可能性あり)</span>。
-		そして、"Import..." にて tutorial/material/eclipse/java-editor-templates.xml を取り込んでください。
-		あとでちょっとだけ良いことがあります。<span class="frm">(まあ、セクション２にて)</span>
+		そして、"Import..." にて <em class="smallmark">tutorial/material/eclipse/java-editor-templates.xml</em> を取り込んでください。
+		コード書くときに色々と良いことがあります。
 	</p>
+	<div class="relatedpage"><a href="../onjava8.html#jflutableeclipse">DBFlute補完テンプレートを入れたEclipse</a></div>
+	<h4>もし、IntelliJ なら</h4>
 	<p>
-		IntelliJ用のテンプレートも用意しています。<span class="frm">(足りない補完もありますが...)</span>
+		IntelliJ用のテンプレートも用意しています。<span class="frm">(Eclipseに比べて少ないですが...)</span>
 	</p>
 	<div class="relatedpage"><a href="../onjava8.html#intellij">さあ、補完してみよう！ - IntelliJ IDEA なら</a></div>
-	<h3 id="miscsettings">その他いろいろとワークスペース設定 <span class="frm">#workspace</span></h3>
-	<p>
-		<em class="mark">(Eclipseのみ)</em>
-	</p>
+	<h3 id="miscsettings">その他いろいろworksace設定 <span class="frm">(if Eclipse)</span> <span class="frm">#workspace</span></h3>
 	<p>
 		好みもありますが、その他やっておくと良いだろうという設定を記しておきます。
 	</p>
@@ -470,33 +518,21 @@ PROJECT_ROOT
 			利用しているPCの画面の大きさに合わせて、いい感じに調整。Problems を Fast View (Minimize)
 			にしたりなど。通常は横長で縦が短いディスプレイが多いので、コードができるだけ縦に見通せるようにするといいでしょう。
 		</dd>
-		<dt>ショートカットキーの設定</dt>
-		<dd>
-			EGitを使っている場合は、あらかじめ設定しとくと楽。
-			<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20130125/egitsive">EGitでSubversiveっぽく</a></div>
-		</dd>
-		<dd>
-			また、"Rerun JUnit Test" を ctrl + R (好み) とかに設定しておくと良い<span class="frm">(Quick JUnit の F11 が別のキーに奪われている可能性があるため)</span>。
-			ショートカットキーは、Preferences の Keys で設定できます。
-		</dd>
 	</dl>
-	<h3 id="formatter">フォーマッタのインポート <span class="frm">#project</span></h3>
+	<h3 id="formatter">フォーマッターのインポート <span class="frm">(if Eclipse)</span> <span class="frm">#project</span></h3>
 	<p>
 		Eclipseには、コードをフォーマットする機能があります。
 	</p>
 	<div class="relatedpage"><a href="../../manual/topic/friends/eclipse/formatter.html">Eclipse - コードフォーマッター</a></div>
 	<p>
 		ただ、Eclipseのデフォルトのフォーマット定義は <em class="keyword">かなり</em> 使いづらいため、プロジェクトのプロパティの "Java Code Style" の Formatter
-		にて、"Enable project specific settings" にチェックを入れ、import にて tutorial/material/eclipse/code-formatter-profile.xml
+		にて、"Enable project specific settings" にチェックを入れ、import にて <em class="smallmark">tutorial/material/eclipse/code-formatter-profile.xml</em>
 		を指定して適用してください。
 	</p>
 	<p>
 		このフォーマット定義は、横幅を 140 に、コメント内のフォーマットを OFF にしています。 
 	</p>
-	<p>
-		IntelliJでも、Eclipseのフォーマッター設定をインポートできるようなので、やってみてください。
-	</p>
-	<h3 id="saveaction">フォーマッタ・インポート調整の自動化 <span class="frm">#project</span></h3>
+	<h3 id="saveaction">フォーマッターの自動化 <span class="frm">(if Eclipse)</span> <span class="frm">#project</span></h3>
 	<p>
 		<em class="mark">(Eclipseのみ)</em>
 	</p>
@@ -524,11 +560,7 @@ PROJECT_ROOT
 	<div class="detailpage"><a href="./java67/sec1java67.html">Java6,7のセクション1切り出し</a></div>
 	<h3 id="dfclient8">DBFluteクライアントの作成 <span class="frm">※Java8</span></h3>
 	<p>
-		DBFlute Maven Plugin を使って、インストールします。
-	</p>
-	<p>
-		pom.xml に Plugin の設定はすでにされているはずですが、もし実行してみてプラグインが存在しないというようなエラーが発生した場合は、"Mavenによるセットアップ"
-		ドキュメントを参考にpom.xmlを修正してみてください。
+		DBFlute Maven Plugin <span class="frm">(ハンズオンのpom.xmlですでに定義済み)</span> を使って、インストールします。
 	</p>
 	<div class="relatedpage"><a href="../../environment/setup/maven.html">Mavenによるセットアップ</a></div>
 	<p>
@@ -543,6 +575,7 @@ PROJECT_ROOT
 <pre><span class="codetitle">e.g. dbflute:create-client ゴールを叩く！ @Command</span><code>
 <span class="abbreviation">...</span>$ <span class="keyword">mvn</span> -e dbflute:create-client
 </code></pre>
+	<h3 id="adjustdfprop">DBFluteプロパティ(dfprop)の調整</h3>
 	<p>
 		<em class="mark">basicInfoMap.dfprop</em> のプロパティ値を修正します。<em class="keyword">(忘れずに)</em>
 	</p>
@@ -567,21 +600,36 @@ PROJECT_ROOT
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></div>
 	<h4>DBユーザ自動作成のための設定</h4>
 	<p>
-		DBFluteクライアント/dfprop配下の <em class="mark">replaceSchemaMap.dfprop</em> (旧replaceSchemaDefinitionMap.dfprop)
-		の additionalUserMap プロパティを以下のように設定してください<span class="frm">(コメントアウトされた雛形があるので、そのコメントアウトを外して修正)</span>。
+		[DBFluteクライアント]/dfprop配下の <em class="mark">replaceSchemaMap.dfprop</em> の additionalUserMap プロパティを以下のように設定してください。コメントアウトされた雛形があるので、そのコメントアウトを外して修正しましょう。
 		これは、システムユーザによるアプリユーザ、スキーマの作成を自動化するための準備です。
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/replaceschema/systemuser.html">システムユーザによる実行</a></div>
-<pre><span class="codetitle">e.g. additionalUserMap の設定 @replaceSchemaDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. additionalUserMap の設定 @replaceSchemaMap.dfprop</span><code>
     <span class="abbreviation">...</span>
 
+    <span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o additionalUserMap: (NotRequired - Default map:{})
+    #  You can set additional users.
+    #  Elements of this map are as below:
+    #   o key of map: User Definition Name (userDefName)
+    #   o url: (NotRequired - Default same as one of main schema)
+    #   o schema: (NotRequired - Default treated as no schema setting)
+    #   o user: (Required)
+    #   o password: password plainly or path to password file (with default password)
+    #       e.g. foo or df:dfprop/system-password.txt|foo
+    #       (NotRequired - Default '')
+    #   o isSkipIfNotFoundPasswordFileAndDefault: Does it skip the user SQL statement
+    #       when using password file but not found it and also default password?
+    #       (NotRequired - Default false)
+    #</span>
     ; additionalUserMap = <span class="keyword">map:</span>{
         ; system = <span class="keyword">map:</span>{
-            ; url = jdbc:mysql://localhost:43376
-            ; user = root
-            ; password = df:dfprop/system-password.txt|
+            ; url = <span class="literal">jdbc:mysql://localhost:43376</span>
+            ; user = <span class="literal">root</span>
+            ; password = <span class="literal">df:dfprop/system-password.txt|</span>
         }
     }
+    <span class="comment"># - - - - - - - - - -/</span>
 
     <span class="abbreviation">...</span>
 </code></pre>
@@ -594,14 +642,14 @@ PROJECT_ROOT
 		<dt>パスワードファイルがなければ</dt><dd>「|」より右側の文字列がパスワード (この場合は「空パスワード」)</dd>
 	</dl>
 	<p>
-		ダウンロードしたての MySQL は、パスワードが空であることが想定され、ここでは特にパスワードファイルを作成する必要はないはずですが、
+		ハンズオンの MySQL は、rootのパスワードが "空" であることを想定しているので、特にパスワードファイルを作成する必要はありません。
 		もし違う場合は、パスワードファイルを作成してください。
 	</p>
 	<h4>DBユーザ、テーブル作成DDLの配置</h4>
 	<p>
-		<em class="smallmark">tutorial/material/dbflute/playsql-createschema-ddl-1st.zip</em> の playsql/replace-schema-00-system.sql と
-		replace-schema-10-basic.sql、この二つのファイルをDBFluteクライアントの playsql 配下に配置してください。
-		<span class="frm">(デフォルトで配置されている空っぽのreplace-schema.sqlは削除しちゃってOKです)</span>
+		<em class="smallmark">tutorial/material/dbflute/playsql-createschema-ddl-1st.zip</em> を解凍して、<em class="smallmark">replace-schema-00-system.sql</em> と
+		<em class="smallmark">replace-schema-10-basic.sql</em> を、以下のようにDBFluteクライアントの playsql 配下に配置してください。
+		デフォルトで配置されている空っぽのreplace-schema.sqlは削除してください。
 	</p>
 <pre><span class="codetitle">e.g. CreateSchema用のDDLの配置場所 @Directory</span><code>
 PROJECT_ROOT
@@ -615,7 +663,7 @@ PROJECT_ROOT
  <span class="abbreviation">...</span>
 </code></pre>
 	<p>
-		これにて、システムユーザの権限を利用してアプリユーザと ExampleDB のテーブル作成の準備が整いました。
+		これにて、システムユーザの権限を利用してアプリユーザと Example の DB (MaihamaDBと呼ばれる) のテーブル作成の準備が整いました。
 		<span class="frm">(後の演習のために、この時点では明らかにおかしいカラム名などERDと若干の違いがあります)</span>
 	</p>
 	<div class="relatedpage"><a href="../../manual/reference/example/maihamadb.html">MaihamaDB</a></div>
@@ -624,7 +672,7 @@ PROJECT_ROOT
 		DBFluteタスクである、ReplaceSchemaタスクを実行してください。
 	</p>
 	<p>
-		Windows であれば、リソースの検索 <em class="keyword">(ctrl + shift + R)</em> で
+		Windows の Eclipse であれば、"リソースの検索" <em class="keyword">(ctrl + shift + R)</em> で
 		"manage.bat" を検索してそのまま実行、メニューが出ますので 0 番 (replace-schema) を押して Enter すればOKです。
 		<span class="frm">(Macの人はターミナルから manage.sh を...)</span>
 	</p>
@@ -633,7 +681,10 @@ PROJECT_ROOT
 	<p>
 		コンソールのログを見て、正常終了していることを確認してください。
 		DBFluteタスクのログファイルである、DBFluteクライアント/log/dbflute.log でも確認することができます。
-		<span class="frm">(ハンズオンをどこかの Git で管理する場合は、logファイルを .gitignore に登録しておきましょう)</span>
+	</p>
+	<p>
+		ハンズオンをどこかの Git で管理する場合は、logファイルを .gitignore に登録しておきましょう。
+		<span>(logディレクトリに.gitignoreファイルを作成し、*.logと指定しておくでOKです)</span>
 	</p>
 	<p>
 		再度、MySQLにログインし、maihamadb データベースが作られていることを確認してください。
@@ -643,13 +694,13 @@ PROJECT_ROOT
 		まず、DBFluteクライアントの schema 配下には、readme しかないことを確認してください。
 	</p>
 	<p>
-		DBFluteタスクである、JDBCタスク (manage.bat|sh で21番) を実行してください。実行の仕方は、ReplaceSchemaを実行したときと同じ要領で、
-		リソースの検索から実行すると良いでしょう。今後、DBFluteタスクの実行をする時はこの方法を使っていきましょう。
+		DBFluteタスクである、JDBCタスク (manage.bat|sh で21番) を実行してください。実行の仕方は、ReplaceSchemaを実行したときと同じで、
+		manage.bat|sh はいつでも気軽に叩けるようにしておきましょう。
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/index.html">DBFluteタスク</a></div>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/jdbc/index.html">JDBCタスク</a></div>
 	<p>
-		DBFluteクライアントの schema 配下に、テーブル構造の情報(スキーマのメタデータ)が XML 形式で出力されているはずです(Eclipse上でリフレッシュ必要)。
+		DBFluteクライアントの schema 配下に、テーブル構造の情報(スキーマのメタデータ)が XML 形式で出力されているはずです<span class="frm">(Eclipse上で確認するなら、プロジェクトのリフレッシュが必要)</span>。
 	</p>
 	<h3 id="doc">Docタスクの実行</h3>
 	<p>
@@ -658,7 +709,7 @@ PROJECT_ROOT
 	<div class="relatedpage"><a href="../../manual/function/generator/task/doc/index.html">Docタスク</a></div>
 	<p>
 		Docタスク (manage.bat|sh で22番) を実行してください。DBFluteクライアントの output/doc 配下に、テーブル構造の情報(スキーマのメタデータ)が HTML
-		形式で出力されているはずです(Eclipse上でリフレッシュ必要)。
+		形式で出力されているはずです。
 	</p>
 	<h3 id="generate">Generateタスクの実行</h3>
 	<p>
@@ -666,14 +717,11 @@ PROJECT_ROOT
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/generator/task/generate/index.html">Generateタスク</a></div>
 	<p>
-		そして、Generateタスク (manage.bat|sh で23番) を実行してください。src/main/java 配下にテーブル対応のクラスが自動生成されているはずです。
-		Eclipse の EmSynchronizer が有効であれば自動でリフレッシュされます。コンパイルが正常に通っていることを確認してください。
+		そして、Generateタスク (manage.bat|sh で23番) を実行してください。DBFluteタスクが正常終了していれば、src/main/java 配下にテーブル対応のクラスが自動生成されるはずです。
+		コンパイルが正常に通っていることを確認してください。
 	</p>
 	<p>
 		<span class="frm">(...コンパイル確認中)</span>
-	</p>
-	<p>
-		自動生成されたクラスがコンパイルエラーになったでしょうか？
 	</p>
 	<p>
 		もし、コンパイルエラーであれば、DBFluteエンジンとDBFluteランタイムのバージョンを確認してみてください。
@@ -684,7 +732,7 @@ PROJECT_ROOT
 		これで本当にコンパイルエラーなくなれば、セクション１はおしまいです！
 	</p>
 	<p>
-		そういえば、Package Presentation がよくわからなかった人は、ここで Hierarchical に変更してみましょう。
+		そういえば、先ほど Package Presentation (if Eclipse) がよくわからなかった人は、ここで Hierarchical に変更してみましょう。
 		src/main/java配下の表現の仕方がガラリと変わるはずです。
 	</p>
 	<div class="relatedpage"><a href="#hierarchical">this - Package Presentation を Hierarchical に</a></div>
@@ -709,15 +757,15 @@ PROJECT_ROOT
 			以下、改めてチェックしてみてください。
 		</p>
 		<ul>
-			<li>Encodingや改行コードの設定、されていますか？</li>
-			<li>Encodingや改行コードの設定、workspace だけじゃなく project にも入ってますか？</li>
-			<li>フォーマッターや自動化の設定、されていますか？</li>
-			<li>フォーマッターや自動化の設定、project の設定になってますか？</li>
+			<li>Encodingや改行コードの設定、されていますか？ <span class="frm">(if Eclipse)</span></li>
+			<li>Encodingや改行コードの設定、プロジェクトの設定に入ってますか？ <span class="frm">(if Eclipse)</span></li>
+			<li>フォーマッターや自動化の設定、されていますか？ <span class="frm">(if Eclipse)</span></li>
+			<li>フォーマッターや自動化の設定、project の設定になってますか？ <span class="frm">(if Eclipse)</span></li>
 			<li>DBFluteクライアントのlogの ".log" ファイルたちは gitignore になってますか？</li>
 			<li>そもそもコンパイルは通ってますか？ <span class="frm">(エラーになってないですか？)</span></li>
 		</ul>
 		<p>
-			環境構築を抜けなくやるというのも大切なことです。
+			<em class="keyword">環境構築のような作業を抜けなくできる</em> というのも、重宝されるスキルです。
 		</p>
 	</div>
 	
