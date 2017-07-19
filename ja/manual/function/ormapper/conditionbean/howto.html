@@ -47,14 +47,18 @@
 		</li>
 		<li><a href="#completion">コード補完を駆使して実装</a>
 			<ul>
-				<li><a href="#autovariable">変数の抽出</a></li>
+				<li><a href="#autovariable">受け取り変数の導出</a></li>
 				<li><a href="#firstchar">先頭文字で勝負を決める</a></li>
 				<li><a href="#camelcase">キャメルケースコード補完</a></li>
 				<li><a href="#foreachloop">for文の補完</a></li>
+				<li><a href="#extracttovariable">ローカル変数への抽出</a></li>
+				<li><a href="#renamequickly">メソッド名や変数名の変更</a></li>
+				<li><a href="#idesuggestion">IDEに提案してもらおう</a></li>
 				<li><a href="#variouscut">その他ショートカット</a></li>
 			</ul>
 		</li>
-		<li><a href="#basicspec">基本仕様</a></li>
+		<li><a href="#basicspec">Java8版の基本仕様 <span class="frm">(1.1.x)</span></a></li>
+		<li><a href="#basicspec">Java6版の基本仕様 <span class="frm">(1.0.x)</span></a></li>
 		<li><a href="#behavior">Behaviorとのコラボ</a>
 			<ul>
 				<li><a href="#bhvinstance">Behaviorインスタンスの取得</a></li>
@@ -149,19 +153,35 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		コード補完を最大限活用して、スピーディーに実装するのがデフォルトです。
 	</p>
 	<p>
-		<span class="frm">※ここでは Eclipse を基本として説明します。</span>
+		<span class="frm">※ここでは Eclipse を基本として説明しますが、IntelliJでも同じものがあるはずです</span>
 	</p>
-	<h3 id="autovariable">変数の抽出</h3>
+	<h3 id="autovariable">受け取り変数の導出</h3>
 	<p>
-		受け取りの型(左辺)を先に書くのではなく、実体(右辺)を先に書いてから受け取りの型を自動で抽出する方法があります。
-		実体(右辺)のセミコロンの右側にカーソルが置いてある状態で、<em class="keyword">ctrl + 2</em>
-		(Macは command + 2)を押した後(0.x秒)、<em class="keyword">L</em> を押します。
+		先にメソッドを呼びましょう！<span class="frm">(戻り値を受け取るのはあとあと)</span>
 	</p>
-<pre><span class="codetitle">e.g. Eclipseでのショートカット (変数の抽出) @Java</span><code>
+	<ol>
+		<li>セミコロンの右側にカーソルを置いて...</li>
+		<li><em class="keyword">ctrl + 2</em> (Macなら command + 2)を押して離して...</li>
+		<li>...離してから 0.2 秒後に <em class="keyword">L</em> (える) を押します</li>
+	</ol>
+<pre><span class="codetitle">e.g. Eclipseでのショートカット (メソッドの場合) @Java</span><code>
+<span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+    cb<span class="abbreviation">...</span>
+}); <span class="comment">// セミコロンの右側にカーソル置いて ctrl (or command) + 2 and L</span>
+--
+ListResultBean&lt;Member&gt; <span class="point">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; { <span class="comment">// ぼがーん！</span>
+    cb<span class="abbreviation">...</span>
+}); <span class="comment">// 変数名はいい感じに修正、候補から選んでもOK</span>
+</code></pre>
+<pre><span class="codetitle">e.g. Eclipseでのショートカット (newの場合) @Java</span><code>
 <span class="keyword">new</span> MemberCB(); <span class="comment">// セミコロンの右側にカーソル置いて ctrl (or command) + 2 and L</span>
- <span class="attribute">to</span>
+--
 MemberCB cb = <span class="keyword">new</span> MemberCB(); <span class="comment">// 変数名は習慣的に "cb"</span>
 </code></pre>
+	<p>
+		いったん指を話した後に、別のボタンを押すので難しいかもしれません。苦手な場合は、同じカーソル位置で ctrl+1 を押して "Assign statement to new local variable"
+		を選ぶやり方もあります。
+	</p>
 	<h3 id="firstchar">先頭文字で勝負を決める</h3>
 	<p>
 		先頭文字を打てば、後はコード補完が導いてくれます。
@@ -172,13 +192,13 @@ MemberCB cb = <span class="keyword">new</span> MemberCB(); <span class="comment"
 		これだけでも覚えておく(習得する)だけで、ConditionBeanライフは大分違ったものになるでしょう。
 	</p>
 <pre><span class="codetitle">e.g. Eclipseでのショートカット (setupSelect) @Java</span><code>
-cb<span class="point">.se</span> <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
- <span class="attribute">to</span>
-cb.<span class="point">setupSelect_MemberStatus()</span> <span class="comment">// "se" で始まるメソッドは setupSelect... のみ</span>
+cb<span class="point">.se</span> <span class="comment">// ".se" とだけ打ってメソッド (関連テーブル) を選んで enter</span>
+--
+cb.<span class="point">setupSelect_MemberStatus()</span> <span class="comment">// 完璧に絞り込む必要はない (選べれば良い)</span>
 </code></pre>
 <pre><span class="codetitle">e.g. Eclipseでのショートカット (query) @Java</span><code>
 cb<span class="point">.q</span> <span class="comment">// ".q" とだけ打って enter</span>
- <span class="attribute">to</span>
+--
 cb.<span class="point">query()</span> <span class="comment">// "q" で始まるメソッドは query() のみ</span>
 </code></pre>
 	<p>
@@ -206,10 +226,10 @@ cb.<span class="point">query()</span> <span class="comment">// "q" で始まる�
 cb.query()<span class="point">.set</span>
 --
 <span class="comment">// メソッドを単語の先頭の大文字部分だけを入力して補完候補を絞り込む</span>
-<span class="comment">// setMemberName_PrefixSearch()であれば、".setMNPS" と入力し、enter</span>
-cb.query()<span class="point">.setMNPS</span>
+<span class="comment">// setMemberName_LikeSearch()であれば、".setMNLS" と入力し、enter</span>
+cb.query()<span class="point">.setMNLS</span>
 --
-cb.query().<span class="point">setMemberName_PrefixSearch()</span> <span class="comment">// 後は引数に値を入れてセミコロンで締める</span>
+cb.query().<span class="point">setMemberName_LikeSearch(<span class="abbreviation">...</span>)</span> <span class="comment">// 後は引数に値を入れてセミコロンで締める</span>
 </code></pre>
 <pre><span class="codetitle">e.g. Eclipseでのショートカット (query - addOrderBy...) @Java</span><code>
 <span class="comment">// query()の後 ".add" とだけ打って補完候補からメソッド選択</span>
@@ -237,8 +257,74 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 }
 </code></pre>
 	<p>
-		fore まで打って補完で、foreach の補完が一番上に候補として上がるので、候補を見ずに enter していい。ただ、例えば ForeginKey
-		というクラスがそのプロジェクトに存在するような場合はそちらが優先されるので、矢印キーでちょっと調整する必要がある。
+		fore まで打って補完で、foreach の補完が一番上に候補として上がるので、候補を見ずに enter してOKです。ただ、例えば ForeginKey
+		というクラスがそのプロジェクトに存在するような場合はそちらが優先されるので、矢印キーでちょっと調整する必要があります。
+	</p>
+	<p>
+		もし、ループに Java8 の List@forEach() を使う場合は、(DBFluteのコード補完テンプレートが入っていれば) <em class="smallmark">_fo =&gt; ctrl+space</em> でいけます。 
+	</p>
+	<div class="relatedpage"><a href="../../../../tutorial/onjava8.html#jflutableeclipse">DBFlute補完テンプレートを入れたEclipse</a></div>
+	<h3 id="extracttovariable">ローカル変数への抽出</h3>
+	<p>
+		何回も同じものを get, get してたら、ローカル変数へ！
+	</p>
+<pre><span class="codetitle">e.g. キャメルケースコード補完 @Java</span><code>
+log(<span class="literal">"memberName: {}"</span>, <span class="localvar">member</span>.getMemberName());
+<span class="keyword">if</span> (<span class="localvar">member</span>.getMemberName().startsWith(<span class="literal">"S"</span>) || <span class="localvar">member</span>.getMemberName().length() &gt;= <span class="literal">10</span>) {
+    <span class="abbreviation">...</span> = convertToDetarame(<span class="localvar">member</span>.getMemberName());
+}
+<span class="comment">// member.getMemberName() を選択して、</span>
+<span class="comment">// ctrl+1 => enter (extract to variable) すると...</span>
+--
+<span class="comment">// ぜんぶ一気に変数に置き換わる！</span>
+String <span class="point">memberName</span> = <span class="localvar">member</span>.getMemberName(); <span class="comment">// どーん！</span>
+log(<span class="literal">"memberName: {}"</span>, <span class="subpoint">memberName</span>);
+<span class="keyword">if</span> (<span class="subpoint">memberName</span>.startsWith(<span class="literal">"S"</span>) || <span class="subpoint">memberName</span>.length() &gt;= <span class="literal">10</span>) {
+    <span class="abbreviation">...</span> = convertToDetarame(<span class="subpoint">memberName</span>);
+}
+</code></pre>
+	<p>
+		パフォーマンス上の問題というよりも、コードの見た目がきっかけかもしれません。抽出前は get, get
+		でだいぶコードが膨れ上がっていますよね。スッキリさせるためにも、積極的に抽出していきましょう。
+	</p>
+	<p>
+		一方で、最初から想定して変数を用意するというのはそれはそれで難度が高いものだし、
+		一回だけしか使わないもので、あまりメソッド名も長くないものであれば、逆に変数になっている方がめざわりかもしれません。
+		最初はあまり気にせず勢いでget,getして、ふとコードを見上げたときに "えいっ" とやればいいかなと思っています。
+	</p>
+	<h3 id="renamequickly">メソッド名や変数名の変更</h3>
+	<p>
+		しっくりくる名前を気軽に試そう！
+	</p>
+<pre><span class="codetitle">e.g. キャメルケースコード補完 @Java</span><code>
+<span class="abbreviation">...</span> = <span class="localvar">memberEntityDayo</span>.getMemberName()
+<span class="abbreviation">...</span> = <span class="localvar">memberEntityDayo</span>.getMemberAccount()
+<span class="abbreviation">...</span> = <span class="localvar">memberEntityDayo</span>.getBirthdate()
+<span class="abbreviation">...</span> = <span class="localvar">memberEntityDayo</span>.getFormalizedDatetime()
+<span class="comment">// memberEntityDayo を選択して、</span>
+<span class="comment">// ctrl+1 => enter (rename in file) して、名前を member に修正すると...</span>
+--
+<span class="comment">// ぜんぶ一気に変わる！</span>
+<span class="abbreviation">...</span> = <span class="point">member</span>.getMemberName()
+<span class="abbreviation">...</span> = <span class="point">member</span>.getMemberAccount()
+<span class="abbreviation">...</span> = <span class="point">member</span>.getBirthdate()
+<span class="abbreviation">...</span> = <span class="point">member</span>.getFormalizedDatetime()
+</code></pre>
+	<p>
+		名前は、実際にある程度書き終わってからじゃないと、適切な名前って思いつかないものですし、実際にその名前で書いてみないとしっくりくるかどうかわからないものです。
+		ショートカットで名前の試行錯誤をスムーズにできるようにしましょう。
+	</p>
+	<h3 id="idesuggestion">IDEに提案してもらおう</h3>
+	<p>
+		ctrl+1 (command+1) って、なんか何でも使えるショートカットに思えますね。
+	</p>
+	<p>
+		このショートカットは、IDEがカーソル位置から判断して、プログラマーのやりたいことを推測してリファクタリング候補を挙げてくれるものです。
+		リファクタリング候補は、だいたいカーソル位置から規則的に列挙されますので、ショートカットキーを忘れたときの保険のようにも使えます。
+	</p>
+	<p>
+		というか、ショートカットキーを覚えるのが大変であれば、とにかく ctrl+1 さえ覚えておけば良いとも言えます。
+		実際に、受け取り変数の導出も、ctrl+1で実現できてしまいます。大抵のことはできるように設計されているので、ぜひぜひ積極的に使っていきましょう。
 	</p>
 	<h3 id="variouscut">その他ショートカット</h3>
 	<p>
@@ -246,10 +332,33 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		"最初からベタに書いた方が速いんじゃないの？"
 		って感じになってしまいますが、その後長く実装を続けるのであれば非常に効果的な道具となるでしょう。
 	</p>
+	<p>
+		以下、Eclipseのその他のショートカットの一部です。
+	</p>
+	<dl class="keymainlist">
+		<dt>一行削除</dt><dd><em class="mark">ctrl (command) + D</em></dd>
+		<dt>一行移動</dt><dd><em class="mark">alt + 上下矢印</em></dd>
+		<dt>一行コピー</dt><dd><em class="mark">alt + ctrl(command) + 上下矢印</em></dd>
+		<dt>単語ごとカーソル移動</dt><dd><em class="mark">alt + 左右矢印</em></dd>
+		<dt>メソッドごとの移動</dt><dd><em class="mark">control + alt + 上下矢印</em> <span class="frm">(Macなら。ちょとWindowsだとわからない...)</span></dd>
+	</dl>
 	<div class="relatedpage"><a href="../../../topic/programming/completion/index.html">プログラミング - コード補完</a></div>
 	<div class="relatedpage"><a href="../../../topic/programming/shortcut/index.html">プログラミング - ショートカット</a></div>
+	<p>
+		以下、DBFlute補完テンプレートを入れたときのショートカットの一部です。
+	</p>
+	<dl class="keymainlist">
+		<dt>Lambda, Inline Style</dt><dd><em class="mark">_li (あんすこえるあい)</em></dd>
+		<dt>Lambda, Block Style</dt><dd><em class="mark">_ll (あんすこえるえる)</em></dd>
+	</dl>
+	<div class="relatedpage"><a href="../../../../tutorial/onjava8.html#jflutableeclipse">DBFlute補完テンプレートを入れたEclipse</a></div>
 
-	<h2 id="basicspec">基本仕様</h2>
+	<h2 id="basicspec">Java8版の基本仕様 <span class="frm">(1.1.x)</span></h2>
+	<p>
+		TODO jflute
+	</p>
+
+	<h2 id="basicspec">Java6版の基本仕様 <span class="frm">(1.0.x)</span></h2>
 	<dl class="textlist">
 		<dt>条件の連結</dt>
 		<dd>
