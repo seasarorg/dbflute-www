@@ -60,6 +60,7 @@
 				<li><a href="#laserverimpl">サーバーエラーの実装は？ <span class="frm">(システム例外)</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#faihy">ふぁいはいパターンだと？ <span class="frm">(ハイブリッド)</span></a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -95,14 +96,14 @@
             or CLIENT_ERROR or SERVER_ERROR)</span>
 
     <span class="comment">// エラーの詳細</span>
-    , <span class="localvar">"errors"</span> : [
+    , <span class="localvar">"errors"</span> : [{
          , <span class="localvar">"field"</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
          , <span class="localvar">"code"</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
          , <span class="localvar">"data"</span> : <span class="literal">(チェックに関連するデータ、長さチェックの最大長など
                   e.g. min : "20", max : "50")</span>
-    ], [
+    }], [{
         <span class="abbreviation">...</span>
-    ]
+    }]
 }
 </code></pre>
 	<p>
@@ -134,25 +135,23 @@
 <pre><span class="codetitle">e.g. "ふぇいくらパターン" で、バリデーションエラーのとき @Json</span><code>
 {
     <span class="localvar">"cause"</span> : <span class="literal">"VALIDATION_ERROR"</span>
-    , <span class="localvar">"errors"</span> : [
+    , <span class="localvar">"errors"</span> : [{
          , <span class="localvar">"field"</span> : <span class="literal">"product_name"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"REQUIRED"</span>
          , <span class="localvar">"data"</span> : {}
-    ], [
+    }], [{
          , <span class="localvar">"field"</span> : <span class="literal">"product_count"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"MAX"</span>
          , <span class="localvar">"data"</span> : { <span class="localvar">max</span> : <span class="literal">"100"</span> } <span class="comment">// 数値の最大値</span>
-    ]
-    ], [
+    }], [{
          , <span class="localvar">"field"</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"LENGTH"</span>
          , <span class="localvar">"data"</span> : { <span class="localvar">min</span> : <span class="literal">"20"</span>, <span class="localvar">max</span> : <span class="literal">"50"</span> } <span class="comment">// 文字列の最大長</span>
-    ]
-    ], [
+    }], [{
          , <span class="localvar">"field"</span> : <span class="literal">"member.email"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"EMAIL"</span>
          , <span class="localvar">"data"</span> : {}
-    ]
+    }]
 }
 </code></pre>
 
@@ -169,11 +168,11 @@
 <pre><span class="codetitle">e.g. "ふぁいくらパターン" で、業務例外のとき @Json</span><code>
 {
     <span class="localvar">"cause"</span> : <span class="literal">"BUSINESS_ERROR"</span>
-    , <span class="localvar">"errors"</span> : [
+    , <span class="localvar">"errors"</span> : [{
          , <span class="localvar">"field"</span> : <span class="literal">"_global"</span>
          , <span class="localvar">"code"</span> : <span class="literal">"ALREADY_DELETED"</span>
          , <span class="localvar">"data"</span> : {}
-    ]
+    }]
 }
 </code></pre>
 	<p>
@@ -232,11 +231,11 @@
 	<h2 id="lasta">LastaFluteでの実装</h2>
 	<h3 id="faiexample">Failure統一パターンは、Exampleと同じ</h3>
 	<p>
-		このページで紹介したパターンを、そのまま Example で実装しています。Maihamaプロジェクトの Showbase アプリがそれになります。
+		このページで紹介したパターンを、そのまま Example で実装しています。Maihamaプロジェクトの Hangar アプリがそれになります。
 	</p>
-	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-showbase">maihama-showbase | Github</a></div>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-hangar">maihama-hangar | Github</a></div>
 	<p>
-		全く同じ構造なのであれば、コピーして名前の微調整だけで動く可能性もあります。"Showbase" の部分はアプリの名前に適切に変えていきましょう。
+		全く同じ構造なのであれば、コピーして名前の微調整だけで動く可能性もあります。"Hangar" の部分はアプリの名前に適切に変えていきましょう。
 		ただ、(念のため、当然のことですが)しっかり理解をしてテストもしましょう。
 	</p>
 	<h3 id="laerrors">errorsの実装をどうしよう？</h3>
@@ -256,7 +255,7 @@
 	<p>
 		Exampleはこちら:
 	</p>
-	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/resources/showbase_message.properties">showbase_message.properties | Github</a></div>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-hangar/src/main/resources/showbase_message.properties">showbase_message.properties | Github</a></div>
 	<h4>バリデーションエラーのメッセージ</h4>
 	<p>
 		バリデーションメッセージを、このように修正します。
@@ -342,7 +341,7 @@ errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
 	<p>
 		Exampleはこちら:
 	</p>
-	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/java/org/docksidestage/mylasta/direction/sponsor/ShowbaseApiFailureHook.java">ShowbaseApiFailureHook.java | Github</a></div>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-hangar/src/main/java/org/docksidestage/mylasta/direction/sponsor/HangarApiFailureHook.java">HangarApiFailureHook.java | Github</a></div>
 	<div class="relatedpage"><a href="../action/apifailure.html">忘れられないApiFailureHook</a></div>
 	<h3 id="lacommonorapp">commonか？appか？</h4>
 	<p>
@@ -356,7 +355,7 @@ errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
 		をオーバーライドし、業務例外のメッセージの values を JSON として展開する必要があります。
 		<span class="frm">(業務例外で values を使うときだけの処理ではありますが)</span>
 	</p>
-	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/java/org/docksidestage/app/web/base/ShowbaseBaseAction.java#L64">ShowbaseBaseAction.java | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-hangar/src/main/java/org/docksidestage/app/web/base/HangarBaseAction.java#L64">HangarBaseAction.java | Github</a></div>
 	<h3 id="lacliimpl">クライアントエラーの実装は？ <span class="frm">(クライアント例外)</span></h3>
 	<h4>ApiFailureHookにて</h4>
 	<p>
@@ -368,8 +367,8 @@ errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
 		でしっかり戻すのであれば、web.xml にて定義されている 400.html, 404.html などを <em class="mark">400.json, 404.json</em>
 		に変更して、アプリが戻すクライアント例外のJSONと一致する固定のJSONを定義しておくと良いでしょう。
 	</p>
-	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-showbase/src/main/webapp/error">src/main/webapp/error | Github</a></div>
-	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/webapp/WEB-INF/web.xml">webapp/WEB-INF/web.xml | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/tree/master/maihama-hangar/src/main/webapp/error">src/main/webapp/error | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-hangar/src/main/webapp/WEB-INF/web.xml">webapp/WEB-INF/web.xml | Github</a></div>
 	<p>
 		ただし、そのアプリが純粋な JSON API ではなく、サーバーサイドHTMLも混じっているのであれば、この技は使えないです。
 		とはいえ、その場合だとなおさら、あまりクライアントがクライアントエラーを詳細にハンドリングする必要もないので、特に問題はないと想定されます。
@@ -390,6 +389,33 @@ errors.app.double.submit.request=<span class="literal">DOUBLE_SUBMIT</span>
 		ではなく、サーバーサイドHTMLも混じっているのであれば、この技は使えないですが、そもそもクライアントは、<em class="keyword">HTTPステータスが 500
 		だったら中身も見ずにシステムエラーの処理をするだけ</em> という振舞いが想定されるので、特に問題はないと想定されます。
 	</p>
+
+	<h2 id="faihy">ふぁいはいパターンだと？ <span class="frm">(ハイブリッド)</span></h2>
+	<p>
+		メッセージをハイブリッド方式にした場合は、こんな感じでしょうか。単に自然言語のユーザーメッセージを載せるための message を追加しています。
+	</p>
+<pre><span class="codetitle">e.g. "ふぇいはいパターン" で、バリデーションエラーのとき @Json</span><code>
+{
+    <span class="comment">// Failureの原因</span>
+    <span class="localvar">"cause"</span> : <span class="literal">(VALIDATION_ERROR or BUSINESS_ERROR
+            or CLIENT_ERROR or SERVER_ERROR)</span>
+
+    <span class="comment">// エラーの詳細</span>
+    , <span class="localvar">"errors"</span> : [{
+         , <span class="localvar">"field"</span> : <span class="literal">(受け取ったJSON項目名、階層表示あり e.g. product_name)</span>
+         , <span class="localvar">"code"</span> : <span class="literal">(エラーチェックの種別を示すコード e.g. REQUIRED, MAX など)</span>
+         , <span class="localvar">"data"</span> : <span class="literal">(チェックに関連するデータ、長さチェックの最大長など
+                  e.g. min : "20", max : "50")</span>
+         , <span class="point">"message"</span> : <span class="literal">(自然言語のユーザーメッセージ、利用したければどうぞ)</span>
+    }], [{
+        <span class="abbreviation">...</span>
+    }]
+}
+</code></pre>
+	<p>
+		Maihama プロジェクトの Showbase アプリにて、Example があります。
+	</p>
+	<div class="detailpage"><a href="https://github.com/lastaflute/lastaflute-example-maihama/blob/master/maihama-showbase/src/main/java/org/docksidestage/mylasta/direction/sponsor/ShowbaseApiFailureHook.java">ShowbaseApiFailureHook.java | Github</a></div>
 
 </div>
 </div>
