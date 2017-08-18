@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development,Transaction,トランザクション" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>ユーザーメッセージ (UserMessages) | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>ユーザーメッセージ (UserMessages)</h1>
+	<div class="relatedpage"><a href="../../index.html">LastaFlute</a></div>
+	<div class="relatedpage"><a href="./lavalidation.html">見通しのValidation</a></div>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html">開拓の例外ハンドリング</a></div>
+	<ul class="indexlist">
+		<li><a href="#howtochange">メッセージ修正の仕方</a></li>
+		<li><a href="#howtoadd">メッセージ追加の仕方</a></li>
+		<li><a href="#forproperty">どの項目のためのメッセージか？</a></li>
+		<li><a href="#subjectivemessage">主語ありメッセージ</a></li>
+		<li><a href="#variablemessage">動的パラメーター付きメッセージ</a></li>
+	</ul>
+
+	<h2 id="howtochange">メッセージ修正の仕方</h2>
+	<p>
+		src/main/resources の [app]_message.properties (UTF-8) のメッセージを修正します。
+	</p>
+	<p>
+		文言の修正だけであれば、FreeGenを叩かなくても動作に影響はないですが、[App]Messagesクラスの JavaDoc
+		を更新できるので、一応叩いておくと良いでしょう。
+	</p>
+
+	<h2 id="howtoadd">メッセージ追加の仕方</h2>
+	<p>
+		src/main/resources の [app]_message.properties (UTF-8) にメッセージを追加します。
+	</p>
+	<p>
+		追加したら、FreeGenを叩きます。[App]Messagesに add...() メソッドが追加され、アプリで呼べるようになります。
+	</p>
+
+	<h2 id="forproperty">どの項目のためのメッセージか？</h2>
+	<p>
+		[App]Messages で add...() を使うときに、必ず第一引数で <em class="keyword">関連する項目のプロパティ名</em>
+		を指定します。どの項目のためのメッセージか？を表現するためです<span class="frm">(画面側でその名前で制御します)</span>。
+	</p>
+	<p>
+		サーバーサイドHTMLであればHTML上の名前、JSON APIであればJSON上の名前が適しています。
+		自然と、FormクラスやBodyクラスの変数名と同じになることが多いでしょう。
+	</p>
+	<p>
+		
+	</p>
+
+	<h2 id="subjectivemessage">主語ありメッセージ</h2>
+	<p>
+		メッセージを主語ありにしたいときは、メッセージに {item} を付与します。
+	</p>
+<pre><span class="codetitle">e.g. dynamic parameter message @[app]_message.properties</span><code>
+constraints.Required.message = <span class="attribute">{item}</span> is required
+</code></pre>
+	<p>
+		[app]_label.properties に定義されている labels.[変数名] に合致するラベルがあれば、その値が表示されます。
+		存在しない場合は、変数名がそのまま表示されます。<span class="frm">(変数名がそのまま表示されていいことはまずないと思うので、labelを用意しましょう)</span>
+	</p>
+
+	<h2 id="variablemessage">動的パラメーター付きメッセージ</h2>
+	<p>
+		プログラムからの動的な値をメッセージの中に埋め込みたいときは、
+		中括弧 {} で囲って、その中に名前を付けてましょう。e.g. {sea} <span class="frm">(@since 1.0.0)</span>
+	</p>
+<pre><span class="codetitle">e.g. dynamic parameter message @[app]_message.properties</span><code>
+errors.maihama = <span class="attribute">{sea}</span> of dreams
+</code></pre>
+	<p>
+		FreeGenをすると、自動生成された [App]Messages の add...() メソッドの引数で、動的パラメーターを指定することができます。
+		指定された名前がそのまま引数名になります。
+		ただし、{item} は予約されている言葉なので、動的パラメーターの名前としては利用できません。
+		また、複数になる場合は、それぞれ別の名前を付けましょう<span class="frm">(同じ名前を使うと重複した引数名でコンパイルエラーに)</span>。
+	</p>
+	<p>
+		古いバージョン <span class="frm">(@before 1.0.0)</span> では、名前付きパラメーターが使えないので、
+		そのときはインデックスパラメーターを使いましょう。e.g. {0} of dreams, {1} kirameku
+	</p>
+	<p>
+		ちなみに、組み込みのメッセージ (Hibernate Validator のアノテーションに対応したメッセージ)
+		に関しては、渡せるパラメーターが固定化されているので、そちらで使うことは基本的になく、アプリ独自のメッセージを追加するときに使うことが想定されます。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
