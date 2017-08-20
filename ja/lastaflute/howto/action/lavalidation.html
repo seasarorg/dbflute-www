@@ -343,7 +343,8 @@
     //                                                                          ==========</span>
     <span class="comment">// AssertTrueで、独自のエラーメッセージを設定する。
     // must be true と表示されても嬉しくないので、メッセージの指定は実質的に必要。
-    // ただ、クライアントエラーにするときは、メッセージはあまり気にしなくてもいい。</span>
+    // (ただ、クライアントエラーにするときは、メッセージはあまり気にしなくてもいい)
+    // この場合、ユーザーメッセージは、productNameToStatus という名前のプロパティに紐付けられる。</span>
     <span class="point">@AssertTrue</span>(message = FortressMessages.<span class="attribute">ERRORS_PRODUCT_NAME_THEN_ONSALE</span>)
     <span class="keyword">public boolean</span> isProductNameToStatus() { <span class="comment">// is 始まりじゃないと呼ばれないよ</span>
         <span class="keyword">if</span> (<span class="attribute">productName</span> == <span class="keyword">null</span>) {
@@ -353,7 +354,7 @@
             <span class="comment">// sea と入力されてたら、販売中ステータスじゃないとダメ</span>
             <span class="comment">// (通常ありえないけど、Exampleなのででたらめ)</span>
             <span class="keyword">return</span> CDef.ProductStatus.<span class="attribute">OnSaleProduction</span>.equals(<span class="attribute">productStatus</span>);
-        } else {
+        } <span class="keyword">else</span> {
             <span class="keyword">return true</span>; <span class="comment">// 他の入力値であれば特に相関関係は無し (という仕様)</span>
         }
     }
@@ -380,7 +381,8 @@
 		<span class="frm">(*A: 厳密には、Form や Body 自体を再利用すれば再利用になりますが、それもレアケースであろうと)</span>
 	</p>
 	<p>
-		あと、AssertTrue方式だと、メッセージの中の動的変数を活用できまないです。あまり致命的ではないかもしれませんが、moreValidate() の方がメッセージの自由度が高いのは確かです。
+		あと、AssertTrue方式だと、メッセージの中の動的変数を活用できません。
+		また、とあるプロパティ項目へのメッセージの紐付けもできません<span class="frm">(isメソッドのプロパティ名に関連付けられる)</span>。あまり致命的ではないかもしれませんが、moreValidate() の方がメッセージの自由度が高いのは確かです。
 	</p>
 	<h4>とは言え、AssertTrue方式もメリットがある</h4>
 	<p>
