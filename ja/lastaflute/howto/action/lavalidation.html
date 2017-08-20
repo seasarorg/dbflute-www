@@ -61,15 +61,17 @@
 				<li><a href="#correlationdb">相関チェック、DB検索が必要なチェック</a></li>
 				<li><a href="#morevalidatemethod">moreValidate() のススメ</a></li>
 				<li><a href="#alwayscalled">アノテーションでエラーがあっても呼ばれる</a></li>
-				<li><a href="#correlativebyanno">ちなみに、アノテーションで相関チェックもできる</a></li>
+				<li><a href="#correlativebyanno">ちなみに、アノテーションで相関チェックもできる!?</a></li>
 			</ul>
 		</li>
 		<li><a href="#adjustmessage">エラーメッセージを調整</a></li>
-		<li><a href="#jsonbeanvalidation">番外. JsonResultのバリデーション</a>
+		<li><a href="#responsevalidation">番外. レスポンスデータのバリデーション</a>
 			<ul>
-				<li><a href="#alsobeanlastadoc">LastaDocに載るのでフロント側に伝えやすい</a></li>
-				<li><a href="#beanvalidationgroups">同じ JsonResult でも groups でバリデーションを分岐</a></li>
-				<li><a href="#exceptproduction">本番ではチェックしない、とか、警告だけとか</a></li>
+				<li><a href="#responsehowto">レスポンスのバリデーション方法</a></li>
+				<li><a href="#responsealsolastadoc">LastaDocに載るのでフロント側に伝えやすい</a></li>
+				<li><a href="#responsegrouping">同じ JsonResult でも groups でバリデーションを分岐</a></li>
+				<li><a href="#responsecorrelative">JsonResult の相関バリデーション</a></li>
+				<li><a href="#responseexceptproduction">本番ではチェックしない、とか、警告だけとか</a></li>
 			</ul>
 		</li>
 		<li><a href="#bigcheck">三大チェックポイント</a>
@@ -314,7 +316,7 @@
 		<span class="frm">※本来、アノテーションによるバリデーションと、プログラムによるバリデーションで分けて実装するのではなく、
 		項目ごとに両方を一気に実装できる仕組みがある方が良いと思いますが、Java文法上それはできないのが残念です。</span>
 	</p>
-	<h3 id="correlativebyanno">ちなみに、アノテーションで相関チェックもできる</h3>
+	<h3 id="correlativebyanno">ちなみに、アノテーションで相関チェックもできる!?</h3>
 	<p>
 		Hibernate Validator を使っているので、Hibernate Validator の機能がそのまま使えます。
 		LastaFluteで特に制限もかけていません。
@@ -362,29 +364,54 @@
 }
 </code></pre>
 	<p>
-		とはいえ、これを推奨しているかというと、別にそうではありません。
+		とはいえ、これを推奨しているかというと、別にそうではありません。それはズバリ...
 	</p>
-	<ul>
-		<li>再利用ができるわけではないので<span class="frm">(*A)</span>、moreValidate() と大差はない</li>
-		<li>DB検索が必要なバリデーションには使えないので、結局 moreValidate() は必要</li>
-		<li>DIもできず、Assist や Logic など呼べないので、結局 moreValidate() は必要</li>
-		<li>何種類も手段を覚えないといけないのを避けたいので、moreValidate() に寄せたい</li>
-	</ul>
+	<h4>覚えるコストとバラバラを避けたい</h4>
 	<p>
-		<span class="frm">(*A: 厳密には、Form や Body 自体を再利用すれば再利用になりますが、それもレアケース)</span>
+		<em class="keyword">何種類も手段を覚えないといけないのを避けたい</em>
 	</p>
 	<p>
-		ということから、積極的なプッシュはしていません。ただもちろん、使ってもOKです。Hibernate Validator
-		には、他にもいろいろなやり方がありますから、開発チームでポリシーを決めて問題なく使いこなせるのであれば良いでしょう。
-		<span class="frm">(ノーポリシーであまりにバラバラになるとつらいと思います)</span>
+		というところです。DB検索が必要なバリデーションには使えないですし、DIもできず、Assist や Logic
+		など呼べないので、moreValidate() がなくなることはありません。
+		<span class="frm">(厳密にはDIできないわけじゃないので、FormやBodyではDIをしないポリシーを前提として)</span>
 	</p>
+	<p>
+		AssertTrue方式でも再利用ができるわけではないので<span class="frm">(*A)</span>、であれば、相関チェックなどロジカルなバリデーションは moreValidate() に寄せた方が良いだろう、と考えられるのです。
+		<span class="frm">(*A: 厳密には、Form や Body 自体を再利用すれば再利用になりますが、それもレアケースであろうと)</span>
+	</p>
+	<p>
+		あと、AssertTrue方式だと、メッセージの中の動的変数を活用できまないです。あまり致命的ではないかもしれませんが、moreValidate() の方がメッセージの自由度が高いのは確かです。
+	</p>
+	<h4>とは言え、AssertTrue方式もメリットがある</h4>
+	<p>
+		一方で、後述する "レスポンスデータのバリデーション" の相関バリデーションの実装方法に、AssertTrue方式が活用できます。
+		レスポンスのときはロジカルなバリデーションをする領域を定めていませんので、統一的な実装のためのわかりやすい一つの手段になります。
+		そちらで使うのであれば、リクエストのバリデーションでも同じように使っていく方がわかりやすいかもしれません。
+	</p>
+	<p>
+		また、やはり単項目バリデーションのアノテーションと相関バリデーションが同じクラスの中に一緒に入っているというのが可読性をもたらすのは確かです。
+		<span class="frm">(ただし、すべて一緒になるわけではないですが)</span>
+	</p>
+	<div class="relatedpage"><a href="#responsevalidation">this - 番外. レスポンスデータのバリデーション</a></div>
+	<p>
+		それらメリットを重視するのであれば、"リクエストもレスポンスもDB検索やDIを必要としない相関バリデーションならAssertTrue方式" というようなポリシーでも良いでしょう。
+		そのときは、moreValidate() は、基本的に Behavior や Assist などのDIコンポーネントを必要とするバリデーションだけに使うというニュアンスになります。
+	</p>
+	<p>
+		先ほどの "覚えるコストとバラバラを避けたい"
+		の心配は、ディベロッパーのフレームワークに対するリテラシーと、開発チームの統一性に対する姿勢に対するものなので、そこに不安がないのであれば積極的に使っていっても良いでしょう。
+	</p>
+	<h4>やはり、nullチェックはどのみち必要</h4>
 	<p>
 		ちなみに、先ほどの Example にて、productName に @Required や @NotNull
 		が付いていてエラーになったとしても、isProductNameToStatus() メソッドは呼び出されます。
+	</p>
+	<p>
 		なので、どのみち productName の null チェックは必要です。
 		全体的な思想として他のバリデーションの結果に依存しないようにロジックを積み重ねていく思想があるように感じていますので、
 		先ほど話題にした、moreValidate() が呼ばれるようにした理由につながります。
 	</p>
+	<div class="relatedpage"><a href="#alwayscalled">this - アノテーションでエラーがあっても呼ばれる</a></div>
 
 	<h2 id="adjustmessage">エラーメッセージを調整</h2>
 	<p>
@@ -416,18 +443,31 @@ maihama-dockside
  |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
 </code></pre>
 
-	<h2 id="jsonbeanvalidation">番外. JsonResultのバリデーション</h2>
-	<h3 id="alsobeanlastadoc">LastaDocに載るのでフロント側に伝えやすい</h3>
+	<h2 id="responsevalidation">番外. レスポンスデータのバリデーション</h2>
 	<p>
-		asJson() の引数に指定する JsonResult にも、アノテーションを付けることができます。 
+		レスポンスにバリデーション？と思われるかもしれませんが、これは外部に出力するデータの整合性を自分でチェックするためのバリデーションです。
+		なので、自分たちのロジックを確実なものにするためのチェックとなりますので、少しニュアンスが違いますし、今まであまりない概念の実装ですが、実際にやってみると非常に安心感があって便利です。
 	</p>
+	<h3 id="responsehowto">レスポンスのバリデーション方法</h3>
+	<p>
+		asHtml()で登録する <em class="mark">HtmlBean</em> や、asJson() の引数に指定する <em class="mark">JsonResult</em>
+		にも、@Required などの Validatorアノテーションを付けます。
+	</p>
+	<p>
+		付けておくと Action の処理が終わった直後にアノテーションが評価されて、バリデーションエラーになった場合は、システム例外(サーバーの不具合)として処理が中断します。
+		本当は不整合なデータを外部に戻してしまっているのに、なんとなく動いてしまっていた、なんことを防ぐことができます。
+	</p>
+	<p>
+		<span class="frm">(この後、JsonResultを中心に説明しますが、HtmlBeanでも同様です)</span>
+	</p>
+	<h3 id="responsealsolastadoc">LastaDocに載るのでフロント側に伝えやすい</h3>
 	<p>
 		付けておくと、単なるサーバー側のバグチェックだけでなく、LastaDoc にアノテーションが表示されるので、
 		フロント側のディベロッパーに項目の特性を自然と伝えることができます。
 	</p>
 	<div class="relatedpage"><a href="../dbflute/lastadoc.html">LastaDoc</a></div>
-<pre><span class="codetitle">e.g. Required annotation in Bean class @Java</span><code>
-<span class="keyword">public class</span> SeaLandBean {
+<pre><span class="codetitle">e.g. Required annotation in JSON result class @Java</span><code>
+<span class="keyword">public class</span> SeaLandResult {
 
     <span class="subpoint">@Required</span>
     <span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
@@ -440,10 +480,10 @@ maihama-dockside
 </code></pre>
 <pre><span class="codetitle">e.g. asJson() in Action class @Java</span><code>
 @Execute
-<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index() {
+<span class="keyword">public</span> JsonResponse&lt;SeaLandResult&gt; index() {
     <span class="abbreviation">...</span>
-    SeaLandBean <span class="localvar">bean</span> = <span class="abbreviation">...</span>
-    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>); <span class="comment">// validated in this method</span>
+    SeaLandResult <span class="localvar">result</span> = <span class="abbreviation">...</span>
+    <span class="keyword">return</span> asJson(<span class="localvar">result</span>); <span class="comment">// validated in this method</span>
 }
 </code></pre>
 	<p>
@@ -455,16 +495,16 @@ maihama-dockside
 		凝り過ぎてもつらいので、例えば <em class="keyword">Required だけチェックする</em>
 		というような割り切りがオススメです。フロントサイドのディベロッパーと相談してみましょう。
 	</p>
-	<h3 id="beanvalidationgroups">同じ JsonResult でも groups でバリデーションを分岐</h3>
+	<h3 id="responsegrouping">同じ JsonResult でも groups でバリデーションを分岐</h3>
 	<p>
-		同じ JSON Bean でも、状況によってバリデーションの内容が異なる場合は、Hibernate Validator の
+		同じ JSON Result でも、状況によってバリデーションの内容が異なる場合は、Hibernate Validator の
 		groups の機能を使うとよいでしょう。
 	</p>
 	<p>
 		例えば、mysticId はデフォルトのときに必須、Landが指定されたら onemanDate
 		の方が必須<span class="frm">(そのときは、mysticIdは必須ではない)</span>、というようなときは以下のようになります。
 	</p>
-<pre><span class="codetitle">e.g. groups in JSON Bean @Java</span><code>
+<pre><span class="codetitle">e.g. groups in JSON Result @Java</span><code>
 @Required
 <span class="keyword">public</span> Integer <span class="attribute">mysticId</span>;
 
@@ -473,14 +513,58 @@ maihama-dockside
 </code></pre>
 <pre><span class="codetitle">e.g. asJson() with groups in action @Java</span><code>
 @Execute
-<span class="keyword">public</span> JsonResponse&lt;SeaLandBean&gt; index() {
+<span class="keyword">public</span> JsonResponse&lt;SeaLandResult&gt; index() {
     <span class="abbreviation">...</span>
-    SeaLandBean <span class="localvar">bean</span> = <span class="abbreviation">...</span>
+    SeaLandResult <span class="localvar">result</span> = <span class="abbreviation">...</span>
     <span class="keyword">boolean</span> <span class="localvar">land</span> = <span class="abbreviation">...</span>
-    <span class="keyword">return</span> asJson(<span class="localvar">bean</span>).<span class="point">groupValidator</span>(<span class="localvar">land</span> ? Land.<span class="keyword">class</span> : <span class="keyword">null</span>);
+    <span class="keyword">return</span> asJson(<span class="localvar">result</span>).<span class="point">groupValidator</span>(<span class="localvar">land</span> ? Land.<span class="keyword">class</span> : <span class="keyword">null</span>);
 }
 </code></pre>
-	<h3 id="exceptproduction">本番ではチェックしない、とか、警告だけとか</h3>
+	<h3 id="responsecorrelative">JsonResult の相関バリデーション</h3>
+	<p>
+		レスポンスのバリデーションは、必ずすべての整合性をチェックする義務はなく、凝りすぎるとキリがないので相関バリデーションまでやるかはプロジェクトポリシーで要検討です。
+	</p>
+	<p>
+		ただ、もし相関バリデーションも入れておきたいというのであれば、AssertTrue方式を利用することができます。
+		これは、すでに通常の Form や Body のバリデーションのところで話題になった方式です。
+	</p>
+	<div class="relatedpage"><a href="#correlativebyanno">this - ちなみに、アノテーションで相関チェックもできる!?</a></div>
+	<p>
+		このように実装します。
+	</p>
+<pre><span class="codetitle">e.g. correlative validator by annotation for response @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    <span class="comment">// ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========</span>
+    @Required
+    <span class="keyword">public</span> String <span class="attribute">productName</span>;
+
+    <span class="keyword">public</span> CDef.ProductStatus <span class="attribute">productStatus</span>;
+
+    <span class="abbreviation">...</span>
+
+    <span class="comment">// ===================================================================================
+    //                                                                          Validation
+    //                                                                          ==========</span>
+    <span class="comment">// レスポンスのバリデーションなので、ユーザーメッセージは気にしなくてもいい。</span>
+    <span class="point">@AssertTrue</span>
+    <span class="keyword">public boolean</span> isProductNameToStatus() { <span class="comment">// is 始まりじゃないと呼ばれないよ</span>
+        <span class="keyword">if</span> (<span class="attribute">productName</span> == <span class="keyword">null</span>) {
+            <span class="keyword">return true</span>;
+        }
+        <span class="keyword">if</span> (<span class="attribute">productName</span>.equals(<span class="literal">"sea"</span>)) {
+            <span class="comment">// sea と入力されてたら、販売中ステータスじゃないとダメ</span>
+            <span class="comment">// (通常ありえないけど、Exampleなのででたらめ)</span>
+            <span class="keyword">return</span> CDef.ProductStatus.<span class="attribute">OnSaleProduction</span>.equals(<span class="attribute">productStatus</span>);
+        } else {
+            <span class="keyword">return true</span>; <span class="comment">// 他の入力値であれば特に相関関係は無し (という仕様)</span>
+        }
+    }
+}
+</code></pre>
+	<h3 id="responseexceptproduction">本番ではチェックしない、とか、警告だけとか</h3>
 	<p>
 		TODO jflute
 	</p>
