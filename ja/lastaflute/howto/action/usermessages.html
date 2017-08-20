@@ -43,6 +43,20 @@
 	<div class="relatedpage"><a href="../architecture/exceptionhandling.html">開拓の例外ハンドリング</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../objsafeprop.html"> -->LastaFluteのタイプセーフProperties<!-- </a> --></span></div>
 	<ul class="indexlist">
+		<li><a href="#overview">ユーザーメッセージとは？</a>
+			<ul>
+				<li><a href="#whoread">誰向けのメッセージ？</a></li>
+				<li><a href="#whereismessage">どこで管理してる？</a></li>
+				<li><a href="#objectivetypesafe">継承できてタイプセーフ</a></li>
+			</ul>
+		</li>
+		<li><a href="#howtouse">メッセージの指定方法</a>
+			<ul>
+				<li><a href="#validatorannotation">Validatorアノテーションなら</a></li>
+				<li><a href="#embeddedappex">組み込みの業務例外なら</a></li>
+				<li><a href="#programmable">あとはプログラム上で指定する</a></li>
+			</ul>
+		</li>
 		<li><a href="#howtochange">メッセージ修正の仕方</a></li>
 		<li><a href="#howtoadd">メッセージ追加の仕方</a></li>
 		<li><a href="#forproperty">どの項目のためのメッセージか？</a></li>
@@ -56,10 +70,147 @@
 		<li><a href="#i18n">メッセージの多言語対応</a></li>
 	</ul>
 
+	<h2 id="overview">ユーザーメッセージとは？</h2>
+	<h3 id="whoread">誰向けのメッセージ？</h3>
+	<p>
+		基本的に、アプリケーションのユーザー (一般消費者の会員や内部管理とするオペレーターなど) に対するメッセージを指します。
+		つまり、コンピューター向けではなく人間に対するメッセージで、そして、ディベロッパー (エンジニア、プログラマー) ではない人のためのメッセージです。
+		画面に表示されることが前提です。ゆえに、体裁も整えつつ丁寧に状況を伝える必要がありますし、逆にあまりセキュアな情報は載せてはいけません。
+	</p>
+	<p>
+		主に、"何々は必須です" と言ったようなバリデーションエラーのメッセージが相当しますが、業務例外のときのメッセージも同じです。
+		主には、この二つの事象をユーザーに伝えるメッセージと考えて良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html">開拓の例外ハンドリング (Exception Handling)</a></div>
+	<p>
+		ただ、それが必ずしも自然言語とは限りません。例えば、JSON APIのアプリでクライアントメッセージ方式であれば、サーバーAPIからすると、ユーザーメッセージはクライアントアプリが解釈できる情報を戻すことになります。
+		とはいえ、もちろんのこと、システム全体から見れば最終的には自然言語のメッセージに翻訳されることにはなるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../impldesign/jsondesign.html#messagemanage">E. メッセージ管理: クライアントメッセージ管理？サーバーメッセージ管理？</a></div>
+	<h3 id="whereismessage">どこで管理してる？</h3>
+	<p>
+		LastaFluteでは、src/main/resources の [app]_message.properties にて管理しています。
+		UTF-8で読み込んでいるので、日本語をユニコードエスケープする必要はありません。
+	</p>
+<pre><span class="codetitle">e.g. validation error and application exception message @[app]_message.properties</span><code>
+constraints.Required.message                = <span class="literal">is required</span>
+constraints.TypeAny.message                 = <span class="literal">should be {propertyType}</span>
+constraints.TypeInteger.message             = <span class="literal">should be number</span>
+
+<span class="abbreviation">...</span>
+
+errors.login.failure=<span class="literal">could not login</span>
+errors.app.illegal.transition=<span class="literal">retry because of illegal transition</span>
+errors.app.db.already.deleted=<span class="literal">others might be deleted, so retry</span>
+</code></pre>
+	<h3 id="objectivetypesafe">継承できてタイプセーフ</h3>
+	<p>
+		継承関係を持っているので、マルチプロジェクトでもプロジェクト間で再利用もできますし、オーバーライドを活用してプロジェクトごとに微調整することもできます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../objsafeprop.html#objectiveprop"> -->継承できる Properties<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでのProperties継承構造 @Directory</span><code>
+maihama-common
+ |-src/main/resources
+    |-maihama_message.properties <span class="comment">// 共通のメッセージリソース</span>
+
+maihama-dockside
+ |-src/main/resources
+ |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
+</code></pre>
+	<p>
+		また、DBFlute の FreeGen を使って、propertiesに対応した [App]Messages クラスを自動生成することができます。
+		プログラム上で、properties のキーをハードコートすることは基本的にありません。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../objsafeprop.html#typesafeprop"> -->タイプセーフな Properties<!-- </a> --></span></div>
+<pre><span class="codetitle">e.g. auto-generated method for message @Java</span><code>
+<span class="localvar">messages</span>.addConstraintsRequiredMessage(<span class="abbreviation">...</span>);
+</code></pre>
+
+	<h2 id="howtouse">メッセージの指定方法</h2>
+	<h3 id="validatorannotation">Validatorアノテーションなら</h3>
+	<p>
+		それぞれValidatorアノテーションごとに、対応するメッセージが決まっています。
+		例えば、@Requiredアノテーションであれば、constraints.Required.message になります。
+		ゆえに、ディベロッパーが意識して指定するということはあまりありません。
+	</p>
+<pre><span class="codetitle">e.g. property for message @Java</span><code>
+@Required    <span class="comment">// constraints.Required.message が利用される</span>
+<span class="keyword">public</span> String mysticOneman;
+</code></pre>
+	<p>
+		とある状況だけ、Validatorアノテーションのメッセージを差し替えたい場合は、message属性にメッセージのキーを指定します。
+		そのとき、ハードコードで指定するのではなく、FreeGenで自動生成された [App]Messages の定義を使って指定しましょう。
+	</p>
+<pre><span class="codetitle">e.g. property for message @Java</span><code>
+@Required(<span class="point">message</span>=DocksideMessages.<span class="attribute">ERRORS_SEA_LAND</span>)
+<span class="keyword">public</span> String mysticOneman;
+</code></pre>
+	<h3 id="embeddedappex">組み込みの業務例外なら</h3>
+	<p>
+		LastaFluteに組み込まれてる業務例外であれば、例外ごとに対応するメッセージが決まっています。
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html#bizhandling">開拓の例外ハンドリング - 業務例外ハンドリング</a></div>
+	<dl class="longkeymainlist">
+		<dt>LoginFailureException</dt><dd>ログイン画面へリダイレクト <span class="frm">(errors.login.failure)</span></dd>
+		<dt>RequestIllegalTransitionEx...</dt><dd>show_errors.html <span class="frm">(errors.app.illegal.transition)</span></dd>
+		<dt>DoubleSubmittedRequestEx...</dt><dd>verifyToken()で指定 <span class="frm">(errors.app.double.submit.request)</span></dd>
+		<dt>EntityAlreadyDeletedEx...</dt><dd>show_errors.html <span class="frm">(errors.app.db.already.deleted)</span></dd>
+		<dt>EntityAlreadyUpdatedEx...</dt><dd>show_errors.html <span class="frm">(errors.app.db.already.updated)</span></dd>
+		<dt>EntityAlreadyExistsEx...</dt><dd>show_errors.html <span class="frm">(errors.app.db.already.exists)</span></dd>
+	</dl>
+	<p>
+		ゆえに、それらメッセージのキーは、削除したり変更したりしてはいけません。<span class="frm">(文言の修正はOK)</span>
+	</p>
+<pre><span class="codetitle">e.g. six framework-embedded messages @[app]_message.properties</span><code>
+<span class="comment"># ----------------------------------------------------------
+#                                      Application Exception
+#                                      ---------------------
+# /- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# six framework-embedded messages (don't change key names)
+# - - - - - - - - - -/</span>
+errors.login.failure=<span class="literal">could not login</span>
+errors.app.illegal.transition=<span class="literal">retry because of illegal transition</span>
+errors.app.db.already.deleted=<span class="literal">others might be deleted, so retry</span>
+errors.app.db.already.updated=<span class="literal">others might be updated, so retry</span>
+errors.app.db.already.exists=<span class="literal">already existing data, so retry</span>
+errors.app.double.submit.request=<span class="literal">double submit might be requested</span>
+</code></pre>
+	<h3 id="programmable">あとはプログラム上で指定する</h3>
+	<p>
+		FreeGenで自動生成された [App]Messages の add...() メソッドを使って指定します。
+	</p>
+	<p>
+		例えば、相関バリエーションなどはプログラムで実装するので、そのとき活用します。
+	</p>
+<pre><span class="codetitle">e.g. moreValidate() uses add...() @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="subpoint">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; <span class="point">moreValidate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span>), () -&gt; {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>);
+    });
+    <span class="abbreviation">...</span>
+}
+
+<span class="keyword">private void</span> <span class="subpoint">moreValidate</span>(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
+    <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span> != <span class="keyword">null</span> && <span class="localvar">form</span>.<span class="attribute">land</span> != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) {
+            <span class="localvar">messages</span>.addErrorsSeaLand(<span class="literal">"sea"</span>);
+        }
+    }
+}
+</code></pre>
+	<p>
+		また、独自の業務例外であれば、同じように [App]Messages の add...() メソッドを使います。
+	</p>
+<pre><span class="codetitle">e.g. ActionでUserMessagesを使った業務例外のthrow @Java</span><code>
+<span class="keyword">throw new</span> MessagingApplicationException(<span class="literal">"<span class="abbreviation">...</span>"</span>
+    , <span class="keyword">new</span> <span class="point">HarborMessages()</span>.addErrorsSignup<span class="abbreviation">...</span>(UserMessages.<span class="attribute">GLOBAL</span>, <span class="abbreviation">...</span>));
+</code></pre>
+
 	<h2 id="howtochange">メッセージ修正の仕方</h2>
 	<p>
 		src/main/resources の [app]_message.properties のメッセージを修正します。
-		UTF-8で読み込んでいるので、日本語をユニコードエスケープする必要はありません。
+		<span class="frm">(UTF-8で読み込んでいるので、日本語をユニコードエスケープする必要はありません)</span>
 	</p>
 	<p>
 		文言の修正だけであれば、FreeGenを叩かなくても動作に影響はないですが、[App]Messagesクラスの JavaDoc
@@ -72,7 +223,8 @@
 
 	<h2 id="howtoadd">メッセージ追加の仕方</h2>
 	<p>
-		src/main/resources の [app]_message.properties (UTF-8) にメッセージを追加します。
+		src/main/resources の [app]_message.properties にメッセージを追加します。
+		<span class="frm">(UTF-8で読み込んでいるので、日本語をユニコードエスケープする必要はありません)</span>
 	</p>
 	<p>
 		追加したら、FreeGenを叩きます。[App]Messagesに add...() メソッドが追加され、アプリで呼べるようになります。

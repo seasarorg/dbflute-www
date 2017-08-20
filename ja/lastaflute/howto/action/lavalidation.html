@@ -253,7 +253,7 @@
 @Execute
 <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
     <span class="subpoint">validate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; <span class="point">moreValidate</span>(<span class="localvar">form</span>, <span class="localvar">messages</span>), () -&gt; {
-        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandJsp</span>);
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_Sea_SeaLandHtml</span>);
     });
     <span class="abbreviation">...</span>
 }
@@ -280,6 +280,27 @@
     }
 }
 </code></pre>
+	<p>
+		なぜ、アノテーションの方でバリデーションエラーがあったときに処理を止めないのか？
+	</p>
+	<p>
+		これにはれっきとして理由があります。
+		ユーザーから見た時に、<em class="keyword">一回ですべてのバリデーションエラーが表示されず、基本的なバリデーションが通ったらまた別のエラーが表示される</em>
+		というのを避けたいからです。<em class="mark">二段階バリデーション</em> と呼んでいます。
+	</p>
+	<p>
+		ユーザーからすると、また違うエラーが出てくるのかなぁ？という気持ちになるため、あまり良いUIとは言えないと考えています。
+		ボタンを押してチェックを書けたからには、できるだけすべての項目に対するチェックが掛けた方が良いと考え、実装上は少し面倒なことにはなりますが、それを踏まえて LastaFlute ではこのようにしています。
+	</p>
+	<p>
+		また、アノテーションの定義と、プログラムによるバリデーションの実装では、若干距離があるので、アノテーションの有無に関わらず、
+		プログラムによるバリデーションが成り立つように実装しておいたほうがミスは少ないだろうという思いもあります。
+		場合によっては、その部分だけ相関バリデーションのコンポーネントとしてクラスに切り出すとかもあり得るので、そのつもりで書いていたほうが良いだろうと感覚です。
+	</p>
+	<p>
+		<span class="frm">※本来、アノテーションによるバリデーションと、プログラムによるバリデーションで分けて実装するのではなく、
+		項目ごとに両方を一気に実装できる仕組みがある方が良いと思いますが、Java文法上それはできないのが残念です。</span>
+	</p>
 
 	<h2 id="adjustmessage">エラーメッセージを調整</h2>
 	<p>
