@@ -61,6 +61,7 @@
 				<li><a href="#correlationdb">相関チェック、DB検索が必要なチェック</a></li>
 				<li><a href="#morevalidatemethod">moreValidate() のススメ</a></li>
 				<li><a href="#alwayscalled">アノテーションでエラーがあっても呼ばれる</a></li>
+				<li><a href="#correlativebyanno">ちなみに、アノテーションで相関チェックもできる</a></li>
 			</ul>
 		</li>
 		<li><a href="#adjustmessage">エラーメッセージを調整</a></li>
@@ -155,9 +156,16 @@
 		Assertの代わりのようなものと言えるでしょう
 	</p>
 	<p>
-		Eclipse でDBFlute補完テンプレートを入れていれば、_lavcli で補完できます。
+		Eclipse でDBFlute補完テンプレートを入れていれば、<em class="mark">_lavcli</em> で補完できます。
 	</p>
 	<div class="relatedpage"><a href="../../tutorial/laimpl.html#ifeclipse">IDE, もし Eclipse なら...</a></div>
+<pre><span class="codetitle">e.g. completion of ClientError.class annotation @Java</span><code>
+@Required(<span class="point">_lavc...</span>) <span class="comment">// 丸括弧の中にカーソルを合わせて _lavcli で補完すると...</span>
+<span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
+--
+@Required(<span class="point">groups=ClientError.class</span>) <span class="comment">// どん！</span>
+<span class="keyword">public</span> Integer <span class="attribute">memberId</span>;
+</code></pre>
 	<h3 id="validnested">ネストのプロパティは @Valid</h3>
 	<p>
 		<em class="keyword">ネストしているクラスの中のアノテーションも有効にしたいときは、@Valid を付けます</em>
@@ -290,25 +298,122 @@
 	</p>
 	<p>
 		ユーザーからすると、また違うエラーが出てくるのかなぁ？という気持ちになるため、あまり良いUIとは言えないと考えています。
-		ボタンを押してチェックを書けたからには、できるだけすべての項目に対するチェックが掛けた方が良いと考え、実装上は少し面倒なことにはなりますが、それを踏まえて LastaFlute ではこのようにしています。
+		ボタンを押してチェックを書けたからには、できるだけすべての項目に対するチェックが掛かった方が良いと考え、実装上は少し面倒なことにはなりますが、それを踏まえて LastaFlute ではこのようにしています。
 	</p>
 	<p>
-		また、アノテーションの定義と、プログラムによるバリデーションの実装では、若干距離があるので、アノテーションの有無に関わらず、
-		プログラムによるバリデーションが成り立つように実装しておいたほうがミスは少ないだろうという思いもあります。
-		場合によっては、その部分だけ相関バリデーションのコンポーネントとしてクラスに切り出すとかもあり得るので、そのつもりで書いていたほうが良いだろうと感覚です。
+		また、アノテーションの定義とプログラムによるバリデーションの実装では若干距離があるので、
+		<em class="keyword">アノテーションの有無を意識せず、プログラムによるバリデーションが成り立つように独立性を保った実装</em>
+		をしておいたほうがミスは少ないだろうという思いもあります。後から、必須項目じゃなくなるとか、その部分だけ別のクラスに切り出すとかもあり得えますので。
 	</p>
+	<p>
+		そしてまた、他のフレームワークのやり方を見ても、相関チェックをする前に null チェックを入れるのは、わりと当たり前のようにされているので、そこまで抵抗がないだろうという判断もあります。
+		そもそも、Hibernate Validator がそのような思想で作られているようにも感じます<span class="frm">(詳しくは後述する AssertTrue のところで)</span>。
+	</p>
+	<div class="relatedpage"><a href="http://qiita.com/kenhori/items/4534f548bbee5bfb6064">Spring MVCにおけるフォームバリデーションの適用事例【前編】 | Qiita</a></div>
 	<p>
 		<span class="frm">※本来、アノテーションによるバリデーションと、プログラムによるバリデーションで分けて実装するのではなく、
 		項目ごとに両方を一気に実装できる仕組みがある方が良いと思いますが、Java文法上それはできないのが残念です。</span>
 	</p>
+	<h3 id="correlativebyanno">ちなみに、アノテーションで相関チェックもできる</h3>
+	<p>
+		Hibernate Validator を使っているので、Hibernate Validator の機能がそのまま使えます。
+		LastaFluteで特に制限もかけていません。
+	</p>
+	<p>
+		DB検索を必要としない相関チェックであれば、Form や Body に AssertTrue
+		アノテーションを付与したチェックするメソッドを定義すれば、Actionの中でやらなくても同じことが実現できます。
+	</p>
+<pre><span class="codetitle">e.g. correlative validator by annotation @Java</span><code>
+<span class="keyword">public class</span> SeaForm {
+
+    <span class="comment">// ===================================================================================
+    //                                                                           Attribute
+    //                                                                           =========</span>
+    @Length(max = <span class="literal">10</span>)
+    <span class="keyword">public</span> String <span class="attribute">productName</span>;
+
+    <span class="keyword">public</span> CDef.ProductStatus <span class="attribute">productStatus</span>;
+
+    <span class="abbreviation">...</span>
+
+    <span class="comment">// ===================================================================================
+    //                                                                          Validation
+    //                                                                          ==========</span>
+    <span class="comment">// AssertTrueで、独自のエラーメッセージを設定する。
+    // must be true と表示されても嬉しくないので、メッセージの指定は実質的に必要。
+    // ただ、クライアントエラーにするときは、メッセージはあまり気にしなくてもいい。</span>
+    <span class="point">@AssertTrue</span>(message = FortressMessages.<span class="attribute">ERRORS_PRODUCT_NAME_THEN_ONSALE</span>)
+    <span class="keyword">public boolean</span> isProductNameToStatus() { <span class="comment">// is 始まりじゃないと呼ばれないよ</span>
+        <span class="keyword">if</span> (<span class="attribute">productName</span> == <span class="keyword">null</span>) {
+            <span class="keyword">return true</span>;
+        }
+        <span class="keyword">if</span> (<span class="attribute">productName</span>.equals(<span class="literal">"sea"</span>)) {
+            <span class="comment">// sea と入力されてたら、販売中ステータスじゃないとダメ</span>
+            <span class="comment">// (通常ありえないけど、Exampleなのででたらめ)</span>
+            <span class="keyword">return</span> CDef.ProductStatus.<span class="attribute">OnSaleProduction</span>.equals(<span class="attribute">productStatus</span>);
+        } else {
+            <span class="keyword">return true</span>; <span class="comment">// 他の入力値であれば特に相関関係は無し (という仕様)</span>
+        }
+    }
+
+    <span class="comment">// クライアントエラーのときは、メッセージは指定しなくてもOKなのでこんな感じかな</span>
+    <span class="comment">//@AssertTrue(groups = ClientError.class)</span>
+    <span class="comment">//public boolean ...</span>
+}
+</code></pre>
+	<p>
+		とはいえ、これを推奨しているかというと、別にそうではありません。
+	</p>
+	<ul>
+		<li>再利用ができるわけではないので<span class="frm">(*A)</span>、moreValidate() と大差はない</li>
+		<li>DB検索が必要なバリデーションには使えないので、結局 moreValidate() は必要</li>
+		<li>DIもできず、Assist や Logic など呼べないので、結局 moreValidate() は必要</li>
+		<li>何種類も手段を覚えないといけないのを避けたいので、moreValidate() に寄せたい</li>
+	</ul>
+	<p>
+		<span class="frm">(*A: 厳密には、Form や Body 自体を再利用すれば再利用になりますが、それもレアケース)</span>
+	</p>
+	<p>
+		ということから、積極的なプッシュはしていません。ただもちろん、使ってもOKです。Hibernate Validator
+		には、他にもいろいろなやり方がありますから、開発チームでポリシーを決めて問題なく使いこなせるのであれば良いでしょう。
+		<span class="frm">(ノーポリシーであまりにバラバラになるとつらいと思います)</span>
+	</p>
+	<p>
+		ちなみに、先ほどの Example にて、productName に @Required や @NotNull
+		が付いていてエラーになったとしても、isProductNameToStatus() メソッドは呼び出されます。
+		なので、どのみち productName の null チェックは必要です。
+		全体的な思想として他のバリデーションの結果に依存しないようにロジックを積み重ねていく思想があるように感じていますので、
+		先ほど話題にした、moreValidate() が呼ばれるようにした理由につながります。
+	</p>
 
 	<h2 id="adjustmessage">エラーメッセージを調整</h2>
 	<p>
-		エラーメッセージの調整をする場合は、[app]_message.properties を修正して FreeGen を叩きます。
+		LastaFluteでは、src/main/resources の [app]_message.properties にて管理しています。
+		UTF-8で読み込んでいるので、日本語をユニコードエスケープする必要はありません。
 	</p>
 	<div class="detailpage"><a href="./usermessages.html">ユーザーメッセージ (UserMessages)</a></div>
-<pre><span class="codetitle">e.g. change the message of Required @[app]_message.properties</span><code>
-constraints.Required.message = sea of dreams
+<pre><span class="codetitle">e.g. validation error and application exception message @[app]_message.properties</span><code>
+constraints.Required.message                = <span class="literal">is required</span>
+constraints.TypeAny.message                 = <span class="literal">should be {propertyType}</span>
+constraints.TypeInteger.message             = <span class="literal">should be number</span>
+
+<span class="abbreviation">...</span>
+
+errors.login.failure=<span class="literal">could not login</span>
+errors.app.illegal.transition=<span class="literal">retry because of illegal transition</span>
+errors.app.db.already.deleted=<span class="literal">others might be deleted, so retry</span>
+</code></pre>
+	<p>
+		継承関係を持っているので、マルチプロジェクトでもプロジェクト間で再利用もできますし、オーバーライドを活用してプロジェクトごとに微調整することもできます。
+	</p>
+<pre><span class="codetitle">e.g. リファレンス実装のMaihamaプロジェクトでのProperties継承構造 @Directory</span><code>
+maihama-common
+ |-src/main/resources
+    |-maihama_message.properties <span class="comment">// 共通のメッセージリソース</span>
+
+maihama-dockside
+ |-src/main/resources
+ |  |-dockside_message.properties <span class="comment">// アプリ固有のメッセージリソース</span>
 </code></pre>
 
 	<h2 id="jsonbeanvalidation">番外. JsonResultのバリデーション</h2>
@@ -459,8 +564,17 @@ constraints.Required.message = sea of dreams
 
 	<h2 id="professional">プロフェッショナルバリデーション</h2>
 	<p>
-		TODO jflute バリデーション内で検索したデータを使い回し、バリデーションエラー時にリダイレクト
+		TODO jflute バリデーション内で検索したデータを使い回し、バリデーションエラー時にリダイレクト、独自のアノテーションとか
 	</p>
+	<dl class="textlist">
+		<dt>バリデーション内で検索したデータを使い回し</dt>
+		<dd>messages.saveSuccessAttribute() で、ValidationSuccess@getAttribute()</dd>
+		<dt>バリデーションエラー時にリダイレクト</dt>
+		<dd>普通に、redirect()</dd>
+		<dd>errors 情報をセッションに入れるときは、redirect(...).saveErrorsToSession();</dd>
+		<dt>独自のアノテーション</dt>
+		<dd>Hibernate Validator のやり方そのまま</dd>
+	</dl>
 
 </div>
 </div>
