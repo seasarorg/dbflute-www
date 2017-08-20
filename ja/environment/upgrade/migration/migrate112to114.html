@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,移行時の注意,Migration,Attention" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>移行 1.1.2 to 1.1.4 | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-upgrade">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>移行 1.1.2 to 1.1.4</h1>
+	<ul class="indexlist">
+		<li><a href="#basic">お約束の注意点</a></li>
+		<li><a href="#env">環境上の注意点</a></li>
+		<li><a href="#impl">実装上の注意点</a>
+			<ul>
+				<li><a href="#inherits">LastaFlute,SAFluteでメッセージの逆転インデックス変数</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="basic">お約束の注意点</h2>
+	<dl class="textlist">
+		<dt>古いバージョンの削除</dt>
+		<dd>古いバージョンのDBFluteランタイム(JAR)が[WEB-INF/lib]の下などに残らないように</dd>
+		<dt>タスクを実行し忘れないように</dt>
+		<dd>Generateタスクだけでなく、(外だしSQLがある場合は)Sql2Entityタスクも実行</dd>
+	</dl>
+
+	<h2 id="env">環境上の注意点</h2>
+	<p>
+		特になし
+	</p>
+
+	<h2 id="impl">実装上の注意点</h2>
+	<h3 id="inherits">LastaFlute,SAFluteでメッセージの逆転インデックス変数</h3>
+	<p>
+		LastaFlute, SAFluteを使っていて、[app]_message.properties
+		に以下のようなインデックス変数の番号と出現位置が逆転したメッセージを利用されている方がいたらちょっと着目お願いします。
+	</p>
+<pre><span class="codetitle">e.g. indexed variable message @[app]_message.properties</span><code>
+<span class="comment"># {0} {1} ではなく、{1} {0} という定義順になっている </span>
+errors.maihama = <span class="attribute">{1}</span> of dreams, <span class="attribute">{0}</span> of wonder
+</code></pre>
+	<p>
+		新しいDBFluteだと、add...() メソッドの引数が逆に自動生成されます。詳しくはこちら:
+	</p>
+	<div class="detailpage"><a href="../../../lastaflute/howto/action/usermessages.html#variablemessage">ユーザーメッセージ - 動的変数付きメッセージ</a></div>
+	<p>
+		恐らく、ほとんどこのような状況はないかと想定されます。
+		独自のメッセージを追加すること自体少なければ、動的変数を複数入れることもあまりないでしょうし、入れたとしても順序を逆転させていなければ特に問題はありません。
+	</p>
+	<p>
+		また、このように定義している場合でも、もともと、LastaFlute でも SAFlute でも第一引数が{0}にマッピングされるので、
+		どちらかというと、古いDBFluteの自動生成された引数に合わせて値を指定すると、逆に表示されてしまっていたはずです。
+		つまり、新しいDBFluteだと表示の不具合が自然解決されます。<span class="frm">(なので、今回修正しました)</span>
+	</p>
+	<p>
+		ただ、もし、その不具合をわかっていて、プログラム側で "あえて逆に実装している箇所" があったら、
+		逆転して変数がマッピングされて画面に表示されてしまう可能性があります。
+	</p>
+	<p>
+		もし、どうしても以前の挙動に戻したいというのであれば、littleAdjustmentMap.dfprop にて、以下のプロパティを true にします。
+	</p>
+	<dl class="valuemainlist">
+		<dt>LastaFluteなら</dt><dd>isCompatibleUserMessagesVariableNotOrdered</dd>
+		<dt>SAFluteやその他なら</dt><dd>isCompatibleFreeGenPropVariableNotOrdered</dd>
+	</dl>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/environment/setup/index.html">セットアップ</a>
+			<ul>
+				<li><a href="../../../../ja/environment/setup/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/setup/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/setup/runtime.html">DBFluteランタイムの準備</a></li>
+				<li><a href="../../../../ja/environment/setup/jdbcdriver.html">JDBCドライバの準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/firstprop.html">特定環境適用プロパティ</a></li>
+				<li><a href="../../../../ja/environment/setup/generate.html">クラスの自動生成</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/setup/injection.html">DI環境の調整</a></li>
+				<li><a href="../../../../ja/environment/setup/thenafter.html">その後の設定</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/environment/upgrade/index.html">アップグレード</a>
+			<ul>
+				<li><a href="../../../../ja/environment/upgrade/emecha.html">*EMecha</a></li>
+				<li><a href="../../../../ja/environment/upgrade/maven.html">*Maven</a></li>
+				<li class="upper-space"><a href="../../../../ja/environment/upgrade/plain.html">*手動</a></li>
+				<li><a href="../../../../ja/environment/upgrade/migration/index.html">移行情報</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/environment/newest.html">最新バージョン</a></li>
+		<li><a href="../../../../ja/environment/license.html">ライセンス</a></li>
+		<li><a href="../../../../ja/environment/supported.html">サポート情報</a></li>
+		<li><a href="../../../../ja/environment/changelog/index.html">ChangeLog</a></li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
