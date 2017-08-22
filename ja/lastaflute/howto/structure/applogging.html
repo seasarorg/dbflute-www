@@ -49,6 +49,7 @@
 				<li><a href="#exceptionloglevel">例外とログレベルとの関係</a></li>
 				<li><a href="#loglevelfile">ログレベルとログファイルの関係</a></li>
 				<li><a href="#speciallog">特殊なログとログファイルの関係</a></li>
+				<li><a href="#logfilerotation">ログファイルのローテーション</a></li>
 			</ul>
 		</li>
 		<li><a href="#envlogsettings">ログ設定の環境切り替え</a>
@@ -57,7 +58,21 @@
 				<li><a href="#envimpl">環境切り替えの仕組み</a></li>
 			</ul>
 		</li>
-		<li><a href="#detaillogback">Logbackの設定詳細</a></li>
+		<li><a href="#xmlofsingle">logback.xml of シングルプロジェクト</a>
+			<ul>
+				<li><a href="#locationofsingle">logback.xmlの置き場所</a></li>
+				<li><a href="#contentsofsingle">logback.xmlの中身</a></li>
+			</ul>
+		</li>
+		<li><a href="#xmlofmulti">logback.xml of マルチプロジェクト</a>
+			<ul>
+				<li><a href="#locationofmulti">logback.xmlの置き場所</a></li>
+				<li><a href="#logbackofmulti">logback.xmlの中身</a></li>
+				<li><a href="#propertyofmulti">logback_property.xmlの中身</a></li>
+				<li><a href="#appenderofmulti">logback_appender.xmlの中身</a></li>
+				<li><a href="#loggerofmulti">logback_logger.xmlの中身</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">LastaFluteのログ概要</h2>
@@ -88,7 +103,11 @@
 	</p>
 	<dl class="textlist">
 		<dt>例外でも正常なイベントであればINFOでは出さない</dt>
-		<dd>例えば、ユーザー入力のバリデーションエラーとか、ログイン認証など</dd>
+		<dd>
+			例えば、ユーザー入力のバリデーションエラーとか、ログイン認証など。独自の例外でも、throwするときに withoutInfo()
+			メソッドでINFOを抑えることができる。
+		</dd>
+		<dd>もし、残しておきたいのであれば、流量が膨大なので専用のログファイルの方が良い</dd>
 		<dt>(そういうもの以外の)業務例外はINFOで出す</dt>
 		<dd>業務例外は、グレーゾーンもあるし、業務改善も必要かもしれないのでINFO</dd>
 		<dt>クライアント例外はINFOで出す</dt>
@@ -138,6 +157,10 @@
 		<li>MailFluteでメール送信すれば、自然と出力されるようになっている</li>
 		<li>IN/OUTログはオプションなので、ログ設定を手動でする必要がある</li>
 	</ul>
+	<h3 id="logfilerotation">ログファイルのローテーション</h3>
+	<p>
+		LastaFluteのExampleデフォルトでは、日付ごとにローテーションされるようになっていますが、この辺はアプリ要件に合わせて修正しましょう。
+	</p>
 
 	<h2 id="envlogsettings">ログ設定の環境切り替え</h2>
 	<h3 id="envproperties">[app]_env.propertiesで基本的なログ設定</h3>
@@ -175,13 +198,297 @@ log.file.basedir = /tmp/lastaflute/harbor
 		なぜ、logback.xml の設定が、[app]_env.properties で利用できるのでしょうか？
 	</p>
 	<p>
-		TODO jflute ...
+		logback.xml の方で、[app]_env.properties を読み込むように定義しているからです。
+	</p>
+<pre><span class="codetitle">e.g. log property definition of harbor project @logback.xml</span><code>
+&lt;configuration&gt;
+  &lt;property resource=<span class="point">"harbor_env.properties"</span> /&gt;
+  &lt;property resource=<span class="point">"harbor_env_${lasta.env}.properties"</span> /&gt;
+  &lt;property name="domain.name" value="harbor"/&gt;
+  &lt;property name="log.level" value="${<span class="subpoint">log.level</span>:-debug}"/&gt;
+  &lt;property name="log.pattern" value="%d [%t] %-5p \\(%C{0}@%M\\(\\):%L\\) - %m%n"/&gt;
+  &lt;property name="log.file.basedir" value="${<span class="subpoint">log.file.basedir</span>:-/tmp/lastaflute/undefinedbasedir}"/&gt;
+  &lt;property name="backup.date.suffix" value="_%d{yyyyMMdd}"/&gt;
+  &lt;property name="backup.max.history" value="180"/&gt;
+
+  &lt;appender name="console" class="ch.qos.logback.core.ConsoleAppender"&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter"&gt;&lt;level&gt;${log.console.level}&lt;/level&gt;&lt;/filter&gt;
+  &lt;/appender&gt;
+
+  <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		なので、環境切り替え項目を追加したい場合は、そのまま properties で定義して、そのキー値を logback.xml
+		の中で使ってしまえばOKです。
+	</p>
+	<p>
+		ただ、properties を LastaFlute 以外も読み込んでいるということになるので、あまり "あれもこれも"
+		logback.xml から参照するというのはやらないほうが良いでしょう。logback専用のプロパティであることがわかるように、logbackから参照するプロパティは
+		log. で始まるキー値にしておきましょう。
 	</p>
 
-	<h2 id="detaillogback">Logbackの設定詳細</h2>
+	<h2 id="xmlofsingle">logback.xml of シングルプロジェクト</h2>
+	<h3 id="locationofsingle">logback.xmlの置き場所</h3>
 	<p>
-		TODO jflute ...
+		src/main/resources 配下に logback.xml がひとつあって、それがすべてです。
+		property、appender, logger がすべて入っています。
 	</p>
+<pre><span class="codetitle">e.g. logback.xml of harbor project @Directory</span><code>
+lastaflute-example-harbor
+ |-src/main/java
+ |-src/main/resources
+ |  |-<span class="abbreviation">...</span>
+ |  |-<span class="point">logback.xml</span>
+ |
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		環境切り替えは、[app]_env.properties でやるので、logback.xml
+		自体が環境ごとに複数のファイルになることはありません。<span class="frm">(そういう風にならないように設定していきましょう)</span>
+	</p>
+	<h3 id="contentsofsingle">logback.xmlの中身</h3>
+	<p>
+		ロギング設定のざっくりおさらい:
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>property定義</dt><dd>logback.xml内で利用する定数宣言のようなもの</dd>
+		<dt>appender定義</dt><dd>ログの出力設定、どのファイルにどのように出力するなど</dd>
+		<dt>logger定義</dt><dd>どのパッケージのログを、どのappenderで出力するかの関連付け</dd>
+	</dl>
+	<p>
+		一ファイルなので、すべての定義が入っています。
+	</p>
+<pre><span class="codetitle">e.g. logback definition of harbor project @logback.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE logback&gt;
+<span class="comment">&lt;!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ --&gt;
+&lt;!-- Harbor logging settings for All Environments --&gt;
+&lt;!-- _/_/_/_/_/_/_/_/_/_/ --&gt;</span>
+&lt;configuration&gt;
+  &lt;property resource="harbor_env.properties" /&gt;
+  &lt;property resource="harbor_env_${lasta.env}.properties" /&gt;
+  &lt;property name="domain.name" value="harbor"/&gt;
+  &lt;property name="log.level" value="${log.level:-debug}"/&gt;
+  &lt;property name="log.pattern" value="%d [%t] %-5p \\(%C{0}@%M\\(\\):%L\\) - %m%n"/&gt;
+  &lt;property name="log.file.basedir" value="${log.file.basedir:-/tmp/lastaflute/undefinedbasedir}"/&gt;
+  &lt;property name="backup.date.suffix" value="_%d{yyyyMMdd}"/&gt;
+  &lt;property name="backup.max.history" value="180"/&gt;
+
+  &lt;appender name="console" class="ch.qos.logback.core.ConsoleAppender"&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter"&gt;&lt;level&gt;${log.console.level}&lt;/level&gt;&lt;/filter&gt;
+  &lt;/appender&gt;
+  &lt;appender name="appfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/app_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/app_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+  &lt;appender name="errorfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/error_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter"&gt;&lt;level&gt;ERROR&lt;/level&gt;&lt;/filter&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/error_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+  &lt;appender name="mailfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/mail_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/mail_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+
+  &lt;logger name="org.dbflute" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="org.lastaflute" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="org.docksidestage" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="mailflute.sending" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="mailfile"/&gt;
+  &lt;/logger&gt;
+  &lt;root level="error"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/root&gt;
+&lt;/configuration&gt;
+</code></pre>
+	<ul class="codeoutro">
+		<li>logger の org.docksidestage は、実際にはアプリのパッケージ名に変更される</li>
+	</ul>
+
+	<h2 id="xmlofmulti">logback.xml of マルチプロジェクト</h2>
+	<h3 id="locationofmulti">logback.xmlの置き場所</h3>
+	<p>
+		それぞれのwebアプリプロジェクトの src/main/resources 配下に logback.xml があり、その中から参照する <em class="smallmark">部品的なxml</em> が、
+		common プロジェクトに置いてあります。
+	</p>
+<pre><span class="codetitle">e.g. logback.xml in multi project @Directory</span><code>
+lastaflute-example-maihama
+ |-maihama-base
+ |
+ |-maihama-common
+ |  |-src/main/java
+ |  |-src/main/resources
+ |  |  |-logparts <span class="comment">// 共通のロギング定義</span>
+ |  |  |  |-<span class="subpoint">logback_appender.xml</span>
+ |  |  |  |-<span class="subpoint">logback_logger.xml</span>
+ |  |  |  |-<span class="subpoint">logback_property.xml</span>
+ |  |  |-<span class="abbreviation">...</span>
+ |
+ |-maihama-dockside
+ |  |-src/main/java
+ |  |-src/main/resources
+ |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="point">logback.xml</span>
+ |  <span class="abbreviation">...</span>
+ |
+ |-maihama-hangar
+ |  |-src/main/java
+ |  |-src/main/resources
+ |  |  |-<span class="abbreviation">...</span>
+ |  |  |-<span class="point">logback.xml</span>
+ |  <span class="abbreviation">...</span>
+<span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="logbackofmulti">logback.xmlの中身</h3>
+	<p>
+		それぞれのwebアプリの logback.xml の中から、common の部品的なxmlを include しています。
+		また、webアプリの properties を優先利用するために、logback_property.xml の宣言の後に、property宣言しています。
+	</p>
+<pre><span class="codetitle">e.g. logback definition of dockside project @logback.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE logback&gt;
+<span class="comment">&lt;!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_ --&gt;
+&lt;!-- Dockside logging settings for All Environments --&gt;
+&lt;!-- _/_/_/_/_/_/_/_/_/_/_ --&gt;</span>
+&lt;configuration&gt;
+  &lt;include resource="logparts/logback_property.xml" /&gt;
+  &lt;property resource="dockside_env.properties" /&gt;
+  &lt;property resource="dockside_env_${lasta.env}.properties" /&gt;
+  &lt;property resource="dockside_config.properties" /&gt;
+
+  <span class="comment">&lt;!-- define your properties here
+  e.g. &lt;property name="sea.land" value="${piary.bonvo:-amba}"/&gt; --&gt;</span>
+
+  &lt;include resource="logparts/logback_appender.xml" /&gt;
+
+  <span class="comment">&lt;!-- define your additional appenders here
+  e.g. &lt;appender name="sea" class="land.PiaryAppender"&gt;... --&gt;</span>
+
+  &lt;include resource="logparts/logback_logger.xml" /&gt;
+
+  <span class="comment">&lt;!-- define your additional loggers here
+  e.g. &lt;logger name="sea.land.piary.bonvo" additivity="false" level="${log.level}"&gt;... --&gt;</span>
+&lt;/configuration&gt;
+</code></pre>
+	<h3 id="propertyofmulti">logback_property.xmlの中身</h3>
+	<p>
+		どのwebアプリでも共通の property が定義されています。
+	</p>
+<pre><span class="codetitle">e.g. property definition of common project @logback_property.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE logback&gt;
+<span class="comment">&lt;!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_ --&gt;
+&lt;!-- Maihama logging property settings for All Environments --&gt;
+&lt;!-- _/_/_/_/_/_/_/_/_/_/_ --&gt;</span>
+&lt;included&gt;
+  &lt;property resource="maihama_env.properties" /&gt;
+  &lt;property resource="maihama_env_${lasta.env}.properties" /&gt;
+  &lt;property resource="maihama_config.properties" /&gt;
+  &lt;property name="domain.name" value="${domain.name:-maihama}"/&gt;
+  &lt;property name="log.level" value="${log.level:-debug}"/&gt;
+  &lt;property name="log.pattern" value="%d [%t] %-5p \\(%C{0}@%M\\(\\):%L\\) - %m%n"/&gt;
+  &lt;property name="log.file.basedir" value="${log.file.basedir:-/tmp/lastaflute/undefinedbasedir}"/&gt;
+  &lt;property name="backup.date.suffix" value="_%d{yyyyMMdd}"/&gt;
+  &lt;property name="backup.max.history" value="180"/&gt;
+&lt;/included&gt;
+</code></pre>
+	<h3 id="appenderofmulti">logback_appender.xmlの中身</h3>
+	<p>
+		どのwebアプリでも共通の appender が定義されています。
+	</p>
+<pre><span class="codetitle">e.g. appender definition of common project @logback_appender.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE logback&gt;
+<span class="comment">&lt;!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_ --&gt;
+&lt;!-- Maihama logging appender settings for All Environments --&gt;
+&lt;!-- _/_/_/_/_/_/_/_/_/_/_ --&gt;</span>
+&lt;included&gt;
+  &lt;appender name="console" class="ch.qos.logback.core.ConsoleAppender"&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter"&gt;&lt;level&gt;${log.console.level}&lt;/level&gt;&lt;/filter&gt;
+  &lt;/appender&gt;
+  &lt;appender name="appfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/app_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/app_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+  &lt;appender name="errorfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/error_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter"&gt;&lt;level&gt;ERROR&lt;/level&gt;&lt;/filter&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/error_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+  &lt;appender name="mailfile" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+    &lt;File&gt;${log.file.basedir}/mail_${domain.name}.log&lt;/File&gt;
+    &lt;Append&gt;true&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;${log.pattern}&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+      &lt;fileNamePattern&gt;${log.file.basedir}/backup/mail_${domain.name}${backup.date.suffix}.log&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;${backup.max.history}&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+&lt;/included&gt;
+</code></pre>
+	<h3 id="loggerofmulti">logback_logger.xmlの中身</h3>
+	<p>
+		どのwebアプリでも共通の logger が定義されています。
+	</p>
+<pre><span class="codetitle">e.g. logger definition of common project @logback_logger.xml</span><code>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE logback&gt;
+<span class="comment">&lt;!-- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_ --&gt;
+&lt;!-- Maihama logging logger settings for All Environments --&gt;
+&lt;!-- _/_/_/_/_/_/_/_/_/_/_ --&gt;</span>
+&lt;included&gt;
+  &lt;logger name="org.dbflute" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="org.lastaflute" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="org.docksidestage" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="appfile"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/logger&gt;
+  &lt;logger name="mailflute.sending" additivity="false" level="${log.level}"&gt;
+    &lt;appender-ref ref="mailfile"/&gt;
+  &lt;/logger&gt;
+  &lt;root level="error"&gt;
+    &lt;appender-ref ref="console"/&gt;&lt;appender-ref ref="errorfile"/&gt;
+  &lt;/root&gt;
+&lt;/included&gt;
+</code></pre>
 
 </div>
 </div>
