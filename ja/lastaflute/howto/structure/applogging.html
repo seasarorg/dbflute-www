@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFluteのアプリログ | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFluteのアプリログ</h1>
+	<p>
+		LastaFluteが出力するアプリケーションのログ (開発、本番含めて) について
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./index.html"> -->LastaFlute<!-- </a> --></span></div>
+	<ul class="indexlist">
+		<li><a href="#overview">LastaFluteのログ概要</a>
+			<ul>
+				<li><a href="#loggingfw">ロギングフレームワークについて</a></li>
+				<li><a href="#exceptionloglevel">例外とログレベルとの関係</a></li>
+				<li><a href="#loglevelfile">ログレベルとログファイルの関係</a></li>
+				<li><a href="#speciallog">特殊なログとログファイルの関係</a></li>
+			</ul>
+		</li>
+		<li><a href="#envlogsettings">ログ設定の環境切り替え</a>
+			<ul>
+				<li><a href="#envproperties">[app]_env.propertiesで基本的なログ設定</a></li>
+				<li><a href="#envimpl">環境切り替えの仕組み</a></li>
+			</ul>
+		</li>
+		<li><a href="#detaillogback">Logbackの設定詳細</a></li>
+	</ul>
+
+	<h2 id="overview">LastaFluteのログ概要</h2>
+	<p>
+		LastaFluteのデフォルトのロギング思想は、おおよそこのようになっています。
+	</p>
+	<h3 id="loggingfw">ロギングフレームワークについて</h3>
+	<p>
+		ロギングフレームワークはこちら:
+	</p>
+	<dl class="lolongvaluemainlist">
+		<dt>ログファサード</dt><dd>Slf4j <span class="frm">(DBFluteなどもこちらを利用)</span></dd>
+		<dt>ログライブラリ</dt><dd>Logback</dd>
+	</dl>
+	<h3 id="exceptionloglevel">例外とログレベルとの関係</h3>
+	<p>
+		アプリの中で発生した例外とログレベルとの関係はこちら:
+	</p>
+	<div class="relatedpage"><a href="../architecture/exceptionhandling.html">開拓の例外ハンドリング</a></div>
+	<dl class="longvaluemainlist">
+		<dt>バリデーションエラー</dt><dd>DEBUG <span class="frm">(ここで、ユーザー入力のバリデーションのことを指している)</span></dd>
+		<dt>業務例外</dt><dd>INFO <span class="frm">(ただし、ログイン認証は含まない)</span></dd>
+		<dt>クライアント例外</dt><dd>INFO <span class="frm">(システム項目のバリデーションも含む)</span></dd>
+		<dt>システム例外</dt><dd>ERROR</dd>
+	</dl>
+	<p>
+		特徴としては:
+	</p>
+	<dl class="textlist">
+		<dt>例外でも正常なイベントであればINFOでは出さない</dt>
+		<dd>例えば、ユーザー入力のバリデーションエラーとか、ログイン認証など</dd>
+		<dt>(そういうもの以外の)業務例外はINFOで出す</dt>
+		<dd>業務例外は、グレーゾーンもあるし、業務改善も必要かもしれないのでINFO</dd>
+		<dt>クライアント例外はINFOで出す</dt>
+		<dd>
+			クライアントバグの可能性を分析するため、サーバーでINFOで残す。
+			例えば、ブラウザ上の JavaScript などであれば、クライアントでログを残せない可能性もあるため。
+			また、公開サーバーであれば、セキュリティ上あまり詳しい情報をレスポンスで戻さないほうが良いため。
+		</dd>
+		<dd>
+			ただ、公開アプリのときに "いたずらリクエスト"
+			で大量発生する可能性はあるので、それが問題になるようであれば、クライアント例外もINFOで出さないように設定の変更を検討すべし。
+		</dd>
+	</dl>
+	<h3 id="loglevelfile">ログレベルとログファイルの関係</h3>
+	<p>
+		ログレベルと出力されるログファイルの関係はこちら:
+	</p>
+	<dl class="lolongvaluemainlist">
+		<dt>DEBUG</dt><dd>app_[アプリ名].log <span class="frm">(開発用のログ、本番では出力されない)</span></dd>
+		<dt>INFO</dt><dd>app_[アプリ名].log <span class="frm">(Jobの起動/終了、業務例外、クライアントエラーなども含む)</span></dd>
+		<dt>WARN</dt><dd>app_[アプリ名].log <span class="frm">(SQL発行し過ぎとか、続行するけど後で直そう的な警告)</span></dd>
+		<dt>ERROR</dt><dd>app_[アプリ名].log + error_[アプリ名].log <span class="frm">(NullPointerとか)</span></dd>
+	</dl>
+	<p>
+		特徴としては:
+	</p>
+	<ul>
+		<li>INFO以上で本番に出力される <span class="frm">(Jobの起動/終了、業務例外やクライアントエラー次第)</span></li>
+		<li>app_ログファイルの流量はあまり多くないことを想定 <span class="frm">(ただし、業務例外やクライアントエラー次第)</span></li>
+		<li>ERRORだけは、緊急性の高いものということで専用ファイルにも出力される</li>
+		<li>WARNだけの専用ファイルは作っていないが、アプリで必要だと思ったら追加してもOK</li>
+	</ul>
+	<h3 id="speciallog">特殊なログとログファイルの関係</h3>
+	<p>
+		メール送信内容のログや、リクエストのIN/OUTのログなどは:
+	</p>
+	<div class="relatedpage"><a href="../action/adjustment.html#inoutlogging">ActionやJSONの微調整 - ActionのInOutのログを出力する？</a></div>
+	<dl class="longvaluemainlist">
+		<dt>メール送信内容</dt><dd>mail_[アプリ名].log <span class="frm">(すごい流量)</span></dd>
+		<dt>リクエストのIN/OUT</dt><dd>(inout_[アプリ名].log) <span class="frm">(すごい流量、デフォルトでは設定されていない)</span></dd>
+	</dl>
+	<p>
+		特徴としては:
+	</p>
+	<ul>
+		<li>app_[アプリ名].logでは出力されず、独立している</li>
+		<li>MailFluteでメール送信すれば、自然と出力されるようになっている</li>
+		<li>IN/OUTログはオプションなので、ログ設定を手動でする必要がある</li>
+	</ul>
+
+	<h2 id="envlogsettings">ログ設定の環境切り替え</h2>
+	<h3 id="envproperties">[app]_env.propertiesで基本的なログ設定</h3>
+	<p>
+		[app]_env.properties にて、基本的なログ設定ができるようになっています。
+		よって、自然と環境切り替えができるようになっています。
+	</p>
+	<div class="relatedpage"><a href="./envswitch.html">LastaFluteの環境切り替え</a></div>
+	<dl class="keymainlist">
+		<dt>log.level</dt><dd>ログレベル <span class="frm">(debug, info)</span></dd>
+		<dt>log.console.level</dt><dd>コンソールに出力するログのログレベル <span class="frm">(本番ではoffにしたいため独立)</span></dd>
+		<dt>log.file.basedir</dt><dd>ログファイルの出力先ディレクトリ</dd>
+	</dl>
+	<p>
+		integration, production など環境ごとに設定がありますので、それぞれ適切に設定しましょう。
+	</p>
+<pre><span class="codetitle">e.g. set appender and logger for in-out logging @[app]_env.properties</span><code>
+# ----------------------------------------------------------
+#                                                       Log
+#                                                      -----
+# The log level for logback
+log.level = debug
+
+# The log console level for logback
+log.console.level = debug
+
+# The log file basedir
+log.file.basedir = /tmp/lastaflute/harbor
+</code></pre>
+	<p>
+		他にも、環境切り替えをしたい項目があれば、logback.xml の方で定義すると良いでしょう。
+	</p>
+	<h3 id="envimpl">環境切り替えの仕組み</h3>
+	<p>
+		なぜ、logback.xml の設定が、[app]_env.properties で利用できるのでしょうか？
+	</p>
+	<p>
+		TODO jflute ...
+	</p>
+
+	<h2 id="detaillogback">Logbackの設定詳細</h2>
+	<p>
+		TODO jflute ...
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/lavalidation.html">Validation</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
