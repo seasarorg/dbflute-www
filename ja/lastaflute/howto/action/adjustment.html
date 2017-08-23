@@ -57,6 +57,7 @@
 				<li><a href="#validatorconfig">ValidatorのConfigを調整</a></li>
 				<li><a href="#appexhandling">業務例外のハンドリングを調整</a></li>
 				<li><a href="#inoutlogging">ActionのInOutのログを出力する？</a></li>
+				<li><a href="#inoutlogoption">InOutのログを調整する？</a></li>
 			</ul>
 		</li>
 		<li><a href="#jsonresource">JsonResourceProvider</a>
@@ -88,6 +89,7 @@
 		<dt>レスポンスの反映処理を調整</dt><dd>adjustResponseReflecting()</dd>
 		<dt>業務例外のハンドリングを調整</dt><dd>adjustApplicationExceptionHandling()</dd>
 		<dt>ActionのInOutのログを出力する？</dt><dd>isUseInOutLogging()</dd>
+		<dt>InOutのログを調整する？</dt><dd>adjustInOutLogging()</dd>
 	</dl>
 	<p>
 		Exampleテンプレートとして、MaihamaActionAdjustmentProvider
@@ -155,16 +157,26 @@
 	</p>
 	<h3 id="responsereflecting">レスポンスの反映処理を調整</h3>
 	<p>
-		TODO jflute Bean Validator のエラーを warn にしたり
+		ResponseReflectingOptionで、レスポンスの反映処理などを調整できます。
 	</p>
+	<ul>
+		<li>レスポンスのHtmlBeanのバリデーションエラーを例外出さずに警告ログに</li>
+		<li>レスポンスのHtmlBeanのバリデーションエラーを完全に抑制</li>
+		<li>レスポンスのJsonResultのバリデーションエラーを例外出さずに警告ログに</li>
+		<li>レスポンスのJsonResultのバリデーションエラーを完全に抑制</li>
+	</ul>
 	<h3 id="validatorconfig">ValidatorのConfigを調整</h3>
 	<p>
 		TODO jflute Eclipse Collections とか、対応されていない型をバリデーション対象にするとか
 	</p>
 	<h3 id="appexhandling">業務例外のハンドリングを調整</h3>
 	<p>
-		TODO jflute 統一的に通知ログを抑制する例外クラスを判定するなど
+		ApplicationExceptionOptionで、業務例外の扱いを調整できます。
 	</p>
+	<ul>
+		<li>強制的に通知ログを抑制したい業務例外を指定できる</li>
+	</ul>
+	<div class="relatedpage"><span class="working"><!-- <a href="../architect/exceptionhandling.html#bizhandling"> -->業務例外ハンドリング (アプリ例外)<!-- </a> --></span></div>
 	<h3 id="inoutlogging">ActionのInOutのログを出力する？</h3>
 	<p>
 		トラブル対応のときのために、本番環境でもActionのリクエストとレスポンスの内容を残しておきたい場合は、
@@ -205,12 +217,12 @@
 	</p>
 <pre><span class="codetitle">e.g. in-out logging contents @inout_[app].log</span><code>
 <span class="comment">// これは、HtmlResponseのときのログ</span>
-2017-08-20 00:16:08,784 [qtp2068434592-11] INFO  (InOutLogger@log():50) - /signin/ SigninAction@index() (2017-08-20 00:16:06.834) [00m01s950ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /signin/signin.html)
-2017-08-20 00:16:34,321 [qtp2068434592-15] INFO  (InOutLogger@log():50) - /member/list/ MemberListAction@index() (2017-08-20 00:16:33.946) [00m00s375ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /member/member_list.html) sqlCount:{total=2, selectCB=2}
-2017-08-20 00:16:49,572 [qtp2068434592-11] INFO  (InOutLogger@log():50) - /member/edit/ MemberEditAction@update() (2017-08-20 00:16:49.491) [00m00s081ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} *ValidationErrorException #5fd42ca requestParameter:{lastaflute.action.TRANSACTION_TOKEN=a30cdf490b0f7b831507d84730d8d288, birthdate=1965-03-03, versionNo=0, memberName=, memberStatus=FML, update=Update, memberAccount=Pixy, memberId=1, previousStatus=FML} responseBody:(...Forwarding to /member/member_edit.html)
+2017-08-20 00:16:08,784 [qtp2068434592-11] INFO  (InOutLogger@log():50) - GET /signin/ SigninAction@index() (2017-08-20 00:16:06.834) [00m01s950ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /signin/signin.html)
+2017-08-20 00:16:34,321 [qtp2068434592-15] INFO  (InOutLogger@log():50) - GET /member/list/ MemberListAction@index() (2017-08-20 00:16:33.946) [00m00s375ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /member/member_list.html) sqlCount:{total=2, selectCB=2}
+2017-08-20 00:16:49,572 [qtp2068434592-11] INFO  (InOutLogger@log():50) - POST /member/edit/ MemberEditAction@update() (2017-08-20 00:16:49.491) [00m00s081ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} *ValidationErrorException #5fd42ca requestParameter:{lastaflute.action.TRANSACTION_TOKEN=a30cdf490b0f7b831507d84730d8d288, birthdate=1965-03-03, versionNo=0, memberName=, memberStatus=FML, update=Update, memberAccount=Pixy, memberId=1, previousStatus=FML} responseBody:(...Forwarding to /member/member_edit.html)
 
 <span class="comment">// これは、JsonResponseのときのログ</span>
-2017-08-20 01:16:36,433 [qtp2068434592-17] INFO  (InOutLogger@log():50) - /wx/request/json/body/ WxRequestJsonBodyAction@index() (2017-08-20 01:16:36.312) [00m00s121ms] {Apache-HttpClient/4.5.2 (Java/1.8.0_131)}
+2017-08-20 01:16:36,433 [qtp2068434592-17] INFO  (InOutLogger@log():50) - POST /wx/request/json/body/ WxRequestJsonBodyAction@index() (2017-08-20 01:16:36.312) [00m00s121ms] {Apache-HttpClient/4.5.2 (Java/1.8.0_131)}
 requestBody:
 {sea: "mystic"}
 
@@ -226,22 +238,40 @@ responseBody:
 }
 </code></pre>
 	<ul class="codeoutro">
+		<li>HTTPメソッド (GET or POST or ...)</li>
 		<li>リクエストURLやActionクラスの名前</li>
-		<li>開始日時やコスト時間</li>
+		<li>開始日時やコスト時間 <span class="frm">(ログのヘッダーはログ出力日時、つまり実質的に終了日時なので、別途開始日時が必要)</span></li>
 		<li>UserAgent <span class="frm">(あまりに長い可能性があるので、最初の限られた文字数分だけ)</span></li>
-		<li>例外のときは例外クラスも <span class="frm">(詳細やスタックトレースは、エラーログの方を参照しましょう)</span></li>
-		<li>リクエストパラメーター <span class="frm">(GETやPOSTなどのFormパラメーターのときなど)</span></li>
-		<li>リクエストボディ <span class="frm">(JSONによるリクエストのときなど)</span></li>
-		<li>レスポンスボディ <span class="frm">(HTMLレスポンスや、JSONレスポンスのとき)</span></li>
-		<li>SQLの発行回数 <span class="frm">(SQLを発行していれば)</span></li>
-		<li>メールの送信回数 <span class="frm">(メールを送信していれば)</span></li>
+		<li>例外のときは例外クラスも <span class="frm">(詳細やスタックトレースは、エラーログの方を参照。ハッシュコードで辿れる)</span></li>
+		<li>リクエストパラメーター (requestParameter) <span class="frm">(GETやPOSTなどのFormパラメーターのときなど)</span></li>
+		<li>リクエストボディ (requestBody) <span class="frm">(JSONによるリクエストのときなど)</span></li>
+		<li>レスポンスボディ (responseBody) <span class="frm">(HTMLレスポンスや、JSONレスポンスのとき)</span></li>
+		<li>SQLの発行回数 (sqlCount) <span class="frm">(SQLを発行していれば)</span></li>
+		<li>メールの送信回数 (mailCount) <span class="frm">(メールを送信していれば)</span></li>
 	</ul>
 	<p>
-		出し始めたらキリがないので、
+		出し始めたらキリがないので、このくらいにしております。あくまで本番でいざってときのデバッグに役に立つものが出せればと言うところで。
 	</p>
 	<p>
-		LastaFlute-1.0.0 の時点では、出力される内容のカスタマイズをするオプションは用意されていません。
-		どうしてもカスタマイズしたいときは、InOutLoggerのオーバーライド技で変更できます。
+		また、ログ出力は非同期ではありませんが、HtmlResponseのときのリダイレクトを除き、レスポンスを書き込んだ後にログ出力なのでリクエスト側に遅延は発生しません。
+		<span class="frm">(アプリケーションサーバーによって挙動が変わるかもしれませんが、TomcatとJettyで確認しています)</span>
+	</p>
+	<p>
+		このメソッドは、何度も呼び出される可能性があるので、基本的には true or false 固定で。
+	</p>
+	<h3 id="inoutlogoption">InOutのログを調整する？</h3>
+	<p>
+		InOutLogOptionで、InOutのログを調整できます。<span class="frm">(isUseInOutLogging()がtrueであることが前提)</span>
+	</p>
+	<dl class="longkeymainlist">
+		<dt>非同期</dt><dd>先の通り不要だと思われるが、いざってときのために</dd>
+		<dt>responseBody抑制</dt><dd>あまりにデカすぎるしレスポンスは要らないってとき</dd>
+		<dt>requestParameterフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+		<dt>requestBodyフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+		<dt>responseBodyフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+	</dl>
+	<p>
+		このメソッドは、何度も呼び出される可能性があるので、InOutLogOption自体はインスタンス変数などでキャッシュしておくと良いでしょう。
 	</p>
 
 	<h2 id="jsonresource">JsonResourceProvider</h2>
