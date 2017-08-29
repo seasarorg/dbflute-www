@@ -56,7 +56,8 @@
 			<ul>
 				<li><a href="#howtomakewar">実行可能warの作り方</a></li>
 				<li><a href="#execwardetail">実行可能warの中身</a></li>
-				<li><a href="#execwardef">実行可能warの設定</a></li>
+				<li><a href="#execwarsettings">実行可能warの設定</a></li>
+				<li><a href="#execwarprops">実行可能warに含めるリソース</a></li>
 			</ul>
 		</li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
@@ -167,7 +168,7 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 		Jetty/Tomcat起動の世界から、アプリの世界のクラスやリソースは参照できないので、[App]Bootクラスで利用できるクラスやリソースは限られています。
 		[App]Bootクラスで、[app]_env.propertiesなどを参照する場合は、それらをwar直下に配置する必要があります。<span class="frm">(後述)</span>
 	</p>
-	<h3 id="execwardef">実行可能warの設定</h3>
+	<h3 id="execwarsettings">実行可能warの設定</h3>
 	<p>
 		pom.xml では、このような定義がされています。
 	</p>
@@ -178,9 +179,10 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 	<p>
 		<span class="frm">(行番号へのリンクなので、位置が変わってる可能性があります: plugin定義の maven-dependency-plugin と maven-war-plugin のところを探しましょう)</span>
 	</p>
+	<h3 id="execwarprops">実行可能warに含めるリソース</h3>
 	<p>
 		先ほどの記述の通り、[App]Bootクラスで [app]_env.propertiesなどを参照する場合は、war直下にそれらリソースを配置する必要があります。
-		maven-war-plugin にてそれらリソースをincludeします。
+		maven-war-plugin にてそれらリソースをincludeします。<span class="frm">(先述の通り、Jetty/Tomcat起動の世界から、アプリの世界のクラスやリソースは参照できないので)</span>
 	</p>
 <pre><span class="codetitle">e.g. Bootクラスで、propertiesなどのリソースを使えるように @pom.xml</span><code>
     <span class="abbreviation">...</span>
@@ -196,6 +198,40 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
             <span class="point">&lt;/includes&gt;</span>
         &lt;/resource&gt;
     &lt;/webResources&gt;
+</code></pre>
+	<p>
+		マルチプロジェクトの場合、これだけだと "commonプロジェクト" の properties が含まれません。
+		これに関しては、現時点でスマートな解決方法がないため、ベタベタに書いてコピーします。<span class="frm">(何か良い方法があれば教えてください...)</span>
+	</p>
+<pre><span class="codetitle">e.g. commonプロジェクト、propertiesなどのリソースを使えるように @pom.xml</span><code>
+    <span class="abbreviation">...</span>
+    &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+        &lt;executions&gt;
+            &lt;execution&gt;
+                &lt;id&gt;copy-common-resources&lt;/id&gt;
+                &lt;phase&gt;generate-resources&lt;/phase&gt;
+                &lt;goals&gt;
+                    &lt;goal&gt;copy-resources&lt;/goal&gt;
+                &lt;/goals&gt;
+                &lt;configuration&gt;
+                    &lt;outputDirectory&gt;${basedir}/target/${project.build.finalName}&lt;/outputDirectory&gt;
+                    &lt;overwrite&gt;true&lt;/overwrite&gt;
+                    &lt;resources&gt;
+                        &lt;resource&gt;
+                            &lt;directory&gt;${basedir}/../maihama-common/src/main/resources&lt;/directory&gt;
+                            &lt;includes&gt;
+                                &lt;include&gt;*_config.properties&lt;/include&gt;
+                                &lt;include&gt;*_env*.properties&lt;/include&gt;
+                                &lt;include&gt;tomcat_*.properties&lt;/include&gt;
+                            &lt;/includes&gt;
+                        &lt;/resource&gt;
+                    &lt;/resources&gt;
+                &lt;/configuration&gt;
+            &lt;/execution&gt;
+        &lt;/executions&gt;
+    &lt;/plugin&gt;
 </code></pre>
 
 	<h2 id="newdeployenv">新しいデプロイ環境をつくる</h2>
