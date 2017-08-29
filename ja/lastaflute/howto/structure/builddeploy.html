@@ -49,9 +49,16 @@
 				<li><a href="#javawar">warをjavaコマンドで実行</a></li>
 				<li><a href="#lastaenv">lasta.envを指定</a></li>
 				<li><a href="#portswitch">ポート番号をスイッチ</a></li>
+				<li><a href="#traditionaldeploy">インストールTomcatなどに配備も</a></li>
 			</ul>
 		</li>
-		<li><a href="#mavenwar">Mavenでwarファイル作成</a></li>
+		<li><a href="#mavenwar">Mavenでwarファイル作成</a>
+			<ul>
+				<li><a href="#howtomakewar">実行可能warの作り方</a></li>
+				<li><a href="#execwardetail">実行可能warの中身</a></li>
+				<li><a href="#execwardef">実行可能warの設定</a></li>
+			</ul>
+		</li>
 		<li><a href="#newdeployenv">新しいデプロイ環境をつくる</a>
 			<ul>
 				<li><a href="#addproperties">1. resources に環境依存propertiesを追加</a></li>
@@ -110,12 +117,22 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 		もっと、細かくデプロイ環境ごとに変更したいとかであれば、javaコマンドの引数で指定したりしてもよいでしょう。
 		main() の args から指定された port 番号を取得できるようにするなど。
 	</p>
+	<h3 id="traditionaldeploy">インストールTomcatなどに配備も</h3>
+	<p>
+		実行可能warは、インストールTomcat (シェルなどで実行するTomcat) などに配備できる形をキープしています。
+		なので、実行可能でもあるし、そのままインストールTomcatに配備することもできます。
+		<span class="frm">(実行可能warの中身に関しては後述)</span>
+	</p>
+	<p>
+		ただ、その場合、それぞれの環境ごとにインストールTomcatのJava実行時のプロパティ指定で、lasta.envを忘れないようにしましょう。
+	</p>
 
 	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
 	<p>
 		継承や依存などの Maven の構成を把握していることを前提として...<span class="frm">(LastaEnvを前提に)</span>
 	</p>
 	<div class="relatedpage"><a href="./projstructure.html#maven">Mavenの構成</a></div>
+	<h3 id="howtomakewar">実行可能warの作り方</h3>
 	<p>
 		[service]-base にて <em class="keyword">mvn -e clean package</em> を叩けばOKです。
 		<span class="frm">(aggregateしているため)</span>
@@ -135,6 +152,51 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 		<span class="frm">(ちなみに、Maven-3.1.1 より古いバージョンだとうまくwarファイルが作成されないという報告がありますので、
 		そのときは Maven のアップグレードをお願いします)</span>
 	</p>
+	<h3 id="execwardetail">実行可能warの中身</h3>
+	<p>
+		<em class="smallmark">Jetty/Tomcat起動の世界</em> と、<em class="smallmark">アプリの世界</em> が一つにまとまっています。
+	</p>
+	<dl class="keymainlist">
+		<dt>war直下 <span class="frm">(WEB-INF除く)</span></dt><dd>Jetty/Tomcat起動の世界 <span class="frm">(Bootクラスのためのクラスやリソースたち)</span></dd>
+		<dt>WEB-INF配下</dt><dd>アプリの世界 <span class="frm">(アプリのためのクラスやリソースたち)</span></dd>
+	</dl>
+	<p>
+		<span class="frm">(一度、warを作ってみて解凍して中身を見てみると理解が深まるでしょう)</span>
+	</p>
+	<p>
+		Jetty/Tomcat起動の世界から、アプリの世界のクラスやリソースは参照できないので、[App]Bootクラスで利用できるクラスやリソースは限られています。
+		[App]Bootクラスで、[app]_env.propertiesなどを参照する場合は、それらをwar直下に配置する必要があります。<span class="frm">(後述)</span>
+	</p>
+	<h3 id="execwardef">実行可能warの設定</h3>
+	<p>
+		pom.xml では、このような定義がされています。
+	</p>
+	<dl class="keymainlist">
+		<dt>Jettyなら</dt><dd><a href="https://github.com/lastaflute/lastaflute-example-harbor/blob/master/pom.xml#L165">plugins in pom.xml for Jetty (harbor) | Github</a></dd>
+		<dt>Tomcatなら</dt><dd><a href="https://github.com/lastaflute/lastaflute-example-maihama/maihama-dockside/blob/master/pom.xml#L165">plugins in pom.xml for Tomcat (dockside) | Github</a></dd>
+	</dl>
+	<p>
+		<span class="frm">(行番号へのリンクなので、位置が変わってる可能性があります: plugin定義の maven-dependency-plugin と maven-war-plugin のところを探しましょう)</span>
+	</p>
+	<p>
+		先ほどの記述の通り、[App]Bootクラスで [app]_env.propertiesなどを参照する場合は、war直下にそれらリソースを配置する必要があります。
+		maven-war-plugin にてそれらリソースをincludeします。
+	</p>
+<pre><span class="codetitle">e.g. Bootクラスで、propertiesなどのリソースを使えるように @pom.xml</span><code>
+    <span class="abbreviation">...</span>
+    &lt;webResources&gt;
+        &lt;resource&gt;
+            <span class="abbreviation">...</span>
+            <span class="point">&lt;includes&gt;</span>
+                &lt;include&gt;**/*Boot*.class&lt;/include&gt;
+                <span class="comment">&lt;!-- properties may be used by the boot class --&gt;</span>
+                &lt;include&gt;<span class="subpoint">*_config.properties</span>&lt;/include&gt;
+                &lt;include&gt;<span class="subpoint">*_env*.properties</span>&lt;/include&gt;
+                &lt;include&gt;<span class="subpoint">jetty_*.properties</span>&lt;/include&gt;
+            <span class="point">&lt;/includes&gt;</span>
+        &lt;/resource&gt;
+    &lt;/webResources&gt;
+</code></pre>
 
 	<h2 id="newdeployenv">新しいデプロイ環境をつくる</h2>
 	<p>
