@@ -279,34 +279,37 @@
 	<h3 id="alwayscalled">アノテーションでエラーがあっても呼ばれる</h3>
 	<p>
 		アノテーションの方でバリデーションエラーが発生しても、第二引数の moreValidation の Lambda は必ず呼び出されます。
-		なので、必須項目でも必須チェックに引っかかって null になっているかもしれないので、<em class="keyword">実際に値が入っていたら</em>、という分岐を入れましょう。
+		なので、必須項目でも必須チェックに引っかかって null になっているかもしれないので、<em class="keyword">実際に値が入っていたら</em>、というチェックロジックの前提条件のための分岐を入れましょう。
 	</p>
 <pre><span class="codetitle">e.g. null check for more validation @Java</span><code>
 <span class="keyword">private void</span> moreValidate(SeaLandForm <span class="localvar">form</span>, HarborMessages <span class="localvar">messages</span>) {
-    <span class="keyword">if</span> (<span class="point">form.sea != null && form.land != null</span>) {
-        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) {
+    <span class="keyword">if</span> (<span class="point">form.sea != null && form.land != null</span>) { <span class="comment">// チェックロジックの前提条件</span>
+        <span class="keyword">if</span> (<span class="localvar">form</span>.<span class="attribute">sea</span>.length() &gt; <span class="localvar">form</span>.<span class="attribute">land</span>.length()) { <span class="comment">// チェックロジック本体</span>
             <span class="localvar">messages</span>.addErrorsSeaLand(<span class="literal">"sea"</span>);
         }
     }
 }
 </code></pre>
 	<p>
-		なぜ、アノテーションの方でバリデーションエラーがあったときに処理を止めないのか？
+		<em class="keyword">なぜ、アノテーションの方でバリデーションエラーがあったときに処理を止めないのか？</em>
 	</p>
 	<p>
 		これにはれっきとして理由があります。
-		ユーザーから見た時に、<em class="keyword">一回ですべてのバリデーションエラーが表示されず、基本的なバリデーションが通ったらまた別のエラーが表示される</em>
+	</p>
+	<p>
+		ユーザーから見た時に... <em class="keyword">一回ですべてのバリデーションエラーが表示されず、修正したらまた別のエラーが表示される</em>
 		というのを避けたいからです。<em class="mark">二段階バリデーション</em> と呼んでいます。
 	</p>
 	<p>
-		ユーザーからすると、また違うエラーが出てくるのかなぁ？ <span class="frm">(いつになったら終わるんだろう...)</span> という気持ちになるため、あまり良いUIとは言えないと考えています。
-		ボタンを押してチェックを書けたからには、できるだけすべての項目に対するチェックが掛かった方が良いと考え、実装上は少し面倒なことにはなりますが、それを踏まえて LastaFlute ではこのようにしています。
+		また違うエラーが出てくるのかなぁ？ <span class="frm">(いつになったら終わるんだろう...)</span> という気持ちにさせるため、あまり良いUIとは言えないと考えています。
+		パスワードなど再表示で消える項目があるとなおさらストレス大です。
+		ボタンを押してチェックを掛けたからには、できるだけすべての項目に対するチェックが掛かった方が良いと考え、実装上は少し面倒かもですが、それを踏まえてこのようにしています。
 	</p>
 	<p>
-		また、アノテーションの定義とプログラムによるバリデーションの実装では若干距離があるので<span class="frm">(チェックロジックを別のクラスに切り出すことも十分ありえますし)</span>、
+		また、アノテーションの定義とプログラムによるバリデーションの実装では若干距離があるので<span class="frm">(チェックロジックを別のクラスに切り出すことも十分ありえますし...)</span>、
 		<em class="keyword">アノテーションの有無を意識せず、プログラムによるバリデーションが成り立つように独立性を保った実装</em>
 		をしておいたほうがミスは少ないだろうという考えます。"後から必須項目じゃなくなって @Required 外したら落ちる"
-		というデグレがないように。<span class="frm">(開発時のミスよりも変更時のミスのほうが業務インパクトは大きいものです)</span>
+		というデグレがないように<span class="frm">(開発時のミスよりも変更時のミスのほうが業務インパクトは大きいもの)</span>。
 	</p>
 	<p>
 		そしてまた、他のフレームワークのやり方を見ても、相関チェックをする前に null チェックを入れるのは、わりと当たり前のようにされているので、そこまで抵抗がないだろうという判断もあります。
