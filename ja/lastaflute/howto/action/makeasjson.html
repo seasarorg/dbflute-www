@@ -89,11 +89,20 @@
 			<ul>
 				<li><a href="#actionfornow">とりあえずActionはこんな感じ</a></li>
 				<li><a href="#firstboot">Bootしてアクセスしてみましょう</a></li>
+				<li><a href="#serverlog">サーバーのログでも確認してみましょう</a></li>
 				<li><a href="#refactoring">ちょいっとリファクタリング</a></li>
 			</ul>
 		</li>
 		<li><a href="#tryhotdeploy">ホットデプロイ体験</a></li>
-		<li><a href="#jsonbody">JSON Bodyに変更してみよう</a></li>
+		<li><a href="#jsonbody">JSON Bodyに変更してみよう</a>
+			<ul>
+				<li><a href="#formtobody">Form を Body という名前に</a></li>
+				<li><a href="#chromejquery">Chrome開発者ツールを開いてJQuery</a></li>
+				<li><a href="#sendjsonbyjs">JSONのリクエストを送信するJavaScript</a></li>
+				<li><a href="#confirmbylog">でもってサーバーのログで確認</a></li>
+				<li><a href="#useswagger">実際にはSwaggerを使うと良いでしょう</a></li>
+			</ul>
+		</li>
 		<li><a href="#littletips">ちょこっとTips</a>
 			<ul>
 				<li><a href="#supermethod">スーパークラスのメソッド、何が使える？</a></li>
@@ -643,6 +652,14 @@ Boot successful as development: url -> <span class="literal">http://localhost:80
 		ここでは、<a href="http://localhost:8090/harbor/lido/sea/3?pay=HAN"><em class="mark">http://localhost:8090/harbor/lido/sea/3?pay=HAN</em></a> にアクセスしてみましょう。
 		<span class="frm">(いちど、ログイン画面に飛ばされますので、'Pixy', 'sea' と入力してログイン)</span>
 	</p>
+	<h3 id="serverlog">サーバーのログでも確認してみましょう</h3>
+	<p>
+		サーバーのログ (IDEのコンソールなど) にも着目してみましょう。
+		想定通りのSQLが実行されて、想定通しのJSONレスポンスが戻っていることを確認してみてください。
+	</p>
+	<p>
+		LastaFluteでこのようにログが出る、ということを知っておくことも大切です。うまく活用してスムーズなデバッグライフを送ってください。
+	</p>
 	<h3 id="refactoring">ちょいっとリファクタリング</h3>
 	<p>
 		ちょっとメソッド長いですね。実際に業務だと、もっと大きくなる可能性があります。
@@ -736,7 +753,73 @@ Boot successful as development: url -> <span class="literal">http://localhost:80
 
 	<h2 id="jsonbody">JSON Bodyに変更してみよう</h2>
 	<p>
-		TODO jflute Form を Body に変えて、ブラウザのツールからPOSTのJSONリクエストを送ってみる。唐突にSwaggerの環境構築ライヴをやってもいいかも
+		JSON APIを作るときは、やはりリクエストも JSON にすることが多いでしょう。
+	</p>
+	<h3 id="formtobody">Form を Body という名前に</h3>
+	<p>
+		Formクラスの Form を、Body に名前変更するだけです。IDEのリファクタリング機能を使って rename してみましょう。
+		変数名も form から body にするのを忘れずに。
+	</p>
+<pre><span class="codetitle">e.g. change Form to Body JQuery @Java</span><code>
+    @Execute
+    <span class="keyword">public</span> JsonResponse&lt;LidoSeaResult&gt; index(<span class="keyword">int</span> <span class="localvar">productId</span>, <span class="point">LidoSeaBody</span> <span class="subpoint">body</span>) {
+        <span class="abbreviation"></span>
+    }
+</code></pre>
+	<p>
+		動作確認のためにブラウザからリクエストを飛ばすのがちょっと工夫が必要なので、一例を示しておきます。
+		<span class="frm">(Thanks, orito)</span>
+	</p>
+	<h3 id="chromejquery">Chrome開発者ツールを開いてJQuery</h3>
+	<p>
+		Chrome開発者ツール (別のブラウザでもそれに相当するもの) を起動して、まず JQuery を使えるようにします。
+		<span class="frm">(JQueryが必ず必要ってわけじゃなく、単純に簡易にリクエストを飛ばすために)</span>
+	</p>
+<pre><span class="codetitle">e.g. prepare JQuery @JavaScript</span><code>
+!function () {
+  var script = document.createElement("script");
+  script.setAttribute("src", "//code.jquery.com/jquery-2.0.0.min.js");
+  document.body.appendChild(script);
+}();
+</code></pre>
+	<h3 id="sendjsonbyjs">JSONのリクエストを送信するJavaScript</h3>
+	<p>
+		そして、pay=HAN部分がJSONになったリクエストを送信します。
+	</p>
+<pre><span class="codetitle">e.g. send POST as JSON Body @JavaScript</span><code>
+$.ajax({
+	url: 'http://localhost:8090/harbor/lido/sea/3',
+	data: JSON.stringify({
+		pay: 'HAN'
+    }),
+	type: 'POST',
+	contentType: 'application/json',
+	dataType: "json"
+}).done(function(data){
+    console.log(data);
+});
+</code></pre>
+	<h3 id="confirmbylog">でもってサーバーのログで確認</h3>
+	<p>
+		サーバーのログ (IDEのコンソールなど) で、想定通りのJSONを受け取って、想定通りのJSONを戻していることを確認しましょう。
+	</p>
+	<p>
+		リクエストされた JSON もログに表示されるようになっています。
+	</p>
+	<h3 id="useswagger">実際にはSwaggerを使うと良いでしょう</h3>
+	<p>
+		もし、JSON APIの開発で JSON Body のリクエストばかり受け付ける API を作るのであれば、Swagger
+		を使うと良いでしょう。
+	</p>
+	<div class="relatedpage"><a href="./laswagger.html">Swaggerで動作確認</a></div>
+	<p>
+		LastaFluteで Swagger を使うために最適化された <em class="mark">lasta-doc.jar</em> というライブラリがあります。
+		harborには入ってないので、ここでは気軽に試せませんが、もしスタートアップした実際のプロジェクトで Swagger を使った動作確認をするのであれば、環境構築して使える状態にしましょう。
+	</p>
+	<div class="relatedpage"><a href="../structure/swaggerenv.html">Swaggerの環境構築</a></div>
+	<p>
+		<span class="frm">※harborは、あくまで "サーバーサイドHTML + Ajax"
+		を想定したプロジェクトなので、Swaggerはあまり必要ないと想定して入っていません。(逆に、不要なものが入らないように)</span>
 	</p>
 
 	<h2 id="littletips">ちょこっとTips</h2>
