@@ -299,9 +299,48 @@
 		test_swaggerJson() で作成された swagger.json が war ファイルに含まれるように、Maven
 		もしくは Gradle のビルド設定を調整します。
 	</p>
+	<p>
+		Maven であれば、maven-resources-plugin で <em class="keyword">強引に</em> コピーします。
+		<span class="frm">("for boot configuration" の部分は今回の件とは無関係ですが、本来あった方が良い設定なので入れておいても問題ありません)</span>
+	</p>
 <pre><span class="codetitle">e.g. embed swagger.json in Maven @Java</span><code>
-TODO jflute maven だとどうやる？
+    &lt;plugin&gt;
+        &lt;groupId&gt;<span class="literal">org.apache.maven.plugins</span>&lt;/groupId&gt;
+        &lt;artifactId&gt;<span class="literal">maven-resources-plugin</span>&lt;/artifactId&gt;
+        &lt;executions&gt;
+            &lt;execution&gt;
+                &lt;id&gt;copy-common-resources&lt;/id&gt;
+                &lt;phase&gt;generate-resources&lt;/phase&gt;
+                &lt;goals&gt;
+                    &lt;goal&gt;copy-resources&lt;/goal&gt;
+                &lt;/goals&gt;
+                &lt;configuration&gt;
+                    &lt;outputDirectory&gt;<span class="literal">${basedir}/target/${project.build.finalName}</span>&lt;/outputDirectory&gt;
+                    &lt;overwrite&gt;<span class="literal">true</span>&lt;/overwrite&gt;
+                    &lt;resources&gt;
+                        &lt;resource&gt; <span class="comment">&lt;!-- for boot configuration --&gt;</span>
+                            &lt;directory&gt;<span class="literal">${basedir}/../maihama-common/src/main/resources</span>&lt;/directory&gt;
+                            &lt;includes&gt;
+                                &lt;include&gt;<span class="literal">*_config.properties</span>&lt;/include&gt;
+                                &lt;include&gt;<span class="literal">*_env*.properties</span>&lt;/include&gt;
+                                &lt;include&gt;<span class="literal">tomcat_*.properties</span>&lt;/include&gt;
+                            &lt;/includes&gt;
+                        &lt;/resource&gt;
+                        <span class="point">&lt;resource&gt;</span> <span class="comment">&lt;!-- for swagger --&gt;</span>
+                            &lt;directory&gt;<span class="literal">${basedir}/target/lastadoc</span>&lt;/directory&gt;
+                            &lt;includes&gt;
+                                &lt;include&gt;<span class="literal">swagger.json</span>&lt;/include&gt;
+                            &lt;/includes&gt;
+                        <span class="point">&lt;/resource&gt;</span>
+                    &lt;/resources&gt;
+                &lt;/configuration&gt;
+            &lt;/execution&gt;
+        &lt;/executions&gt;
+    &lt;/plugin&gt;
 </code></pre>
+	<p>
+		Gradle であれば、こんな感じ!?
+	</p>
 <pre><span class="codetitle">e.g. embed swagger.json in Gradle @Java</span><code>
 into(<span class="literal">'WEB-INF/classes'</span>) {
     <span class="keyword">from</span> fileTree(dir: <span class="keyword">new</span> File(project.buildDir, <span class="literal">'lastadoc/'</span>), includes: [<span class="literal">'swagger.json'</span>])
