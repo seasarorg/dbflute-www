@@ -185,6 +185,12 @@
     }
 }
 </code></pre>
+	<ul class="codeoutro">
+		<li>sendQueryBy(): QueryのSenderを指定。ここでは、個別のメソッドで指定</li>
+		<li>sendBodyBy(): BodyのSenderを指定。ここでは、このBehaviorデフォルトとしてJSON送信</li>
+		<li>receiveBodyBy(): Receiverを指定。ここでは、このBehaviorデフォルトとしてJSON受信</li>
+		<li>handleFailureResponseAs(): エラー時のレスポンスを受け取る型を指定。発生した例外から取得できる</li>
+	</ul>
 	<p>
 		yourDefaultRule() で、Behaviorのデフォルトルールを設定しています。ここでは、Sender と Receiver ともに JSON (LaJsonSender, LaJsonReceiver)
 		を指定しています。一方で、Queryパラメーターに関する Sender は指定していないので、GETでリクエストを送るときはメソッドのルールとして LaQuerySender
@@ -269,6 +275,67 @@ org.docksidestage
 	<p>
 		TODO jflute MockHttpClientクラスについて
 	</p>
+<pre><span class="codetitle">e.g. RemoteApi behavior for harbor @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> RemoteHarborBhvTest <span class="keyword">extends</span> UnitFortressTestCase {
+
+    @Resource
+    <span class="keyword">private</span> RequestManager <span class="attribute">requestManager</span>;
+
+    <span class="keyword">public void</span> test_requestProductList_basic() {
+        <span class="comment">// ## Arrange ##</span>
+        HbProductSearchBody <span class="localvar">body</span> = <span class="keyword">new</span> HbProductSearchBody();
+        <span class="localvar">body</span>.<span class="attribute">productName</span> = <span class="literal">"S"</span>;
+        String <span class="localvar">json</span> = <span class="literal">"{pageSize=4, currentPageNumber=1, allRecordCount=20, allPageCount=5, rows=[]}"</span>;
+        MockHttpClient <span class="localvar">client</span> = MockHttpClient.create(<span class="localvar">resopnse</span> -&gt; {
+            <span class="localvar">resopnse</span>.peekRequest(<span class="localvar">request</span> -&gt; {
+                assertContainsAll(<span class="localvar">request</span>.getBody().get(), <span class="literal">"productName"</span>, <span class="localvar">body</span>.<span class="attribute">productName</span>);
+            });
+            <span class="localvar">resopnse</span>.asJsonDirectly(<span class="localvar">json</span>, <span class="localvar">request</span> -&gt; <span class="keyword">true</span>);
+        });
+        registerMock(<span class="localvar">client</span>);
+        RemoteHarborBhv <span class="localvar">bhv</span> = <span class="keyword">new</span> RemoteHarborBhv(<span class="attribute">requestManager</span>);
+        inject(<span class="localvar">bhv</span>);
+
+        <span class="comment">// ## Act ##</span>
+        HbSearchPagingResult<HbProductRowResult> <span class="localvar">result</span> = <span class="localvar">bhv</span>.requestProductList(<span class="localvar">body</span>);
+
+        <span class="comment">// ## Assert ##</span>
+        assertEquals(<span class="literal">4</span>, <span class="localvar">result</span>.<span class="attribute">pageSize</span>);
+        assertEquals(<span class="literal">5</span>, <span class="localvar">result</span>.<span class="attribute">allPageCount</span>);
+        assertEquals(<span class="literal">20</span>, <span class="localvar">result</span>.<span class="attribute">allRecordCount</span>);
+        assertEquals(<span class="literal">5</span>, <span class="localvar">result</span>.<span class="attribute">allPageCount</span>);
+        assertEquals(<span class="literal">0</span>, <span class="localvar">result</span>.<span class="attribute">rows</span>.size());
+    }
+
+    <span class="keyword">public void</span> test_validationError_basic() {
+        <span class="comment">// ## Arrange ##</span>
+        HbProductSearchBody <span class="localvar">body</span> = <span class="keyword">new</span> HbProductSearchBody();
+        String <span class="localvar">json</span> = <span class="literal">"{cause=VALIDATION_ERROR, errors : [{field=productName, code=LENGTH, data={min:0,max:10}}]}"</span>;
+        MockHttpClient <span class="localvar">client</span> = MockHttpClient.create(<span class="localvar">resopnse</span> -&gt; {
+            <span class="localvar">resopnse</span>.asJsonDirectly(<span class="localvar">json</span>, <span class="localvar">request</span> -&gt; <span class="keyword">true</span>).httpStatus(<span class="literal">400</span>);
+        });
+        registerMock(<span class="localvar">client</span>);
+        RemoteHarborBhv <span class="localvar">bhv</span> = <span class="keyword">new</span> RemoteHarborBhv(<span class="attribute">requestManager</span>);
+        inject(<span class="localvar">bhv</span>);
+
+        <span class="comment">// ## Act ##</span>
+        assertException(RemoteApiHttpClientErrorException.<span class="keyword">class</span>, () -&gt; <span class="localvar">bhv</span>.requestProductList(<span class="localvar">body</span>)).handle(<span class="localvar">cause</span> -&gt; {
+            <span class="comment">// ## Assert ##</span>
+            FaicliUnifiedFailureResult <span class="localvar">result</span> = (FaicliUnifiedFailureResult) <span class="localvar">cause</span>.getFailureResponse().get();
+            log(<span class="localvar">result</span>);
+            assertEquals(FaicliUnifiedFailureType.<span class="attribute">VALIDATION_ERROR</span>, <span class="localvar">result</span>.<span class="attribute">cause</span>);
+        });
+    }
+}
+</code></pre>
+	<ul class="codeoutro">
+		<li>実際には、JSONはハードコードではなく、ファイル取得の方が良いでしょう <span class="frm">(そのための asJson(path) がある)</span></li>
+		<li>peekRequest()で、想定通りのリクエストを送っているかのアサートもすると良いでしょう</li>
+		<li>ここでは、一つのRemoteApiしか呼ばないので、asJson()のリクエストのマッチングは固定でtrue</li>
+	</ul>
 
 	<h2 id="autogenerated">自動生成を見越して</h2>
 	<p>
