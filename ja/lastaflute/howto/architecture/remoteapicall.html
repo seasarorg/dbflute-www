@@ -266,6 +266,42 @@ org.docksidestage
 		<li>yourDefaultRule() を実装</li>
 		<li>getBaseUrl() を実装</li>
 	</ul>
+<pre><span class="codetitle">e.g. RemoteApi behavior for harbor @Java</span><code>
+<span class="comment">/**
+ * @author jflute
+ */</span>
+<span class="keyword">public class</span> RemoteHarborBhv <span class="keyword">extends</span> LastaRemoteBehavior {
+
+    <span class="keyword">public</span> RemoteHarborBhv(RequestManager <span class="localvar">requestManager</span>) {
+        <span class="keyword">super</span>(<span class="localvar">requestManager</span>);
+    }
+
+    @Override
+    <span class="keyword">protected void</span> yourDefaultRule(FlutyRemoteApiRule <span class="localvar">rule</span>) {
+        <span class="localvar">rule</span>.sendQueryBy(<span class="keyword">new</span> LaQuerySender(<span class="keyword">new</span> FlVacantRemoteMappingPolicy()));
+
+        JsonMappingOption <span class="localvar">jsonMappingOption</span> = <span class="keyword">new</span> JsonMappingOption();
+        <span class="localvar">rule</span>.sendBodyBy(<span class="keyword">new</span> LaJsonSender(<span class="attribute">requestManager</span>, <span class="localvar">jsonMappingOption</span>));
+        <span class="localvar">rule</span>.receiveBodyBy(<span class="keyword">new</span> LaJsonReceiver(<span class="attribute">requestManager</span>, <span class="localvar">jsonMappingOption</span>));
+
+        <span class="localvar">rule</span>.handleFailureResponseAs(FaicliUnifiedFailureResult.<span class="keyword">class</span>);
+    }
+
+    @Override
+    <span class="keyword">protected</span> String getUrlBase() {
+        <span class="keyword">return</span> <span class="literal">"http://localhost:8090/harbor"</span>;
+    }
+
+    <span class="keyword">public</span> RemoteMypageProductResult requestMypage() {
+        <span class="keyword">return</span> doRequestGet(RemoteMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
+    }
+
+    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchBody <span class="localvar">body</span>) {
+        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
+        }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">body</span>, <span class="localvar">rule</span> -&gt; {});
+    }
+}
+</code></pre>
 	<h3 id="implbhvdefaultrule">yourDefaultRule()の実装</h3>
 	<p>
 		ここで、Sender, Receiver, FailureResponseなどを設定します。
@@ -274,7 +310,7 @@ org.docksidestage
 	<p>
 		(だいたい)必須のルールは以下の三つ。
 	</p>
-	<dl>
+	<dl class="keymainlist">
 		<dt>sendQueryBy()</dt><dd>GET/DELETEリクエストを使うなら必須</dd>
 		<dt>sendBodyBy()</dt><dd>POST/DELETEリクエストを使うなら必須</dd>
 		<dt>receiveBodyBy()</dt><dd>どんなリクエストでも必須</dd>
