@@ -162,9 +162,12 @@
 
     @Override
     <span class="keyword">protected void</span> yourDefaultRule(FlutyRemoteApiRule <span class="localvar">rule</span>) {
+        <span class="localvar">rule</span>.sendQueryBy(<span class="keyword">new</span> LaQuerySender(<span class="keyword">new</span> FlVacantRemoteMappingPolicy()));
+
         JsonMappingOption <span class="localvar">jsonMappingOption</span> = <span class="keyword">new</span> JsonMappingOption();
         <span class="localvar">rule</span>.sendBodyBy(<span class="keyword">new</span> LaJsonSender(<span class="attribute">requestManager</span>, <span class="localvar">jsonMappingOption</span>));
         <span class="localvar">rule</span>.receiveBodyBy(<span class="keyword">new</span> LaJsonReceiver(<span class="attribute">requestManager</span>, <span class="localvar">jsonMappingOption</span>));
+
         <span class="localvar">rule</span>.handleFailureResponseAs(FaicliUnifiedFailureResult.<span class="keyword">class</span>);
     }
 
@@ -173,14 +176,12 @@
         <span class="keyword">return</span> <span class="literal">"http://localhost:8090/harbor"</span>;
     }
 
-    <span class="keyword">public</span> HbMypageProductResult requestMypage() {
-        <span class="keyword">return</span> doRequestGet(HbMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, moreUrl(), OptionalThing.empty(), <span class="localvar">rule</span> -&gt; {
-            <span class="localvar">rule</span>.sendQueryBy(<span class="keyword">new</span> LaQuerySender(<span class="keyword">new</span> FlVacantRemoteMappingPolicy()));
-        });
+    <span class="keyword">public</span> RemoteMypageProductResult requestMypage() {
+        <span class="keyword">return</span> doRequestGet(RemoteMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
     }
 
-    <span class="keyword">public</span> HbSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(HbProductSearchBody <span class="localvar">body</span>) {
-        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;HbSearchPagingResult&lt;HbProductRowResult&gt;&gt;() {
+    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchBody <span class="localvar">body</span>) {
+        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
         }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">body</span>, <span class="localvar">rule</span> -&gt; {});
     }
 }
@@ -327,6 +328,12 @@ org.docksidestage
             FaicliUnifiedFailureResult <span class="localvar">result</span> = (FaicliUnifiedFailureResult) <span class="localvar">cause</span>.getFailureResponse().get();
             log(<span class="localvar">result</span>);
             assertEquals(FaicliUnifiedFailureType.<span class="attribute">VALIDATION_ERROR</span>, <span class="localvar">result</span>.<span class="attribute">cause</span>);
+            assertHasOnlyOneElement(<span class="localvar">result</span>.<span class="attribute">errors</span>);
+            FaicliFailureErrorPart <span class="localvar">errorPart</span> = <span class="localvar">result</span>.<span class="attribute">errors</span>.get(<span class="literal">0</span>);
+            assertEquals(<span class="literal">"productName"</span>, <span class="localvar">errorPart</span>.<span class="attribute">field</span>);
+            assertEquals(<span class="literal">"LENGTH"</span>, <span class="localvar">errorPart</span>.<span class="attribute">codeM/);
+            assertEquals(<span class="literal">0</span>, toInteger(<span class="localvar">errorPart</span>.<span class="attribute">data</span>.get(<span class="literal">"min"</span>))); <span class="comment">// because it may be decimal type</span>
+            assertEquals(<span class="literal">10</span>, toInteger(<span class="localvar">errorPart</span>.<span class="attribute">data</span>.get(<span class="literal">"max"</span>))); <span class="comment">// me too</span>
         });
     }
 }
