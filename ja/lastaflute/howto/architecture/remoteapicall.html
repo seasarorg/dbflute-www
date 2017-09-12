@@ -257,15 +257,40 @@ org.docksidestage
 </code></pre>
 	<h3 id="implbhvdef">Behaviorクラスの定義</h3>
 	<p>
-		TODO jflute LastaRemoteBehaviorを継承するとか、yourDefaultRule()とか
+		LastaRemoteBehavior を継承して、コンストラクタで RequestManager を受け付けます。
 	</p>
+	<p>
+		そして、以下の二つのメソッドを定義します。
+	</p>
+	<ul>
+		<li>yourDefaultRule() を実装</li>
+		<li>getBaseUrl() を実装</li>
+	</ul>
 	<h3 id="implbhvdefaultrule">yourDefaultRule()の実装</h3>
 	<p>
-		TODO jflute Sender, Receiver, FailureResponseの設定など
+		ここで、Sender, Receiver, FailureResponseなどを設定します。
+		Behavior内でのすべてのrequestメソッドで有効になるので、統一的なルール、もしくは、多くのrequestメソッドで必要となるルールを設定しましょう。
+	</p>
+	<p>
+		(だいたい)必須のルールは以下の三つ。
+	</p>
+	<dl>
+		<dt>sendQueryBy()</dt><dd>GET/DELETEリクエストを使うなら必須</dd>
+		<dt>sendBodyBy()</dt><dd>POST/DELETEリクエストを使うなら必須</dd>
+		<dt>receiveBodyBy()</dt><dd>どんなリクエストでも必須</dd>
+	</dl>
+	<p>
+		デフォルトで指定しなかった場合は、メソッドのルールで設定する必要があります。
 	</p>
 	<h3 id="implbhvbaseurl">getBaseUrl()の実装</h3>
 	<p>
-		TODO jflute 実際には、デプロイ環境ごとに変わるので、[app]_env.propertiesから取得するとか
+		その Behavior の request で共通部分の基底URLを return
+		します。Behaviorの粒度が1サーバー1Behaviorであれば、コンテキストパスまでを指定します。
+		<span class="frm">(e.g. http://localhost:8090/harbor)</span> 
+	</p>
+	<p>
+		実際には、ローカル開発用URLと検証環境用URLと本番用URLと、テスト環境都合でデプロイ環境ごとにURLは変わる可能性があるので、[app]_env.properties
+		に定義して、configから取得して環境切り替えできるようにするのが現実的でしょう。<span class="frm">(本番でもlocalhostなんてことはあまりないかと)</span>
 	</p>
 	<h3 id="implbhvrequestmethod">requestメソッドの実装</h3>
 	<p>
@@ -274,7 +299,7 @@ org.docksidestage
 
 	<h2 id="howtounittest">UnitTestのやり方</h2>
 	<p>
-		TODO jflute MockHttpClientクラスについて
+		MockHttpClientクラスを使って、このようにテストをすると良いでしょう。
 	</p>
 <pre><span class="codetitle">e.g. RemoteApi behavior for harbor @Java</span><code>
 <span class="comment">/**
