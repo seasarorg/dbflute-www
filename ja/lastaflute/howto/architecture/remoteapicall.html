@@ -193,9 +193,9 @@
         <span class="keyword">return</span> doRequestGet(RemoteMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
     }
 
-    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchBody <span class="localvar">body</span>) {
+    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
         <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
-        }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">body</span>, <span class="localvar">rule</span> -&gt; {});
+        }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
     }
 }
 </code></pre>
@@ -309,9 +309,9 @@ org.docksidestage
         <span class="keyword">return</span> doRequestGet(RemoteMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
     }
 
-    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchBody <span class="localvar">body</span>) {
+    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
         <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
-        }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">body</span>, <span class="localvar">rule</span> -&gt; {});
+        }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
     }
 }
 </code></pre>
@@ -369,7 +369,7 @@ org.docksidestage
 </code></pre>
 	<h3 id="implbhvrequestmethod">requestメソッドの実装</h3>
 	<p>
-		TODO jflute FormやBody, 引数の指定など
+		TODO jflute Param や Ret, 引数の指定など
 	</p>
 
 	<h2 id="errorhandling">リモートAPIのエラーハンドリング</h2>
@@ -504,12 +504,12 @@ org.docksidestage
 
     <span class="keyword">public void</span> test_requestProductList_basic() {
         <span class="comment">// ## Arrange ##</span>
-        HbProductSearchBody <span class="localvar">body</span> = <span class="keyword">new</span> HbProductSearchBody();
-        <span class="localvar">body</span>.<span class="attribute">productName</span> = <span class="literal">"S"</span>;
+        RemoteProductSearchParam <span class="localvar">param</span> = <span class="keyword">new</span> RemoteProductSearchParam();
+        <span class="localvar">param</span>.<span class="attribute">productName</span> = <span class="literal">"S"</span>;
         String <span class="localvar">json</span> = <span class="literal">"{pageSize=4, currentPageNumber=1, allRecordCount=20, allPageCount=5, rows=[]}"</span>;
         MockHttpClient <span class="localvar">client</span> = MockHttpClient.create(<span class="localvar">resopnse</span> -&gt; {
             <span class="localvar">resopnse</span>.peekRequest(<span class="localvar">request</span> -&gt; {
-                assertContainsAll(<span class="localvar">request</span>.getBody().get(), <span class="literal">"productName"</span>, <span class="localvar">body</span>.<span class="attribute">productName</span>);
+                assertContainsAll(<span class="localvar">request</span>.getBody().get(), <span class="literal">"productName"</span>, <span class="localvar">param</span>.<span class="attribute">productName</span>);
             });
             <span class="localvar">resopnse</span>.asJsonDirectly(<span class="localvar">json</span>, <span class="localvar">request</span> -&gt; <span class="keyword">true</span>);
         });
@@ -518,19 +518,19 @@ org.docksidestage
         inject(<span class="localvar">bhv</span>);
 
         <span class="comment">// ## Act ##</span>
-        HbSearchPagingResult<HbProductRowResult> <span class="localvar">result</span> = <span class="localvar">bhv</span>.requestProductList(<span class="localvar">body</span>);
+        RemoteSearchPagingRet<HbProductRowResult> <span class="localvar">ret</span> = <span class="localvar">bhv</span>.requestProductList(<span class="localvar">param</span>);
 
         <span class="comment">// ## Assert ##</span>
-        assertEquals(<span class="literal">4</span>, <span class="localvar">result</span>.<span class="attribute">pageSize</span>);
-        assertEquals(<span class="literal">5</span>, <span class="localvar">result</span>.<span class="attribute">allPageCount</span>);
-        assertEquals(<span class="literal">20</span>, <span class="localvar">result</span>.<span class="attribute">allRecordCount</span>);
-        assertEquals(<span class="literal">5</span>, <span class="localvar">result</span>.<span class="attribute">allPageCount</span>);
-        assertEquals(<span class="literal">0</span>, <span class="localvar">result</span>.<span class="attribute">rows</span>.size());
+        assertEquals(<span class="literal">4</span>, <span class="localvar">ret</span>.<span class="attribute">pageSize</span>);
+        assertEquals(<span class="literal">5</span>, <span class="localvar">ret</span>.<span class="attribute">allPageCount</span>);
+        assertEquals(<span class="literal">20</span>, <span class="localvar">ret</span>.<span class="attribute">allRecordCount</span>);
+        assertEquals(<span class="literal">5</span>, <span class="localvar">ret</span>.<span class="attribute">allPageCount</span>);
+        assertEquals(<span class="literal">0</span>, <span class="localvar">ret</span>.<span class="attribute">rows</span>.size());
     }
 
     <span class="keyword">public void</span> test_validationError_basic() {
         <span class="comment">// ## Arrange ##</span>
-        HbProductSearchBody <span class="localvar">body</span> = <span class="keyword">new</span> HbProductSearchBody();
+        RemoteProductSearchParam <span class="localvar">param</span> = <span class="keyword">new</span> RemoteProductSearchParam();
         String <span class="localvar">json</span> = <span class="literal">"{cause=VALIDATION_ERROR, errors : [{field=productName, code=LENGTH, data={min:0,max:10}}]}"</span>;
         MockHttpClient <span class="localvar">client</span> = MockHttpClient.create(<span class="localvar">resopnse</span> -&gt; {
             <span class="localvar">resopnse</span>.asJsonDirectly(<span class="localvar">json</span>, <span class="localvar">request</span> -&gt; <span class="keyword">true</span>).httpStatus(<span class="literal">400</span>);
@@ -540,7 +540,7 @@ org.docksidestage
         inject(<span class="localvar">bhv</span>);
 
         <span class="comment">// ## Act ##</span>
-        assertException(RemoteApiHttpClientErrorException.<span class="keyword">class</span>, () -&gt; <span class="localvar">bhv</span>.requestProductList(<span class="localvar">body</span>)).handle(<span class="localvar">cause</span> -&gt; {
+        assertException(RemoteApiHttpClientErrorException.<span class="keyword">class</span>, () -&gt; <span class="localvar">bhv</span>.requestProductList(<span class="localvar">param</span>)).handle(<span class="localvar">cause</span> -&gt; {
             <span class="comment">// ## Assert ##</span>
             FaicliUnifiedFailureResult <span class="localvar">result</span> = (FaicliUnifiedFailureResult) <span class="localvar">cause</span>.getFailureResponse().get();
             log(<span class="localvar">result</span>);
