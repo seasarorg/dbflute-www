@@ -71,6 +71,14 @@
 				<li><a href="#implbhvrequestmethod">requestメソッドの実装</a></li>
 			</ul>
 		</li>
+		<li><a href="#howtorequest">requestメソッドの実装の仕方</a>
+			<ul>
+				<li><a href="#requestmethodname">requestメソッドのメソッド名</a></li>
+				<li><a href="#requestparamreturn">requestメソッドの引数と戻り値</a></li>
+				<li><a href="#calldorequest">doRequest...()の呼び出し</a></li>
+			</ul>
+		</li>
+		<li><a href="#translatekeyname">FormやJSONのキー名の翻訳</a></li>
 		<li><a href="#errorhandling">リモートAPIのエラーハンドリング</a>
 			<ul>
 				<li><a href="#exceptionmapping">エラーと例外クラスの対応</a></li>
@@ -189,12 +197,12 @@
         <span class="keyword">return</span> <span class="literal">"http://localhost:8090/harbor"</span>;
     }
 
-    <span class="keyword">public</span> RemoteMypageProductRet requestMypage() {
-        <span class="keyword">return</span> doRequestGet(RemoteMypageProductRet.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
+    <span class="keyword">public</span> RemoteMypageProductReturn requestMypage() {
+        <span class="keyword">return</span> doRequestGet(RemoteMypageProductReturn.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
     }
 
-    <span class="keyword">public</span> RemoteSearchPagingRet&lt;RemoteProductRowRet&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
-        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
+    <span class="keyword">public</span> RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
+        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt;&gt;() {
         }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
     }
 }
@@ -309,8 +317,8 @@ org.docksidestage
         <span class="keyword">return</span> doRequestGet(RemoteMypageProductResult.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
     }
 
-    <span class="keyword">public</span> RemoteSearchPagingResult&lt;HbProductRowResult&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
-        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingResult&lt;RemoteProductRowResult&gt;&gt;() {
+    <span class="keyword">public</span> RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt; requestProductList(RemoteProductSearchParam <span class="localvar">param</span>) {
+        <span class="keyword">return</span> doRequestPost(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt;&gt;() {
         }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
     }
 }
@@ -369,7 +377,104 @@ org.docksidestage
 </code></pre>
 	<h3 id="implbhvrequestmethod">requestメソッドの実装</h3>
 	<p>
-		TODO jflute Param や Ret, 引数の指定など
+		たっぷりこの後、独立セクションでお送りいたします。
+	</p>
+
+	<h2 id="howtorequest">requestメソッドの実装の仕方</h2>
+	<p>
+		TODO jflute Param や Return, 引数の指定など
+	</p>
+	<h3 id="requestmethodname">requestメソッドのメソッド名</h3>
+	<p>
+		厳密には任意ですが、request[業務名]() という名前が慣習です。
+		通信してるっぽい名前を付けて、プログラム上で意識させたいためです。<span class="frm">(パフォーマンス上、重要ポイントであることを示したい)</span>
+	</p>
+<pre><span class="codetitle">e.g. request methods @Java</span><code>
+<span class="keyword">public</span> RemoteMypageProductReturn <span class="point">requestMypage()</span> {
+    <span class="abbreviation">...</span>
+}
+
+<span class="keyword">public</span> RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt; <span class="comment">// 見やすさ改行</span>
+        <span class="point">requestProductList</span>(RemoteProductSearchParam <span class="localvar">param</span>) {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<h3 id="requestparamreturn">requestメソッドの引数と戻り値</h3>
+	<p>
+		"Paramクラス" と "Returnクラス" を用意してデータのやり取りをします。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>Paramクラス</dt><dd>クエリーパラメータ、リクエストボディ(RequestBody)のデータ</dd>
+		<dt>Returnクラス</dt><dd>レスポンスボディ(ResponseBody)のデータ <span class="frm">(ときに Header なども含む)</span></dd>
+	</dl>
+	<p>
+		JSON や XML など、様々な形式のデータを受け渡しするクラスです。
+	</p>
+	<p>
+		引数のParamクラスや戻り値のReturnクラスの名前は任意です。デフォルトの慣習として、意味を持たない Param や Return
+		を使っていますが、リクエストやレスポンスの形式は千差万別なので、アプリのポリシーに合わせます。
+		<span class="frm">(特にポリシーとか決めてないのであれば、みんなでブレまくるよりかは Param, Return で良いでしょう)</span>
+	</p>
+	<p>
+		利用されるBehaviorの近くに業務ごとにパッケージ配下に作成すると良いでしょう。<span class="frm">(厳密には任意)</span>
+	</p>
+<pre><span class="codetitle">e.g. param and return classes location @Package</span><code>
+org.docksidestage
+ |-app
+ |-dbflute
+ |-mylasta
+ |-remote
+ |  |-harbor            <span class="comment">// サービス名 (シングルプロジェクト)</span>
+ |  |  |-base           <span class="comment">// 抽象クラスや共通のクラスを置く場所</span>
+ |  |  |  |-RemoteSearchPagingReturn.java
+ |  |  |
+ |  |  |-<span class="point">mypage</span>
+ |  |  |  |-<span class="subpoint">RemoteMypageProductReturn.java</span>
+ |  |  |
+ |  |  |-<span class="point">product</span>
+ |  |  |  |-<span class="subpoint">RemoteProductRowReturn.java</span>
+ |  |  |  |-<span class="subpoint">RemoteProductSearchParam.java</span>
+ |  |  |
+ |  |  |-RemoteHarborBhv.java
+</code></pre>
+	<p>
+		requestメソッドで、引数と戻り値に定義します。Paramクラス以外の引数が入っても構いません。
+		オプションなどを呼び出し側からもらいたい場合などは、第二引数以降で受け取ると良いでしょう。
+	</p>
+<pre><span class="codetitle">e.g. param and return definition @Java</span><code>
+<span class="keyword">public</span> <span class="point">RemoteMypageProductReturn</span> requestMypage() {
+    <span class="abbreviation">...</span>
+}
+
+<span class="keyword">public</span> <span class="point">RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt;</span> <span class="comment">// 見やすさ改行</span>
+        requestProductList(<span class="point">RemoteProductSearchParam</span> <span class="localvar">param</span>) {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		中の実装は、Actionクラスで使う、Form や Body, Result などと形式はほぼ同じです。
+		Validatorアノテーションも利用できるので、@Required などは積極的に付けていきましょう。
+		少しAPIならではの機能が付け足されています。
+	</p>
+	<div class="detailpage"><a href="#translatekeyname">this - FormやJSONのキー名の翻訳</a></div>
+	<h3 id="calldorequest">doRequest...()の呼び出し</h3>
+	<p>
+		TODO jflute 引数の詳細やParameterizedRefの話など
+	</p>
+<pre><span class="codetitle">e.g. call doRequestGet(), doRequestPost() @Java</span><code>
+<span class="keyword">public</span> RemoteMypageProductReturn requestMypage() {
+    <span class="keyword">return</span> <span class="point">doRequestGet</span>(RemoteMypageProductReturn.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
+}
+
+<span class="keyword">public</span> RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt; requestProductList(<span class="point">RemoteProductSearchParam</span> <span class="localvar">param</span>) {
+    <span class="keyword">return</span> <span class="point">doRequestPost</span>(<span class="keyword">new</span> ParameterizedRef&lt;RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt;&gt;() {
+    }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
+}
+</code></pre>
+
+	<h2 id="translatekeyname">FormやJSONのキー名の翻訳</h2>
+	<p>
+		TODO jflute キャメルケースの一括変換 (JsonMappingOption) や、ピンポイントでの名前の変更 (SerializedName) など
 	</p>
 
 	<h2 id="errorhandling">リモートAPIのエラーハンドリング</h2>
@@ -518,7 +623,7 @@ org.docksidestage
         inject(<span class="localvar">bhv</span>);
 
         <span class="comment">// ## Act ##</span>
-        RemoteSearchPagingRet<HbProductRowResult> <span class="localvar">ret</span> = <span class="localvar">bhv</span>.requestProductList(<span class="localvar">param</span>);
+        RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt; <span class="localvar">ret</span> = <span class="localvar">bhv</span>.requestProductList(<span class="localvar">param</span>);
 
         <span class="comment">// ## Assert ##</span>
         assertEquals(<span class="literal">4</span>, <span class="localvar">ret</span>.<span class="attribute">pageSize</span>);
