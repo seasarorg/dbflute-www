@@ -76,6 +76,8 @@
 				<li><a href="#requestmethodname">requestメソッドのメソッド名</a></li>
 				<li><a href="#requestparamreturn">requestメソッドの引数と戻り値</a></li>
 				<li><a href="#calldorequest">doRequest...()の呼び出し</a></li>
+				<li><a href="#parameterizedtype">ネストしたGenericsはParameterizedType</a></li>
+				<li><a href="#optionalqueryparam">クエリーパラメーターはOptionalThing</a></li>
 			</ul>
 		</li>
 		<li><a href="#translatekeyname">FormやJSONのキー名の翻訳</a></li>
@@ -459,8 +461,14 @@ org.docksidestage
 	<div class="detailpage"><a href="#translatekeyname">this - FormやJSONのキー名の翻訳</a></div>
 	<h3 id="calldorequest">doRequest...()の呼び出し</h3>
 	<p>
-		TODO jflute 引数の詳細やParameterizedRefの話など
+		HTTP Methodごとにメソッドが分かれています。
 	</p>
+	<dl class="keymainlist">
+		<dt>doRequestGet()</dt><dd>GETで送信、クエリーパラメーターのデータを引数で指定</dd>
+		<dt>doRequestPost()</dt><dd>POSTで送信、リクエストボディのデータを引数で指定</dd>
+		<dt>doRequestPut()</dt><dd>PUTで送信、あとは doRequestPost()と同じ</dd>
+		<dt>doRequestDelete()</dt><dd>DELETEで送信、あとは doRequestGet()と同じ</dd>
+	</dl>
 <pre><span class="codetitle">e.g. call doRequestGet(), doRequestPost() @Java</span><code>
 <span class="keyword">public</span> RemoteMypageProductReturn requestMypage() {
     <span class="keyword">return</span> <span class="point">doRequestGet</span>(RemoteMypageProductReturn.<span class="keyword">class</span>, <span class="literal">"/lido/mypage"</span>, noMoreUrl(), noQuery(), <span class="localvar">rule</span> -&gt; {});
@@ -471,6 +479,46 @@ org.docksidestage
     }.getType(), <span class="literal">"/lido/product/list"</span>, moreUrl(<span class="literal">1</span>), <span class="localvar">param</span>, <span class="localvar">rule</span> -&gt; {});
 }
 </code></pre>
+	<p>
+		指定する引数はこのようになっています。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>Returnクラスの型</dt><dd>Class型とParameterizedType型を指定</dd>
+		<dt>アプリ部分のURL</dt><dd>getBaseUrl()の続きの固定のURLを指定 <span class="frm">e.g. /product/list</span></dd>
+		<dt>追加の動的URL</dt><dd>Pathパラメーター部分のURLを指定、moreUrl()を使うと良い</dd>
+		<dt>クエリーパラメーター</dt><dd><span class="frm">(GET/DELETEのみ)</span> ParamクラスをOptionalThingで指定、ない場合 noQuery()</dd>
+		<dt>リクエストボディ</dt><dd><span class="frm">(POST/PUTのみ)</span> Paramクラスを指定 (必須)</dd>
+		<dt>メソッドごとのルール</dt><dd>yourDefaultRule()のルールを上書きしたいときに利用</dd>
+	</dl>
+	<h3 id="parameterizedtype">ネストしたGenericsはParameterizedType</h3>
+	<p>
+		ネストしたGenericsのParamクラスを指定するときは、ParameterizedRefクラスを利用して、指定された型の
+		ParameterizedType を導出します。これは、Javaの文法上どうしてもこういった書き方が必要になります。
+	</p>
+<pre><span class="codetitle">e.g. how to derive ParameterizedType of RemoteSearchPagingReturn @Java</span><code>
+<span class="keyword">new</span> ParameterizedRef<span class="point">&lt;RemoteSearchPagingReturn&lt;RemoteProductRowReturn&gt;&gt;</span>() {
+}.getType()
+</code></pre>
+	<ul class="codeoutro">
+		<li>最後、getType()を忘れずに</li>
+	</ul>
+	<h3 id="optionalqueryparam">クエリーパラメーターはOptionalThing</h3>
+	<p>
+		クエリーパラメーターは、GET/DELETEでも必須ではないので、OptionalThing型で指定します。
+		<span class="frm">(OptionalThingは、DBFluteが提供する Optional の拡張クラスです。でも継承関係はありません)</span>
+	</p>
+	<p>
+		業務的に必ず存在するの場合は、requestメソッドの引数はそのままParamクラスで、OptionalThing.of(param) で指定すると良いでしょう。
+	</p>
+	<p>
+		業務的に存在するかしないか動的に変わる場合は、requestメソッドの引数自体を OptionalThing で受けるようにして、呼び出し側でクエリーパラメーターの有無を制御すると良いでしょう。
+	</p>
+	<p>
+		業務的に必ず存在しないのであれば、noQuery()メソッドで固定的に指定しましょう<span class="frm">(nullは不可)</span>。
+	</p>
+	<p>
+		<span class="frm">※この辺は、コントリビュートを頂いたときの互換性キープの都合もあり、こうなっています。</span>
+	</p>
 
 	<h2 id="translatekeyname">FormやJSONのキー名の翻訳</h2>
 	<p>
@@ -487,6 +535,8 @@ org.docksidestage
 		<dt>サーバーエラー</dt><dd>RemoteApiHttpServerErrorException</dd>
 		<dt>正常時のレスポンス解析エラー</dt><dd>RemoteApiResponseParseFailureException</dd>
 		<dt>エラー時のレスポンス解析エラー</dt><dd>RemoteApiResponseParseFailureException *B</dd>
+		<dt>リクエストのバリデーションエラー</dt><dd>RemoteApiRequestValidationErrorException</dd>
+		<dt>レスポンスのバリデーションエラー</dt><dd>RemoteApiResponseValidationErrorException</dd>
 		<dt>I/Oエラー</dt><dd>RemoteApiIOException</dd>
 	</dl>
 	<p>
