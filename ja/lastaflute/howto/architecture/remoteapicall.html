@@ -86,7 +86,8 @@
 				<li><a href="#exceptionmapping">エラーと例外クラスの対応</a></li>
 				<li><a href="#errorresponse">エラーレスポンスの受け取り</a></li>
 				<li><a href="#translateexception">例外の翻訳をするのは？</a></li>
-				<li><a href="#commontranslation">共通的な例外の翻訳は？</a></li>
+				<li><a href="#commontranslation">統一的な例外の翻訳は？</a></li>
+				<li><a href="#nocatcherror">catchせず、そのままthrowしっぱなしだと？</a></li>
 			</ul>
 		</li>
 		<li><a href="#howtounittest">UnitTestのやり方</a>
@@ -627,12 +628,12 @@ org.docksidestage
 	<p>
 		HTTP Statusだけで例外翻訳するなら...
 	</p>
-<pre><span class="codetitle">e.g. translate 401 response to LoginFailureException @Java</span><code>
+<pre><span class="codetitle">e.g. translate 401 response to LoginRequiredException @Java</span><code>
 <span class="keyword">try</span> {
     <span class="abbreviation">...</span> <span class="comment">// calling remote API</span>
 } <span class="keyword">catch</span> (RemoteApiHttpClientErrorException <span class="localvar">e</span>) { <span class="comment">// クライアントエラー</span>
     <span class="keyword">if</span> (<span class="localvar">e</span>.getHttpStatus() == <span class="literal">401</span>) {
-        <span class="keyword">throw new</span> LoginFailureException(<span class="literal">"...your message"</span>, <span class="localvar">e</span>);
+        <span class="keyword">throw new</span> LoginRequiredException(<span class="literal">"...your message"</span>, <span class="localvar">e</span>);
     }
     <span class="keyword">throw</span> <span class="localvar">e</span>; <span class="comment">// 別のエラーのときのthrowを忘れずに</span>
 }
@@ -641,14 +642,14 @@ org.docksidestage
 		HTTP Statusに加えてエラーレスポンスの中身も見て例外翻訳するなら... <span class="frm">(ふぁいくらパターンなど)</span>
 	</p>
 	<div class="relatedpage"><a href="../impldesign/jsonfaicli.html">JSON API, Failure統一クライアントメッセージ</a></div>
-<pre><span class="codetitle">e.g. translate 400 and login failure response to LoginFailureException @Java</span><code>
+<pre><span class="codetitle">e.g. translate 400 and login required response to LoginRequiredException in your action @Java</span><code>
 <span class="keyword">try</span> {
     <span class="abbreviation">...</span> <span class="comment">// calling remote API</span>
 } <span class="keyword">catch</span> (RemoteApiHttpClientErrorException <span class="localvar">e</span>) { <span class="comment">// クライアントエラー</span>
     <span class="keyword">if</span> (<span class="localvar">e</span>.getHttpStatus() == <span class="literal">400</span>) {
         <span class="localvar">e</span>.getFailureResponse().alwaysPresent(<span class="localvar">response</span> -&gt; {
             <span class="keyword">if</span> (<span class="attribute">errorResponseAgent</span>.isBusinessErrorLoginFailure(<span class="localvar">response</span>)) {
-                <span class="keyword">throw new</span> LoginFailureException(<span class="literal">"...your message"</span>, <span class="localvar">e</span>);
+                <span class="keyword">throw new</span> LoginRequiredException(<span class="literal">"...your message"</span>, <span class="localvar">e</span>);
             }
         });
     }
@@ -660,9 +661,48 @@ org.docksidestage
 		<li>alwaysPresent()で、エラーレスポンス自体のパースエラーのときはシステム例外としてthrowしている</li>
 		<li>errorResponseAgentはただのExampleだが、どうせ他でも使うことが多いので判定は共通化した方が良い</li>
 	</ul>
-	<h3 id="commontranslation">共通的な例外の翻訳は？</h3>
+	<h3 id="commontranslation">統一的な例外の翻訳は？</h3>
 	<p>
-		TODO jflute ActionHook でやる!?
+		同じような例外の翻訳を複数の Action でやるのは大変なので、RemoteApi
+		からthrowされる例外が、すでにアプリに適した翻訳された例外になっていたほうがいいかもしれません。
+	</p>
+	<p>
+		rule.translateClientError() で統一的に翻訳できます。
+	</p>
+<pre><span class="codetitle">e.g. translate 400 and login required response to LoginRequiredException in your rule @Java</span><code>
+@Override
+<span class="keyword">protected void</span> yourDefaultRule(FlutyRemoteApiRule <span class="localvar">rule</span>) {
+    <span class="abbreviation">...</span>
+    <span class="localvar">rule</span>.<span class="point">translateClientError</span>(<span class="localvar">resource</span> -&gt; {
+        RemoteApiHttpClientErrorException <span class="localvar">clientError</span> = <span class="localvar">resource</span>.getClientError();
+        <span class="keyword">if</span> (<span class="localvar">clientError</span>.getHttpStatus() == <span class="literal">400</span>) { <span class="comment">// controlled client error</span>
+            RemoteUnifiedFailureResult <span class="localvar">result</span> = (RemoteUnifiedFailureResult) <span class="localvar">clientError</span>.getFailureResponse().get();
+            <span class="keyword">if</span> (RemoteUnifiedFailureType.<span class="attribute">LOGIN_REQUIRED</span>.equals(<span class="localvar">result</span>.<span class="attribute">cause</span>)) {
+                <span class="keyword">return new</span> LoginRequiredException(<span class="literal">"...your message"</span>, <span class="localvar">e</span>);
+            }
+        }
+        <span class="keyword">return null</span>; <span class="comment">// no translation</span>
+    });
+}
+</code></pre>
+	<p>
+		ユーザー入力項目バリデーションをリモートAPI側で行う場合は、呼び出し側のバリデーションエラーに翻訳する必要があります。
+		よくあるパターンなので、resource.asHtmlValidationError(messages) という専用のメソッドが用意されています。
+	</p>
+	<p>
+		TODO jflute クライアントメッセージ方式とサーバーメッセージ方式の両方の asHtmlValidationError() の Example コード
+	</p>
+	<h3 id="nocatcherror">catchせず、そのままthrowしっぱなしだと？</h3>
+	<p>
+		どの例外でも、catchせず、そのままthrowしっぱなしにするとシステム例外として扱われます。
+	</p>
+	<p>
+		クライアントエラー (ここでは業務例外も含む) も、こちらでcatchして何か処理をしないということは、こちらの不備ということでリカバリ不能なのでシステム例外となります。
+		<span class="frm">(システム例外として翻訳されるというニュアンス)</span>
+	</p>
+	<p>
+		RemoteApiの例外に対して、何かしら業務的な処理をするのであれば、呼び出し側で try/catch
+		をするか、rule.translateClientError() で統一的な翻訳をするか、何かしらの対処をしましょう。
 	</p>
 
 	<h2 id="howtounittest">UnitTestのやり方</h2>

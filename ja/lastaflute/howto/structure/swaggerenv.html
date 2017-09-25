@@ -73,6 +73,11 @@
 	</p>
 
 	<h2 id="howto">Swaggerの環境セットアップ方法</h2>
+	<p>
+		【注意】JettyBootだと、ローカル環境で Swagger が動かない状態です。ローカルで Swagger を使うのであれば、TomcatBootを使ってください。
+		<span class="frm">(Jettyが、どうやら WEB-INF/lib の jar しか探してくれない!?)</span>
+		<span class="frm">(また、ローカルで動かないことと無関係ですが、Jetty の場合は web.xml の metadata-complete="true" になっていると動きません)</span>
+	</p>
 	<h3 id="pomxml">1. pom.xmlにて、lasta-doc.jarを</h3>
 	<p>
 		LastaFluteでSwaggerを使うために最適化されたライブラリである lasta-doc.jar を pom.xml にて依存ライブラリに追加します。
@@ -82,7 +87,7 @@
 <pre><span class="codetitle">e.g. add lasta-doc.jar library @pom.xml</span><code>
         <span class="abbreviation">...</span>
 
-        &lt;lasta.doc.version&gt;<span class="literal">0.2.6</span>&lt;/lasta.doc.version&gt;
+        &lt;lasta.doc.version&gt;<span class="literal">0.2.7</span>&lt;/lasta.doc.version&gt;
         &lt;swagger.ui.version&gt;<span class="literal">2.2.8</span>&lt;/swagger.ui.version&gt;
 
         <span class="abbreviation">...</span>
@@ -162,7 +167,7 @@
 <span class="keyword">public static void</span> main(String[] <span class="localvar">args</span>) { <span class="comment">// e.g. java -Dlasta.env=production -jar maihama-showbase.war</span>
     TomcatBoot <span class="localvar">boot</span> = <span class="keyword">new</span> TomcatBoot(<span class="literal">8098</span>, <span class="literal">"/showbase"</span>).asDevelopment(isDevelopment());
     <span class="localvar">boot</span>.<span class="point">useMetaInfoResourceDetect()</span>.<span class="point">useWebFragmentsDetect</span>(<span class="localvar">jarName</span> -&gt; { <span class="comment">// both for swagger</span>
-        <span class="keyword">return</span> <span class="localvar">jarName</.contains(<span class="literal">"swagger-ui"</span>); <span class="comment">// meanwhile, restricted by [app]_env.properties</span>
+        <span class="keyword">return</span> <span class="localvar">jarName</span>.contains(<span class="literal">"swagger-ui"</span>); <span class="comment">// meanwhile, restricted by [app]_env.properties</span>
     });
     <span class="localvar">boot</span>.bootAwait();
 }
