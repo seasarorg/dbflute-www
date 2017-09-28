@@ -73,9 +73,9 @@
 			<ul>
 				<li><a href="#htmlname">HTMLテンプレートのファイル名</a></li>
 				<li><a href="#htmldir">HTMLテンプレートのディレクトリ</a></li>
+				<li><a href="#htmlfreegen">HTMLの実装...はさておいて</a></li>
 				<li><a href="#htmlfreegen">FreeGenを叩いてパス自動生成</a></li>
 				<li><a href="#returnfornow">ひとまずreturnを書いておく</a></li>
-				<li><a href="#htmlfreegen">HTMLの実装...はさておいて</a></li>
 			</ul>
 		</li>
 		<li><a href="#makehtmlbean">HTML Bean を作る</a>
@@ -356,43 +356,6 @@ src/main/java
 	<p>
 		ここでは、src/main/webapp/WEB-INF/view/<em class="mark">sea</em> ディレクトリにします。
 	</p>
-	<h3 id="htmlfreegen">FreeGenを叩いてパス自動生成</h3>
-	<p>
-		manageタスク (DBFluteクライアントの manage.bat|sh) の 12 (freegen) を叩いて、FreeGen を実行すると、そのHTMLテンプレートに対応するパス定義が自動生成されます。
-		ここでは <em class="mark">HarborHtmlPath</em> に <em class="mark">path_Sea_SeaLandHtml</em> というパス定義が追加されるでしょう。
-	</p>
-	<div class="relatedpage"><a href="../dbflute/lafreegen.html">なんでも自動生成 (FreeGen)</a></div>
-<pre><span class="codetitle">e.g. execute FreeGen @Command</span><code>
-<span class="abbreviation">...</span>$ sh <span class="point">manage.sh</span>
-
-<span class="comment">// メニューが表示されるので、12 (freegen) を入力してEnter</span>
-<span class="comment">// Windowsなら manage.bat, Eclipseからでも直接叩ける (ctrl+shift+Rから叩こう)</span>
-</code></pre>
-	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
-	<p>
-		returnは後であれこあカスタマイズするかもしれませんが、コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきます。
-	</p>
-	<p>
-		asHtml([自動生成されたHTMLテンプレートのパス定義]) を return します。
-	</p>
-<pre><span class="codetitle">e.g. return HtmlResponse as HTML template @Java</span><code>
-@Execute
-<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
-    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Sea_SeaLandHtml</span>); 
-}
-</code></pre>
-	<p>
-		もし、別の Action へのリダイレクトなら、redirect([リダイレクト先のAction]) を return します。
-	</p>
-<pre><span class="codetitle">e.g. return HtmlResponse as redirect @Java</span><code>
-@Execute
-<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
-    <span class="keyword">return</span> <span class="point">redirect</span>(PiariDstoreAction.class); 
-}
-</code></pre>
-	<p>
-		<span class="frm">(jflute備忘録: デモンストレーションのとき、ここで Boot で画面アクセス)</span>
-	</p>
 	<h3 id="htmlfreegen">HTMLの実装...はさておいて</h3>
 	<p>
 		まだ、ラフスケッチ中なので、中身はシンプルな状態で。この時点では真っ白でもOKです。
@@ -488,6 +451,48 @@ src/main/java
 &lt;/body&gt;
 &lt;/html&gt;
 </code></pre>
+	<h3 id="htmlfreegen">FreeGenを叩いてパス自動生成</h3>
+	<p>
+		それでは、HTMLテンプレートもできたことなので、そのファイルをプログラムから指定するためのパス定義を自動生成してみましょう。
+		LastaFluteでは、ファイルパスをハードコードしたりしません。
+	</p>
+	<p>
+		manageタスク (DBFluteクライアントの manage.bat|sh) の 12 (freegen) を叩いて、FreeGen を実行すると、そのHTMLテンプレートに対応するパス定義が自動生成されます。
+		ここでは <em class="mark">HarborHtmlPath</em> に <em class="mark">path_Sea_SeaLandHtml</em> というパス定義が追加されるでしょう。
+	</p>
+	<div class="relatedpage"><a href="../dbflute/lafreegen.html">なんでも自動生成 (FreeGen)</a></div>
+<pre><span class="codetitle">e.g. execute FreeGen @Command</span><code>
+<span class="abbreviation">...</span>$ sh <span class="point">manage.sh</span>
+
+<span class="comment">// メニューが表示されるので、12 (freegen) を入力してEnter</span>
+<span class="comment">// Windowsなら manage.bat, Eclipseからでも直接叩ける (ctrl+shift+Rから叩こう)</span>
+</code></pre>
+	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
+	<p>
+		Executeメソッドの実装はこの後ですが、せっかく HarborHtmlPath にパス定義ができたことですし、
+		コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきましょう。
+	</p>
+	<p>
+		asHtml([自動生成されたHTMLテンプレートのパス定義]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as HTML template @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Sea_SeaLandHtml</span>); 
+}
+</code></pre>
+	<p>
+		もし、別の Action へのリダイレクトなら、redirect([リダイレクト先のAction]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as redirect @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">redirect</span>(PiariDstoreAction.class); 
+}
+</code></pre>
+	<p>
+		<span class="frm">(jflute備忘録: デモンストレーションのとき、ここで Boot で画面アクセス)</span>
+	</p>
 
 	<h2 id="makehtmlbean">HTML Bean を作る</h2>
 	<p>
@@ -593,7 +598,7 @@ src/main/java
 		そして、ConditionBean で検索しましょう。
 	</p>
 	<div class="relatedpage"><a href="../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
-<pre><span class="codetitle">e.g. select by ConditionBean @Java</span><code>
+<pre><span class="codetitle">e.g. ログイン会員(自分)とフォローしている会員の、指定された商品に対応する購入一覧 @Java</span><code>
 @Execute
 <span class="keyword">public</span> HtmlResponse index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
     validate(<span class="localvar">form</span>, <span class="localvar">messages</span> -&gt; {}, () -&gt; {
