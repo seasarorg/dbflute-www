@@ -161,6 +161,11 @@
 		アプリプロジェクトごとに最初の一回だけです。src/main/resources配下に [app]_appcls.dfprop
 		という名前のテキストファイルを作成します。
 	</p>
+<pre><span class="codetitle">e.g. docksideプロジェクトでのアプリ区分値のdfpropの置き場所 @Directory</span><code>
+src/main/resources
+ |-<span class="point">dockside_appcls.dfprop</span>
+ |-<span class="abbreviation">...</span>
+</code></pre>
 <pre><span class="codetitle">e.g. アプリ区分値のdfpropのひながた @[app]_appcls.dfprop</span><code>
 <span class="comment"># /---------------------------------------------------------------------------
 # appcls: (NotRequired - Default map:{})
@@ -317,8 +322,41 @@
 		Thymeleafを使っている場合、LastaThymeleaf の optionCls で、アプリ区分値をそのまま利用したいものです。
 	</p>
 	<p>
-		TODO jflute [App]ListedClassificationProvider でのアプリ区分値の定義
+		optionCls属性は、LastaFlute の ListedClassificationProvider
+		インターフェース経由で、区分値の情報を取得します。なので、[App]ListedClassificationProvider
+		クラスで、アプリ区分値の制御を入れれば利用できるようになります。
 	</p>
+<pre><span class="codetitle">e.g. fortressプロジェクトのListedClassificationProvider (mylasta.sponsor) @Java</span><code>
+<span class="keyword">public class</span> FortressListedClassificationProvider <span class="keyword">extends</span> TypicalListedClassificationProvider {
+
+    @Override
+    <span class="keyword">protected</span> Function&lt;String, ClassificationMeta&gt; chooseClassificationFinder(String <span class="localvar">projectName</span>)
+            <span class="keyword">throws</span> ProvidedClassificationNotFoundException {
+        <span class="keyword">if</span> (DBCurrent.getInstance().projectName().equals(<span class="localvar">projectName</span>)) {
+            <span class="keyword">return</span> <span class="localvar">clsName</span> -&gt; onMainSchema(<span class="localvar">clsName</span>).orElse(<span class="keyword">null</span>); <span class="comment">// null means not found</span>
+        } <span class="keyword">else</span> {
+            <span class="keyword">throw new</span> ProvidedClassificationNotFoundException(<span class="literal">"Unknown DBFlute project name: "</span> + <span class="localvar">projectName</span>);
+        }
+    }
+
+    @Override
+    <span class="keyword">protected</span> Function&lt;String, ClassificationMeta&gt; getDefaultClassificationFinder() {
+        <span class="keyword">return</span> <span class="localvar">clsName</span> -&gt; {
+            <span class="keyword">return</span> onMainSchema(<span class="localvar">clsName</span>).orElseGet(() -&gt;{
+                <span class="keyword">return</span> onAppCls(<span class="localvar">clsName</span>).orElse(<span class="keyword">null</span>); <span class="comment">// null means not found</span>
+            });
+        };
+    }
+
+    <span class="keyword">protected</span> OptionalThing&lt;ClassificationMeta&gt; onMainSchema(String <span class="localvar">clsName</span>) {
+        <span class="keyword">return</span> findMeta(CDef.DefMeta.<span class="keyword">class</span>, <span class="localvar">clsName</span>);
+    }
+
+    <span class="keyword">protected</span> OptionalThing&lt;ClassificationMeta&gt; onAppCls(String <span class="localvar">clsName</span>) {
+        <span class="keyword">return</span> findMeta(<span class="point">AppCDef.DefMeta</span>.<span class="keyword">class</span>, <span class="localvar">clsName</span>);
+    }
+}
+</code></pre>
 
 </div>
 </div>
