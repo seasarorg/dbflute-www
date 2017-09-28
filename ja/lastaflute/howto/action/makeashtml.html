@@ -74,6 +74,7 @@
 				<li><a href="#htmlname">HTMLテンプレートのファイル名</a></li>
 				<li><a href="#htmldir">HTMLテンプレートのディレクトリ</a></li>
 				<li><a href="#htmlfreegen">FreeGenを叩いてパス自動生成</a></li>
+				<li><a href="#returnfornow">ひとまずreturnを書いておく</a></li>
 				<li><a href="#htmlfreegen">HTMLの実装...はさておいて</a></li>
 			</ul>
 		</li>
@@ -86,7 +87,6 @@
 		</li>
 		<li><a href="#implexecute">Executeメソッドを実装</a>
 			<ul>
-				<li><a href="#returnfornow">ひとまずreturnを書いておく</a></li>
 				<li><a href="#validate">validate()を呼ぶ</a></li>
 				<li><a href="#selectbydbflute">DBFluteで検索しよう</a></li>
 				<li><a href="#mappingto">HTML Beanにマッピング</a></li>
@@ -368,6 +368,31 @@ src/main/java
 <span class="comment">// メニューが表示されるので、12 (freegen) を入力してEnter</span>
 <span class="comment">// Windowsなら manage.bat, Eclipseからでも直接叩ける (ctrl+shift+Rから叩こう)</span>
 </code></pre>
+	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
+	<p>
+		returnは後であれこあカスタマイズするかもしれませんが、コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきます。
+	</p>
+	<p>
+		asHtml([自動生成されたHTMLテンプレートのパス定義]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as HTML template @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Sea_SeaLandHtml</span>); 
+}
+</code></pre>
+	<p>
+		もし、別の Action へのリダイレクトなら、redirect([リダイレクト先のAction]) を return します。
+	</p>
+<pre><span class="codetitle">e.g. return HtmlResponse as redirect @Java</span><code>
+@Execute
+<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
+    <span class="keyword">return</span> <span class="point">redirect</span>(PiariDstoreAction.class); 
+}
+</code></pre>
+	<p>
+		<span class="frm">(jflute備忘録: デモンストレーションのとき、ここで Boot で画面アクセス)</span>
+	</p>
 	<h3 id="htmlfreegen">HTMLの実装...はさておいて</h3>
 	<p>
 		まだ、ラフスケッチ中なので、中身はシンプルな状態で。この時点では真っ白でもOKです。
@@ -525,31 +550,6 @@ src/main/java
 	<div class="relatedpage"><a href="./lavalidation.html#responsevalidation">番外. レスポンスデータのバリデーション</a></div>
 
 	<h2 id="implexecute">Executeメソッドを実装</h2>
-	<h3 id="returnfornow">ひとまずreturnを書いておく</h3>
-	<p>
-		returnは後であれこあカスタマイズするかもしれませんが、コンパイルエラーのまま実装するのはつらいので、とりあえず解決しておきます。
-	</p>
-	<p>
-		asHtml([自動生成されたHTMLテンプレートのパス定義]) を return します。
-	</p>
-<pre><span class="codetitle">e.g. return HtmlResponse as HTML template @Java</span><code>
-@Execute
-<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
-    <span class="keyword">return</span> <span class="point">asHtml</span>(<span class="attribute">path_Sea_SeaLandHtml</span>); 
-}
-</code></pre>
-	<p>
-		もし、別の Action へのリダイレクトなら、redirect([リダイレクト先のAction]) を return します。
-	</p>
-<pre><span class="codetitle">e.g. return HtmlResponse as redirect @Java</span><code>
-@Execute
-<span class="keyword">public</span> <span class="subpoint">HtmlResponse</span> index(<span class="keyword">int</span> <span class="localvar">productId</span>, SeaLandForm <span class="localvar">form</span>) {
-    <span class="keyword">return</span> <span class="point">redirect</span>(PiariDstoreAction.class); 
-}
-</code></pre>
-	<p>
-		<span class="frm">(jflute備忘録: デモンストレーションのとき、ここで Boot で画面アクセス)</span>
-	</p>
 	<h3 id="validate">validate()を呼ぶ</h3>
 	<p>
 		FormにValidatorアノテーションを一つでも付けているなら、validate() を呼ぶ必要があります。
