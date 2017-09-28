@@ -45,7 +45,7 @@
 		<li><a href="#overview">LastaFluteでのSwagger</a></li>
 		<li><a href="#setup">Swaggerの環境セットアップ</a></li>
 		<li><a href="#howto">Swaggerの使い方</a></li>
-		<li><a href="#egvalue">e.g.のススメ</a>
+		<li><a href="#egdefault">e.g.デフォルト値のススメ</a>
 			<ul>
 				<li><a href="#valueproblem">どんな値をリクエストすればいいのかわからない問題</a></li>
 				<li><a href="#javadoceg">JavaDocにe.g.でデフォルト値を記載</a></li>
@@ -55,15 +55,16 @@
 
 	<h2 id="overview">LastaFluteでのSwagger</h2>
 	<p>
-		LastaFluteでは、Swaggerを <em class="keyword">気軽に JSON リクエストを送信するためのツール</em> として活用しています。
+		LastaFluteでは、Swaggerを <em class="keyword">気軽にリクエストを送信するためのツール</em> として活用しています。
 	</p>
 	<p>
 		JSON APIだと、(少なくとも開発時に)画面が存在せず気軽に Action を叩けなかったり、JSON Body
 		のリクエストでブラウザから簡単に叩けなかったりすることが往々にしてあります。
 		そこで、Swaggerを活用して、気軽に動作確認できるようにしています。
+		<span class="frm">(もちろん、UnitTestはしっかり書いていった方が良いですが、最終的には実際にリクエストを飛ばして動くことを確認した方が良いです)</span>
 	</p>
-	<p>
-		もちろん、UnitTestはしっかり書いていった方が良いですが、最終的に実際にリクエストを飛ばして動くことを確認した方が良いです。
+	<p class="imgbox">
+		<a href="../../../../data/snapshot/lastaflute/swagger/lastaflute-swagger-ui-basic-snapshot.png" title="SwaggerUIの概要"><img src="../../../../data/snapshot/lastaflute/swagger/lastaflute-swagger-ui-basic-snapshot.png" alt="SwaggerUIの概要" width="550" height="380" /></a>
 	</p>
 
 	<h2 id="setup">Swaggerの環境セットアップ</h2>
@@ -80,7 +81,7 @@
 		TODO jflute 画面の画像を入れたりして、簡単な使い方の説明を書きたい
 	</p>
 
-	<h2 id="egvalue">e.g.のススメ</h2>
+	<h2 id="egdefault">e.g.デフォルト値のススメ</h2>
 	<h3 id="valueproblem">どんな値をリクエストすればいいのかわからない問題</h3>
 	<p>
 		Swaggerで、どんな形のJSONを投げればいいのか？がわかっても、それぞれの項目に具体的にどんな業務的な値を入れたらいいのか？がわからないと、ちゃんとした業務的な動作確認ができません。
@@ -91,12 +92,39 @@
 		という値を記載しておけば、それが Swagger 上のデフォルト値として扱われます。
 	</p>
 	<p>
+		これを、<em class="keyword">e.g.デフォルト値</em> (いーじーでふぉるとち) と呼びます。
+	</p>
+<pre><span class="codetitle">e.g. use "e.g." in javadoc in Maven @Java</span><code>
+<span class="keyword">public class</span> ProductSearchBody {
+
+    <span class="comment">/** keyword of product name <span class="point">e.g. Stranger</span> */</span>
+    @Length(max = <span class="literal">10</span>)
+    <span class="keyword">public</span> String <span class="attribute">productName</span>;
+
+    <span class="comment">/** status of product <span class="point">e.g. ONS</span> */</span>
+    <span class="keyword">public</span> CDef.ProductStatus <span class="attribute">productStatus</span>;
+
+    <span class="comment">/** keyword of member name that purchases <span class="point">e.g. S</span> */</span>
+    @Length(max = <span class="literal">5</span>)
+    <span class="keyword">public</span> String <span class="attribute">purchaseMemberName</span>;
+}
+</code></pre>
+	<p class="imgbox">
+		<a href="../../../../data/snapshot/lastaflute/swagger/lastaflute-swagger-ui-egdefault-snapshot.png" title="SwaggerUIでe.g.デフォルト値"><img src="../../../../data/snapshot/lastaflute/swagger/lastaflute-swagger-ui-egdefault-snapshot.png" alt="SwaggerUIでe.g.デフォルト値" width="550" height="320" /></a>
+	</p>
+	<p>
 		コード上でも、しっかりドキュメントになりますし、LastaDoc
 		にも反映されるので、しっかり書いておけば様々なところで活躍しますので、積極的に付けていくと良いでしょう。
 	</p>
 	<p>
-		TODO jflute 力尽きた...また後で
+		細かい仕様は以下のようになります。
 	</p>
+	<ul>
+		<li>ダブルクォーテーションで囲うことで、空白を含めることができたり、値の後ろにコメントを書ける</li>
+		<li>Executeメソッドのjavadocで、Pathパラメーターの引数(@param)にも付けることができる</li>
+		<li>リストの場合は、[a, b, c] という[]形式で書く</li>
+		<li>nullと書いたら、nullという文字列ではなく、指定してないのと同じ</li>
+	</ul>
 
 </div>
 </div>
