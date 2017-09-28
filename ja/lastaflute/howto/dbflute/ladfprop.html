@@ -47,6 +47,7 @@
 		<li><a href="#freegen">freeGenListプロパティ</a></li>
 		<li><a href="#prophtml">propertiesHtmlListプロパティ</a></li>
 		<li><a href="#overridemap">規約の微調整 <span class="frm">(overrideMap)</span></a></li>
+		<li><a href="#gencls">区分値の自動生成</a></li>
 	</ul>
 
 	<h2 id="about">Lasta の dfprop とは？</h2>
@@ -65,16 +66,10 @@
     <span class="comment"># package for your domain name, e.g. com.example</span>
     ; domainPackage = <span class="literal">org.docksidestage</span>
 
-    <span class="comment"># keywords for environment properties, same as directory name</span>
-    ; environmentList = <span class="keyword">list:</span>{ <span class="literal">integration</span> ; <span class="literal">production</span> }
-
-    <span class="comment"># environment dispatch by lasta.env of system property?</span>
-    ; isUseLastaEnv = <span class="keyword">true</span>
-
     <span class="comment"># settings for common project of all web applications</span>
     ; commonMap = <span class="keyword">map:</span>{
         ; path = <span class="literal">..</span>
-        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; doc ; namedcls }
         ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
     }
 
@@ -82,12 +77,12 @@
     ; appMap = <span class="keyword">map:</span>{
         ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
             ; path = <span class="literal">../../maihama-dockside</span>
-            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; html ; doc ; appcls ; namedcls }
             ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
         }
         ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
             ; path = <span class="literal">../../maihama-hangar</span>
-            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+            ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; doc ; appcls ; namedcls }
             ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
         }
     }
@@ -128,7 +123,7 @@
 <span class="comment"># settings for common project of all web applications</span>
 ; commonMap = <span class="keyword">map:</span>{
     ; path = <span class="literal">..</span>
-    ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; doc ; namedcls }
     ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
 }
 
@@ -136,12 +131,12 @@
 ; appMap = <span class="keyword">map:</span>{
     ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
         ; path = <span class="literal">../../maihama-dockside</span>
-        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; html ; doc ; appcls ; namedcls }
         ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
     }
     ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
         ; path = <span class="literal">../../maihama-hangar</span>
-        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; doc ; appcls ; namedcls }
         ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
     }
 }
@@ -169,6 +164,8 @@
 		<dt>jsp @ *</dt><dd>JSPのパス定義の自動生成 <span class="frm">(WEB-INF/view配下の .jsp と.html)</span></dd>
 		<dt>html @ *</dt><dd>HTMLテンプレートのパス定義の自動生成 <span class="frm">(WEB-INF/view配下の .html)</span></dd>
 		<dt>doc</dt><dd>LastaDocの自動生成 <span class="frm">(dbflute_[app]db/output/lasta配下に出力)</span></dd>
+		<dt>appcls</dt><dd>アプリ区分値の自動生成 <span class="frm">(AppCDefとして出力、アプリプロジェクトのみ)</span></dd>
+		<dt>namedcls</dt><dd>名前付き区分値の自動生成 <span class="frm">([Named]CDefとして出力、commonでも可能)</span></dd>
 	</dl>
 	<p>
 		"@" (あっとまーく) の付いているものは、commonプロジェクトでは不要です。
@@ -233,12 +230,12 @@ dbflute_maihamadb
 ; appMap = <span class="keyword">map:</span>{
     ; <span class="literal">dockside</span> = <span class="keyword">map:</span>{
         ; path = <span class="literal">../../maihama-dockside</span>
-        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; jsp ; doc }
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; html ; doc ; appcls ; namedcls }
         ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
     }
     ; <span class="literal">hangar</span> = <span class="keyword">map:</span>{
         ; path = <span class="literal">../../maihama-hangar</span>
-        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; doc }
+        ; freeGenList = <span class="keyword">list:</span>{ env ; config ; label ; message ; mail ; template ; doc ; appcls ; namedcls }
         ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
     }
 }
@@ -250,6 +247,14 @@ dbflute_maihamadb
 	<p>
 		ソースコード的には、DfLastaFluteFreeGenReflector です。
 	</p>
+
+	<h2 id="gencls">区分値の自動生成</h2>
+	<p>
+		freeGenList で、appcls や namedcls を指定することで、<em class="mark">アプリ区分値</em>
+		や <em class="mark">名前付き区分値</em> を自動生成することができます。
+	</p>
+	<div class="relatedpage"><a href="./appcls.html">アプリ区分値の自動生成</a></div>
+	<div class="relatedpage"><a href="./namedcls.html">名前付き区分値の自動生成</a></div>
 
 </div>
 </div>
