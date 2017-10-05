@@ -108,9 +108,9 @@
 
     <span class="comment">// DB検索して、セッションにユーザー情報を入れて、ログイン履歴残して...</span>
     <span class="comment">// ログイン必須画面で拒否されて飛ばされてきてたら、そっちへログインリダイレクト</span>
-    <span class="keyword">return</span> <span class="attribute">docksideLoginAssist</span>.<span class="point">loginRedirect</span>(<span class="localvar">form</span>.<span class="attribute">email</span>, form.<span class="attribute">password</span>
+    <span class="keyword">return</span> <span class="attribute">docksideLoginAssist</span>.<span class="point">loginRedirect</span>(createCredential(<span class="localvar">form</span>)
             , op -> op.rememberMe(<span class="localvar">form</span>.<span class="attribute">rememberMe</span>) <span class="comment">// 第三引数: 必要ならクッキー</span>
-            , () -> { <span class="comment">// 第四引数: OKのときのリダイレクト先</span>
+            , () -> { <span class="comment">// 第三引数: OKのときのリダイレクト先</span>
         <span class="keyword">return</span> redirect(MypageAction.<span class="keyword">class</span>); <span class="comment">// 通常はマイページへ</span>
     });
 }
@@ -122,6 +122,10 @@
             <span class="localvar">messages</span>.addErrorsLoginFailure(<span class="literal">"email"</span>);
         }
     }
+}
+
+<span class="keyword">private</span> UserPasswordCredential createCredential(SigninForm <span class="localvar">form</span>) {
+    <span class="keyword">return new</span> UserPasswordCredential(<span class="localvar">form</span>.<span class="attribute">account</span>, <span class="localvar">form</span>.<span class="attribute">password</span>);
 }
 </code></pre>
 	<p>
