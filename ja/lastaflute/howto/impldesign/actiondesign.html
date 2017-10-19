@@ -80,6 +80,12 @@
 		</li>
 		<li><a href="#nomorecaossuper">No more, ごちゃごちゃスーパークラス</a></li>
 		<li><a href="#nomorecaosref">No more, あっちらこっちら参照</a></li>
+		<li><a href="#nomorecaosname">No more, しっちゃかめっちゃかクラス名</a>
+			<ul>
+				<li><a href="#classsuffix">クラス名の規約は？</a></li>
+				<li><a href="#classsuffix">クラス名の慣習は？</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="overview">いきなりまとめ</h2>
@@ -490,6 +496,67 @@ app
 		</p>
 		<p>
 			<em class="keyword">再利用されないクラスと再利用されるクラスを明確にわけることが大切だと考えます。</em>
+		</p>
+	</div>
+
+	<div class="inucolumn">
+		<h2 id="nomorecaosname">No more, しっちゃかめっちゃかクラス名</h2>
+		<p>
+			LastaFluteは、わざとクラス名が不自由になっています。
+			単純に自由のメリットと不自由のメリットとのトレードオフで、後者を最大限享受するという思想を持っています。
+		</p>
+		<p>
+			例えば、ある画面ではパラメーターの受け取りが Model になっているのに、ある画面では Dto になっていたり。
+			JSONを戻すクラスが Bean だと思いきや、あっちでは Model になっていたり、同じLogicでもDIするものとnewするものがあったり...
+			<span class="frm">(バラけているだけならまだしも、入れ替わったりすることがあると可読性を著しく低下させます)</span>
+		</p>
+		<p>
+			スタートアップでは、命名のポリシーを決める時間も無ければ浸透させることもなかなか困難であることが多いです。
+			"フレームワークとしてこうである、こうじゃないと動かない" というのを提供することで、何もポリシー決めのない開発でも
+			"ある程度" 統一性のあるコードになるようにしています。
+		</p>
+		<h3 id="classsuffix">クラス名の規約は？</h3>
+		<p>
+			こうじゃないともう動かないという強いものです。
+		</p>
+		<dl class="shoshortkeymainlist">
+			<dt>...Action</dt><dd>リクエストを受け付けるクラス</dd>
+			<dt>...Form</dt><dd>GETやPOSTのパラメーターを受け取るクラス <span class="frm">(ActionForm)</span></dd>
+			<dt>...Body</dt><dd>リクエストされるJSONを受け取るクラス <span class="frm">(JsonBody)</span></dd>
+			<dt>...Assist</dt><dd>web依存ありでActionの実装を助けるクラス <span class="frm">(ActionAssist)</span></dd>
+			<dt>...Logic</dt><dd>web依存せず業務単位で切り出されるクラス <span class="frm">(BusinessLogic)</span></dd>
+			<dt>...Bhv</dt><dd>DBFluteのBehaviorクラス <span class="frm">(自動生成なので規約というか決まり)</span></dd>
+		</dl>
+		<h3 id="classsuffix">クラス名の慣習は？</h3>
+		<p>
+			規約ではないですが、特にポリシーがなければ LastaFlute のデフォルト慣習としてお奨めしているものです。
+			スタートアップでは慣習を決めて浸透させること自体が大変なので、"フレームワークの思想の通りでお願いします"
+			と一言言って終わりにできるようにと。LastaFlute の Example もこのようになっています。
+		</p>
+		<dl class="shoshortkeymainlist">
+			<dt>...Bean</dt><dd>Thymeleafに渡すデータのクラス、その他の用途でも使うかも <span class="frm">(HtmlBean)</span></dd>
+			<dt>...Result</dt><dd>レスポンスで戻すJSONを表現するクラス <span class="frm">(JsonResult)</span></dd>
+			<dt>...Part</dt><dd>BodyやResultなどの入れ物クラスの一部データをまとめたインナークラス</dd>
+			<dt>...Param</dt><dd>Logicなどで項目が多い場合にまとめる引数クラス <span class="frm">(RemoteApiの送信データでも利用)</span></dd>
+			<dt>...Return</dt><dd>Logicなどで項目が多い場合にまとめる戻り値クラス <span class="frm">(RemoteApiの受信データでも利用)</span></dd>
+		</dl>
+		<p>
+			これでもまだ網羅できてなくて迷う場面もあるかと思いますが、これらデフォルトの慣習をベースに名前を付けていけば、そこまで大外れしないでしょう。
+			そういう意味でも、ある程度のベースをフレームワークが提供することに意義があると考えています。
+		</p>
+		<h4>(Json)Result, とてもよかった</h4>
+		<p>
+			(Json)Resultは、実際に実践してみてとても良かったです。"受け取るもの" と "戻すもの" がすぐに判別できるというのは、想像以上にコードを読み解く上でのストレスを無くすものだなと感じました。
+			ちょっとライブラリのクラスなどとかぶりそうな名前ですが、基本 Action のそばにしかいないので、紛れることもほとんどありません。
+			<span class="frm">(別に 100% ユニークな名前じゃなくてもいいのです)</span>
+		</p>
+		<h4>Part も意外によかった</h4>
+		<p>
+			また、Partも、実際に実践してみて想像以上に良かったです。JSONでのやり取りが多くなると、再利用もしない小さな入れ物クラスが増えます。
+			それらをつどつど独立した .java ファイルにするのはわりと手間だし、バラバラになるとJSONの全体像もわかりづらくなるので、インナークラスで表現するのがこれまたLastaFluteの慣習です。
+			そのとき、インナークラスの名前もどうする？という風になりますが、一部のデータということで Part
+			にすることで、クラス検索のときのノイズ対策にもなりますし、一番外側の重要なクラスなのかそうではないのかの判断に付き可読性も上がりました。
+			ということで、FormでもBodyでもBeanでもResultでもParamでも、一部のデータをまとめるインナークラスは Part にしています。
 		</p>
 	</div>
 
