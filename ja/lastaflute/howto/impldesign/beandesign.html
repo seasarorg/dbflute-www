@@ -62,16 +62,16 @@
 				<li><a href="#recyclepart">Partを再利用するときは？</a></li>
 			</ul>
 		</li>
-		<li><a href="#javadocegdefault">JavaDocでe.g.デフォルト値</a></li>
+		<li><a href="#egdefault">JavaDocでe.g.デフォルト値</a></li>
+		<li><a href="#latostring">気軽なtoString()</a></li>
 	</ul>
 
 	<h2 id="overview">いきなりまとめ</h2>
 	<h3 id="proposal">実装デザインの提案</h3>
 	<dl class="keymainlist">
-		<dt>ネストした構造</dt><dd>再利用しないのであれば <em class="mark">インナークラス</em> で定義</dd>
-		<dt>そのインナークラスの名前</dt><dd><em class="mark">...Part</em> で終わる</dd>
-		<dt>JavaDocコメントのe.g.</dt><dd><em class="mark">e.g.</em> でデフォルト値 (いーじーでふぉるとち) を書く</dd>
-		<dt>気軽なtoString()</dt><dd><em class="mark">Lato</em> で気軽にtoString()をオーバーライド</dd>
+		<dt><a href="#nestedexp">ネストした構造の表現</a></dt><dd><em class="mark">インナークラス</em> で定義、クラス名は <em class="mark">...Part</em> で終わる</dd>
+		<dt><a href="#egdefault">JavaDocでe.g.デフォルト値</a></dt><dd><em class="mark">e.g.</em> でデフォルト値 (いーじーでふぉるとち) を書く <span class="frm">(for Swagger)</span></dd>
+		<dt><a href="#latostring">気軽なtoString()</a></dt><dd><em class="mark">Lato</em> で気軽にtoString()をオーバーライド</dd>
 	</dl>
 
 	<h2 id="nestedexp">ネストした構造の表現</h2>
@@ -161,7 +161,7 @@
 		<dt>どちらもネスト利用</dt><dd>Partという名前のまま独立クラスに</dd>
 	</dl>
 
-	<h2 id="javadocegdefault">JavaDocでe.g.デフォルト値</h2>
+	<h2 id="egdefault">JavaDocでe.g.デフォルト値</h2>
 	<p>
 		JavaDocには、e.g. 形式でデフォルト値を書くことをオススメします。
 	</p>
@@ -224,6 +224,67 @@
         <span class="comment">/** ホテルの種別 e.g. DIN */</span>
         @Required
         <span class="keyword">public</span> CDef.HotelType <span class="attribute">hotelType</span>;
+    }
+}
+</code></pre>
+
+	<h2 id="latostring">気軽なtoString()</h2>
+	<p>
+		Beanクラスは、何かとデバッグログで出力される機会があります。中のデータを出力しておくことで、デバッグに役立つことが多々あります。
+	</p>
+	<p>
+		そこで、toString() をオーバーライドして、Lato.string(this)
+		という風に実装すれば、リフレクションで Bean の中身の情報を出力してくれます。
+		一番外側のクラスにだけ付けておけば、ネストしたクラスの中身も出力してくれます。
+	</p>
+	<p>
+		LastaFluteの補完テンプレートを入れていれば、<em class="mark">_lato</em> でサクッと補完できます。
+	</p>
+<pre><span class="codetitle">e.g. javadoc has e.g.default values @Java</span><code>
+<span class="keyword">public class</span> MaihamaBody {
+
+    @Required
+    <span class="keyword">public</span> String <span class="attribute">title</span>;
+
+    @Required
+    @Valid
+    <span class="keyword">public</span> SeaPart <span class="attribute">sea</span>;
+
+    <span class="keyword">public static class</span> SeaPart {
+
+        @Required
+        @Valid
+        <span class="keyword">public</span> ShowPart <span class="attribute">docksideStage</span>;
+
+        @Required
+        @Valid
+        <span class="keyword">public</span> ShowPart <span class="attribute">hangarStage</span>;
+
+        <span class="keyword">public static class</span> ShowPart {
+
+            @Required
+            <span class="keyword">public</span> String <span class="attribute">showName</span>;
+
+            @Required
+            <span class="keyword">public</span> CDef.ShowType <span class="attribute">showType</span>;
+        }
+    }
+
+    @NotNull
+    <span class="keyword">public</span> List&lt;HotelPart&gt; <span class="attribute">hotels</span>;
+
+    <span class="keyword">public static class</span> HotelPart {
+        
+        @Required
+        <span class="keyword">public</span> String <span class="attribute">hotelName</span>;
+
+        @Required
+        <span class="keyword">public</span> CDef.HotelType <span class="attribute">hotelType</span>;
+    }
+
+    @Override <span class="comment">// _lato => ctrl+space でこれら全部補完</span>
+    <span class="keyword">public</span> String toString() { <span class="comment">// 一番外側のクラスだけオーバーライドでOK</span>
+        <span class="keyword">return</span> <span class="point">Lato</span>.string(<span class="keyword">this</span>);
     }
 }
 </code></pre>
