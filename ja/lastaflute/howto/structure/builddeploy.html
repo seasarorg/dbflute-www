@@ -49,7 +49,12 @@
 				<li><a href="#javawar">warをjavaコマンドで実行</a></li>
 				<li><a href="#lastaenv">lasta.envを指定</a></li>
 				<li><a href="#portswitch">ポート番号をスイッチ</a></li>
-				<li><a href="#traditionaldeploy">インストールTomcatなどに配備も</a></li>
+			</ul>
+		</li>
+		<li><a href="#traditionaldeploy">インストールTomcatで起動</a>
+			<ul>
+				<li><a href="#alsolastaenv">こちらでも lasta.env を忘れずに</a></li>
+				<li><a href="#2waywar">実行可能warをそのまま配備できる</a></li>
 			</ul>
 		</li>
 		<li><a href="#mavenwar">Mavenでwarファイル作成</a>
@@ -118,14 +123,25 @@ java <span class="point">-Dlasta.env=production</span> -jar maihama-dockside.war
 		もっと、細かくデプロイ環境ごとに変更したいとかであれば、javaコマンドの引数で指定したりしてもよいでしょう。
 		main() の args から指定された port 番号を取得できるようにするなど。
 	</p>
-	<h3 id="traditionaldeploy">インストールTomcatなどに配備も</h3>
+
+	<h2 id="traditionaldeploy">インストールTomcatで起動</h2>
+	<h3 id="alsolastaenv">こちらでも lasta.env を忘れずに</h3>
+	<p>
+		組み込みTomcat (jar起動) ではなく、<em class="smallmark">インストールしたTomcat</em>
+		にwarを配備させて動作させる場合は、<em class="keyword">必ず Tomcat 側のJava実行時のプロパティ指定で lasta.env を設定してください。</em>
+	</p>
+	<p>
+		jar起動でもwar配備でも、Javaプロパティの lasta.env で [app]_env.properties を切り替えることには変わりません。
+		lasta.env を設定しないで配備して起動した場合は、ローカル開発環境用の設定で動いてしまいます。<span class="frm">(例えば、HotDeployのままで起動してしまいます)</span>
+	</p>
+	<h3 id="2waywar">実行可能warをそのまま配備できる</h3>
 	<p>
 		実行可能warは、インストールTomcat (シェルなどで実行するTomcat) などに配備できる形をキープしています。
 		なので、実行可能でもあるし、そのままインストールTomcatに配備することもできます。
 		<span class="frm">(実行可能warの中身に関しては後述)</span>
 	</p>
 	<p>
-		ただ、その場合、それぞれの環境ごとにインストールTomcatのJava実行時のプロパティ指定で、lasta.envを忘れないようにしましょう。
+		この場合、[App]Bootクラスは利用されずに起動することになります。
 	</p>
 
 	<h2 id="mavenwar">Mavenでwarファイル作成</h2>
