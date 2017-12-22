@@ -78,6 +78,7 @@
 		<li><a href="#jobrunner">LaJobRunnerのカスタマイズ</a>
 			<ul>
 				<li><a href="#runneroption">用意されているオプション</a></li>
+				<li><a href="#commoncolumn">共通カラムの設定はExampleデフォルト</a></li>
 			</ul>
 		</li>
 		<li><a href="#jobmanager">JobManagerでマネジメント</a></li>
@@ -524,24 +525,21 @@ app
 		に対する共通処理や挙動の変更などを実現できます。LaJobRunner はアプリが new しますので、好きなようにオーバーライドできます。
 	</p>
 	<p>
-		例えば、すべてのJobでエラーが発生した時にメールを飛ばしたかったら、logJobException()
-		をオーバーライドすると良いでしょう<span class="frm">(@since 0.2.7)</span>。
+		例えば、すべてのJobでエラーが発生した時にメールを飛ばしたかったら、useErrorLogHook()
+		を利用すると良いでしょう<span class="frm">(@since 0.2.7)</span>。
 	</p>
-<pre><span class="codetitle">e.g. override job runner for error mail sending @Java</span><code>
+<pre><span class="codetitle">e.g. call useErrorLogHook() of job runner for error mail sending @Java</span><code>
 @Override
 <span class="keyword">public</span> LaJobRunner createRunner() {
-    <span class="keyword">return new</span> LaJobRunner() {
-        @Override
-        <span class="keyword">protected void</span> <span class="point">logJobException</span>(LaJobRuntime <span class="localvar">runtime</span>, String <span class="localvar">msg</span>, Throwable <span class="localvar">cause</span>) {
-            <span class="keyword">super</span>.logJobException(<span class="localvar">runtime</span>, <span class="localvar">msg</span>, <span class="localvar">cause</span>); <span class="comment">// これ消さないで！</span>
-            <span class="comment">// 例えば、ここでメールを飛ばすとか！</span>
-            <span class="comment">// msgにはスタックトレースなど含まれているので必要に応じてメール本文に</span>
-        }
-    }.useAccessContext(<span class="localvar">resource</span> -&gt; {
+    <span class="keyword">return new</span> LaJobRunner().useAccessContext(<span class="localvar">resource</span> -&gt; {
         <span class="keyword">return</span> <span class="attribute">accessContextLogic</span>.create(<span class="localvar">resource</span>, () -&gt; OptionalThing.empty(), () -&gt; OptionalThing.empty(), () -&gt; <span class="attribute">APP_TYPE</span>);
+    }).<span class="point">useErrorLogHook</span>(<span class="localvar">resource</span> -&gt; {
+        String bigMessage = resource.getBigMessage(); <span class="comment">// スタックトレース含みのまるごとエラーメッセージ</span>
+        <span class="comment">// 例えば、ここでメールを飛ばすとか！</span>
     });
 }
 </code></pre>
+	<h3 id="commoncolumn">共通カラムの設定はExampleデフォルト</h3>
 	<p>
 		大抵の場合、DBFluteの共通カラムの設定は、必ずやる必要があるでしょう。
 		LastaFlute の Example では、最初から設定されています。Actionクラスのものと再利用するために、Logicクラスに切り出されています(AccessContextLogic)。
