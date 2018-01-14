@@ -43,17 +43,29 @@
 		<li><a href="#ready">事前準備</a></li>
 		<li><a href="#debuglog">デバッグログ設定 <span class="frm">(Lasta Di なら)</span></a></li>
 		<li><a href="#debuglog">デバッグログ設定 <span class="frm">(Seasarのままなら)</span></a></li>
-		<li><a href="#aliasdef">別名(和名)の利用</a>
+		<li><a href="#aliasdef">別名(和名)の利用 <span class="frm">(+ Logic作成)</span></a>
 			<ul>
 				<li><a href="#checkdbcomment">DBコメントの確認</a></li>
-				<li><a href="#makelogic">ロジックの作成</a></li>
+				<li><a href="#makelogic">ロジックを作りながら確認</a></li>
+				<li><a href="#howtologic">ロジックの作り方はこのように</a></li>
 				<li><a href="#dfpropsetting">DBFluteプロパティの設定</a></li>
+				<li><a href="#dfpropcomment">dfpropのひな形コメントを使おう</a></li>
 				<li><a href="#genereatedoc">再自動生成して確認</a></li>
+				<li><a href="#completiondoc">メソッド補完時のJavaDoc表示</a></li>
+				<li><a href="#stopgetselect">getであんまり検索したくない</a></li>
 			</ul>
 		</li>
-		<li><a href="#stopgetselect">getであんまり検索したくない</a></li>
 		<li><a href="#uppercase">ちょっと大文字にしてみましょうか</a></li>
 		<li><a href="#emptystring">空文字をDBに入れたくない</a></li>
+		<li><a href="#introdecomment">DBコメントを充実させましょう！</a>
+			<ul>
+				<li><a href="#studydecomment">デコメントを知ろう</a></li>
+				<li><a href="#letsdecomment">デコメントしてみよう</a></li>
+				<li><a href="#letspickup">Docを叩いてピックアップ</a></li>
+				<li><a href="#resolveconflict">コンフリクトを直すデコメントを</a></li>
+				<li><a href="#howtodbcomment">どんなDBコメントを書いたらいいの？</a></li>
+			</ul>
+		</li>
 		<li><a href="#nextsection">次のセクション</a></li>
 	</ul>
 
@@ -80,7 +92,7 @@
 	<div class="relatedpage"><a href="./news.html#20151010">ハンズオンニュース - Lasta Di に変更</a></div>
 	<p>
 		既に何度もデバッグログにはお世話になっているかと思います。
-		EclipseコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
+		Eclipse (or IntelliJ) のコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
 		これは、既に src/main/resources 配下に logback.xml が(最初から)配置されているからです。ここでは簡単ではありますが、この設定ファイルを修正すると出力されるログが変更されることを学びましょう。
 	</p>
 	<div class="detailpage"><a href="../../manual/function/genbafit/implfit/debuglog/index.html">現場フィット - デバッグログ</a></div>
@@ -96,7 +108,7 @@
 	<div class="relatedpage"><a href="./news.html#20151010">ハンズオンニュース - Lasta Di に変更</a></div>
 	<p>
 		既に何度もデバッグログにはお世話になっているかと思います。
-		EclipseコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
+		Eclipse (or IntelliJ) のコンソールにはDBFluteの検索処理のログが出力されていたかと思います。
 		これは、既に src/test/resources 配下に log4j.properties (もしくは、src/main/resources に logback.xml)
 		が(最初から)配置されているからです。ここでは簡単ではありますが、この設定ファイルを修正すると出力されるログが変更されることを学びましょう。
 	</p>
@@ -111,18 +123,14 @@
 		に変更してみてください。変化を確認したら、元に戻してもう一度テストを実行して確認しましょう。
 	</p>
 
-	<h2 id="aliasdef">別名(和名)の利用</h2>
+	<h2 id="aliasdef">別名(和名)の利用 <span class="frm">(+ Logic作成)</span></h2>
 	<h3 id="checkdbcomment">DBコメントの確認</h3>
 	<p>
 		replace-schema-10-basic.sql をご覧ください。
 		たくさんのDBコメントが定義されています。そして、DBコメントには、そのテーブルやカラムの別名(和名)と説明が "別名 : 説明"
-		という形式で記載されています。<span class="frm">(講師によるお話あり)</span>
+		という形式で記載されています。まず、SchemaHTML を開いて、DBコメントがその形式であることを確認してください。<span class="frm">(全てのコメントが必ずこの形式とは限りません)</span>
 	</p>
-	<p>
-		まず、SchemaHTML を開いて、DBコメントが "別名 : 説明"
-		の形式であることを確認してください。(ただし、全てのコメントが必ずこの形式とは限りません)
-	</p>
-	<h3 id="makelogic">ロジックの作成</h3>
+	<h3 id="makelogic">ロジックを作りながら確認</h3>
 	<p>
 		それでは唐突ですが、JavaDoc上にDBコメントがあるかどうかを確認するために実装してみましょう。
 		以下のロジックを作成してテストしてみてください。実装しながら、それぞれのカラムに対応するメソッドの
@@ -138,10 +146,8 @@
 				<li>suffixが無効な値なら例外: IllegalArgumentException</li>
 				<li>会員名称、生年月日、正式会員日時をログに出す <span class="frm">(Slf4j or CommonsLogging)</span></li>
 				<li>そのログのログレベル、INFO/DEBUGどちらがいいか考えて実装してみましょう <span class="frm">(この先ずっと同じ)</span></li>
+				<li>このメソッドは、他の人が呼び出すことを想定して public にしましょう <span class="frm">(この先ずっと同じ)</span></li>
 			</ul>
-		</dd>
-		<dd>
-			※こちらのメソッドは、他の人が呼び出すことを想定して public にしましょう。<span class="frm">(この先ずっと同じ)</span>
 		</dd>
 		<dt>対応テストメソッド</dt>
 		<dd>test_selectSuffixMemberList_指定したsuffixで検索されること()</dd>
@@ -159,6 +165,7 @@
 			</ul>
 		</dd>
 	</dl>
+	<h3 id="howtologic">ロジックの作り方はこのように</h3>
 	<p>
 		ちなみに、今回からエクササイズをより実践に近いもので行います。
 	</p>
@@ -212,15 +219,45 @@
 		<dd>設定する値 => true</dd>
 	</dl>
 	<div class="relatedpage"><a href="../../manual/reference/dfprop/documentdefinition/index.html">documentMap.dfprop</a></div>
+	<div class="inucolumn">
+		<h3 id="dfpropcomment">dfpropのひな形コメントを使おう</h3>
+		<p>
+			よく使われるプロパティは、dfpropファイルの中にすでにコメント付きのひな形があります。
+			それをそのまま活用しましょう。
+		</p>
+<pre><span class="codetitle">e.g. コメント付きのDBFluteプロパティ(aliasDelimiterInDbComment)のひな形 @documentMap.dfprop</span><code>
+    <span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o aliasDelimiterInDbComment: (NotRequired - Default '')
+    #  If the alias exists in its DB comment like as follows:
+    #    member name : The name of member's full name
+    #  you can use the alias in DBFlute world, java-doc, SchemaHTML...
+    #  DB comment which does not have the delimiter is not treated
+    #  as alias, treated as description (real comment).
+    #  But you can change it by 'isDbCommentOnAliasBasis'.
+    #
+    #; aliasDelimiterInDbComment = : <span class="point">// ここのコメントを外して利用しましょう</span>
+    # - - - - - - - - - -/</span>
+</code></pre>
+	</div>
 	<h3 id="genereatedoc">再自動生成して確認</h3>
 	<p>
 		DBFluteプロパティの設定が終わったら、Docタスク、そして、Generateタスクを実行してみてください。
 		SchemaHTML、および、それぞれのカラムに対応するメソッドの JavaDoc コメントに変化があるはずです。
 	</p>
 	<div class="detailpage"><a href="../../manual/function/genbafit/implfit/aliasdefinition/index.html">現場フィット - 別名(和名)の定義</a></div>
-
 	<div class="inucolumn">
-		<h2 id="stopgetselect">getであんまり検索したくない</h2>
+		<h3 id="completiondoc">メソッド補完時のJavaDoc表示</h3>
+		<p>
+			IntelliJのみなさん、デフォルトではメソッド補完時に JavaDoc は表示されないので、
+			補完中に control+J を押してみてください。これをぜひ習慣化しましょう。
+		</p>
+		<p>
+			Eclipseの場合は、デフォルトでメソッド補完時に JavaDoc
+			がぴょいぴょいでますので、無視せずに着目しましょう。有益な情報が入っているかもしれませんよ。
+		</p>
+	</div>
+	<div class="inucolumn">
+		<h3 id="stopgetselect">getであんまり検索したくない</h3>
 		<p>
 			ハンズオンでは、Logicの検索メソッドの名前は、select...() になっています。データを取得するからget？ではありません。
 			検索している、探している、ということを意識したいのです。
@@ -233,7 +270,7 @@
 
 	<h2 id="uppercase">ちょっと大文字にしてみましょうか</h2>
 	<p>
-		ハンズオンのMySQLでは、SQL上で大文字小文字を区別しないで済むような設定がされています。<span class="frm">(講師による小話あり)</span>
+		ハンズオンのMySQLでは、SQL上で大文字小文字を区別しないで済むような設定がされています。
 	</p>
 	<div class="relatedpage"><a href="../../manual/reference/dbway/mysql/index.html#ignorecase">MySQLの取扱い - ケース区別なしのススメ</a></div>
 	<p>
@@ -261,19 +298,76 @@
 	<h2 id="emptystring">空文字をDBに入れたくない</h2>
 	<p>
 		DB上の空文字は、地味にトラブルを引き起こす可能性があります。
-		<span class="frm">(講師による小話あり)</span>
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/genbafit/projectfit/emptystring/index.html">現場フィット - 空文字の取扱い</a></div>
 	<p>
 		次のセクションから、登録や更新処理を行います。
 		この時点で、DBに空文字が入らないように施策を打っておきます。
-		以下のプロパティ(littleAdjustmentMap.dfprop)を再自動生成しておきましょう。
+		以下のプロパティ (littleAdjustmentMap.dfprop) を設定して再自動生成しておきましょう。
 	</p>
 <pre><span class="codetitle">e.g. Entityにセットされた空文字をnullに変換 @littleAdjustmentMap.dfprop</span><code>
 ; isEntityConvertEmptyStringToNull = <span class="keyword">true</span>
 </code></pre>
+	<p>
+		特に動作確認のためのエクササイズは用意していませんが、自動生成されたクラスの差分を見て、何が変わったのかだけ確認しておきましょう。
+		<span class="frm">(非常に単純な実装になっています)</span>
+	</p>
+
+	<h2 id="introdecomment">DBコメントを充実させましょう！</h2>
+	<h3 id="studydecomment">デコメントを知ろう</h3>
+	<p>
+		まず、こちらのページをじっくりお読みください。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../manual/function/generator/intro/decomment/index.html"> -->Decomment (でこめんと) on Intro<!-- </a> --></span></div>
+	<p>
+		もし、DBFluteのバージョンが古ければ<span class="frm">(1.1.6より前だったら)</span>、いますぐ最新にしてみましょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../manual/environment/upgrade/index.html"> -->DBFluteのアップグレード<!-- </a> --></span></div>
+	<h3 id="letsdecomment">デコメントしてみよう</h3>
+	<p>
+		それでは、"ハンズオンのDBも、こんなコメント書いてあったら良かったのに..."
+		を想像して、Intro経由で幾つかのテーブルやカラムに対してデコメントしてみましょう。
+		同時にブラウザを二つ <span class="frm">(タブを二つでもOKかも)</span> 起動して、同じカラムのコメントを修正してコンフリクトも発生させてみてください。
+	</p>
+	<p>
+		想定通り、pieceファイルが作成されていることを確認しましょう。
+		<span class="frm">(もし、git環境があればコミットしてみましょう。実運用では、それぞれのトピックブランチでのコミットを想定しています)</span>
+	</p>
+	<p>
+		また、この時点では、ブラウザで直接 SchemaHTML を開いたときは、今回修正・追加したデコメントはまだ反映されていません。
+		それも確認しておきましょう。
+	</p>
+	<h3 id="letspickup">Docを叩いてピックアップ</h3>
+	<p>
+		今度は、Docタスクを叩いてみましょう。
+	</p>
+	<p>
+		想定通り、pieceファイルは削除され、pickupファイルが作成されていることを確認しましょう。
+		<span class="frm">(もし、git環境があればコミットしてみましょう。実運用では、DB変更専用のブランチでのコミットを想定しています)</span>
+	</p>
+	<p>
+		そして、ブラウザで直接 SchemaHTML を開いて、反映されていることを確認しましょう。
+	</p>
+	<h3 id="resolveconflict">コンフリクトを直すデコメントを</h3>
+	<p>
+		最後に、コンフリクトを直すデコメントをしておきましょう。
+		<span class="frm">(もし、git環境があれば、これもコミット)</span>
+	</p>
+	<div class="inucolumn">
+		<h3 id="howtodbcomment">どんなDBコメントを書いたらいいの？</h3>
+		<p>
+			ぜひブログを参考に。
+		</p>
+		<div class="detailpage"><a href="http://d.hatena.ne.jp/jflute/20170628/letsdbcomment">コードにコメント書くのにDBにコメント書かないの？ | jfluteの日記</a></div>
+		<p>
+			このように、SchemaHTML経由 (Intro経由) で、DBコメントを "みんな" で追加できますので、実務でもどんどん使っていきましょう。
+		</p>
+	</div>
 
 	<h2 id="nextsection">次のセクション</h2>
+	<p>
+		<em class="keyword">設定系のエクササイズも飛ばさず学んでみたでしょうか？</em>
+	</p>
 	<p>
 		さて、次のセクションへ
 	</p>
