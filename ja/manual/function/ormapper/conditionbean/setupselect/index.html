@@ -62,8 +62,8 @@
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#severalcall">同じメソッドの複数回の呼び出し</a></li>
-				<li><a href="#noncall">SetupSelect しなければ null</a></li>
-				<li><a href="#nullable">関連データが存在しなければ null</a></li>
+				<li><a href="#noncall">SetupSelect しなければ (Optionalとしての) empty</a></li>
+				<li><a href="#nullable">関連データが存在しなければ (Optionalとしての) empty</a></li>
 				<li><a href="#beforeunion">UnionQuery よりも先に呼び出す</a></li>
 			</ul>
 		</li>
@@ -101,13 +101,13 @@
 		<em class="keyword">setupSelect_[relation-table]()</em> を呼び出します。
 	</p>
 <pre><span class="codetitle">e.g. SetupSelectの実装手順 (Eclipseでコード補完) {MEMBER_STATUS} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.se <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
---
-cb.<span class="point">setupSelect_MemberStatus()</span>;
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+    cb.se <span class="comment">// ".se" とだけ打ってメソッド(関連テーブル)を選んで enter</span>
+    --
+    cb.<span class="point">setupSelect_MemberStatus()</span>;
+});
 <span class="keyword">for</span> (Member member : memberList) {
-    MemberStatus status = member.<span class="point">getMemberStatus()</span>;
+    MemberStatus status = member.<span class="point">getMemberStatus()</span>.get(); <span class="comment">// not-null FK</span>
     <span class="abbreviation">...</span> = status.getMemberStatusName();
 }
 </code></pre>
@@ -123,17 +123,17 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		を呼び出します(以降、ネストは with 始まり)。
 	</p>
 <pre><span class="codetitle">e.g. ネストした関連テーブル (Eclipseでコード補完) {MEMBER_WITHDRAWAL,...} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.seSMW <span class="comment">// ".seSMW" と打って enter</span>
---
-cb.setupSelect_MemberWithdrawalAsOne().wiWR <span class="comment">// ".wiWR" と打って enter</span>
---
-cb.setupSelect_MemberWithdrawalAsOne().<span class="point">withWithdrawalReason()</span>;
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-<span class="keyword">for</span> (Member member : memberList) {
-    MemberWithdrawal withdrawal = member.<span class="point">getMemberWithdrawalAsOne()</span>;
-    WithdrawalReason reason = withdrawal.<span class="point">getWithdrawalReason()</span>;
-    <span class="abbreviation">...</span> = reason.getWithdrawalReasonText();
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+    cb.seSMW <span class="comment">// ".seSMW" と打って enter</span>
+    --
+    cb.setupSelect_MemberWithdrawalAsOne().wiWR <span class="comment">// ".wiWR" と打って enter</span>
+    --
+    cb.setupSelect_MemberWithdrawalAsOne().<span class="point">withWithdrawalReason()</span>;
+});
+<span class="keyword">for</span> (Member member : memberList) { <span class="comment">// these are non-required relationship</span>
+    member.<span class="point">getMemberWithdrawalAsOne()</span>.ifPresent(withdrawal -&gt; {
+        withdrawal.<span class="point">getWithdrawalReason()</span>.ifPresent(reason -&gt; <span class="abbreviation">...</span>);
+    });
 }
 </code></pre>
 <pre><span class="codetitle">e.g. SetupSelectを利用したときのSQL {MEMBER_WITHDRAWAL,...} @DisplaySql</span><code>
@@ -471,26 +471,25 @@ MemberWithdrwal <span class="localvar">wdl</span> = <span class="localvar">membe
 		また、SQL上で結合回数が(無駄に)増えてしまうことはありません。
 	</p>
 <pre><span class="codetitle">e.g. 同階層の複数のネストした関連テーブル {PURCHASE,MEMBER,MEMBER_STATUS...} @Java</span><code>
-PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
 cb.<span class="point">setupSelect_Member()</span>.withMemberStatus();
 cb.<span class="point">setupSelect_Member()</span>.withMemberWithdrawalAsOne();
 </code></pre>
 
-	<h3 id="noncall">SetupSelect しなければ null</h3>
+	<h3 id="noncall">SetupSelect しなければ (Optionalとしての) empty</h3>
 	<p>
-		SetupSelect しなかった関連テーブルの、(基点テーブルの) Entity での取得メソッドは null
-		を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
+		SetupSelect しなかった関連テーブルの、(基点テーブルの) Entity での取得メソッドは (Optionalとしての) empty
+		を戻します。(関連テーブルのEntityのインスタンス自体が存在しない)
 	</p>
 
-	<h3 id="nullable">関連データが存在しなければ null</h3>
+	<h3 id="nullable">関連データが存在しなければ (Optionalとしての) empty</h3>
 	<p>
 		(基点テーブルのデータに対応する)関連テーブルのデータが存在しない場合は、(その基点テーブルの) Entity
-		において、その関連テーブルの取得メソッドは null を戻します(関連テーブルのEntityのインスタンス自体が存在しない)。
+		において、その関連テーブルの取得メソッドは empty を戻します。(関連テーブルのEntityのインスタンス自体が存在しない)
 	</p>
 	<p>
-		例えば、many-to-one でNotNull制約のFKカラムによる関連テーブルであれば、null
+		例えば、many-to-one でNotNull制約のFKカラムによる関連テーブルであれば、empty
 		が戻ることはありえません。NullableなFKカラムの場合、もしくは、OnClause や InlineView
-		にて関連テーブルを結合前に絞り込んだ場合などにおいては null が戻る可能性があります。
+		にて関連テーブルを結合前に絞り込んだ場合などにおいては empty が戻る可能性があります。
 	</p>
 
 	<h3 id="beforeunion">UnionQuery よりも先に呼び出す</h3>
@@ -501,9 +500,10 @@ cb.<span class="point">setupSelect_Member()</span>.withMemberWithdrawalAsOne();
 	</p>
 	<div class="relatedpage"><a href="../howto.html#basicspec">ConditionBeanの使い方 - 基本仕様</a></div>
 <pre><span class="codetitle">e.g. UnionQueryよりも先に呼び出すこと {MEMBER_STATUS} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus(); <span class="comment">// o</span>
-cb.union(<span class="keyword">new</span> UnionQuery<span class="abbreviation">...</span>)
+cb.union(unionCB -&gt; {
+    <span class="abbreviation">...</span>
+});
 <span class="comment">//cb.setupSelect_MemberStatus(); x</span>
 </code></pre>
 
@@ -533,7 +533,6 @@ cb.union(<span class="keyword">new</span> UnionQuery<span class="abbreviation">.
 	</p>
 	<div class="relatedpage"><a href="../query/relation.html">Query(Relation)</a></div>
 <pre><span class="codetitle">e.g. Query(Relation)で同じ関連テーブル {MEMBER_STATUS} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.setupSelect_MemberStatus(); <span class="comment">// 会員ステータスを取得</span>
 cb.query().queryMemberStatus().set<span class="abbreviation">...</span>; <span class="comment">// 会員ステータスで絞り込み</span>
 </code></pre>
