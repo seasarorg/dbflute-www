@@ -49,7 +49,12 @@
 				<li><a href="#gendriven">自動生成ドリブン</a></li>
 			</ul>
 		</li>
-		<li><a href="#twowaysql">2Way-SQL</a></li>
+		<li><a href="#twowaysql">2Way-SQL</a>
+			<ul>
+				<li><a href="#canexecuteplain">素のままでも実行できる</a></li>
+				<li><a href="#generateentity">SQLのメタデータからEntityを自動生成</a></li>
+			</ul>
+		</li>
 		<li><a href="#pmcomment">パラメータコメント</a></li>
 		<li><a href="#role">実装上の役割</a></li>
 		<li><a href="#flexibility">自由度の高さを重視</a></li>
@@ -78,6 +83,7 @@
 	</dl>
 
 	<h2 id="twowaysql">2Way-SQL</h2>
+	<h3 id="canexecuteplain">素のままでも実行できる</h3>
 	<p>
 		外だしSQLはアプリケーションでもSQLツールでもどちらでも実行可能です。
 	</p>
@@ -97,45 +103,69 @@
 	</p>
 <pre><span class="codetitle">e.g. 2Way-SQLでの実装 (アプリケーション・SQLツールの両方で実行可能) @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
-<span class="keyword">select</span> member.MEMBER_ID
-     , member.MEMBER_NAME
-     , (<span class="keyword">select</span> sum(purchase.PURCHASE_PRICE)
-          <span class="keyword">from</span> PURCHASE purchase
-         <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
-           <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
+<span class="keyword">select</span> mb.MEMBER_ID
+     , mb.MEMBER_NAME
+     , (<span class="keyword">select</span> sum(pur.PURCHASE_PRICE)
+          <span class="keyword">from</span> PURCHASE pur
+         <span class="keyword">where</span> pur.MEMBER_ID = mb.MEMBER_ID
+           <span class="keyword">and</span> pur.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
        ) <span class="keyword">as</span> UNPAID_PRICE_SUMMARY
-     , memberStatus.MEMBER_STATUS_NAME
+     , stat.MEMBER_STATUS_NAME
 <span class="comment">-- ELSE select count(*)</span>
 <span class="comment">/*END*/</span>
-  <span class="keyword">from</span> MEMBER member
+  <span class="keyword">from</span> MEMBER mb
     <span class="comment">/*IF pmb.isPaging()*/</span>
-    <span class="keyword">left outer join</span> MEMBER_STATUS memberStatus
-      <span class="keyword">on</span> member.MEMBER_STATUS_CODE = memberStatus.MEMBER_STATUS_CODE
+    <span class="keyword">left outer join</span> MEMBER_STATUS stat
+      <span class="keyword">on</span> mb.MEMBER_STATUS_CODE = stat.MEMBER_STATUS_CODE
     <span class="comment">/*END*/</span>
  <span class="comment">/*BEGIN*/</span>
  <span class="keyword">where</span>
-   <span class="comment">/*IF pmb.memberId != null*/</span>member.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span><span class="comment">/*END*/</span>
+   <span class="comment">/*IF pmb.memberId != null*/</span>
+       mb.MEMBER_ID = <span class="comment">/*pmb.memberId*/</span><span class="literal">3</span>
+   <span class="comment">/*END*/</span>
    <span class="comment">/*IF pmb.memberStatusCode != null*/</span>
-   <span class="keyword">and</span> member.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
+   <span class="keyword">and</span> mb.MEMBER_STATUS_CODE = <span class="comment">/*pmb.memberStatusCode*/</span><span class="literal">'FML'</span>
    <span class="comment">/*END*/</span>
    <span class="comment">/*IF pmb.unpaidMemberOnly*/</span>
    <span class="keyword">and exists</span> (<span class="keyword">select</span> <span class="literal">'yes'</span>
-                 <span class="keyword">from</span> PURCHASE purchase
-                <span class="keyword">where</span> purchase.MEMBER_ID = member.MEMBER_ID
-                  <span class="keyword">and</span> purchase.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
+                 <span class="keyword">from</span> PURCHASE pur
+                <span class="keyword">where</span> pur.MEMBER_ID = mb.MEMBER_ID
+                  <span class="keyword">and</span> pur.PAYMENT_COMPLETE_FLG = <span class="literal">0</span>
        )
    <span class="comment">/*END*/</span>
  <span class="comment">/*END*/</span>
  <span class="comment">/*IF pmb.isPaging()*/</span>
- <span class="keyword">order by</span> UNPAID_PRICE_SUMMARY <span class="keyword">desc</span>, member.MEMBER_ID <span class="keyword">asc</span>
+ <span class="keyword">order by</span> UNPAID_PRICE_SUMMARY <span class="keyword">desc</span>, mb.MEMBER_ID <span class="keyword">asc</span>
  <span class="comment">/*END*/</span>
 </code></pre>
+	<h3 id="generateentity">SQLのメタデータからEntityを自動生成</h3>
 	<p>
 		この 2Way-SQL を利用することで、さらなる恩恵を得ることができます。アプリ用のSQLをSQLツールで実行できるということは、DBFluteというツールでも実行できます。
-		DBFluteでは、2Way-SQL の特性を活かし、実行することで得られるSQL自体のメタデータから、SQLの select 句のカラム構成に対応する受け取り用の
-		Entity クラス、CustomizeEntity を自動生成します。
+	</p>
+	<p>
+		DBFluteでは、2Way-SQL の特性を活かし、実行することで得られるSQL自体のメタデータから、SQLの select 句のカラム構成に対応する
+		<em class="keyword">受け取り用の Entity クラス "CustomizeEntity" を自動生成</em> します。
 	</p>
 	<div class="relatedpage"><a href="../../generator/task/sql2entity/index.html">DBFluteタスク - Sql2Entityタスク</a></div>
+<pre><span class="codetitle">e.g. Sql2Entityで自動生成したクラスを生成 @Java</span><code>
+<span class="comment">// 自動生成されたSQLへの引数クラス (ParameterBean) を使ってバインド変数の値をセット</span>
+<span class="point">UnpaidSummaryMemberPmb</span> pmb = <span class="keyword">new</span> UnpaidSummaryMemberPmb();
+pmb.<span class="subpoint">setMemberName_PrefixSearch</span>(<span class="literal">"S"</span>);
+
+<span class="comment">// 外だしSQLの実行 (MemberBhv_selectUnpaidSummaryMember.sql)</span>
+List&lt;UnpaidSummaryMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(pmb);
+
+<span class="comment">// 自動生成された受け取りクラス (CustomizeEntity) を使って検索データを扱う</span>
+<span class="keyword">for</span> (<span class="point">UnpaidSummaryMember</span> member : memberList) {
+    Integer memberId = member.<span class="subpoint">getMemberId()</span>;
+    String memberName = member.<span class="subpoint">getMemberName()</span>;
+    String statusName = member.<span class="subpoint">getMemberStatusName()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+
+</code></pre>
 
 	<h2 id="pmcomment">パラメータコメント</h2>
 	<p>
