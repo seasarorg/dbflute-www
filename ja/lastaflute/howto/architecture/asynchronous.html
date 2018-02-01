@@ -54,7 +54,6 @@
 			<ul>
 				<li><a href="#callbackasync">async()のコールバックが非同期</a></li>
 				<li><a href="#transactionasyc">非同期処理でトランザクションは？</a></li>
-				<li><a href="#notaction">Actionクラス以外では？</a></li>
 			</ul>
 		</li>
 		<li><a href="#inheritable">もろもろ引き継ぎ</a>
@@ -104,12 +103,15 @@
 	<h2 id="howto">実装の仕方</h2>
 	<h3 id="callbackasync">async()のコールバックが非同期</h3>
 	<p>
-		Actionクラスにおいては、async()メソッドの引数で指定したコールバックが非同期になります。
+		AsyncManager の async() メソッドの引数で指定したコールバックが非同期になります。
 	</p>
-<pre><span class="codetitle">e.g. Actionクラスで async() で非同期処理 @Java</span><code>
+<pre><span class="codetitle">e.g. Actionクラスで AsyncManager を DI して async() で非同期処理 @Java</span><code>
+@Resource
+<span class="keyword">private</span> AsyncManager <span class="attribute">asyncManager</span>;
+
 @Execute
 <span class="keyword">public</span> HtmlResponse index() {
-    <span class="point">async</span>(() -&gt; {
+    <span class="attribute">asyncManager</span>.<span class="point">async</span>(() -&gt; {
         <span class="comment">// ここが非同期 (メール送信とか)</span>
     });
     <span class="comment">// 呼び出しスレッドは先に進む</span>
@@ -118,31 +120,33 @@
 </code></pre>
 	<h3 id="transactionasyc">非同期処理でトランザクションは？</h3>
 	<p>
-		もし、非同期処理で新たにトランザクションを発行したいときは、async() の中で requiresNew() を使います。
+		もし、非同期処理で新たにトランザクションを発行したいときは、TransactionStage の requiresNew() を
+		async() の中で使います。
 	</p>
 <pre><span class="codetitle">e.g. 非同期処理でトランザクション @Java</span><code>
+@Resource
+<span class="keyword">private</span> AsyncManager <span class="attribute">asyncManager</span>;
+
+@Resource
+<span class="keyword">private</span> TransactionStage <span class="attribute">transactionStage</span>;
+
 @Execute(<span class="abbreviation">...</span>)
 <span class="keyword">public void</span> index() {
-    <span class="subpoint">async</span>(() -&gt; {
-        <span class="point">requiresNew</span>(tx -&gt; {
+    <span class="attribute">asyncManager</span>.<span class="subpoint">async</span>(() -&gt; {
+        <span class="attribute">transactionStage</span>.<span class="point">requiresNew</span>(tx -&gt; {
             <span class="comment">// 更新処理とか</span>
         });
     });
 }
 </code></pre>
-	<h3 id="notaction">Actionクラス以外では？</h3>
 	<p>
-		AsyncManager を DI し、async() を使います。
-	</p>
-	<p>
-		つまり、Actionクラスでの async() の実体が AsyncManager です。
-		トランザクションも、TransactionStage を DI することで、requiresNew() が利用できます。
+		非同期処理の最初はトランザクションかかってないので required() でも同じですが、required() だと "あれっ、外側の引き継いでるのかな？...ん？" と迷いやすいので、このケースでは迷いのない requiresNew() をオススメしています。
 	</p>
 
 	<h2 id="inheritable">もろもろ引き継ぎ</h2>
 	<h3 id="threadcache">スレッドキャッシュを引き継ぎ</h3>
 	<p>
-		あまり知られていない機能ですが(積極的に使うものでもない)、SAFluteが提供するスレッドキャッシュが非同期スレッドにも引き継がれます。
+		あまり知られていない機能ですが(積極的に使うものでもない)、LastaFluteが提供するスレッドキャッシュが非同期スレッドにも引き継がれます。
 		Mapの内容がまるごとコピーされると考えていいです。
 	</p>
 	<h3 id="accesscontext">AccessContextを引き継ぎ</h3>
@@ -151,7 +155,7 @@
 		DBFlute の AccessContext が引き継がれるので、トランザクションさえ発行すれば更新処理が可能です。
 	</p>
 	<p>
-		ただ、AccessContext がコールバック形式の Provider として設定されている場合 (SAFluteのデフォルトではそうなっている) は、Provider
+		ただ、AccessContext がコールバック形式の Provider として設定されている場合 (LastaFluteのデフォルトではそうなっている) は、Provider
 		自体が引き継がれるのではなく、async呼び出し時点の Provider の provideXxx() の戻り値が固定的にコピーされます。
 		Provider を複数スレッドで共有すると、そのコールバックがスレッドセーフになっていないとおかしなことになる可能性があるので、そのようにしています。
 		Provider形式だとしても、呼ばれるたびに違う値が戻ってくるような作り方をすることはまずないと考えられ、かつ、
