@@ -277,7 +277,7 @@ LoginManager  <span class="comment">// ログインの操作が定義されて�
  * @param resource The resource of login handling to determine. (NotNull)
  * @throws LoginRequiredException When it fails to access the action for permission denied.
  */</span>
-<span class="keyword">protected</span> void checkPermission(LoginHandlingResource resource) {
+<span class="keyword">protected void</span> checkPermission(LoginHandlingResource <span class="localvar">resource</span>) {
     <span class="comment">// no check as default, you can override</span>
 }
 </code></pre>
@@ -289,24 +289,42 @@ LoginManager  <span class="comment">// ログインの操作が定義されて�
 		それぞれの [App]LoginAssist にて、 この checkPermission() をオーバーライドして、権限チェックをするとよいでしょう。
 		権限エラーの場合は、LoginRequiredException を throw します。
 	</p>
-	<p>
-		TODO jflute 権限チェックのExampleコードを載せる
-	</p>
+<pre><span class="codetitle">e.g. checkPermission()で権限チェックして、ダメなら例外 @Java</span><code>
+@Override
+<span class="keyword">protected void</span> checkPermission(LoginHandlingResource <span class="localvar">resource</span>) {
+    <span class="abbreviation">...</span> = <span class="localvar">resource</span>.getExecuteMethod(); <span class="comment">// (いい感じに使って判定)</span>
+    <span class="keyword">if</span> (<span class="abbreviation">...</span>) { <span class="comment">// 権限なければ</span>
+        <span class="keyword">throw new</span> LoginRequiredException(<span class="literal">"デバッグ用メッセージ、何かいい感じに"</span>);
+    }
+}
+</code></pre>
 	<h3 id="authsettings">どの画面がどんな権限？</h3>
 	<p>
 		ここは様々な方法がありますが、一例として、アノテーションに付けるやり方があります。
 	</p>
+<pre><span class="codetitle">e.g. Executeメソッドにアノテーションでロールを紐付ける @Java</span><code>
+@Execute()
+<span class="point">@Permission</span>({CDef.Role.<span class="attribute">営業</span>, CDef.Role.<span class="attribute">企画</span>}) <span class="comment">// 営業と企画の役割の人が実行できる</span>
+<span class="keyword">public</span> HtmlResponse index() {
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+<pre><span class="codetitle">e.g. Executeメソッドに付ける権限のアノテーション @Java</span><code>
+<span class="comment">// (アノテーションに付けるアノテーションはいい感じに)</span>
+<span class="keyword">public @interface</span> Permission {
+
+    CDef.Role value();
+}
+</code></pre>
 	<p>
-		TODO jflute 権限定義のExampleコードを載せる
+		ロールはテーブル区分値として定義しておきます。自動生成された CDef をアノテーションで指定できるようにして、checkPermission()
+		の中でそのアノテーションの値を取得して、ログインユーザーのロールと照らし合わせてアクセス可能かどうかを判定します。
 	</p>
 	<p>
-		ロールはテーブル区分値として定義しておきます。自動生成された CDef をアノテーションで指定できるようにして、
-		checkPermission()の中でそのアノテーションの値を取得して、ログインユーザーのロールと照らし合わせてアクセス可能かどうかを判定します。
-	</p>
-	<p>
-		必ずこのやり方である必要はありません。データベースに画面と必要なロールを紐づけるテーブルを作ってもよいでしょう。
-		ただ、画面が増えたときにそのテーブルのデータもメンテナンスしてあげないといけないので、アノテーションであればプログラム作成時に自然と権限が付与されるので、
-		定義し忘れのトラブルは少ないでしょう。
+		もちろん、必ずこのやり方である必要はありません。例えば、データベースの中で、画面(Executeメソッド)とロールを紐づけてもよいでしょう。
+		データベースの中で権限設定を閉じこめることができて、動的にも修正できるのがメリットです。
+		ただ、画面が増えたときにそのテーブルのデータもメンテナンスしてあげないといけないので、インクリメンタル開発の現場ではちょっと運用が煩雑になります。
+		アノテーション方式であればプログラム作成時に自然と権限が付与されるので、定義し忘れのトラブルは少ないでしょう。
 	</p>
 
 	<h2 id="nondb">DB以外のもので認証するなら？</h2>
