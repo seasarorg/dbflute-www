@@ -59,6 +59,12 @@
 				<li><a href="#batchspecify">batchUpdate() の SpecifyColumn が...</a></li>
 			</ul>
 		</li>
+		<li><a href="#outsidesql">外だしSQLのメソッドが変更</a>
+			<ul>
+				<li><a href="#outsidesqlflat">用途ごとにチェーンではなくフラットに</a></li>
+				<li><a href="#outsidesqltraditional">フリースタイルはtraditionalに</a></li>
+			</ul>
+		</li>
 		<li><a href="#localdate">日付が LocalDate に！</a>
 			<ul>
 				<li><a href="#mappingdate">日付のマッピング</a></li>
@@ -459,6 +465,51 @@ memberList.forEach(<span class="localvar">member</span> <span class="keyword">-&
 		それにより、オーバーロードのメソッドはあまり意味を持たなくなりましたので、シンプル化しました。
 	</p>
 	<div class="relatedpage"><a href="http://d.hatena.ne.jp/jflute/20141001/cblambda">外部サイト - jfluteの日記 - DBFlute-1.1でLambdaでCB</a></div>
+
+	<h2 id="outsidesql">外だしSQLのメソッドが変更</h2>
+	<h3 id="outsidesqlflat">用途ごとにチェーンではなくフラットに</h3>
+	<p>
+		外だしSQLのメソッドが用途ごとにチェーンをやめて、フラットに変更されています。
+	</p>
+	<dl class="lolongkeymainlist">
+		<dt>outsideSql().selectList()</dt><dd><em class="bigmark">outsideSql().selectList()</em> <span class="frm">(変わらず)</span></dd>
+		<dt>outsideSql().entityHan...().selectEntity()</dt><dd><em class="bigmark">outsideSql().selectEntity()</em></dd>
+		<dt>outsideSql().manualPaging().selectPage()</dt><dd><em class="bigmark">outsideSql().selectPage()</em></dd>
+		<dt>outsideSql().autoPaging().selectPage()</dt><dd><em class="bigmark">outsideSql().selectPage()</em></dd>
+		<dt>outsideSql().cursorHan...().selectCursor()</dt><dd><em class="bigmark">outsideSql().selectCursor()</em></dd>
+	</dl>
+	<p>
+		というように、フラットになっています。
+	</p>
+	<p>
+		manualPagingとautoPagingの区別は、Sql2EntityのときにDBFluteが自動判別します。
+		ParameterBean自身が、その区別の情報を持っているのでプログラム上は意識する必要はありません。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/generator/task/sql2entity/pmbclassoption.html#pagingoption">ParameterBeanのクラスオプション - ページング検索のオプション</a></div>
+	<h3 id="outsidesqltraditional">フリースタイルはtraditionalに</h3>
+	<p>
+		引数にSQLのパスや戻り値の型を渡す "フリースタイル形式" のやり方は、非推奨になりました。
+		基本的に、TypedParameterBeanを使っていきましょうというポリシーです。
+	</p>
+	<div class="relatedpage"><a href="../manual/function/ormapper/outsidesql/concept.html#freestyle">フリースタイル形式のメソッド</a></div>
+<pre><span class="codetitle">e.g. フリースタイル形式の自由度考慮のメソッドによる呼び出し @Java</span><code>
+String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>; <span class="comment">// BehaviorQueryPath</span>
+SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// ParameterBean</span>
+pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>
+
+<span class="comment">// 【1.1.x: Java8版】</span>
+<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
+<span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().<span class="subpoint">traditionalStyle()</span>.selectList(<span class="point">path</span>, <span class="point">pmb</span>, <span class="point">entityType</span>);
+
+<span class="comment">// 【1.0.x: Java6版】</span>
+<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
+<span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().selectList(<span class="point">path</span>, <span class="point">pmb</span>, <span class="point">entityType</span>);
+</code></pre>
 
 	<h2 id="localdate">日付が LocalDate に！</h2>
 	<p>

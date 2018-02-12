@@ -49,7 +49,7 @@
 		<li><a href="#typedandfree">タイプセーフ、そして、自由度考慮</a>
 			<ul>
 				<li><a href="#typedpmb">TypedParameterBean</a></li>
-				<li><a href="#freestyle">フリースタイル形式のメソッド</a></li>
+				<li><a href="#freestyle">フリースタイル形式のメソッド <span class="frm">(非推奨)</span></a></li>
 			</ul>
 		</li>
 	</ul>
@@ -207,7 +207,7 @@ List&lt;SimpleMember&gt; memberList
 		ConditionBean はテーブルごとの CB、外だしSQLはSQLごとの TypedParameterBean、プロシージャはプロシージャごとの
 		ProcedurePmb、つまり、DBFlute全体で "対応する Bean" を基点にDBアクセスが始まっていると言えます。
 	</p>
-	<h3 id="freestyle">フリースタイル形式のメソッド</h3>
+	<h3 id="freestyle">フリースタイル形式のメソッド <span class="frm">(非推奨)</span></h3>
 	<p>
 		ほとんどの外だしSQLは、この TypedParameterBean の形式で実行されることが想定されます。
 		ただし、場合によっては 1:1:1 とならないような利用方法も想定されます。例えば、ParameterBean
@@ -215,12 +215,24 @@ List&lt;SimpleMember&gt; memberList
 		や独自に作ったクラスを使ったり(String, Integer などのスカラ型や DomainEntity は除く)、など。
 		そういった場合のために、この三つの要素をバラバラに指定するフリースタイル形式の自由度考慮のメソッドも用意されています。
 	</p>
+	<p>
+		ただ、1.1.x (Java8版) からは、外だしSQLのクラスをあまり再利用するべきではないだろうというポリシーから、
+		基本的には非推奨で、traditionalStyle()というメソッドを経由するようになっています。
+	</p>
+	<div class="relatedpage"><a href="../../generator/task/sql2entity/customizeentity.html#recylclingentity">CustomizeEntity - 他の自動生成Entityは指定できない!?</a></div>
 <pre><span class="codetitle">e.g. フリースタイル形式の自由度考慮のメソッドによる呼び出し @Java</span><code>
 String path = MemberBhv.<span class="attribute">PATH_selectSimpleMember</span>; <span class="comment">// BehaviorQueryPath</span>
 SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb(); <span class="comment">// ParameterBean</span>
 pmb.setMemberName_PrefixSearch(<span class="literal">"S"</span>);
 Class&lt;SimpleMember&gt; entityType = SimpleMember.<span class="keyword">class</span>
 
+<span class="comment">// 【1.1.x: Java8版】</span>
+<span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
+<span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
+List&lt;SimpleMember&gt; memberList
+        = <span class="attribute">memberBhv</span>.outsideSql().<span class="subpoint">traditionalStyle()</span>.selectList(<span class="point">path</span>, <span class="point">pmb</span>, <span class="point">entityType</span>);
+
+<span class="comment">// 【1.0.x: Java6版】</span>
 <span class="comment">// 外だしSQLの実行 (MemberBhv_selectSimpleMember.sql)</span>
 <span class="comment">// 何を呼び出すか？ 何の Entity 型で受け取るか？ は SimpleMemberPmb が解決</span>
 List&lt;SimpleMember&gt; memberList
