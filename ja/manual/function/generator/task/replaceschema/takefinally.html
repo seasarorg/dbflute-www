@@ -53,6 +53,7 @@
 			</ul>
 		</li>
 		<li><a href="#twocheck">二種類のチェックを明確に</a></li>
+		<li><a href="#outsidescript">TakeFinallyで外部スクリプト</a></li>
 	</ul>
 
 	<h2 id="overview">処理概要</h2>
@@ -76,11 +77,13 @@
 		<dd>
 			<ul class="supplementlist">
 				<li>システムユーザでの実行機能なし</li>
+				<li>外部スクリプトを実行できる</li>
 			</ul>
 		</dd>
 	</dl>
 	<div class="relatedpage"><a href="./createtable.html">ReplaceSchema - テーブル作成</a></div>
 	<div class="relatedpage"><a href="#assert">this - データの整合性チェック</a></div>
+	<div class="relatedpage"><a href="#outsidescript">this - TakeFinallyで外部スクリプト</a></div>
 	<h3 id="afterloaddata">データ登録後に実行したいSQL</h3>
 	<p>
 		ここでの処理は、"登録されたデータのデータの整合性チェック"
@@ -247,6 +250,31 @@ playsql
 			業務的one-to-oneは構造として非常に特徴的であるため不正なデータが入るとデバッグ等で面倒なことが多く想定されるため、必ずチェックしたいところです。
 		</p>
 	</div>
+
+	<h2 id="outsidescript">TakeFinallyで外部スクリプト</h2>
+	<p>
+		TakeFinally において、SQLの実行だけでなく外部スクリプトを実行することができます。
+		大量データ登録など、DBMSのコマンドを利用して特殊な操作をすることもあるでしょう。
+		そういう場合のために、外部スクリプトが実行できるようになっています。<span class="frm">@since 1.1.7</span>
+	</p>
+	<p>
+		TakeFinally のSQLファイルと同じディレクトリに、take-finally で始まる拡張子が .bat もしくは .sh
+		のスクリプトファイルを配置します。SQLファイルも含めてファイル名の昇順で実行されます。
+	</p>
+<pre><span class="codetitle">e.g. TakeFinally の外部スクリプトの配置 @playsql</span><code>
+dbflute_maihamadb
+ |-playsql
+    |-take-finally-10-sea.sql
+    |-take-finally-20-land.sql
+    |-<span class="point">take-finally-30-piari.sh</span>
+</code></pre>
+	<p>
+		スクリプトの exitCode が 0 以外の場合は、スクリプト実行エラーとみなされます。
+	</p>
+	<p>
+		スクリプトのコンソールログは、固定で UTF-8
+		として取得され、DBFluteタスクのログと一緒に出力されます。なので場合によっては、ログが文字化けする可能性はありますが、処理に影響はありません。
+	</p>
 
 </div>
 </div>

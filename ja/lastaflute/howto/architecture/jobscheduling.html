@@ -82,10 +82,16 @@
 			</ul>
 		</li>
 		<li><a href="#jobmanager">JobManagerでマネジメント</a></li>
-		<li><a href="#example">Example実装は maihama-orleans にて</a></li>
+		<li><a href="#jobuniquelog">Jobごとにログファイルを分ける</a>
+			<ul>
+				<li><a href="#jobuniquelogmotivation">ログファイルを分けるきっかけ</a></li>
+				<li><a href="#jobuniquelogway">ログファイルを分けるやり方</a></li>
+			</ul>
+		</li>
 		<li><a href="#batchscreen">バッチ管理画面の作成</a></li>
 		<li><a href="#outsidecron">外だしスケジューラー方式</a></li>
 		<li><a href="#buttoncron">画面起動バッチ方式</a></li>
+		<li><a href="#example">Example実装は maihama-orleans にて</a></li>
 	</ul>
 
 	<h2 id="overview">Java上でスケジューリング</h2>
@@ -576,13 +582,52 @@ app
 		<dt>isUnscheduled()</dt><dd>このJobがunscheduleされたかどうか？</dd>
 	</dl>
 
-	<h2 id="example">Example実装は maihama-orleans にて</h2>
+	<h2 id="jobuniquelog">Jobごとにログファイルを分ける</h2>
+	<h3 id="jobuniquelogmotivation">ログファイルを分けるきっかけ</h3>
 	<p>
-		LastaJobのExample実装は、マルチプロジェクトのExampleであれば、maihamaプロジェクトの
-		maihama-orleans にあります。
+		基本的には、すべての Job のログが、ひとつの app_[app].log に出力されます。
+	</p>
+	<ul>
+		<li>本番では、通知ログ(INFO)以上のものしか出力しない <span class="frm">(DEBUGは出力しない)</span></li>
+		<li>Jobの業務的な結果は、showEndTitleRoll()に組み込むのであまりバラバラにならない</li>
+		<li>フレームワークの定型ログがほとんどなので、混ざってもそこまで見づらくはならない</li>
+		<li>そもそも、仕組みやアプリのJobやActionなど様々な出力箇所があるので簡単に分けられない</li>
+	</ul>
+	<p>
+		ということから、Exampleからのスタートアップ環境では、Jobが入っているアプリでも普段のアプリログがデフォルトのログになっています。
 	</p>
 	<p>
-		<a href="https://github.com/lastaflute/lastaflute-example-maihama">https://github.com/lastaflute/lastaflute-example-maihama.git</a>
+		ただ、もちろん、実行されるJobの数や頻度によって状況は変わります。
+		例えば、処理対象データがなければ空振りするだけの数分おきに起動するJobが何個もあるような場合、それらJobの開始と終了のログだけでログファイルが埋め尽くされてしまいます。
+		そのような場合は、分けたくなるでしょう。
+	</p>
+	<h3 id="jobuniquelogway">ログファイルを分けるやり方</h3>
+	<p>
+		LastaJobとしては、ログファイルの出力を分けることは(当然のことながら)できません。ログファイルの設定は Logback
+		にあります。どのような設定をすれば分けることができるのでしょうか？
+	</p>
+	<p>
+		Logbackに、SiftingAppender というログを複数のファイルに振り分けるための Appender が用意されています。
+		それを使って、Jobごとにログファイルが分かれるようにします。
+	</p>
+	<ol>
+		<li>AllJobSchedulerにて、すべての Job に JobUnique を指定 <span class="frm"> e.g. op.uniqueBy("sea")</span></li>
+		<li>どのようなルールで振り分けるかを決定する Discriminator クラスを作成する</li>
+		<li>Jobとは関係のないログを除外するような Filter クラスを作成する</li>
+		<li>logback.xml にて、それらクラスを使って SiftingAppender の設定をする</li>
+	</ol>
+	<p>
+		テストプロジェクトの lastaflute-test-fortress にて、そのExample実装があります。
+	</p>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-test-fortress/blob/master/src/main/java/org/docksidestage/bizfw/logback/LogbackJobUniqueDiscriminator.java">fortress - LogbackJobUniqueDiscriminator.java | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-test-fortress/blob/master/src/main/java/org/docksidestage/bizfw/logback/LogbackJobUniqueFilter.java">fortress - LogbackJobUniqueFilter.java | Github</a></div>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute-test-fortress/blob/master/src/main/resources/logback.xml">fortress - logback.xml | Github</a></div>
+	<p>
+		JobUnique の値が、そのままログファイルの名前で利用されます。
+	</p>
+	<p>
+		Discriminator と Filter は非常に定型的なクラスですが、厳密には LastaJob は Logback
+		には依存していないので、LastaJob に組み込むことができないため、アプリで用意します。
 	</p>
 
 	<div class="inucolumn">
@@ -747,6 +792,15 @@ app
 		むしろ、リカバリ実行用の画面というのを作るケースは多いと思うので、形はどうあれらバッチ起動画面を作ることは多いと想定しています。
 	</p>
 	<div class="relatedpage"><a href="#batchscreen">this - バッチ管理画面の作成</a></div>
+
+	<h2 id="example">Example実装は maihama-orleans にて</h2>
+	<p>
+		LastaJobのExample実装は、マルチプロジェクトのExampleであれば、maihamaプロジェクトの
+		maihama-orleans にあります。
+	</p>
+	<p>
+		<a href="https://github.com/lastaflute/lastaflute-example-maihama">https://github.com/lastaflute/lastaflute-example-maihama.git</a>
+	</p>
 
 </div>
 </div>
