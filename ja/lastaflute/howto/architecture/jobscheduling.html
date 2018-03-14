@@ -117,7 +117,7 @@
 		pom.xml に lasta-job を定義します。
 	</p>
 <pre><span class="codetitle">e.g. Lasta Job dependency @pom.xml</span><code>
-&lt;lasta.job.version&gt;<span class="literal">0.2.6</span>&lt;/lasta.job.version&gt;
+&lt;lasta.job.version&gt;<span class="literal">0.5.3</span>&lt;/lasta.job.version&gt;
 
 <span class="abbreviation">...</span>
 
@@ -585,7 +585,7 @@ app
 	<h2 id="jobuniquelog">Jobごとにログファイルを分ける</h2>
 	<h3 id="jobuniquelogmotivation">ログファイルを分けるきっかけ</h3>
 	<p>
-		基本的には、すべての Job のログが、ひとつの app_[app].log に出力されます。
+		基本的には、すべての Job のログが、ひとつのアプリログ app_[app].log に出力されます。
 	</p>
 	<ul>
 		<li>本番では、通知ログ(INFO)以上のものしか出力しない <span class="frm">(DEBUGは出力しない)</span></li>
@@ -628,6 +628,12 @@ app
 	<p>
 		Discriminator と Filter は非常に定型的なクラスですが、厳密には LastaJob は Logback
 		には依存していないので、LastaJob に組み込むことができないため、アプリで用意します。
+	</p>
+	<p>
+		Jobごとのログファイルを付け足すような設定にしているので、アプリログ app_[app].log 自体は今まで通りです。
+		起動時のログやActionクラスでのログも入るので、これはこれで大切なログです。
+		ただ、Jobのログは分割ログで見るから十分でアプリログからは除外したいというのであれば、アプリログの方で Filter
+		すると良いでしょう<span class="frm">(同じようにスレッド名のprefixで制御)</span>。
 	</p>
 
 	<div class="inucolumn">
