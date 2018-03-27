@@ -244,26 +244,35 @@
 	</p>
 	<h3 id="errorlog">非同期でエラーが発生したら？</h3>
 	<p>
-		非同期処理の中で例外が発生したときに、画面スレッドでのログほどではありませんが、ある程度の状態がスタックトレースと共にエラーログとして表示されるようにしています。
-		async()を呼び出したリクエストのURLやActionクラス、そのときのログインユーザーなどが判明します。
+		非同期処理の中で例外が発生したときに、スレッドの <em class="mark">業務的な状態</em>
+		がスタックトレースと共にエラーログとして記録されるようにしています。
 	</p>
-	<div class="relatedpage"><a href="./friendlylogging.html#requestexceptionlog">例外メッセージにRequestの状態も一緒に</a></div>
 <pre><span class="codetitle">e.g. asyncの中で例外が発生したときのログ @Log</span><code>
 <span class="abbreviation">...</span> ERROR <span class="abbreviation">...</span> - Failed to callback the asynchronous process.
 /= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =: /login/
   callbackInterface=<span class="abbreviation">...</span>logic.<span class="point">SeaLogic$$Lambda$11/1919928341@3daeb6a1</span>
-  , requestPath=<span class="point">/login/</span>
-  , entryMethod=<span class="abbreviation">...</span>web.login.<span class="point">SigninAction#index()</span>
-  , userBean={userId=null}
-  , accessContext=AccessContext:{localDateTimeProvider=org.docksidestage.app.base.MaihamaBaseAction$1$$Lambda$4/2105624763@3b76c7e6, user=M:-1,DCK,SigninAction}
-  , callbackContext=CallbackContext:{behaviorCommandHook=null, sqlFireHook=null, sqlLogHandler=null, sqlResultHandler=null, sqlStringFilter=org.dbflute.bhv.proposal.callback.SimpleTraceableSqlStringFilter@1d1c4db}
+  ; requestPath=<span class="point">/login/</span>
+  ; entryMethod=<span class="abbreviation">...</span>web.login.<span class="point">SigninAction#index()</span>
+  ; userBean={userId=1, sync=2018/03/27 19:26:38}@144e2f8b
+  ; accessContext=AccessContext:{localDateTimeProvider=org.docksidestage.app.base.MaihamaBaseAction$1$$Lambda$4/2105624763@3b76c7e6, user=M:-1,DCK,SigninAction}
+  ; callbackContext=CallbackContext:{behaviorCommandHook=null, sqlFireHook=null, sqlLogHandler=null, sqlResultHandler=null, sqlStringFilter=org.dbflute.bhv.proposal.callback.SimpleTraceableSqlStringFilter@1d1c4db}
+  ; sqlCount={total=3, selectCB=3, entityUpdate=0, queryUpdate=0, outsideSql=0, procedure=0}
 = = = = = = = = = =/ [00m3s385ms] #2caaa834
-java.lang.<span class="subpoint">RuntimeException: aaaaaa</span>
+java.lang.<span class="subpoint">IllegalStateException: sealand</span>
 	at org.dbflute.maihama.<span class="abbreviation">...</span>(<span class="abbreviation">...</span>java:98)
 	at org.dbflute.maihama.<span class="abbreviation">...</span>(<span class="abbreviation">...</span>java:432)
 	at org.dbflute.maihama.<span class="abbreviation">...</span>(<span class="abbreviation">...</span>java:24)
 <span class="abbreviation">...</span>
 </code></pre>
+	<ul class="codeoutro">
+		<li>async()を呼び出したリクエストのURL</li>
+		<li>async()を呼び出したリクエストのActionクラスとメソッド</li>
+		<li>そのときのログインユーザー</li>
+		<li>フレームワークの ThreadLocal の状態</li>
+		<li>その非同期処理の中での、SQLの発行回数</li>
+		<li>その非同期処理の中での、メールの送信回数</li>
+		<li>その非同期処理が始まってから落ちるまでの処理時間</li>
+	</ul>
 	<h3 id="hashtag">非同期を示すハッシュタグ</h3>
 	<p>
 		非同期処理の開始と終了のデバッグログで、#async でログがでるようになっています。
