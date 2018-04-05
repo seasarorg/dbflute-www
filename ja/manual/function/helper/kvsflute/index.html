@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,KVSFlute,KVS,Redis" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>KVSFlute | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>KVSFlute</h1>
+	<p>
+		DBFluteプロジェクトが提供するライブラリ KVSFlute のページ。
+	</p>
+	<ul class="indexlist">
+		<li><a href="#about">KVSFluteとは？</a>
+			<ul>
+				<li><a href="#typesafe">自動生成してタイプセーフ</a></li>
+				<li><a href="#architecture">KVSFluteのアーキテクチャ</a></li>
+				<li><a href="#lastaeg">LastaFluteでの利用例</a></li>
+			</ul>
+		</li>
+		<li><a href="#keypoint">KVSFluteのキーポイント</a>
+			<ul>
+				<li><a href="#useredis">KVSとして Redis を使っている</a></li>
+				<li><a href="#kvscache">KVSキャッシュ</a></li>
+				<li><a href="#kvsstore">KVSストア</a></li>
+			</ul>
+		</li>
+		<li><a href="#setup">KVSFluteのセットアップ</a></li>
+	</ul>
+
+	<h2 id="about">KVSFluteとは？</h2>
+	<p>
+		KVSFlute は、KVS (Redisなど) に対して、DBFluteライクにアクセスするライブラリです。
+	</p>
+	<h3 id="typesafe">自動生成してタイプセーフ</h3>
+	<p>
+		DBFlute の FreeGen と組み合わせて利用することで、タイプセーフなアクセスインターフェースを自動生成します。
+		アプリからは、自動生成されたクラスを使ってKVSにアクセスします。
+	</p>
+	<h3 id="architecture">KVSFluteのアーキテクチャ</h3>
+	<p class="imgbox">
+		<a href="../../../../../data/model/helper/kvsflute/kvsflute-architecture-map.png" title="KVSFlute Architecture"><img src="../../../../../data/model/helper/kvsflute/kvsflute-architecture-map.png" alt="KVSFlute Architecture" width="550" height="380" /></a>
+	</p>
+	<h3 id="lastaeg">LastaFluteでの利用例</h3>
+	<p>
+		LastaFluteとの組み合わせが、KVSFlute利用の典型例となります。
+	</p>
+	<div class="relatedpage"><a href="../../../../lastaflute/index.html">LastaFlute</a></div>
+	<p>
+		2018/04時点にて、KVSFluteは LastaFlute に依存をしています。<span class="frm">(将来、汎用的にする可能性はあります)</span>
+	</p>
+
+	<h2 id="keypoint">KVSFluteのキーポイント</h2>
+	<h3 id="useredis">KVSとして Redis を使っている</h3>
+	<p>
+		KVSとして Redis を使います。
+	</p>
+	<p>
+		2018/04時点にて、KVSFluteは Redis でしか利用できません。<span class="frm">(将来、汎用的にする可能性はあります)</span>
+	</p>
+	<h3 id="kvscache">KVSキャッシュ</h3>
+	<p>
+		KVSを、<em class="smallmark">RDBのキャッシュ</em> として利用する方式を提供しています。
+	</p>
+	<ol>
+		<li>検索されたら...</li>
+		<li>まずはKVSを見て、あればそれを戻す</li>
+		<li>なければ、RDBを検索する</li>
+		<li>RDBからの結果を戻す</li>
+		<li>RDBからの結果をKVSに登録する (次の検索時のために)</li>
+	</ol>
+	<p>
+		このような制御が組み込み済のインターフェースが提供されます。
+		呼び出しコードは、"KVSを使っていること" 自体には依存をしますが、RDBとの連携部分を意識する必要はないです。
+	</p>
+<pre><span class="codetitle">e.g. KVSキャッシュの一件検索 @Java</span><code>
+<span class="attribute">kvsProductBhv</span>.selectEntityByProductId(cb -&gt; {
+    cb.query().setProductId_Equal(productId);
+}).ifPresent(<span class="abbreviation">...</span>); <span class="frm">(OptionalEntity)</span>
+</code></pre>
+	<h3 id="kvsstore">KVSストア</h3>
+	<p>
+		KVSを、<em class="smallmark">永続ストレージ</em> として利用する方式を提供しています。
+		<span class="frm">(RDBの代わりにKVSを使うという感じ)</span>
+	</p>
+	<p>
+		設定ファイルに定義した、KVS上の仮想的なスキーマ構造に対応したクラスを自動生成し、タイプセーフに取り扱うことができます。
+		DBFluteのようにKVSにアクセスします。
+	</p>
+<pre><span class="codetitle">e.g. KVSストアの一件検索 @Java</span><code>
+<span class="attribute">kvsEgStoreExampleBhv</span>.selectEntity(cb -&gt; {
+    cb.acceptPK(egkey);
+}).ifPresent(<span class="abbreviation">...</span>); <span class="frm">(OptionalEntity)</span>
+</code></pre>
+
+	<h2 id="setup">KVSFluteのセットアップ</h2>
+	<p>
+		KVSFluteの設定ファイルやExampleは、もろもろ dbflute-example-with-non-rdb リポジトリに入っています。
+		こちらを参考に環境構築をしていきましょう。
+	</p>
+	<div class="detailpage"><a href="https://github.com/dbflute-example/dbflute-example-with-non-rdb">dbflute-example-with-non-rdb | Github</a></div>
+	<p>
+		このプロジェクトは、KVSFluteだけでなく SolrFlute や ESFlute など、RDBではないFlute系の Example をまるごと含んでいます。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/engine/index.html">DBFluteエンジン</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/manage/index.html">Manage</a></li>
+				<li><a href="../../../../../ja/manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/function/generator/intro/index.html">DBFlute Intro</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/emecha/index.html">EMecha (Eclipse Plugin)</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/saflute/index.html">SAFlute</a></li>
+				<li><a href="../../../../../ja/manual/function/helper/utflute/index.html">UTFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
