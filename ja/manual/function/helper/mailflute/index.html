@@ -72,8 +72,14 @@
 				<li><a href="#assertionpolicy">メールをどのくらいアサートするか？</a></li>
 			</ul>
 		</li>
-		<li><a href="#postcard">Postcard, PostOffice</a></li>
-		<li><a href="#personnel">PostalPersonnel</a></li>
+		<li><a href="#codereadinghint">コードリーディングのヒント</a>
+			<ul>
+				<li><a href="#postoffice">郵便局のストーリーを思い浮かべて</a></li>
+				<li><a href="#officeflow">郵便局の配達の流れ</a></li>
+				<li><a href="#deliverydepartment">郵便局の大元、DeliveryDepartment</a></li>
+				<li><a href="#postalpersonnel">配達業務の支配者、PostalPersonnel</a></li>
+			</ul>
+		</li>
 	</ul>
 
 	<h2 id="about">MailFluteとは？</h2>
@@ -389,15 +395,133 @@ JsonResponse<String> <span class="localvar">response</span> = <span class="local
 		メールは変なのが飛んでもしまうと業務上の後始末が大変なので、UnitTestに割ける時間が少なくても、最低限のチェックだけでもしておきたいものです。
 	</p>
 
-	<h2 id="postcard">Postcard, PostOffice</h2>
+	<h2 id="codereadinghint">コードリーディングのヒント</h2>
+	<h3 id="postoffice">郵便局のストーリーを思い浮かべて</h3>
 	<p>
-		TODO jflute
+		MailFluteでは、コードレベルでの拡張ポイントが多く用意されています。
+		コードの概要を知っておくと拡張がしやすくなるでしょう。
 	</p>
+	<p>
+		MailFluteは、郵便局をテーマにクラスデザインがされています。
+	</p>
+	<dl class="keymainlist">
+		<dt>Postcard</dt><dd>はがき: 一通メールの表現</dd>
+		<dt>PostOffice</dt><dd>郵便局: メール送信の手続きをもろもろ行う</dd>
+		<dt>DeliveryDepartment</dt><dd>配達部署: 駐車場(接続Provider)と人事(諸々Factory)を保持</dd>
+		<dt>PostalPersonnel</dt><dd>人事の人: 諸々のクラスのFactory</dd>
+		<dt>Receptionist</dt><dd>受付の人: メールテンプレートをファイルから読み込んだり</dd>
+		<dt>Proofreader</dt><dd>文章校正の人: メールのパラメーターコメントを解釈して書き換える</dd>
+		<dt>PostalParkingLot</dt><dd>駐車場: 郵便バイク(SMTPサーバーへの接続)を複数保持</dd>
+		<dt>PostalMotorbike</dt><dd>郵便バイク: 一つのSMTPサーバーへの接続</dd>
+		<dt>Postie</dt><dd>郵便配達員: メールを実際に送信する</dd>
+	</dl>
+	<ol>
+		<li>はがきが、郵便局に送られてきて...</li>
+		<li>配達部署の人事が、受付と文章校正の人を連れてきて...</li>
+		<li>受付が、受付業務(テンプレートの読み込みなど)を行い...</li>
+		<li>文章校正が、校正業務(パラメーターコメントの解釈など)を行い...</li>
+		<li>配達部署の駐車場(複数の接続保持)にある郵便バイク(一つの接続)を用意して...</li>
+		<li>配達部署の人事が、そのバイクに合う郵便配達員を連れてきて...</li>
+		<li>郵便配達員にはがきを配達させる</li>
+	</ol>
+	<p>
+		無理矢理ですがやってしまいました。<span class="frm">(実際の郵便局で文章校正されたらたまげるでしょう)</span>
+	</p>
+	<p>
+		ちなみに、LastaFluteでは、Postbox (郵便ポスト) というクラスも付け加えられています。
+		郵便ポストから郵便局にはがきが送られるようになっています。<span class="frm">(ディベロッパーは、PostboxにPostcardを投函します)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../lastaflute/howto/architecture/typesafemail.html">LastaFlute Typesafe Mail</a></div>
+	<h3 id="officeflow">郵便局の配達の流れ</h3>
+	<p>
+		このようになっています。当てはめながら読んでみてください。
+	</p>
+<pre><span class="codetitle">e.g. PostOffice@deliver() @Java</span><code>
+<span class="keyword">protected final</span> SMailDeliveryDepartment <span class="attribute">deliveryDepartment</span>;
 
-	<h2 id="personnel">PostalPersonnel</h2>
+<span class="keyword">public</span> PostOffice(SMailDeliveryDepartment <span class="localvar">deliveryDepartment</span>) {
+    <span class="keyword">if</span> (<span class="localvar">deliveryDepartment</span> == <span class="keyword">null</span>) {
+        <span class="keyword">throw new</span> IllegalArgumentException("The argument 'deliveryDepartment' should not be null.");
+    }
+    <span class="keyword">this</span>.<span class="attribute">deliveryDepartment</span> = <span class="localvar">deliveryDepartment</span>;
+}
+
+<span class="keyword">public void</span> deliver(Postcard <span class="localvar">postcard</span>) {
+    <span class="localvar">postcard</span>.officeCheck();
+
+    <span class="keyword">final</span> SMailReceptionist <span class="localvar">receptionist</span> = fetchReceptionist(<span class="localvar">postcard</span>);
+    <span class="localvar">receptionist</span>.accept(<span class="localvar">postcard</span>); <span class="comment">// make body text (may be from body file)</span>
+
+    proofreadIfNeeds(<span class="localvar">postcard</span>); <span class="comment">// make complete text</span>
+
+    <span class="keyword">final</span> SMailPostalMotorbike <span class="localvar">motorbike</span> = fetchMotorbike(<span class="localvar">postcard</span>);
+    <span class="keyword">final</span> SMailPostie <span class="localvar">postie</span> = fetchPostie(<span class="localvar">postcard</span>, <span class="localvar">motorbike</span>);
+    <span class="localvar">postie</span>.deliver(<span class="localvar">postcard</span>);
+}
+</code></pre>
+	<h3 id="deliverydepartment">郵便局の大元、DeliveryDepartment</h3>
 	<p>
-		TODO jflute
+		PostOffice (郵便局) のコンストラクタでは、必ず DeliveryDepartment (配達部署)
+		を受け取るようにしています。つまり、"配達部署" が郵便局の仕事を決定付ける大きな役割を持っています。
 	</p>
+	<p>
+		そして、DeliveryDepartment (配達部署) のコンストラクタでは、必ず PostalParkingLot (駐車場)
+		と PostalPersonnel (人事) を受け取るようにしています。
+	</p>
+<pre><span class="codetitle">e.g. SMailDeliveryDepartment constructor @Java</span><code>
+<span class="keyword">public</span> SMailDeliveryDepartment(SMailPostalParkingLot parkingLot, SMailPostalPersonnel personnel) {
+    assertArgumentNotNull("parkingLot", parkingLot);
+    assertArgumentNotNull("personnel", personnel);
+    <span class="keyword">this</span>.<span class="attribute">parkingLot</span> = parkingLot;
+    <span class="keyword">this</span>.<span class="attribute">personnel</span> = personnel;
+}
+</code></pre>
+	<p>
+		PostalParkingLot (駐車場) は、SMTPへの接続を司る PostalMotorbike (郵便バイク)
+		を保持していますし、PostalPersonnel (人事) は、受付や文章校正に郵便配達員を決定しています。
+	</p>
+	<p>
+		つまり、どのような PostalParkingLot (駐車場) と PostalPersonnel (人事)
+		を用意するか次第で、PostOffice (郵便局) の挙動をいかようにでも変更することができるのです。
+	</p>
+	<p>
+		例えば、LastaFluteでは、この DeliveryDepartment (配達部署) を生成する Creator
+		をアプリで用意して、それぞれのアプリにフィットした郵便局を構築できるようにしています。
+	</p>
+	<div class="relatedpage"><a href="../../../../lastaflute/howto/architecture/typesafemail.html#deliverydepartment">LastaFlute Typesafe Mail - DeliveryDepartmentでもっと細かく</a></div>
+	<h3 id="postalpersonnel">配達業務の支配者、PostalPersonnel</h3>
+	<p>
+		PostalPersonnel (人事) は、配達業務を司る人たちを決定します。つまり、どのように配達を行うのか？自由自在です。
+	</p>
+	<p>
+		特に、PostalPersonnel (人事) インターフェースの実装クラスである、DogmaticPostalPersonnel (独善的な人事)
+		には、様々な業務変更ポイントが用意されています。
+	</p>
+<pre><span class="codetitle">e.g. SMailDogmaticPostalPersonnel constructor @Java</span><code>
+<span class="keyword">public</span> SMailDogmaticPostalPersonnel() {
+    <span class="attribute">receptionist</span> = createReceptionist();
+    <span class="attribute">proofreader</span> = createProofreader();
+    <span class="attribute">cancelFilter</span> = createCancelFilter();
+    <span class="attribute">addressFilter</span> = createAddressFilter();
+    <span class="attribute">subjectFilter</span> = createSubjectFilter();
+    <span class="attribute">bodyTextFilter</span> = createBodyTextFilter();
+    <span class="attribute">asyncStrategy</span> = createAsyncStrategy();
+    <span class="attribute">retryStrategy</span> = createRetryStrategy();
+    <span class="attribute">labelStrategy</span> = createLabelStrategy();
+    <span class="attribute">loggingStrategy</span> = createLoggingStrategy();
+    <span class="attribute">mailHeaderStrategy</span> = createMailHeaderStrategy();
+    <span class="attribute">internetAddressCreator</span> = createInternetAddressCreator();
+}
+</code></pre>
+	<p>
+		createメソッドをオーバーライドすることで、受付や文章校正の拡張も去ることながら、様々な Filter や Strategy などを拡張することができます。
+	</p>
+	<p>
+		実際に、LastaFlute の DeliveryDepartment (配達部署) の Creator ([App]MailDeliveryDepartmentCreator) では、DogmaticPostalPersonnel (独善的な人事)
+		の生成時に、createSubjectFilter() や createAsyncStrategy() などがオーバーライドされ、LastaFluteとしての振舞いを実現しています。
+		<span class="frm">(テスト時は件名に[Test]が付与されたり、非同期実行ができるようにしたりなど)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../lastaflute/howto/architecture/typesafemail.html#deliverydepartment">LastaFlute Typesafe Mail - DeliveryDepartmentでもっと細かく</a></div>
 
 </div>
 </div>

@@ -68,8 +68,13 @@
 				<li><a href="#thispagedesc">このページはLastaFluteに関わるお話を</a></li>
 			</ul>
 		</li>
-		<li><a href="#defaultmethod">デフォルトメソッドで設定の再利用</a></li>
 		<li><a href="#dfprop">lastafluteMap.dfpropの設定</a></li>
+		<li><a href="#defaultmethod">デフォルトメソッドで再利用</a>
+			<ul>
+				<li><a href="#setfromsupport">お決まりの設定をどうにかしたい</a></li>
+				<li><a href="#allinterface">すべてのPostcardに同じインターフェースを</a></li>
+			</ul>
+		</li>
 		<li><a href="#settigs">メールの環境設定</a>
 			<ul>
 				<li><a href="#properties">[app]_env.properties</a></li>
@@ -163,14 +168,80 @@ Thanks
 		(いま見ている)このページでは、FreeGenを使った大まかな実装の流れと、LastaFluteにおけるメールの環境設定などについてのみ記載していきます。
 	</p>
 
-	<h2 id="defaultmethod">デフォルトメソッドで設定の再利用</h2>
-	<p>
-		TODO jflute now writing... インターフェースのデフォルトメソッドを使って...
-	</p>
-
 	<h2 id="dfprop">lastafluteMap.dfpropの設定</h2>
 	<p>
-		TODO jflute now writing...
+		Postcardを自動生成するために、lastafluteMap.dfprop の freeGenList に <em class="smallmark">mail</em> を追加する必要があります。
+		Exampleデフォルトとして初めから追加されているので、Exampleからスタートアップした場合はあまり意識することはないでしょう。
+	</p>
+<pre><span class="codetitle">e.g. add mail to freeGenList @lastafluteMap.dfprop</span><code>
+; appMap = <span class="keyword">map:</span>{
+    ; harbor = <span class="keyword">map:</span>{
+        ; path = ..
+        ; freeGenList = <span class="keyword">list:</span>{ env ; <span class="abbreviation">...</span> ; <span class="point">mail</span> ; template ; <span class="abbreviation">...</span> }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+    }
+}
+</code></pre>
+	<p>
+		もうひとつ、プラグインインターフェースを付与するときに、この dfprop を修正します(後述)。
+	</p>
+
+	<h2 id="defaultmethod">デフォルトメソッドで再利用</h2>
+	<h3 id="setfromsupport">お決まりの設定をどうにかしたい</h3>
+	<p>
+		例えば、どのメールでもお決まりの From を設定するというような場合...
+	</p>
+<pre><span class="codetitle">e.g. setFrom() plain @Java</span><code>
+postcard.setFrom(config.getMailAddressSupport(), HarborMessages.LABELS_MAIL_SUPPORT_PERSONAL);
+</code></pre>
+	<p>
+		一行だけとは言え書くのは少し面倒です。ただ、そこよりも、何箇所にもわたってメール送信の実装をしていくと、
+		どこかで間違った From を指定してしまう可能性もあります。アドレスとpersonalがズレてしまったりなど。
+	</p>
+	<p>
+		そういった場合、こういう風に再利用したいものです。
+	</p>
+<pre><span class="codetitle">e.g. setFrom() plain @Java</span><code>
+postcard.setFromSupport(config); <span class="comment">// address and personal are set</span>
+</code></pre>
+	<p>
+		ですが、Postcardは自動生成クラスです。ジェネレーションギャップにもなっていないので、クラスを書き換えることはできません。
+		書き換えられたとしてもすべての Postcard のそのメソッドを定義しないといけません<span class="frm">(現実的ではない)</span>。
+	</p>
+	<h3 id="allinterface">すべてのPostcardに同じインターフェースを</h3>
+	<p>
+		そこで、すべてのPostcardに同じインターフェースを付与することができるようになっています。
+	</p>
+	<p>
+		lastafluteMap.dfprop にて、mailPluginInterface でインターフェースのFQCNを指定すると、自動生成される Postcard が implements
+		するようになります。
+	</p>
+<pre><span class="codetitle">e.g. add mail to freeGenList @lastafluteMap.dfprop</span><code>
+; appMap = <span class="keyword">map:</span>{
+    ; harbor = <span class="keyword">map:</span>{
+        ; path = ..
+        ; freeGenList = <span class="keyword">list:</span>{ env ; <span class="abbreviation">...</span> ; mail ; template ; <span class="abbreviation">...</span> }
+        ; propertiesHtmlList = <span class="keyword">list:</span>{ env ; config ; label ; message }
+        ; <span class="point">mailPluginInterface</span> = <span class="subpoint">org.docksidestage.mylasta.mail.PluggedinHarborPostcard</span>
+    }
+}
+</code></pre>
+	<p>
+		このインターフェースはアプリで用意します。例えば、以下のように実装すると、すべての Postcard が setFromSupport() を持つようになります。
+	</p>
+<pre><span class="codetitle">e.g. setFromSupport() as default method of interface @Java</span><code>
+<span class="keyword">public interface</span> PluggedinHarborPostcard {
+
+    <span class="keyword">void</span> setFrom(String from, String personnel);
+
+    <span class="keyword">default void</span> setFromSupport(FortressConfig config) {
+        setFrom(config.getMailAddressSupport(), FortressMessages.LABELS_MAIL_SUPPORT_PERSONAL);
+    }
+}
+</code></pre>
+	<p>
+		このように、多くの Postcard でお決まりの設定処理がある場合、デフォルトメソッドを用意しておけば、ディベロッパーは補完で選ぶだけで設定を済ませることができます。
+		結果、変なズレによるバグというのを減らせることができます。また、変更時の一括修正もしやすくなります。
 	</p>
 
 	<h2 id="settigs">メールの環境設定</h2>
@@ -199,12 +270,74 @@ mail.return.path = <span class="literal">returnpath@docksidestage.org</span>
 </code></pre>
 	<h3 id="deliverydepartment">DeliveryDepartmentでもっと細かく</h3>
 	<p>
-		[app]MailDeliveryDepartmentCreatorにて、さらに細かく挙動を調整することができます。
-		このクラスは、[app]FwAssistantDirector から参照され、AssistantDirector の Direction として登録されます。
+		sponsor.[App]MailDeliveryDepartmentCreator にて、さらに細かく挙動を調整することができます。
+		このクラスは、[App]FwAssistantDirector から参照され、AssistantDirector の Direction として登録されます。
 	</p>
 	<p>
-		TODO jflute now writing... もうちょいマシなこと書く
+		クラスレベルでの拡張ポイントとなり、振舞いなどを自由自在に変更することができます。
+		実際に、Exampleデフォルトとして、件名の[Test]付与、非同期処理の有効化、ラベルの活用など、LastaFluteとしての振舞いを実現するための拡張が組み込まれています。
 	</p>
+	<p>
+		さらに挙動を変更したり処理を追加したりする場合は、しっかりコードを読んで拡張しましょう。
+	</p>
+	<div class="detailpage"><a href="../../../manual/function/helper/mailflute/index.html#codereadinghint">MailFlute - コードリーディングのヒント</a></div>
+<pre><span class="codetitle">e.g. HarborMailDeliveryDepartmentCreator @Java</span><code>
+<span class="keyword">public</span> SMailDeliveryDepartment create() {
+    <span class="keyword">return new</span> SMailDeliveryDepartment(createPostalParkingLot(), createPostalPersonnel());
+}
+
+<span class="keyword">protected</span> SMailPostalParkingLot createPostalParkingLot() {
+    <span class="keyword">final</span> SMailPostalParkingLot parkingLot = <span class="keyword">new</span> SMailPostalParkingLot();
+    <span class="keyword">final</span> SMailPostalMotorbike motorbike = <span class="keyword">new</span> SMailPostalMotorbike();
+    <span class="keyword">final</span> String hostAndPort = config.getMailSmtpServerMainHostAndPort();
+    <span class="keyword">final</span> List&lt;String&gt; hostPortList = DfStringUtil.splitListTrimmed(hostAndPort, ":");
+    motorbike.registerConnectionInfo(hostPortList.get(0), Integer.parseInt(hostPortList.get(1)));
+    motorbike.registerReturnPath(config.getMailReturnPath());
+    parkingLot.registerMotorbikeAsMain(motorbike);
+    <span class="keyword">return</span> parkingLot;
+}
+
+<span class="keyword">protected</span> SMailPostalPersonnel createPostalPersonnel() {
+    <span class="keyword">final</span> SMailDogmaticPostalPersonnel personnel = createDogmaticPostalPersonnel();
+    <span class="keyword">return</span> config.isMailSendMock() ? personnel.asTraining() : personnel;
+}
+
+<span class="keyword">protected</span> SMailDogmaticPostalPersonnel createDogmaticPostalPersonnel() { <span class="comment">// #ext_point e.g. locale, database</span>
+    <span class="keyword">final</span> String testPrefix = config.getMailSubjectTestPrefix();
+    <span class="keyword">final</span> AsyncManager asyncManager = getAsyncManager();
+    <span class="keyword">final</span> MessageManager messageManager = getMessageManager();
+    <span class="keyword">return new</span> SMailDogmaticPostalPersonnel() {
+
+        <span class="comment">// *if you need user locale switching or templates from database,</span>
+        <span class="comment">// override createConventionReceptionist() (see the method for the details)</span>
+
+        @Override
+        <span class="keyword">protected</span> OptionalThing&lt;SMailSubjectFilter&gt; createSubjectFilter() {
+            <span class="keyword">return</span> OptionalThing.of((view, subject) -&gt; !subject.startsWith(testPrefix) ? testPrefix + subject : subject);
+        }
+
+        @Override
+        <span class="keyword">protected</span> OptionalThing&lt;SMailAsyncStrategy&gt; createAsyncStrategy() {
+            <span class="keyword">return</span> OptionalThing.of(<span class="keyword">new</span> SMailAsyncStrategy() {
+                @Override
+                <span class="keyword">public</span> void async(CardView view, Runnable runnable) {
+                    asyncRunnable(asyncManager, runnable);
+                }
+
+                @Override
+                <span class="keyword">public boolean</span> alwaysAsync(CardView view) {
+                    <span class="keyword">return true</span>; <span class="comment">// as default of LastaFlute example</span> 
+                }
+            });
+        }
+
+        @Override
+        <span class="keyword">protected</span> OptionalThing&lt;SMailLabelStrategy&gt; createLabelStrategy() {
+            <span class="keyword">return</span> OptionalThing.of((view, locale, label) -&gt; resolveLabelIfNeeds(messageManager, locale, label));
+        }
+    };
+}
+</code></pre>
 
 </div>
 </div>
