@@ -240,21 +240,33 @@ src/main/webapp
 		指定されたプロパティに対応するエラーメッセージが表示されます。
 	</p>
 <pre><span class="codetitle">e.g. la:errors result, required check @Html</span><code>
+&lt;input name=<span class="literal">"productName"</span> value=<span class="literal">""</span> class=<span class="literal">"validError"</span> type=<span class="literal">"text"</span>&gt;
 &lt;span class=<span class="literal">"errors"</span>&gt;<span class="point">is required</span>&lt;/span&gt;
 </code></pre>
 	<p>
 		エラー表示時は、そのspanタグのclass属性に、<em class="mark">errors</em>
-		というスタイルが自動的に付与されます。CSSで利用することができます。<span class="frm">(エラーが発生しないときは、spanタグ自体が消えます)</span>
+		というスタイルが自動的に付与されます。CSSで利用することができます。エラーが発生しないときは、spanタグ自体が消えます。
 	</p>
 	<p>
-		主語なしメッセージ方式であれば、spanタグで入力項目のタグのすぐ近くに配置するのがオーソドックスです。違うタグでも利用できますので、そこはHTMLのコーディングポリシーに合わせましょう。
+		一つのプロパティに複数のエラーメッセージが関連付けられることもあります。
+		<span class="frm">(そのままのspanだと、ブラウザのデフォルトとして半角空白一つ挟んで並んで表示されます。それが見た目として不都合な場合は、class の errors を使ったりタグを変えたりしてデザインを調整すると良いでしょう)</span>
+	</p>
+<pre><span class="codetitle">e.g. la:errors result, plural messages for one property @Html</span><code>
+&lt;input name=<span class="literal">"productName"</span> value=<span class="literal">"sealandpiari"</span> class=<span class="literal">"validError"</span> type=<span class="literal">"text"</span>&gt;
+&lt;span class=<span class="literal">"errors"</span>&gt;<span class="subpoint">length must be between 0 and 10</span>&lt;/span&gt;
+&lt;span class=<span class="literal">"errors"</span>&gt;<span class="subpoint">not a well-formed email address</span>&lt;/span&gt;
+</code></pre>
+	<p>
+		<em class="mark">主語なしメッセージ方式</em> であれば、spanタグで入力項目のタグのすぐ近くに配置するのがオーソドックスです。違うタグでも利用できますので、そこはHTMLのコーディングポリシーに合わせましょう。
 		一方で、特定のプロパティに属さないメッセージ <span class="frm">(業務例外のメッセージも含む)</span>
 		も表示する場合は、<em class="mark">_global</em> を指定した la:errors を上部にひとつ配置しておくと良いでしょう。
 	</p>
 	<p>
-		主語ありメッセージ方式であれば、プロパティ名に <em class="mark">all</em> と指定することで、すべてのプロパティに対するメッセージが展開されます。
+		<em class="mark">主語ありメッセージ方式</em> であれば、プロパティ名に <em class="mark">all</em> と指定することで、すべてのプロパティに対するメッセージが展開されます。
 		この場合は、画面の上部にひとつ配置するのがオーソドックスです。liタグなどで利用することが想定されます。
+		加えて、[app]_message.propertiesにて、{item}を使って主語ありメッセージにしておく必要があります。
 	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./messages.html#subjectivemessage"> -->ユーザーメッセージ (UserMessages) - 主語ありメッセージ<!-- </a> --></span></div>
 	<p>
 		対応するクラスは、ErrorsAttrProcessor です。
 	</p>
