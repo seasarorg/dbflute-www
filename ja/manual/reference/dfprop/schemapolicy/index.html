@@ -299,12 +299,18 @@
 	<dl class="keymainlist">
 		<dt>tableName</dt><dd>テーブル名 <span class="frm">e.g. if tableName is prefix:CLS_</span></dd>
 		<dt>alias</dt><dd>テーブルの別名(和名) <span class="frm">e.g. if alias is prefix:商品</span></dd>
+		<dt>firstDate</dt><dd>テーブルの登録日(*A) <span class="frm">e.g. if firstDate is after:2018/05/03</span> <span class="frm">@since 1.1.8</span></dd>
 		<dt>pk_dbType</dt><dd>PKのデータ型 <span class="frm">e.g. if pk_dbType is CHAR</span></dd>
-		<dt>pk_size</dt><dd>PKのデータサイズ、小数点はカンマ空白(*A) <span class="frm">e.g. if pk_size is 3</span></dd>
+		<dt>pk_size</dt><dd>PKのデータサイズ、小数点はカンマ空白(*B) <span class="frm">e.g. if pk_size is 3</span></dd>
 		<dt>pk_dbType_with_size</dt><dd>PKのデータ型サイズ付き <span class="frm">e.g. if pk_dbType_with_size is CHAR(3)</span></dd>
 	</dl>
 	<p>
-		<span class="frm">(*A): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
+		<span class="frm">(*A): HistoryHTMLのテーブル追加履歴から判断。履歴が存在しないものは未来の日付として扱われ、after: ですべてヒットする。
+		運用途中から "これから追加されるテーブルだけにチェックをかける" というような使い方を想定しているので、利用方法は限定されている。
+		例えば、"before:" や "is not" は使えない。</span>
+	</p>
+	<p>
+		<span class="frm">(*B): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
 	</p>
 	<h4>then の "isなし" 表現</h4>
 	<p>
@@ -426,13 +432,17 @@
 		<dt>tableName</dt><dd>テーブル名 <span class="frm">e.g. if tableName is prefix:CLS_</span></dd>
 		<dt>column</dt><dd>カラムの特性(*後述) <span class="frm">e.g. if column is notNull</span></dd>
 		<dt>columnName</dt><dd>カラム名 <span class="frm">e.g. if columnName is suffix:_FLG</span></dd>
+		<dt>tableColumnName</dt><dd>テーブルカラム名(*A) <span class="frm">e.g. if tableColumnName is ...</span> <span class="frm">@since 1.1.8</span></dd>
 		<dt>alias</dt><dd>カラムの別名 <span class="frm">e.g. if alias is suffix:フラグ</span></dd>
 		<dt>dbType</dt><dd>カラムのデータ型 <span class="frm">e.g. if dbType is CHAR</span></dd>
-		<dt>size</dt><dd>カラムのデータサイズ、小数点はカンマ空白(*A) <span class="frm">e.g. if size is 3</span></dd>
+		<dt>size</dt><dd>カラムのデータサイズ、小数点はカンマ空白(*B) <span class="frm">e.g. if size is 3</span></dd>
 		<dt>dbType_with_size</dt><dd>カラムのデータ型サイズ付き <span class="frm">e.g. if dbType_with_size is CHAR(3)</span></dd>
 	</dl>
 	<p>
-		<span class="frm">(*A): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
+		<span class="frm">(*A): テーブル名とカラム名をドットつないだ名前 e.g. MEMBER.MEMBER_NAME</span>
+	</p>
+	<p>
+		<span class="frm">(*B): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
 	</p>
 	<p>
 		pk や unique などは、第一カラム第二カラムに関わらず構成カラムに含まれているかどうかを判定します。
@@ -440,11 +450,28 @@
 	</p>
 	<h4>then の "isなし" 表現</h4>
 	<p>
-		利用できる statement の then の <em class="keyword">isなし</em> 表現は、ifの主語の "column is"
-		で利用できる値と同じです。(bad や notNull など、後述)
+		利用できる statement の then の <em class="keyword">isなし</em> 表現の "基本的なもの" は以下の通りです。 
 	</p>
+	<dl class="keymainlist">
+		<dt>notNull</dt><dd>NotNull制約 <span class="frm">e.g. then notNull</span></dd>
+		<dt>identity</dt><dd>identityカラム(連番) <span class="frm">e.g. then identity</span></dd>
+		<dt>pk</dt><dd>PK制約 <span class="frm">e.g. then pk</span></dd>
+		<dt>fk</dt><dd>FK制約 <span class="frm">e.g. then fk</span></dd>
+		<dt>unique</dt><dd>UQ制約 <span class="frm">e.g. then unique</span></dd>
+		<dt>index</dt><dd>インデックス <span class="frm">e.g. then index</span></dd>
+		<dt>classification</dt><dd>区分値 <span class="frm">e.g. then classification</span></dd>
+	</dl>
 	<p>
-		これらは、"then column is ..." で代替できます。
+		加えて、他のテーブルのカラムと比較をするような横断的なものがあります。<span class="frm">@since 1.1.8</span>
+	</p>
+	<dl class="lolongkeymainlist">
+		<dt>sameColumnAliasIfSameColumnName</dt><dd>同じカラム名なら、別名は同じ</dd>
+		<dt>sameColumnDbTypeIfSameColumnName</dt><dd>同じカラム名なら、データ型は同じ</dd>
+		<dt>sameColumnSizeIfSameColumnName</dt><dd>同じカラム名なら、カラムサイズは同じ</dd>
+		<dt>sameColumnNameIfSameColumnAlias</dt><dd>同じ別名なら、カラム名は同じ</dd>
+	</dl>
+	<p>
+		この場合、比較対象の相手カラムに対しても、if で指定された条件で対象カラムかどうかの判定されます。
 	</p>
 	<h4>then の "isあり" 表現</h4>
 	<p>
@@ -454,14 +481,18 @@
 		<dt>tableName</dt><dd>テーブル名 <span class="frm">e.g. then tableName is prefix:CLS_</span></dd>
 		<dt>column</dt><dd>カラムの特性(*後述) <span class="frm">e.g. then column is notNull</span></dd>
 		<dt>columnName</dt><dd>カラム名 <span class="frm">e.g. then columnName is suffix:_FLG</span></dd>
+		<dt>tableColumnName</dt><dd>テーブルカラム名(*A) <span class="frm">e.g. then tableColumnName is ...</span> <span class="frm">@since 1.1.8</span></dd>
 		<dt>alias</dt><dd>カラムの別名 <span class="frm">e.g. then alias is suffix:フラグ</span></dd>
 		<dt>dbType</dt><dd>カラムのデータ型 <span class="frm">e.g. then dbType is CHAR</span></dd>
-		<dt>size</dt><dd>カラムのデータサイズ、小数点はカンマ空白(*A) <span class="frm">e.g. then size is 3</span></dd>
+		<dt>size</dt><dd>カラムのデータサイズ、小数点はカンマ空白(*B) <span class="frm">e.g. then size is 3</span></dd>
 		<dt>dbType_with_size</dt><dd>カラムのデータ型サイズ付き <span class="frm">e.g. then dbType_with_size is CHAR(3)</span></dd>
 		<dt>comment</dt><dd>カラムのDBコメント(別名抜き) <span class="frm">e.g. then comment is contain:sea</span></dd>
 	</dl>
 	<p>
-		<span class="frm">(*A): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
+		<span class="frm">(*A): テーブル名とカラム名をドットつないだ名前 e.g. MEMBER.MEMBER_NAME</span>
+	</p>
+	<p>
+		<span class="frm">(*B): 例えば、decimal型とかであれば、"8, 3" となる e.g. pk_size is 8, 3</span>
 	</p>
 	<h4>カラムの特性 (column is)</h4>
 	<p>
