@@ -59,6 +59,12 @@
 				<li><a href="#columnstatement">column's <em class="smallmark">statementList</em> <span class="frm">(table.statement)</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#migration">運用途中からの導入</a>
+			<ul>
+				<li><a href="#migfirstdate">これから追加するテーブルやカラムだけチェック</a></li>
+				<li><a href="#migstatementthen">一部のテーブルだけピンポイントで除外する</a></li>
+			</ul>
+		</li>
 		<li><a href="#example">Example</a>
 			<ul>
 				<li><a href="#simpleexample">シンプルなポリシーのExample</a></li>
@@ -534,6 +540,30 @@
 	<h4>補足コメント (期待値など)</h4>
 	<p>
 		tableMapの方とまったく同じです。
+	</p>
+
+	<h2 id="migration">運用途中からの導入</h2>
+	<h3 id="migfirstdate">これから追加するテーブルやカラムだけチェック</h3>
+	<p>
+		運用途中から SchemaPolicyCheck を導入する場合、"既存のテーブルはなかなか修正できないけど、これから追加するテーブルはチェックしたい"
+		ということになります。
+	</p>
+	<p>
+		そこで、statement の if で利用できる firstDate を使うと良いでしょう。
+		<em class="keyword">指定された日付以降に追加されたテーブルやカラムはチェックする</em> という条件が書けます。
+	</p>
+<pre><span class="codetitle">e.g. firstDateを使って、これから追加されるテーブルだけチェック @schemaPolicyMap.dfprop</span><code>
+<span class="comment"># 2018/05/04より未来に追加されたテーブルは、FK制約名は FK_[テーブル名] で始まること</span>
+; <span class="keyword">if</span> <span class="point">firstDate</span> <span class="keyword">is</span> <span class="attribute">after:</span><span class="literal">2018/05/04</span> <span class="keyword">then</span> fkName <span class="keyword">is</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+</code></pre>
+	<h3 id="migstatementthen">一部のテーブルだけピンポイントで除外する</h3>
+	<p>
+		どうしても直せない一部のテーブルは、tableExceptListで完全に除外してしまうか、statement の if で除外してしまうと良いでしょう。
+		できるだけ後者で実現する方が他のチェックが掛かるので望ましいですが、あまりに複雑になってしまうと良くないので数が少なければ割り切って前者でも良いでしょう。
+	</p>
+	<p>
+		(themeListの) theme は絞り込み条件が書けませんが、同じチェックが statement の then の theme
+		で指定できるものもあるので、statement方式に移行することで一部のものだけ除外を実現できます。と良いでしょう。 
 	</p>
 
 	<h2 id="example">Example</h2>
