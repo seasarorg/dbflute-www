@@ -43,7 +43,12 @@
 		<span class="frm">(1.1.1 は機能が少ないため、SchemaPolicyCheckをしっかり使うなら 1.1.2 以降へのアップグレードをオススメします)</span>
 	</p>
 	<ul class="indexlist">
-		<li><a href="#about">schemaPolicyMapとは？</a></li>
+		<li><a href="#about">schemaPolicyMapとは？</a>
+			<ul>
+				<li><a href="#executiontiming">チェックのタイミング</a></li>
+				<li><a href="#violationexists">チェックに引っかかったら？</a></li>
+			</ul>
+		</li>
 		<li><a href="#property">プロパティ</a>
 			<ul>
 				<li><a href="#tableexceptlist">tableExceptList</a></li>
@@ -76,10 +81,67 @@
 
 	<h2 id="about">schemaPolicyMapとは？</h2>
 	<p>
-		SchemaPolicyCheck のためのポリシーを設定する dfprop です<span class="frm">(@since 1.1.1)</span>。この dfprop
-		ファイルに設定が追加されると、Docタスクにて SchemaPolicyCheck が実行されます。
+		SchemaPolicyCheck のためのポリシーを設定する dfprop です<span class="frm">(@since 1.1.1)</span>。
+	</p>
+	<h3 id="executiontiming">チェックのタイミング</h3>
+	<p>
+		この dfprop ファイルに設定が追加されると、Docタスクの最後に SchemaPolicyCheck が実行されます。
+		自動生成をしていれば、自然とチェックがかかるようになっています。
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/doc/index.html">Docタスク</a></div>
+	<p>
+		また、replaceSchemaMap.dfprop の isCheckSchemaPolicyInReps を true にすると、ReplaceSchema の DDL (CreateSchema) 実行直後に実行されます。
+		早い段階でチェックを検知するのに有効です。
+		<span class="frm">(AdditionalSchemaのテーブルなど、ReplaceSchemaの時点ではチェックしづらいものは除外されますが、ほとんどのポリシーが実施されます)</span>
+	</p>
+	<div class="relatedpage"><a href="../replaceschemadefinition/index.html#ischeckschemapolicyinreps">replaceSchemaMap.dfprop - isCheckSchemaPolicyInReps</a></div>
+	<h3 id="violationexists">チェックに引っかかったら？</h3>
+	<p>
+		Docタスクがエラーで終了します。チェック結果が例外メッセージに書いてあります。
+	</p>
+	<p>
+		例外メッセージ内のカテゴリ内訳です。
+	</p>
+	<dl class="keymainlist">
+		<dt>[Advice]</dt><dd>自然言語によるアドバイス</dd>
+		<dt>[Schema Policy]</dt><dd>定義されているすべてのポリシー</dd>
+		<dt>[Violation]</dt><dd>ポリシー違反の結果 <span class="frm">(ここに注目！)</span></dd>
+	</dl>
+<pre><span class="codetitle">e.g. _FLGカラムのデータ型は BOOLEAN のはずなのに、INTEGERだったとき @Console</span><code>
+org.dbflute.exception.DfSchemaPolicyCheckViolationException: Look! Read the message below.
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+The schema policy has been violated.
+
+<span class="keyword">[Advice]</span>
+Make sure your violating schema (ERD and DDL).
+And after that, execute renewal (or regenerate) again.
+(tips: The schema policy is on schemaPolicyMap.dfprop)
+
+<span class="keyword">[Schema Policy]</span>
+tableExceptList: []
+tableTargetList: []
+columnExceptMap: {}
+isMainSchemaOnly: false
+wholeMap: {themeList=[uniqueTableAlias, sameColumnAliasIfSameColumnName, sameColumnDbTypeIfSameColumnName, sameColumnSizeIfSameColumnName, sameColumnNameIfSameColumnAlias]}
+tableMap:
+  themeList: [hasPK, upperCaseBasis, identityIfPureIDPK]
+  statementList:
+    if tableName is $$ALL$$ then fkName is prefix:FK_$$table$$
+columnMap:
+  themeList: [upperCaseBasis]
+  statementList:
+    if columnName is suffix:_FLAG then bad
+    if columnName is suffix:_FLG then notNull
+    <span class="subpoint">if columnName is suffix:_FLG then dbType is BOOLEAN</span>
+    if columnName is suffix:_FLG then classification
+
+<span class="keyword">[Violation]</span>
+column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
+ |-<span class="point">The dbType should be BOOLEAN but INTEGER</span>: (会員ログイン)MEMBER_LOGIN.(モバイルログインフラグ)MOBILE_LOGIN_FLG INTEGER(10) (NotNull)
+ |-The dbType should be BOOLEAN but INTEGER: (購入)PURCHASE.(支払完了フラグ)PAYMENT_COMPLETE_FLG INTEGER(10) (NotNull)
+ +-The dbType should be BOOLEAN but INTEGER: (サービスランク)SERVICE_RANK.(新規受け入れ可能フラグ)NEW_ACCEPTABLE_FLG INTEGER(10) (NotNull)
+* * * * * * * * * */
+</code></pre>
 
 	<h2 id="property">プロパティ</h2>
 	<p>
