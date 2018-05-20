@@ -66,6 +66,14 @@
 				<li><a href="#conflictresolve">コンフリクトの解消方法</a></li>
 			</ul>
 		</li>
+		<li><a href="#cabomapping">テーブル名が変更されるとどうなる？</a>
+			<ul>
+				<li><a href="#notabledecomment">一時的に、存在しないテーブルへのデコメント</a></li>
+				<li><a href="#mappingtonewtable">新しいテーブルへマッピング</a></li>
+				<li><a href="#mappinggitcommit">マッピングファイルのgitコミット</a></li>
+				<li><a href="#mappingconflict">マッピング自体のコンフリクト</a></li>
+			</ul>
+		</li>
 		<li><a href="#savedecomment">デコメントはどう保存される？</a>
 			<ul>
 				<li><a href="#underclient">DBFluteクライアントに保存される</a></li>
@@ -149,10 +157,10 @@
 	<div class="relatedpage"><a href="#setup">this - Decommentの環境構築</a></div>
 	<h3 id="bootschemahtml">SchemaHTMLを起動</h3>
 	<p>
-		Intro の Operate 画面の、<em class="mark">Open the table ...</em> リンクをクリックします。
+		Intro の Operate 画面の、<em class="mark">Open the table layout ...</em> リンクをクリックします。
 	</p>
 	<p class="imgbox">Operate画面のドキュメントリンクあり
-		<a href="../../../../../data/snapshot/intro/operate/intro-operate-linkdoc-snapshot.png" title="DBFluteIntro Operate LinkDoc"><img src="../../../../../data/snapshot/intro/operate/intro-operate-linkdoc-snapshot.png" alt="DBFluteIntro Operate LinkDoc" width="550" height="330" /></a>
+		<a href="../../../../../data/snapshot/intro/operate/intro-operate-linkdoc-snapshot.png" title="DBFluteIntro Operate LinkDoc"><img src="../../../../../data/snapshot/intro/operate/intro-operate-linkdoc-snapshot.png" alt="DBFluteIntro Operate LinkDoc" width="550" height="300" /></a>
 	</p>
 	<p>
 		すると、SchemaHTMLが表示されます。
@@ -224,6 +232,41 @@
 	<p>
 		クリックすれば、同じようにダイアログが開き、同じ要領でそのままコンフリクトしたコメントを修正することができます。
 		<span class="frm">(自動マージは一切されず、必ず人間が目で見て修正する方式です)</span>
+	</p>
+
+	<h2 id="cabomapping">テーブル名が変更されるとどうなる？</h2>
+	<h3 id="notabledecomment">一時的に、存在しないテーブルへのデコメント</h3>
+	<p>
+		テーブル名やカラム名が変更されると、一時的に登録されたデコメントは切り離されてしまいます。
+		存在しない古い名前に紐づくデコメントということで、どこにも表示されません。
+	</p>
+	<p>
+		DBFluteからすると、テーブルが削除されたのか、新しい名前に変更されたのかが自動で判別できないので、どうしても人が教えて上げる必要があります。
+	</p>
+	<h3 id="mappingtonewtable">新しいテーブルへマッピング</h3>
+	<p>
+		そこで、DBFlute Introは、古いテーブル (いま存在しないテーブル) を参照しているデコメントを発見すると、
+		SchemaHTMLのトップにマッピングのための操作領域を表示します。
+	</p>
+	<p>
+		"その古いテーブル名は、新しいテーブルだとどの名前？" というのを選択すると、DBFlute Introがデコメントをマージし、新しいテーブルに紐付けられるようになります。
+	</p>
+	<p>
+		以下は、MEMBER_LOGIN を MEMBER_SEA_LAND に変更した例です。
+	</p>
+	<p class="imgbox">デコメントのかぼマッピング
+		<a href="../../../../../data/snapshot/intro/decomment/intro-decomment-cabomapping-snapshot.png" title="DBFluteIntro Decomment CaboMapping"><img src="../../../../../data/snapshot/intro/decomment/intro-decomment-cabomapping-snapshot.png" alt="DBFluteIntro Decomment CaboMapping" width="550" height="330" /></a>
+	</p>
+	<h3 id="mappinggitcommit">マッピングファイルのgitコミット</h3>
+	<p>
+		このマッピング結果自体も、DBFluteクライアント内のファイル (decomment-mappingファイル) として保存され、gitでコミットすることで共有されます。
+	</p>
+	<p>
+		<span class="frm">※e.g. decomment-mapping-MEMBER_LOGIN-MEMBER_SEA_LAND-20180520-165122-463-jflute-1bf2eaa4.dfmap</span>
+	</p>
+	<h3 id="mappingconflict">マッピング自体のコンフリクト</h3>
+	<p>
+		マッピング自体のコンフリクトが発生したら、再度マッピングを求められるだけなので、デコメント自体と同様にトピックブランチで気軽にマッピングできます。
 	</p>
 
 	<h2 id="savedecomment">デコメントはどう保存される？</h2>
