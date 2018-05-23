@@ -65,8 +65,8 @@
 		複数DBという言葉はとても曖昧なので、DBFluteとしての解釈をここで厳密に定義します。
 	</p>
 	<ul>
-		<li>A. 全く "違う" テーブル構造の別DBを利用</li>
-		<li>B. 全く "同じ" テーブル構造の別DBを利用</li>
+		<li><em class="keyword">A. 全く "違う" テーブル構造の別DBを利用</em></li>
+		<li><em class="keyword">B. 全く "同じ" テーブル構造の別DBを利用</em></li>
 	</ul>
 	<h3 id="normal">基本とする複数DB</h3>
 	<p>
@@ -118,13 +118,13 @@
 	<p>
 		DBの個数分、DBFluteクライアントも作成します(DBFluteモジュールは一つでOK)。
 	</p>
-<pre><span class="codetitle">e.g. 複数DB対応のDBFluteクライアント構造 {foodb,bardb} @EclipseProject</span><code>
+<pre><span class="codetitle">e.g. 複数DB対応のDBFluteクライアント構造 {seadb,landdb} @EclipseProject</span><code>
 xxx-project
- |-<span class="point">dbflute_foodb</span> <span class="comment">// FooDB用のDBFluteクライアント</span>
+ |-<span class="point">dbflute_seadb</span> <span class="comment">// FooDB用のDBFluteクライアント</span>
  |  |-dfprop
  |  |-log
  |  |-<span class="abbreviation">...</span>
- |-<span class="point">dbflute_bardb</span> <span class="comment">// BarDB用のDBFluteクライアント</span>
+ |-<span class="point">dbflute_landdb</span> <span class="comment">// BarDB用のDBFluteクライアント</span>
  |  |-dfprop
  |  |-log
  |  |-<span class="abbreviation">...</span>
@@ -144,26 +144,26 @@ xxx-project
 	</p>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/basicinfo/index.html#packagebase">dfprop - packageBase</a></div>
 	<p>
-		例えば、単一DBでは "com.example.xxx.dbflute"
-		としていたものを、"...dbflute.foodb" と "...dbflute.bardb"
+		例えば、単一DBでは "org.docksidestage.xxx.dbflute"
+		としていたものを、"...dbflute.seadb" と "...dbflute.landdb"
 		というように設定します。
 	</p>
 	<p>
 		但し、開発・運用途中で複数DBになった場合は、追加されたDBの方だけを
-		"...dbflute.bardb" とするような構造でも問題ありません(以降、その他プロパティでも同じことが言えます)。
+		"...dbflute.landdb" とするような構造でも問題ありません(以降、その他プロパティでも同じことが言えます)。
 	</p>
-<pre><span class="codetitle">e.g. 複数DB対応のパッケージ構造 {foodb,bardb} @EclipseProject</span><code>
+<pre><span class="codetitle">e.g. 複数DB対応のパッケージ構造 {seadb,landdb} @EclipseProject</span><code>
 xxx-project
- |-dbflute_foodb
- |-dbflute_bardb
+ |-dbflute_seadb
+ |-dbflute_landdb
  |-mydbflute
  |     |-dbflute-1.0.0
  |-src/main/java
- |  |-<span class="point">com.example.xxx.dbflute.foodb</span> <span class="comment">// FooDB用のパッケージ</span>
+ |  |-<span class="point">org.docksidestage.xxx.dbflute.seadb</span> <span class="comment">// FooDB用のパッケージ</span>
  |  |  |-allcommon
  |  |  |-bsbhv
  |  |  |-<span class="abbreviation">...</span>
- |  |-<span class="point">com.example.xxx.dbflute.bardb</span> <span class="comment">// FooDB用のパッケージ</span>
+ |  |-<span class="point">org.docksidestage.xxx.dbflute.landdb</span> <span class="comment">// FooDB用のパッケージ</span>
  |  |  |-allcommon
  |  |  |-bsbhv
  |  |  |-<span class="abbreviation">...</span>
@@ -171,28 +171,28 @@ xxx-project
 </code></pre>
 	<h3 id="difileunique">DI設定ファイルの名前をユニークにする</h3>
 	<p>
-		それぞれの dependencyInjectionMap.dfprop の "利用しているDIコンテナに対応するDI設定ファイル名のプロパティ"
-		をユニークにします。例えば、Seasar(S2Container) なら <em class="keyword">dbfluteDiconFileName</em>、Spring Framework
-		なら <em class="keyword">dbfluteBeansFileName</em>。
+		dependencyInjectionMap.dfprop にて、<em class="mark">DI設定ファイル名</em>
+		をユニークにします。例えば、Spring Framework でxml方式であれば <em class="mark">dbfluteBeansFileName</em>
+		となり、Lasta Di なら <em class="mark">dbfluteDiXmlFileName</em> となります。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#dbflutediconfilename">dfprop - dbfluteDiconFileName</a></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#dbflutebeansfilename">dfprop - dbfluteBeansFileName</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#dbflutedixmlfilename">dfprop - dbfluteDiXmlFileName</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../dienvironment/index.html#difilename"> -->現場フィット - DIEnvironment - DI設定ファイル名<!-- </a> --></span></div>
-<pre><span class="codetitle">e.g. 複数DB対応のDI設定ファイル {foodb,bardb,Seasar(S2Container)} @EclipseProject</span><code>
+<pre><span class="codetitle">e.g. 複数DB対応のDI設定ファイル、Lasta Diのとき {seadb,landdb} @EclipseProject</span><code>
 xxx-project
- |-dbflute_foodb
- |-dbflute_bardb
+ |-dbflute_seadb
+ |-dbflute_landdb
  |-mydbflute
  |     |-dbflute-1.0.0
  |-src/main/java
  |-src/main/resources
- |  |-<span class="point">dbflute-foodb.dicon</span> <span class="comment">// FooDB用のdbflute.dicon</span>
- |  |-<span class="point">dbflute-bardb.dicon</span> <span class="comment">// BarDB用のdbflute.dicon</span>
+ |  |-<span class="point">dbflute-seadb.xml</span> <span class="comment">// SeaDB用のdbflute.xml</span>
+ |  |-<span class="point">dbflute-landdb.xml</span> <span class="comment">// LandDB用のdbflute.xml</span>
  |-<span class="abbreviation">...</span>
 </code></pre>
 	<p>
 		DI設定ファイルがクラス形式になっているDIコンテナに関しては、パッケージが別になっているのでこの設定は不要です。
-		(例えば、Google Guice など)
+		(例えば、Spring Framework でJavaConfig方式の場合や、Google Guice など)
 	</p>
 	<p>
 		また、ファイル形式であっても、プロジェクト構成上、同じファイル名であってもユニークに扱われるようになっているのであれば、
@@ -200,27 +200,28 @@ xxx-project
 	</p>
 	<h3 id="datasourceunique">DI設定ファイル内の DataSource 参照をユニークにする</h3>
 	<p>
-		それぞれの dependencyInjectionMap.dfprop の "利用しているDIコンテナに対応するDataSource参照のプロパティ"
-		をユニークにします。例えば、Seasar(S2Container) なら <em class="keyword">j2eeDiconResourceName</em>、Spring Framework
-		なら <em class="keyword">dbfluteBeansDataSourceName</em>。
+		dependencyInjectionMap.dfprop にて、<em class="mark">DataSource参照</em>
+		をユニークにします。例えば、Lasta Di なら <em class="mark">rdbDiXmlResourceName</em>、Spring Framework
+		なら <em class="mark">dbfluteBeansDataSourceName</em> となります。
 	</p>
-	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#j2eediconresourcename">dfprop - j2eeDiconResourceName</a></div>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#rdbdixmlresourcename">dfprop - rdbDiXmlResourceName</a></div>
 	<div class="relatedpage"><a href="../../../../reference/dfprop/dependencyinjection/index.html#dbflutebeansdatasourcename">dfprop - dbfluteBeansDataSourceName</a></div>
 	<div class="relatedpage"><span class="working"><!-- <a href="../dienvironment/index.html#datasource"> -->現場フィット - DIEnvironment - DataSource<!-- </a> --></span></div>
-<pre><span class="codetitle">e.g. 複数DB対応のDI設定ファイルのDataSource参照 {foodb,Seasar(S2Container)} @dbflute-foodb.dicon</span><code>
+<pre><span class="codetitle">e.g. Lasta DIで、複数DB対応のDI設定ファイルのDataSource参照 {seadb} @dbflute-seadb.xml</span><code>
 &lt;components namespace="dbflute"&gt;
-    &lt;include path="<span class="point">j2ee-foodb.dicon</span>"/&gt;
+    &lt;include condition=<span class="literal">"#exists('#path')"</span> path=<span class="literal">"my_included_dbflute.xml"</span>/&gt;
+    &lt;include path="<span class="point">rdb-seadb.xml</span>"/&gt;
 <span class="abbreviation">...</span>
 </code></pre>
-<pre><span class="codetitle">e.g. 複数DB対応のDI設定ファイルのDataSource参照 {foodb,Spring Framework} @dbfluteBeansFooDb.xml</span><code>
-&lt;bean id="foInvokerAssistant" class="<span class="abbreviation">...</span>ImplementedInvokerAssistant" <span class="abbreviation">...</span>"&gt;
-    &lt;property name="dataSource"&gt;&lt;ref bean="<span class="point">fooDbDataSource</span>"/&gt;&lt;/property&gt;
+<pre><span class="codetitle">e.g. Springで、複数DB対応のDI設定ファイルのDataSource参照 {seadb} @dbfluteBeansSeaDb.xml</span><code>
+&lt;bean id="seaInvokerAssistant" class="<span class="abbreviation">...</span>ImplementedInvokerAssistant" <span class="abbreviation">...</span>"&gt;
+    &lt;property name="dataSource"&gt;&lt;ref bean="<span class="point">seaDbDataSource</span>"/&gt;&lt;/property&gt;
     <span class="abbreviation">...</span>
 &lt;/bean&gt;
 </code></pre>
 	<h3 id="prefixunique">クラス名の prefix を(必要であれば)設定する</h3>
 	<p>
-		それぞれの basicInfoMap.dfprop の <em class="keyword">projectPrefix</em>
+		それぞれの basicInfoMap.dfprop の <em class="mark">projectPrefix</em>
 		をユニークにします。但し、これは必須ではありません。<em class="keyword">別DB同名テーブルが存在する場合</em>
 		や、<em class="keyword">別DBであることを実装上明示的に区別したい場合</em>
 		などに利用します。複数DBが、メインとサブというように業務的に分かられるような場合は、サブのDBの方にだけ設定するのも良いでしょう。
@@ -232,19 +233,29 @@ xxx-project
 		そもそも allcommon 内のクラスをアプリで直接利用することは少ないため、別パッケージ同名クラスでも動作的には問題ありませんが、
 		幾つかの時々利用する可能性のあるクラスにおいて、やはりそれを避けたいのであれば設定することをお奨めします。
 	</p>
-<pre><span class="codetitle">e.g. 複数DB対応のクラス名の prefix {Fo,Ba,MEMBER} @EclipseProject</span><code>
+<pre><span class="codetitle">e.g. 複数DB対応のクラス名の prefix {Se,La,MEMBER} @EclipseProject</span><code>
 xxx-project
- |-dbflute_foodb
- |-dbflute_bardb
+ |-dbflute_seadb
+ |-dbflute_landdb
  |-mydbflute
  |-src/main/java
- |  |-com.example.xxx.dbflute.foodb.exentity
- |     |-<span class="point">FoMember.java</span>
+ |  |-org.docksidestage.xxx.dbflute.seadb.exentity
+ |     |-<span class="point">SeMember.java</span>
  |-src/main/java
- |  |-com.example.xxx.dbflute.bardb.exentity
- |     |-<span class="point">BaMember.java</span>
+ |  |-org.docksidestage.xxx.dbflute.landdb.exentity
+ |     |-<span class="point">LaMember.java</span>
  |-<span class="abbreviation">...</span>
 </code></pre>
+	<p>
+		メインのDBにはprefixは付けず、サブのDBにだけprefixを付けるのも良いでしょう。
+		<span class="frm">(後からDBを追加するような場合は、自然とそうなることも多いかと思います)</span>
+	</p>
+	<p>
+		一方で、全体的なprefixは一切付けないようにして、でも allcommon のクラスだけは prefix を付けたいというような場合は、
+		basicInfoMap.dfprop の allcommonPrefix を使うと良いでしょう。
+		<span class="frm">(CDefクラスなどが同じ名前になると扱いづらいので、allcommonだけはprefixを付けたいということがあります)
+	</p>
+	<div class="relatedpage"><a href="../../../../reference/dfprop/basicinfo/index.html#allcommonprefix">dfprop - allcommonPrefix</a></div>
 	<h3 id="outsidesqlunique">外だしSQLの対象パッケージを(必要であれば)設定する</h3>
 	<p>
 		それぞれの outsideSqlDefinitionMap.dfprop の <em class="keyword">sqlPackage</em>
@@ -257,17 +268,16 @@ xxx-project
 	<p>
 		設定値は、基本的に <em class="keyword">$$PACKAGE_BASE$$</em> とだけ設定すれば良いでしょう。
 	</p>
-<pre><span class="codetitle">e.g. 複数DB対応のSQLパッケージ {foodb,bardb} @outsideSqlDefinitionMap.dfprop</span><code>
+<pre><span class="codetitle">e.g. 複数DB対応のSQLパッケージ {seadb,landdb} @outsideSqlMap.dfprop</span><code>
 ; <span class="attribute">sqlPackage</span> = <span class="literal">$$PACKAGE_BASE$$</span>
 </code></pre>
 
 	<h2 id="example">Exampleのススメ</h2>
 	<p>
-		dbflute-multipledb-seasar-example や dbflute-multipledb-spring-example
-		では、実際に複数DBの構成を実現しています。
-		この構成は複雑な部分があるため、(主に環境面において)必ずExampleを参考にするようにして下さい。
+		テストプロジェクトですが、dbflute-test-dbms-mysql や dbflute-test-dbms-oracle
+		では、実際に複数DBの構成を実現しています。この構成は複雑なので、(主に環境面において)ぜひ参考にしましょう。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../../../reference/example/index.html#pointenv"> -->DBFlute Example - 特定環境<!-- </a> --></span></div>
+	<div class="detailpage"><a href="../../../../reference/example/index.html#database">DBFlute Example - DMBSとの連携Example</a></div>
 
 </div>
 </div>
