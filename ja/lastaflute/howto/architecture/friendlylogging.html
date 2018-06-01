@@ -57,10 +57,10 @@
 		<li><a href="#requestexceptionlog">例外メッセージにRequestの状態も</a>
 			<ul>
 				<li><a href="#requestsnapshot">Request状態のSNAPSHOT</a></li>
-				<li><a href="#transactionlist">SQL例外のときはトランザクション一覧も</a></li>
-				<li><a href="#transactionmemories">トランザクションの思い出も <span class="frm">(Transaction Memories)</span></a></li>
 			</ul>
 		</li>
+		<li><a href="#transactionlist">SQL例外のときはトランザクション一覧も</a></li>
+		<li><a href="#transactionmemories">例外メッセージにトランザクションの思い出も</a></li>
 		<li><a href="#actionflowlog">ActionやJSPなどを一発で探せるように</a></li>
 		<li><a href="#calllersqllog">SQLに呼び出しActionを埋め込み</a></li>
 		<li><a href="#sqlcountlog">RequestごとのSQLの発行回数</a></li>
@@ -263,7 +263,8 @@ java.lang.IllegalStateException: test error
 	<p>
 		RequestLoggingFilter にて、このログ出力が行われています。
 	</p>
-	<h3 id="transactionlist">SQL例外のときはトランザクション一覧も</h3>
+
+	<h2 id="transactionlist">SQL例外のときはトランザクション一覧も</h2>
 	<p>
 		SQL例外が発生したときに、一緒に "その瞬間のトランザクション一覧"
 		が、warningログとして出力されます。これにより、DBのロック待ち例外とかのとき、どの処理が起因になっているのかの推測がしやすくなります。
@@ -318,13 +319,15 @@ update MEMBER set BIRTHDATE = null, UPDATE_DATETIME = '2015-02-24 11:06:36.205',
 		は、例外発生時に初めて生成されるので、正常時に文字列生成コストがかかるわけではありません<span class="frm">(その辺のパフォーマンス考慮、最大限しているつもり)</span>。
 		また、トランザクションが開始されていても、まだ一度もDBアクセスしていないトランザクションは表示されません<span class="frm">(ConnectionPoolに乗ってないため)</span>。
 	</p>
-	<h3 id="transactionmemories">トランザクションの思い出も <span class="frm">(Transaction Memories)</span></h3>
+
+	<h2 id="transactionmemories">例外メッセージにトランザクションの思い出も</h2>
 	<p>
 		本番環境でのシステム例外は、例外メッセージとスタックトレースだけで原因を突き止めるのはなかなか難しいこともあります。
-		一つ前の検索結果が影響して例外が発生していることもあります。その一つ前の検索結果を知りたいものです。
+		一つ前二つ前の検索結果が影響して例外が発生していることもあり、その検索結果が知りたいものです。
 	</p>
 	<p>
-		そこで、例外発生時のリクエスト属性に、トランザクションの思い出を載せるようにしています。
+		そこで、例外メッセージ時に、<em class="mark">トランザクションの思い出</em> を載せ、<em class="keyword">落ちたトランザクションがどんな検索、更新をしてきたのか？</em>
+		がわかるようにしています。
 	</p>
 <pre><span class="codetitle">e.g. トランザクションの思い出、お見せします @Log</span><code>
 
