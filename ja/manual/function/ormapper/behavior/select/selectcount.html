@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -78,10 +79,26 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		Behaviorの <em class="keyword">selectCount()</em>
 		を呼び出し、ConditionBeanを指定します。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. selectCount()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selCo <span class="comment">// .selCo と打って enter</span>
+--
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレート入っていれば)</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectCount</span>(<span class="localvar">cbLambda</span>);
+--
+<span class="comment">// Lambda引数名はcbにして、tabでカーソル移動してcbで検索条件</span>
+<span class="keyword">int</span> count = <span class="attribute">memberBhv</span>.selectCount(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+});
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+	<p>
+		1.0.x (Java6版) であれば...
 	</p>
 <pre><span class="codetitle">e.g. selectCount()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="attribute">memberBhv</span>.selCo <span class="comment">// .selCo と打って enter</span>
@@ -95,7 +112,7 @@
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルのConditionBeanとなります。
+		該当のBehaviorに対応するテーブルのConditionBeanとなります。<span class="frm">(1.1.xよりコールバック)</span>
 	</p>
 	<p>
 		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。
