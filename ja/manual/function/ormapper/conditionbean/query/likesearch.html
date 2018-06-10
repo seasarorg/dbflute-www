@@ -46,11 +46,13 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#direction">一致の方向の指定</a>
 			<ul>
+				<li><a href="#likedirection">like[direction]()メソッド</a></li>
 				<li><a href="#escape">エスケープ処理の自動解決</a></li>
 				<li><a href="#plain">条件値にワイルドカードを含める</a></li>
 			</ul>
@@ -70,7 +72,7 @@
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#prefixsearch">前方一致：PrefixSearch</a></li>
+		<li><a href="#prefixsearch">前方一致：PrefixSearch <span class="frm">@until 1.0.x</span></a></li>
 		<li><a href="#notlikesearch">否定条件：NotLikeSearch</a></li>
 	</ul>
 
@@ -91,12 +93,43 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		query() の後、<em class="keyword">set[column-name]_LikeSearch()</em>
-		を呼び出し、第一引数に条件値、第二引数に LikeSearchOption (必須)を指定します。
+		を呼び出し、第一引数に条件値、第二引数に LikeSearchOption を指定します。
 	</p>
 	<div class="relatedpage"><a href="../../runtime/likesearchoption.html">DBFluteランタイム - LikeSearchOption</a></div>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. LikeSearch条件の実装手順 (Eclipseでコード補完) {MEMBER_NAME} @Java</span><code>
+MemberCB cb = <span class="keyword">new</span> MemberCB();
+cb.q <span class="comment">// .q と打って enter</span>
+--
+
+cb.query()
+--
+
+<span class="comment">// .set まで打つとカラム選択</span>
+<span class="comment">// MN (MemberName) でカラム確定、LS (LikeSearch) で enter</span>
+cb.query().setMNLS
+--
+
+<span class="comment">// 第一引数の "memberName" が選択状態に</span>
+cb.query().<span class="point">setMemberName_LikeSearch</span>(memberName, opLambda);
+--
+
+<span class="comment">// 第一引数に検索条件の値を指定して...</span>
+cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, opLambda); 
+--
+
+<span class="comment">// tab を一回押して、第二引数の方を "opLambda" を選択状態に</span>
+<span class="comment">// そして、_li で補完 (DBFlute補完テンプレートが有効なら)</span>
+cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="keyword">_li</span>); 
+--
+
+<span class="comment">// Lambda引数名は op (option) に、前方一致か部分一致かあいまい検索のオプションを</span>
+cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="subpoint">likePrefix()</span>); 
+</code></pre>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. LikeSearch条件の実装手順 (Eclipseでコード補完) {MEMBER_NAME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.q <span class="comment">// .q と打って enter</span>
@@ -115,8 +148,9 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>
 </code></pre>
 
 	<h2 id="direction">一致の方向の指定</h2>
+	<h3 id="likedirection">like[direction]()メソッド</h3>
 	<p>
-		LikeSearchOption の like[direction]() メソッドを呼び出すことで指定します。
+		LikeSearchOption の like[direction]()メソッドを呼び出すことで指定します。
 	</p>
 	<dl class="keymainlist">
 		<dt>likePrefix()</dt><dd>前方一致</dd>
@@ -133,9 +167,7 @@ cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>
 		エスケープ文字で内部的にエスケープされます(エスケープ文字はデフォルトでパイプライン "|" です)。
 	</p>
 <pre><span class="codetitle">e.g. 部分一致で条件値にエスケープ文字が含まれている @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().setMemberName_LikeSearch(<span class="point">"100%Juice"</span>
-        , <span class="keyword">new</span> LikeSearchOption().<span class="point">likeContain()</span>);
+cb.query().setMemberName_LikeSearch(<span class="point">"100%Juice"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="subpoint">likeContain()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 部分一致で条件値のエスケープ文字をエスケープ @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -154,7 +186,7 @@ cb.query().setMemberName_LikeSearch(<span class="point">"100%Juice"</span>
 
 	<h2 id="split">区切り文字でスプリットして複数条件</h2>
 	<p>
-		例えば、条件値が "FOO BAR QUX" と空白区切りになっていて、"FOO" を含む、かつ、"BAR" を含む、かつ、"QUX"
+		例えば、条件値が "SEA LAND PIARI" と空白区切りになっていて、"SEA" を含む、かつ、"LAND" を含む、かつ、"PIARI"
 		を含む、というような複数条件の曖昧検索をしたい場合、この空白区切りを内部的に分解して自動的に複数条件として扱う機能があります。
 	</p>
 	<dl class="valuemainlist">
@@ -163,25 +195,25 @@ cb.query().setMemberName_LikeSearch(<span class="point">"100%Juice"</span>
 	</dl>
 <pre><span class="codetitle">e.g. 空白区切りでスプリット (AND条件) @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
-        , <span class="keyword">new</span> LikeSearchOption().likeContain().<span class="point">splitBySpace()</span>);
+cb.query().setMemberName_LikeSearch(<span class="subpoint">"SEA LAND PIARI"</span>
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain().<span class="point">splitBySpace()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 空白区切りでスプリット (AND条件) @DisplaySql</span><code>
 <span class="abbreviation">...</span>
- <span class="keyword">where</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%FOO%' escape '|'</span>
-   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%BAR%' escape '|'</span>
-   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%QUX%' escape '|'</span>
+ <span class="keyword">where</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%SEA%' escape '|'</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%LAND%' escape '|'</span>
+   <span class="keyword">and</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%PIARI%' escape '|'</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 空白区切りでスプリット (OR条件) @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
-        , <span class="keyword">new</span> LikeSearchOption().likeContain().<span class="point">splitBySpace().asOrSplit()</span>);
+cb.query().setMemberName_LikeSearch(<span class="subpoint">"SEA LAND PIARI"</span>
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain().<span class="point">splitBySpace().asOrSplit()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 空白区切りでスプリット (OR条件) @DisplaySql</span><code>
 <span class="abbreviation">...</span>
- <span class="keyword">where</span> (MEMBER_NAME <span class="keyword">like</span> <span class="point">'%FOO%' escape '|'</span>
-    <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%BAR%' escape '|'</span>
-    <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%QUX%' escape '|'</span>)
+ <span class="keyword">where</span> (MEMBER_NAME <span class="keyword">like</span> <span class="point">'%SEA%' escape '|'</span>
+    <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%LAND%' escape '|'</span>
+    <span class="keyword">or</span> MEMBER_NAME <span class="keyword">like</span> <span class="point">'%PIARI%' escape '|'</span>)
 </code></pre>
 	<h3 id="delimiter">デリミタの調整</h3>
 	<p>
@@ -191,10 +223,13 @@ cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
 	</p>
 	<dl class="textlist">
 		<dt>splitByBlank() <span class="frm">@since 0.9.7.5</span></dt>
-		<dd>半角空白・全角空白・タブ・改行で区切る。利用頻度の一番高いものと想定される。</dd>
+		<dd>半角空白・全角空白・タブ・改行で区切る。</dd>
+		<dd>大抵のケースは、このメソッドで問題なく、利用頻度の一番高いものと想定される。</dd>
 		<dt>splitBySpace()</dt>
-		<dd>純粋に半角空白だけで区切る。全角空白など別の値を業務的な値として利用する場面が想定される。</dd>
-		<dt>splitBySpaceContainsDoubleByte()</dt><dd>半角空白に加えて、全角空白でも区切る。</dd>
+		<dd>純粋に半角空白だけで区切る。</dd>
+		<dd>全角空白など別の値を業務的な値として利用する場面が想定される。</dd>
+		<dt>splitBySpaceContainsDoubleByte()</dt>
+		<dd>半角空白に加えて、全角空白でも区切る。タブや改行は対象外。</dd>
 		<dt>splitByPipeLine()</dt><dd>パイプライン "|" で区切る</dd>
 		<dt>splitByVarious(List delimiterList) <span class="frm">@since 0.9.7.5</span></dt>
 		<dd>
@@ -240,7 +275,10 @@ cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
 		String 型のみです。
 	</p>
 
-	<h2 id="prefixsearch">前方一致：PrefixSearch</h2>
+	<h2 id="prefixsearch">前方一致：PrefixSearch <span class="frm">@until 1.0.x</span></h2>
+	<p>
+		※こちら、1.1.x (Java8版) からはデフォルトで自動生成されなくなりました。LikeSearch で likePrefix() を使うようにしてください。
+	</p>
 	<p>
 		業務的に頻度の高いと思われる前方一致に関しては PrefixSearch という ConditionKey
 		として独立したメソッドで提供されています(LikeSearchOptionの指定不要)。内部的には LikeSearch
@@ -248,7 +286,6 @@ cb.query().setMemberName_LikeSearch(<span class="point">"FOO BAR QUX"</span>
 	</p>
 	<div class="relatedpage"><a href="./prefixsearch.html">PrefixSearch</a></div>
 <pre><span class="codetitle">e.g. PrefixSearch @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.query().<span class="point">setMemberName_PrefixSearch</span>(<span class="literal">"100%Juice"</span>);
 </code></pre>
 
@@ -257,9 +294,7 @@ cb.query().<span class="point">setMemberName_PrefixSearch</span>(<span class="li
 		否定条件の曖昧検索として、NotLikeSearch もあります。条件が否定になっただけで仕様は LikeSearch と全く同じです。
 	</p>
 <pre><span class="codetitle">e.g. NotLikeSearch @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().<span class="point">setMemberName_NotLikeSearch</span>(<span class="literal">"100%Juice"</span>
-        , <span class="keyword">new</span> LikeSearchOption().likeContain());
+cb.query().<span class="point">setMemberName_NotLikeSearch</span>(<span class="literal">"100%Juice"</span>, <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.likeContain());
 </code></pre>
 
 </div>

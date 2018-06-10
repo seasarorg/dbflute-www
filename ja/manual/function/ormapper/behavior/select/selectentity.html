@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#java8">Java8 なら OptionalEntity</a>
@@ -72,12 +73,8 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		<em class="keyword">ConditionBean で null を戻す可能性のある一件検索</em>
+		<em class="keyword">ConditionBean で一件検索</em>
 		をします。検索結果が存在する場合としない場合で業務的な処理を分岐させる必要があるような場合に利用します。
-	</p>
-	<p>
-		検索結果が存在しなかったら例外になってもいい(条件付与のバグ、データ不整合、すれ違いによる削除など)、という場合は、このメソッドではなく
-		selectEntityWithDeletedCheck() を利用して下さい。 
 	</p>
 	<div class="detailpage"><a href="./selectentitywithdeletedcheck.html">selectEntityWithDeletedCheck()</a></div>
 	<p>
@@ -85,11 +82,56 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		Behaviorの <em class="keyword">selectEntity()</em>
 		を呼び出し、ConditionBeanを指定します。
 	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. selectEntity()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selEn <span class="comment">// .selEn と打って enter</span>
+--
+
+<span class="comment">// メソッドが補完されて、引数の "cbLambda" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectEntity</span>(cbLambda);
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.selectEntity(<span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// Lambda引数名はcbにして...</span>
+<span class="attribute">memberBhv</span>..selectEntity((<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+})
+--
+
+<span class="comment">// セミコロン ';' を打って ctrl+2, L で戻り値補完</span>
+OptionalEntity&lt;Member&gt; <span class="localvar">optEntity</span> = <span class="attribute">memberBhv</span>.selectEntity(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+});
+
+ <span class="keyword">or</span>
+
+<span class="comment">// もしくは、"一発処理でOKスタイル" で</span>
+<span class="attribute">memberBhv</span>.selectEntity(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+}).<span class="subpoint">ifPresent</span>(<span class="localvar">member</span> -&gt; { <span class="comment">// 業務上必ず存在するなら alwaysPresent() でもOK</span>
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.get<span class="abbreviation">...</span>
+}).orElse(() -&gt; { <span class="comment">// なかったときの処理、必要であれば</span>
+    <span class="abbreviation">...</span>
+});;
+
+ <span class="keyword">or</span>
+
+<span class="comment">// もしくは、例外翻訳して取り出し</span>
+Member <span class="localvar">member</span> = <span class="attribute">memberBhv</span>.selectEntity(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+}).<span class="subpoint">orElseTranslatingThrow</span>(<span class="localvar">cause</span> -&gt; { <span class="comment">// CBの例外(SQL入り)</span>
+    <span class="keyword">return new</span> MyOriginalException(<span class="literal">"my message"</span>, <span class="localvar">cause</span>); <span class="comment">// 例外の翻訳</span>
+});
+</code></pre>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. selectEntity()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="attribute">memberBhv</span>.selE <span class="comment">// .selE と打って enter</span>
 --
@@ -337,7 +379,7 @@ Member member = memberBhv.<span class="point">selectEntityWithDeletedCheck</span
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの ConditionBean となります。
+		該当のBehaviorに対応するテーブルの ConditionBean となります。<span class="frm">(1.1.xよりコールバック)</span>
 	</p>
 	<p>
 		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。

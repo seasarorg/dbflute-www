@@ -47,7 +47,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#referrerorderby">子テーブルのソート条件</a></li>
 				<li><a href="#onetomanytoone">子テーブルの親テーブルの取得 (one-to-many-to-one)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブルの取得 (one-to-many-to-many)</a></li>
@@ -61,7 +62,6 @@
 				<li><a href="#newloader">複雑なリレーショナルを辿るのにGood</a></li>
 				<li><a href="#loadmethod">Behavior の load() メソッド</a></li>
 				<li><a href="#loadermechanism">内部的には、通常の LoadReferrer を呼んでいる</a></li>
-				<li><a href="#loadermain">1.1からは、Loaderがメインに</a></li>
 			</ul>
 		</li>
 		<li><a href="#outsidesql">外だしSQLでもLoadReferrer</a>
@@ -132,11 +132,58 @@
 	<div class="relatedpage"><a href="../../conditionbean/specify/derivedreferrer.html">ConditionBean - (Specify)DerivedReferrer</a></div>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
-		Behaviorの <em class="keyword">load[referrer-table]List()</em>
-		を呼び出し、第一引数に会員(一覧)のデータ、第二引数に ConditionBeanSetupper、もしくは、LoadReferrerOption を指定します。
+		Behaviorの <em class="keyword">load[referrer-table]()</em>
+		を呼び出し、第一引数に会員(一覧)のデータ、第二引数で子テーブルの検索条件のコールバックを指定します。
 	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. LoadReferrerの実装手順 (Eclipseでコード補完) {MEMBER, PURCHASE} @Java</span><code>
+<span class="comment">// まずは普通に会員一覧</span>
+List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+    cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+});
+
+<span class="comment">// .lo まで打つと関連テーブル選択、続けて Pu (Purchase)</span>
+<span class="comment">// オーバーロードのメソッドが二つ:</span>
+<span class="comment">// 第一引数が "リスト型" か "Entity型" の違いだけなので、合う方を選べばOK</span>
+<span class="attribute">memberBhv</span>.loPu
+--
+
+<span class="comment">// メソッドが補完されて、引数の "memberList" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList</span>(<span class="localvar">memberList</span>, refCBLambda);
+--
+
+<span class="comment">// tab を一回押して、第二引数の方を "refCBLambda" を選択状態に</span>
+<span class="comment">// そして、_ll で補完 (DBFlute補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.loadPurchaseList(<span class="localvar">memberList</span>, <span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// Lambda引数名は purchaseCB にして...</span>
+<span class="comment">// 最後にセミコロン ";" を忘れずに</span>
+<span class="attribute">memberBhv</span>.loadPurchaseList(<span class="localvar">memberList</span>, <span class="localvar">purchaseCB</span> -&gt; {
+   <span class="localvar">purchaseCB</span>.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+   <span class="localvar">purchaseCB</span>.query().addOrderBy_PurchaseDatetime_Desc();
+});
+<span class="keyword">for</span> (Member member : memberList) {
+    <span class="comment">// loadした子テーブルの一覧を取得</span>
+    <span class="comment">// (LoadReferrerしていない場合はこれが空リスト)</span>
+    List&lt;Purchase&gt; purchaseList = member.<span class="point">getPurchaseList()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		Lambda引数名では、subCBは使わず "テーブルを識別できるCB名" が推奨されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html#naming">DBFlute on Java8 - たかが変数名、されど変数名</a></div>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+<pre><span class="codetitle">e.g. LoadReferrerを使って関連する購入を一括取得 {PURCHASE} @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> PURCHASE dfloc 
+ <span class="keyword">where</span> <span class="point">dfloc.MEMBER_ID in (1, 2, 3, 4)</span>
+   <span class="keyword">and</span> dfloc.PURCHASE_COUNT >= <span class="literal">2000</span> 
+ <span class="keyword">order by</span> <span class="point">dfloc.MEMBER_ID asc</span>, dfloc.PURCHASE_DATETIME <span class="keyword">desc</span>
+</code></pre>
 <pre><span class="codetitle">e.g. LoadReferrerの実装手順 (Eclipseでコード補完) {MEMBER, PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
@@ -185,24 +232,15 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
     <span class="abbreviation">...</span>
 }
 </code></pre>
-<pre><span class="codetitle">e.g. LoadReferrerを使って関連する購入を一括取得 {PURCHASE} @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> PURCHASE dfloc 
- <span class="keyword">where</span> <span class="point">dfloc.MEMBER_ID in (1, 2, 3, 4)</span>
-   <span class="keyword">and</span> dfloc.PURCHASE_COUNT >= <span class="literal">2000</span> 
- <span class="keyword">order by</span> <span class="point">dfloc.MEMBER_ID asc</span>, dfloc.PURCHASE_DATETIME <span class="keyword">desc</span>
-</code></pre>
 	<h3 id="referrerorderby">子テーブルのソート条件</h3>
 	<p>
-		ConditionBeanSetupper で、子テーブルのソート条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
+		ReferrerConditionSetupper で、子テーブルのソート条件を指定できます。このコールバックはサブクエリではありませんので、絞り込み条件に限らず
 		OrderBy が利用できます。業務的にほとんどの場合、ソート条件が必要になると想定されています。
 	</p>
 <pre><span class="codetitle">e.g. 会員に関連する購入を購入日時の降順で取得 @Java</span><code>
 <span class="abbreviation">...</span>
-<span class="attribute">memberBhv</span>.loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        cb.query().<span class="point">addOrderBy_PurchaseDatetime_Desc()</span>; <span class="comment">// 購入日時の降順で</span>
-    }
+<span class="attribute">memberBhv</span>.loadPurchase(memberList, purchaseCB -&gt; {
+    purchaseCB.query().<span class="point">addOrderBy_PurchaseDatetime_Desc()</span>; <span class="comment">// 購入日時の降順で</span>
 });
 </code></pre>
 <pre><span class="codetitle">e.g. 会員に関連する購入を購入日時の降順で取得 @DisplaySql</span><code>
@@ -223,18 +261,15 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 	</p>
 <pre><span class="codetitle">e.g. 会員に関連する購入と共に商品も取得 @Java</span><code>
 <span class="abbreviation">...</span>
-<span class="attribute">memberBhv</span>.loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        cb.<span class="point">setupSelect_Product()</span>; <span class="comment">// 商品も同時に取得</span>
-        cb.query().addOrderBy_PurchaseDatetime_Desc();
-    }
+<span class="attribute">memberBhv</span>.loadPurchase(memberList, purchaseCB -&gt; {
+    purchaseCB.<span class="point">setupSelect_Product()</span>; <span class="comment">// 商品も同時に取得</span>
+    purchaseCB.query().addOrderBy_PurchaseDatetime_Desc();
 });
 
 <span class="keyword">for</span> (Member member : memberList) {
     List&lt;Purchase&gt; purchaseList = member.getPurchaseList();
     <span class="keyword">for</span> (Purchase purchase : purchaseList) {
-        <span class="comment">// 商品も取得できる</span>
-        Product product = purchase.<span class="point">getProduct()</span>;
+        Product product = purchase.<span class="point">getProduct()</span>; <span class="comment">// 商品も取得できる</span>
         <span class="abbreviation">...</span>
     }
 }
@@ -245,23 +280,16 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
 		1.0.5G より、実装しやすい新たな方法が提供されています。
 	</p>
 <pre><span class="codetitle">e.g. 会員と購入とさらに購入支払を取得 @Java</span><code>
-<span class="comment">// 会員ステータス (基点テーブル)</span>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+List&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; { <span class="comment">// 会員</span>
+    cb<span class="abbreviation">...</span> <span class="comment">// 様々な条件</span>
+});
 
-<span class="attribute">memberBhv</span>.loadPurchaseList(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        cb.query().addOrderBy_PurchaseDatetime_Desc();
-    }
-}).<span class="point">withNestedReferrer</span>(<span class="keyword">new</span> ReferrerListHandler&lt;Purchase&gt;() {
-    <span class="keyword">public void</span> handle(List&lt;Purchase&gt; referrerList) {
-        <span class="attribute">purchaseBhv</span>.loadPurchasePaymentList(referrerList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchasePaymentCB&gt;() {
-            <span class="keyword">public void</span> setup(PurchasePaymentCB cb) {
-                cb.query().addOrderBy_PaymentDatetime_Desc();
-            }
-        });
-    }
+<span class="attribute">memberBhv</span>.loadPurchase(<span class="localvar">memberList</span>, <span class="localvar">purchaseCB</span> -&gt; { <span class="comment">// 購入</span>
+    <span class="localvar">purchaseCB</span>.query().addOrderBy_PurchaseDatetime_Desc();
+}).<span class="point">withNestedReferrer</span>(<span class="localvar">purchaseList</span> &gt; {
+    <span class="attribute">purchaseBhv</span>.loadPurchasePayment(<span class="localvar">purchaseList</span>, <span class="localvar">paymentCB</span> -&gt; { <span class="comment">// 購入支払</span>
+        <span class="localvar">paymentCB</span>.query().addOrderBy_PaymentDatetime_Desc();
+    });
 });
 </code></pre>
 	<h4>従来のやり方 <span class="frm">@before 1.1</span></h4>
@@ -324,13 +352,12 @@ loadReferrerOption.<span class="point">setEntityListSetupper</span>(<span class=
 	</p>
 	<div class="relatedpage"><span class="working"><!-- <a href="../sidebar/pulloutrelation.html"> -->Behavior - PulloutRelation<!-- </a> --></span></div>
 <pre><span class="codetitle">e.g. 会員一覧に対して、会員ステータスに紐付くログイン情報を取得 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.<span class="subpoint">setupSelect_MemberStatus()</span>;
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-List&lt;MemberStatus&gt; statusList = <span class="attribute">memberBhv</span>.<span class="point">pulloutMemberStatus</span>(memberList);
-<span class="attribute">memberStatusBhv</span>.loadMemberLoginList(statusList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
-    <span class="keyword">public void</span> setup(MemberLoginCB cb) {
-    }
+List&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; { <span class="comment">// 会員ステータス</span>
+    cb.<span class="subpoint">setupSelect_MemberStatus()</span>;
+});
+List&lt;MemberStatus&gt; <span class="localvar">statusList</span> = <span class="attribute">memberBhv</span>.<span class="point">pulloutMemberStatus</span>(<span class="localvar">memberList</span>);
+<span class="attribute">memberStatusBhv</span>.loadMemberLogin(<span class="localvar">statusList</span>, <span class="localvar">loginCB</span> -&gt; {
+    <span class="localvar">loginCB</span><span class="abbreviation">...</span>
 });
 </code></pre>
 	<h3 id="branchreferrer">枝分かれの子テーブルの取得</h3>
@@ -339,16 +366,12 @@ List&lt;MemberStatus&gt; statusList = <span class="attribute">memberBhv</span>.<
 	</p>
 <pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
 <span class="abbreviation">...</span>
-<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        cb.query().addOrderBy_PurchaseDatetime_Desc();
-    }
-})
-<span class="attribute">memberBhv</span>.<span class="point">loadMemberLoginList</span>(memberList, <span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
-    <span class="keyword">public void</span> setup(MemberLoginCB cb) {
-        cb.query().addOrderBy_LoginDatetime_Desc();
-    }
-})
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchase</span>(<span class="localvar">memberList</span>, purchaseCB -&gt; {
+    purchaseCB.query().addOrderBy_PurchaseDatetime_Desc();
+});
+<span class="attribute">memberBhv</span>.<span class="point">loadMemberLogin</span>(<span class="localvar">memberList</span>, loginCB -&gt; {
+    loginCB.query().addOrderBy_LoginDatetime_Desc();
+});
 </code></pre>
 	<h3 id="specifycolumn">子テーブルの取得カラムの指定</h3>
 	<p>
@@ -368,36 +391,26 @@ List&lt;MemberStatus&gt; statusList = <span class="attribute">memberBhv</span>.<
 		Behavior の load() メソッドを呼び出し、コールバックで loader を操作します。
 	</p>
 <pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query()<span class="abbreviation">...</span>
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
+List&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(cb -&gt; {
+    cb.query()<span class="abbreviation">...</span>
+});
 
-<span class="attribute">memberBhv</span>.<span class="point">load</span>(memberList, <span class="keyword">new</span> ReferrerLoaderHandler&lt;LoaderOfMember&gt;() {
-    <span class="keyword">public void</span> handle(LoaderOfMember <span class="point">loader</span>) {
-        <span class="comment">// [one-to-many-to-many]</span>
-        <span class="comment">// 会員から購入を取得、さらに、購入支払を取得</span>
-        loader.<span class="point">loadPurchaseList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;PurchaseCB>() {
-            <span class="keyword">public void</span> setup(PurchaseCB purchaseCB) {
-                purchaseCB.query()<span class="abbreviation">...</span>
-            }
-        }).withNestedReferrer(<span class="keyword">new</span> ReferrerLoaderHandler&lt;LoaderOfPurchase&gt;() {
-            <span class="keyword">public void</span> handle(LoaderOfPurchase loader) {
-                loader.<span class="point">loadPurchasePaymentList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;PurchasePaymentCB&gt;() {
-                    <span class="keyword">public void</span> setup(PurchasePaymentCB paymentCB) {
-                        paymentCB.query()<span class="abbreviation">...</span>
-                    }
-                });
-            }
+<span class="attribute">memberBhv</span>.<span class="point">load</span>(<span class="localvar">memberList</span>, <span class="localvar">memberLoader</span> -&gt; {
+    <span class="comment">// [one-to-many-to-many]</span>
+    <span class="comment">// 会員から購入を取得、さらに、購入支払を取得</span>
+    <span class="localvar">memberLoader</span>.<span class="point">loadPurchase</span>(<span class="localvar">purchaseCB</span> -&gt; {
+        <span class="localvar">purchaseCB</span>.query()<span class="abbreviation">...</span>
+    }).withNestedReferrer(<span class="localvar">purchaseLoader</span> -&gt; {
+        <span class="localvar">purchaseLoader</span>.<span class="point">loadPurchasePayment</span>(<span class="localvar">paymentCB</span> -&gt; {
+            <span class="localvar">paymentCB</span>.query()<span class="abbreviation">...</span>
         });
-        <span class="comment">// [many-to-one-to-many]</span>
-        <span class="comment">// 会員から会員ステータスを経由して、会員ログインを取得</span>
-        <span class="comment">// (会員ステータスが setupSelect されていることが前提)</span>
-        loader.<span class="point">pulloutMemberStatus()</span>.<span class="point">loadMemberLoginList</span>(<span class="keyword">new</span> ConditionBeanSetupper&lt;MemberLoginCB&gt;() {
-            <span class="keyword">public void</span> setup(MemberLoginCB loginCB) {
-                loginCB.query()<span class="abbreviation">...</span>
-            }
-        });
-    }
+    });
+    <span class="comment">// [many-to-one-to-many]</span>
+    <span class="comment">// 会員から会員ステータスを経由して、会員ログインを取得</span>
+    <span class="comment">// (会員ステータスが setupSelect されていることが前提)</span>
+    <span class="localvar">memberLoader</span>.<span class="point">pulloutMemberStatus()</span>.<span class="point">loadMemberLogin</span>(<span class="localvar">loginCB</span> -&gt; {
+        <span class="localvar">loginCB</span>.query()<span class="abbreviation">...</span>
+    });
 });
 </code></pre>
 	<h3 id="loadermechanism">内部的には、通常の LoadReferrer を呼んでいる</h3>
@@ -405,34 +418,6 @@ List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectL
 		内部的には、通常の LoadReferrer を呼び出しています。Behavior の DI
 		や関連テーブルのリストの抽出と引き渡しなどを内部で解決することで、リレーションと検索条件を指定するだけで load できるようにしています。
 	</p>
-	<h3 id="loadermain">1.1からは、Loaderがメインに</h3>
-	<p>
-		DBFlute-1.1 からは、この Loader 方式が LoadReferrer におけるメインになります。
-		これが利用できるバージョン <span class="frm">(@since 1.0.5J)</span> であれば、積極的に利用していくとよいでしょう。
-	</p>
-<pre><span class="codetitle">e.g. 会員に関連する購入と会員ログイン情報を取得 (Lambda) @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query()<span class="abbreviation">...</span>
-List&lt;Member&gt; memberList = <span class="attribute">memberBhv</span>.selectList(cb);
-
-<span class="attribute">memberBhv</span>.<span class="point">load</span>(memberList, <span class="point">loader</span> -&gt; {
-    <span class="comment">// [one-to-many-to-many]</span>
-    <span class="comment">// 会員から購入を取得、さらに、購入支払を取得</span>
-    loader.<span class="point">loadPurchaseList</span>(purchaseCB -&gt; {
-        purchaseCB.query()<span class="abbreviation">...</span>
-    }).withNestedReferrer(loader -&gt; {
-        loader.<span class="point">loadPurchasePaymentList</span>(paymentCB -&gt; {
-            paymentCB.query()<span class="abbreviation">...</span>
-        });
-    });
-    <span class="comment">// [many-to-one-to-many]</span>
-    <span class="comment">// 会員から会員ステータスを経由して、会員ログインを取得</span>
-    <span class="comment">// (会員ステータスが setupSelect されていることが前提)</span>
-    loader.<span class="point">pulloutMemberStatus()</span>.<span class="point">loadMemberLoginList</span>(loginCB -&gt; {
-        loginCB.query()<span class="abbreviation">...</span>
-    });
-});
-</code></pre>
 
 	<h2 id="outsidesql">外だしSQLでもLoadReferrer</h2>
 	<p>
@@ -485,10 +470,8 @@ List&lt;Member&gt; domainList = <span class="keyword">new</span> ArrayList&lt;Me
     domainList.add(member.<span class="point">prepareDomain()</span>);
 }
 
-<span class="attribute">memberBhv</span>.<span class="point">loadPurchaseList</span>(domainList, <span class="keyword">new</span> ConditionBeanSetu<span class="abbreviation">...</span> {
-    <span class="keyword">public void</span> setup(PurchaseCB cb) {
-        <span class="abbreviation">...</span>
-    }
+<span class="attribute">memberBhv</span>.<span class="point">loadPurchase</span>(domainList, purchaseCB -&gt; {
+    <span class="abbreviation">...</span>
 });
 
 <span class="keyword">for</span> (UnpaidSummaryMember member : memberList) {

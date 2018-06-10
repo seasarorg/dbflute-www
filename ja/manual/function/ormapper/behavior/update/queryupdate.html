@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#pkupdate">主キー値の更新</a></li>
 			</ul>
 		</li>
@@ -90,18 +91,30 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		Behaviorの <em class="keyword">queryUpdate()</em>
 		を呼び出し、Entity と ConditionBean を指定します。
 	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
 <pre><span class="codetitle">e.g. queryUpdate()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="attribute">memberBhv</span>.quU <span class="comment">// .quU と打って enter</span>
 --
-<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cb);
 
-<span class="comment">// .qu と打つと queryUpdate() や queryDelete() など</span>
-<span class="comment">// クエリ更新系のメソッドだけが補完候補に列挙される</span>
+<span class="comment">// メソッドが補完されて、第一引数の "member" が選択状態に</span>
+<span class="comment">// tabで移動して、第二引数の "cbLambda" を選択状態にして...</span>
+<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cbLambda)
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, <span class="subpoint">_ll</span>)
+--
+
+<span class="comment">// Lambda引数名はcbにして...セミコロン ";" を忘れずに</span>
+<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cb -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+});
+--
 </code></pre>
 	<p>
 		Entity には PK の値も不要です。更新値だけを設定します。
@@ -110,16 +123,12 @@
 Member member = <span class="keyword">new</span> Member();
 member.<span class="point">setMemberStatusCode_Provisional()</span>;
 member.<span class="point">setFormalizedDatetime</span>(<span class="keyword">null</span>);
-
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>;
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().<span class="point">setPaymentCompeleteFlg_Equal_False()</span>;
-    }
+<span class="attribute">memberBhv</span>.queryUpdate(member, cb -&gt; {
+    cb.query().<span class="point">setMemberStatusCode_Equal_Formalized()</span>;
+    cb.query().existsPurchase(puchaseCB -&gt; {
+        puchaseCB.query().<span class="point">setPaymentCompeleteFlg_Equal_False()</span>;
+    });
 });
-
-<span class="attribute">memberBhv</span>.queryUpdate(member, cb);
 </code></pre>
 <pre><span class="codetitle">e.g. 未払い購入のある正式会員を仮会員に更新 @DisplaySql</span><code>
 <span class="keyword">update</span> MEMBER
@@ -141,10 +150,19 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 )
 </code></pre>
 	<p>
-		絞り込み条件は、InScope を使ったサブクエリ方式です。
+		絞り込み条件は、(基本的には) InScope を使ったサブクエリ方式です。
 	</p>
 	<div class="relatedpage"><a href="#dbmsheadache">DBMSによっては制限も</a></div>
 	<div class="relatedpage"><a href="#compoundpk">複合主キーの場合は制限</a></div>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+<pre><span class="codetitle">e.g. queryUpdate()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.quU <span class="comment">// .quU と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.<span class="point">queryUpdate</span>(member, cb);
+
+<span class="comment">// .qu と打つと queryUpdate() や queryDelete() など</span>
+<span class="comment">// クエリ更新系のメソッドだけが補完候補に列挙される</span>
+</code></pre>
 	<h3 id="pkupdate">主キー値の更新</h3>
 	<p>
 		PK も更新対象カラムの一つです。あまりお奨めされませんが、PKのプロパティに値を設定すれば更新できます。
@@ -153,7 +171,7 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルのEntityとConditionBeanになります。
+		該当のBehaviorに対応するテーブルの Entity と ConditionBean <span class="frm">(1.1.xよりコールバック)</span> になります。
 	</p>
 	<p>
 		nullを指定した場合は例外発生します。

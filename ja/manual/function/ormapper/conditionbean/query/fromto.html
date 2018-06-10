@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#pattern">パターンの比較条件</a>
@@ -89,12 +90,42 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		query() の後、<em class="keyword">set[date-column-name]_FromTo()</em>
 		を呼び出し、第一引数に from に相当する条件値、第二引数に to に相当する条件値、第三引数に FromToOption (必須)を指定します。
 	</p>
 	<div class="relatedpage"><a href="../../runtime/fromtooption.html">DBFluteランタイム - FromToOption</a></div>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. FromTo条件の実装手順 (Eclipseでコード補完) {FORMALIZED_DATETIME} @Java</span><code>
+LocalDateTime fromDate = <span class="abbreviation">...</span>
+LocalDateTime toDate = <span class="abbreviation">...</span>
+cb.q <span class="comment">// .q と打って enter</span>
+--
+
+cb.query()
+--
+
+<span class="comment">// 1. .set まで打つとカラム選択</span>
+<span class="comment">// 2. FD (FormalizedDatetime) でカラム確定</span>
+<span class="comment">// 3. FT (FromTo) で enter</span>
+cb.query().setFDFT
+--
+
+<span class="comment">// メソッドが補完されて、第一引数の "fromDate" が選択状態に</span>
+<span class="comment">// tabで移動して 第三引数の "opLambda" を選択状態にして...</span>
+cb.query().<span class="point">setFormalizedDatetime_FromTo</span>(fromDate, toDate, opLambda);
+--
+
+<span class="comment">// cbLambdaの部分で、_li (補完テンプレートが有効なら)</span>
+cb.query().<span class="point">setFormalizedDatetime_FromTo</span>(fromDate, toDate, <span class="subpoint">_li</span>);
+--
+
+<span class="comment">// Lambda引数名は op (option) に、比較オプションを指定</span>
+cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsMonth()</span>);
+</code></pre>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. FromTo条件の実装手順 (Eclipseでコード補完) {FORMALIZED_DATETIME} @Java</span><code>
 Date fromDate = <span class="abbreviation">...</span>
 Date toDate = <span class="abbreviation">...</span>
@@ -138,7 +169,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/10 08:24:53</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/16 14:36:29</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsDate()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsDate()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 日付で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -163,7 +194,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 <pre><span class="codetitle">e.g. "今日" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/09 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(<span class="point">currentDate</span>, <span class="point">currentDate</span>
-        , <span class="keyword">new</span> FromToOption().compareAsDate());
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsDate());
 <span class="comment">// -&gt; today (2012/12/09) is target</span>
 </code></pre>
 	<p>
@@ -173,7 +204,7 @@ cb.query().setFormalizedDatetime_FromTo(<span class="point">currentDate</span>, 
 <pre><span class="codetitle">e.g. "昨日" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/09 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
-        , <span class="keyword">new</span> FromToOption().compareAsDate().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsDate().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
 <span class="comment">// -&gt; yesterday (2012/12/08) is target</span>
 </code></pre>
 	<h3 id="month">年月による範囲条件 (yyyy/MM)</h3>
@@ -188,7 +219,7 @@ cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/10 08:24:53</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/16 14:36:29</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsMonth()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsMonth()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 月で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -207,7 +238,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/10 08:24:53</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/16 14:36:29</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsYear()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsYear()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 年で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -230,7 +261,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/10 08:24:53</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/04/16 14:36:29</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsHour()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsHour()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 日付と時間(hour)で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -249,7 +280,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2007/01/10 08:24:53</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2007/05/16 14:36:29</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsQuaterOfYear()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsQuaterOfYear()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 四半期(1,4,7,10)で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -273,7 +304,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 Date fromDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/10 08:24:53 (Monday)</span>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/20 14:36:29 (Thursday)</span>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">compareAsWeek()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">compareAsWeek()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 週(日曜始まり)で FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -296,7 +327,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 <pre><span class="codetitle">e.g. "こんしゅう" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/12 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(<span class="point">currentDate</span>, <span class="point">currentDate</span>
-        , <span class="keyword">new</span> FromToOption().compareAsWeek());
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsWeek());
 <span class="comment">// -&gt; this week (2012/12/09 - 15) are target</span>
 </code></pre>
 	<p>
@@ -306,7 +337,7 @@ cb.query().setFormalizedDatetime_FromTo(<span class="point">currentDate</span>, 
 <pre><span class="codetitle">e.g. "先週" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/12 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
-        , <span class="keyword">new</span> FromToOption().compareAsWeek().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsWeek().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
 <span class="comment">// -&gt; last week (2012/12/02 - 08) are target</span>
 </code></pre>
 	<h3 id="adjustbegin">始まりの基準を調整</h3>
@@ -316,7 +347,7 @@ cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
 <pre><span class="codetitle">e.g. 2007年度の FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date targetYear = <span class="abbreviation">...</span> <span class="comment">// 2007/01/01</span>
 cb.query().setFormalizedDatetime_FromTo(targetYear, targetYear
-        , <span class="keyword">new</span> FromToOption().compareAsYear().<span class="point">beginYear_Month04_April()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().<span class="point">beginYear_Month04_April()</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 2007年度の FromTo {FORMALIZED_DATETIME} @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -384,13 +415,13 @@ cb.query().setFormalizedDatetime_FromTo(targetYear, targetYear
 <pre><span class="codetitle">e.g. "昨日" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/09 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
-        , <span class="keyword">new</span> FromToOption().compareAsDate().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsDate().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
 <span class="comment">// -&gt; yesterday (2012/12/08) is target</span>
 </code></pre>
 <pre><span class="codetitle">e.g. "先週" で FromTo {FORMALIZED_DATETIME} @Java</span><code>
 Date currentDate = <span class="abbreviation">...</span> <span class="comment">// 2012/12/12 21:10:53</span>
 cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
-        , <span class="keyword">new</span> FromToOption().compareAsWeek().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsWeek().<span class="point">moveToScope</span>(<span class="literal">-1</span>));
 <span class="comment">// -&gt; last week (2012/12/02 - 08) are target</span>
 </code></pre>
 	<p>
@@ -408,7 +439,7 @@ cb.query().setFormalizedDatetime_FromTo(currentDate, currentDate
 	</p>
 <pre><span class="codetitle">e.g. from を GreaterThan に変更して FromTo {FORMALIZED_DATETIME} @Java</span><code>
 cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
-        , <span class="keyword">new</span> FromToOption().<span class="point">greaterThan()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.<span class="point">greaterThan()</span>);
 </code></pre>
 	<p>
 		さらに、FromToOption には日付を操作する幾つかの便利メソッドが用意されています。
@@ -422,33 +453,6 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 		<dd>toDate を、その時間や日や月などの次の始まりの瞬間にして比較</dd>
 		<dd>例えば、toPatternNextDayJust() であれば toDate は次の日に移動して時分秒ミリ秒が切り捨てられる</dd>
 	</dl>
-	<p>
-		手動で設定する内容がアプリの複数箇所で利用される場合は、FromToOption 自体を拡張して、業務に合わせたアプリ独自の
-		FromToOption を作って横展開すると良いでしょう。
-	</p>
-<pre><span class="codetitle">e.g. アプリ独自の FromToOption を作成 @Java</span><code>
-<span class="keyword">public class</span> AppFromToOption <span class="keyword">extends</span> FromToOption {
-
-    <span class="keyword">public</span> AppFromToOption() {
-        <span class="comment">// アプリ全体で統一の比較条件の調整</span>
-        <span class="abbreviation">...</span>
-    }
-
-    <span class="keyword">public</span> AppFromToOption arrangeAsPurchase<span class="abbreviation">...</span>() {
-        <span class="comment">// 業務ごとに独自の比較条件の調整</span>
-        clearAll();
-        <span class="abbreviation">...</span>
-        return this;
-    }
-
-    <span class="keyword">public</span> AppFromToOption arrangeAsLogin<span class="abbreviation">...</span>() {
-        <span class="comment">// 業務ごとに独自の比較条件の調整</span>
-        clearAll();
-        <span class="abbreviation">...</span>
-        return this;
-    }
-}
-</code></pre>
 
 	<h2 id="orisnull">もしくは null</h2>
 	<p>
@@ -458,7 +462,7 @@ cb.query().setFormalizedDatetime_FromTo(fromDate, toDate
 <pre><span class="codetitle">e.g. fromDate を LessThan に変更して FromTo {BIRTHDATE} @Java</span><code>
 Date toDate = <span class="abbreviation">...</span> <span class="comment">// 1969/01/01</span>
 cb.query().setBirthdate_FromTo(<span class="keyword">null</span>, toDate
-        , <span class="keyword">new</span> FromToOption().compareAsYear().<span class="point">orIsNull()</span>);
+        , <span class="localvar">op</span> -&gt; <span class="localvar">op</span>.compareAsYear().<span class="point">orIsNull()</span>);
 
 <span class="comment">// e.g. (BIRTHDATE < '1970-01-01' or BIRTHDATE is null)</span>
 </code></pre>

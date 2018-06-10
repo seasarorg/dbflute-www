@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -71,11 +72,46 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		Behaviorの <em class="keyword">selectList()</em>
 		を呼び出し、ConditionBeanを指定します。
 	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. selectList()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.selL <span class="comment">// .selL と打って enter</span>
+--
+
+<span class="comment">// メソッドが補完されて、引数の "cbLambda" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectList</span>(cbLambda);
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.selectList(<span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// Lambda引数名はcbにして...</span>
+<span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+})
+--
+
+<span class="comment">// セミコロン ';' を打って ctrl+2, L で戻り値補完</span>
+ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+});
+_fo <span class="comment">// _fo とまで打って ctrl+space (補完テンプレートが有効なら)</span>
+--
+
+<span class="comment">// ListResultBeanは、java.util.Listの実装クラスなので、そのままループできる</span>
+ListResultBean&lt;Member&gt; <span class="localvar">memberList</span> = <span class="attribute">memberBhv</span>.selectList(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+});
+<span class="localvar">memberList</span>.forEach(<span class="localvar">member</span> -&gt; { <span class="comment">// Lambda引数名は、Entityっぽい感じに</span>
+    <span class="abbreviation">...</span> = <span class="localvar">member</span>.get<span class="abbreviation">...</span>
+});
+</code></pre>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. selectList()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="attribute">memberBhv</span>.selL <span class="comment">// .selL と打って enter</span>
 --
@@ -94,7 +130,7 @@ ListResultBean&lt;Member&gt; memberList = <span class="attribute">memberBhv</spa
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの ConditionBean となります。
+		該当のBehaviorに対応するテーブルの ConditionBean となります。<span class="frm">(1.1.xよりコールバック)</span>
 	</p>
 	<p>
 		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。

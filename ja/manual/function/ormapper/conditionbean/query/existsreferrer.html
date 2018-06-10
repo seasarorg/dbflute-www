@@ -47,11 +47,13 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#manytomany">子テーブルの親テーブル (many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル (one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル (many-to-one-to-many)</a></li>
 				<li><a href="#emptysubquery">サブクエリが空条件でも意味あり</a></li>
+				<li><a href="#inscopesubquery">existsではなくinScopeSubQueryで</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -61,7 +63,6 @@
 		</li>
 		<li><a href="#supported">サポートされる関連テーブル</a></li>
 		<li><a href="#notexistsreferrer">否定条件：NotExistsReferrer</a></li>
-		<li><a href="#inscoperelation">代替方法：InScopeRelation</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -88,10 +89,55 @@
 	<div class="relatedpage"><a href="../../behavior/select/loadreferrer.html">Behavior - LoadReferrer</a></div>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
-		query() の後、<em class="keyword">exists[referrer-table]List()</em>
+		query() の後、<em class="keyword">exists[referrer-table]()</em>
 		を呼び出し、SubQuery のコールバック実装を引数に指定します。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. ExistsReferrerの実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
+cb.q <span class="comment">// .q と打って enter</span>
+--
+
+cb.query()
+--
+
+<span class="comment">// .ex で関連テーブル選択、続けて Pu (Purchase) で enter</span>
+cb.query().exPu
+--
+
+<span class="comment">// メソッドが補完されて、引数の "subCBLambda" が選択状態に</span>
+cb.query().<span class="point">existsPurchase</span>(subCBLambda);
+--
+
+<span class="comment">// _ll で補完 (DBFlute補完テンプレートが有効なら)</span>
+cb.query().existsPurchase(<span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// Lambda引数名は purchaseCB にして...</span>
+cb.query().existsPurchase(<span class="localvar">purchaseCB</span> -&gt; {
+    <span class="localvar">purchaseCB</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+})
+</code></pre>
+	<p>
+		Lambda引数名では、subCBは使わず "テーブルを識別できるCB名" が推奨されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html#naming">DBFlute on Java8 - たかが変数名、されど変数名</a></div>
+	<p>
+		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
+	</p>
+<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
+                 <span class="keyword">from</span> PURCHASE sub1loc
+                <span class="keyword">where</span> <span class="point">sub1loc.MEMBER_ID = dfloc.MEMBER_ID</span>
+                  <span class="keyword">and</span> sub1loc.PURCHASE_PRICE &gt;= <span class="literal">2000</span>
+       )
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+	<p>
+		1.0.x (Java6版) であれば...
 	</p>
 <pre><span class="codetitle">e.g. ExistsReferrerの実装手順 (Eclipseでコード補完) {PURCHASE} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
@@ -131,29 +177,16 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
     }
 }); <span class="comment">// セミコロンを忘れずに</span>
 </code></pre>
-	<p>
-		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
-	</p>
-<pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc
- <span class="keyword">where</span> <span class="keyword">exists</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
-                 <span class="keyword">from</span> PURCHASE sub1loc
-                <span class="keyword">where</span> <span class="point">sub1loc.MEMBER_ID = dfloc.MEMBER_ID</span>
-                  <span class="keyword">and</span> sub1loc.PURCHASE_PRICE &gt;= <span class="literal">2000</span>
-       )
-</code></pre>
 	<h3 id="manytomany">子テーブルの親テーブル (many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも条件として利用できます。ExistsReferrer の中で Query(Relation)
 		を使って実現します。
 	</p>
 <pre><span class="codetitle">e.g. 商品名が "S" で始まる商品を購入したことのある会員 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().<span class="point">queryProduct()</span>.setProductName_PrefixSearch(<span class="literal">"S"</span>);
-    }
+<span class="comment">// cb: MemberCB</span>
+cb.query().existsPurchase(purchaseCB -&gt; {
+    purchaseCB.query().<span class="point">queryProduct()</span>
+            .setProductName_LikeSearch(<span class="literal">"S"</span>, op -&gt; op.likePrefix());
 });
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブル (one-to-many-to-many)</h3>
@@ -162,15 +195,11 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		を使って実現します。
 	</p>
 <pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員の会員ステータス @Java</span><code>
-MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
-cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.query().<span class="point">existsPurchaseList</span>(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
-            }
-        });
-    }
+<span class="comment">// cb: MemberStatusCB</span>
+cb.query().existsMember(memberCB -&gt; {
+    memberCB.query().<span class="point">existsPurchase</span>(purchaseCB -&gt; {
+        purchaseCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+    });
 });
 </code></pre>
 	<h3 id="manytoonetomany">親テーブルの子テーブル (many-to-one-to-many)</h3>
@@ -179,11 +208,9 @@ cb.query().existsMemberList(<span class="keyword">new</span> SubQuery&lt;MemberC
 		を使って実現します。
 	</p>
 <pre><span class="codetitle">e.g. 2000円以上の購入をしたことのある会員の会員ログイン @Java</span><code>
-MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
-cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
-    }
+<span class="comment">// cb: MemberLoginCB</span>
+cb.query().<span class="point">queryMember()</span>.existsPurchase(purchaseCB -&gt; {
+    purchaseCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
 });
 </code></pre>
 	<h3 id="emptysubquery">サブクエリが空条件でも意味あり</h3>
@@ -193,11 +220,9 @@ cb.query().<span class="point">queryMember()</span>.existsPurchaseList(<span cla
 		という業務的な条件を意味します。
 	</p>
 <pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        <span class="comment">// 空条件：(一度でも何かしら)購入したことのある会員(一覧)</span>
-    }
+<span class="comment">// cb: MemberCB</span>
+cb.query().existsPurchase(purchaseCB -&gt; {
+    <span class="comment">// 空条件：(一度でも何かしら)購入したことのある会員(一覧)</span>
 });
 </code></pre>
 <pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @DisplaySql</span><code>
@@ -213,16 +238,45 @@ cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;Purch
 		自体を無効にしたいというのであれば、if 文で分岐させます。
 	</p>
 <pre><span class="codetitle">e.g. 空条件のExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-<span class="keyword">final</span> Integer price = <span class="abbreviation">...</span>; 
+<span class="comment">// cb: MemberCB</span>
+Integer price = <span class="abbreviation">...</span>; 
 <span class="keyword">if</span> (price != <span class="keyword">null</span>) {
-    cb.query().existsPurchaseList(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-        <span class="keyword">public void</span> query(PurchaseCB subCB) {
-            subCB.query().setPurchasePrice_GreaterEqual(price);
-        }
+    cb.query().existsPurchase(purchaseCB -&gt; {
+        purchaseCB.query().setPurchasePrice_GreaterEqual(price);
     });
 }
 </code></pre>
+	<h3 id="inscopesubquery">existsではなくinScopeSubQueryで</h3>
+	<p>
+		SQLとして、<em class="mark">exists (select ...)</em> ではなく <em class="mark">in (select ...)</em> で実行したい場合、ExistsReferrer
+		のオプションで実現できます。これを InScopeSubQuery を呼びます。
+	</p>
+	<p>
+		exists で利用する ConditionBean にて、useInScopeSubQuery() を呼ぶと、そのサブクエリはSQL上において in (select ...) 方式になります。
+	</p>
+<pre><span class="codetitle">e.g. InScopeSubQueryを指定したExistsReferrer {MEMBER, PURCHASE} @Java</span><code>
+cb.query().existsPurchase(purchaseCB -&gt; {
+    purchaseCB.<span class="point">useInScopeSubQuery()</span>;
+    purchaseCB.query().setPurchasePrice_GreaterEqual(<span class="literal">2000</span>);
+});
+</code></pre>
+<pre><span class="codetitle">e.g. InScopeSubQueryになったSQL @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> dfloc.MEMBER_ID <span class="keyword">in</span> (<span class="keyword">select</span> sub1loc.MEMBER_ID
+                             <span class="keyword">from</span> PURCHASE sub1loc
+                            <span class="keyword">where</span> sub1loc.PURCHASE_PRICE &gt;= <span class="literal">2000</span>
+       )
+</code></pre>
+	<p>
+		リレーションシップの関係性によって、InScopeSubQueryの方がパフォーマンスが良いと想定される場面で利用します。
+		基点テーブルが他の絞り込み条件でどれだけ絞り込まれるか？サブクエリの中の条件でどれだけ子テーブルが絞り込まれるか？
+		この辺がポイントになると想定されます。
+	</p>
+	<p>
+		言葉のニュアンスとしては、ExistsReferrerという "子テーブルが存在するかどうか"
+		という絞り込みに対して、実現方法が "exists" (デフォルト) と "in (select ...)" の二つがあるという風に言えます。
+	</p>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>
@@ -259,14 +313,6 @@ MemberCB cb = <span class="keyword">new</span> MemberCB();
 		否定条件の対象値の列挙として、NotExistsReferrer もあります。条件が否定になっただけで仕様は ExistsReferrer
 		と全く同じです。cb.query().exists... ではなく cb.query().notExists... と書きます。
 	</p>
-
-	<h2 id="inscoperelation">代替方法：InScopeRelation</h2>
-	<p>
-		全く同じ結果を返す別の方法として、InScopeRelation
-		があります。DBFluteとしては、基本的に "子テーブルの条件で絞り込み" をする場合は、ExistsReferrer
-		を基本にすることをお奨めしています。
-	</p>
-	<div class="relatedpage"><a href="./inscoperelation.html">InScopeRelation</a></div>
 
 </div>
 </div>
