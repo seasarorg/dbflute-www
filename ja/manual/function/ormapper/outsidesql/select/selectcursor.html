@@ -47,7 +47,8 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#typesafecursor">TypeSafeCursorを用意</a></li>
-				<li><a href="#methodcall">メソッドの呼び出し</a></li>
+				<li><a href="#methodcall">メソッドの呼び出し <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#methodcall10x">メソッドの呼び出し <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#typedcall">定型呼び出し形式</a></li>
 				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#cursorhandler">CursorHandlerの実装</a></li>
@@ -82,7 +83,21 @@
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> <span class="abbreviation">...</span>
 </code></pre>
-	<h3 id="methodcall">メソッドの呼び出し</h3>
+	<h3 id="methodcall">メソッドの呼び出し <span class="frm">※1.1.x (Java8版)</span></h3>
+	<p>
+		outsideSql() の後、<em class="keyword">selectCursor()</em> を呼び出します。
+	</p>
+<pre><span class="codetitle">e.g. 外だしSQLのカーソル検索の実装手順 (Eclipseでコード補完) @Java</span><code>
+<span class="attribute">memberBhv</span>.o <span class="comment">// .o と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().selCu <span class="comment">// .selCu と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectCursor</span>(pmb, handler);
+</code></pre>
+	<p>
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
+	</p>
+	<h3 id="methodcall10x">メソッドの呼び出し <span class="frm">※1.0.x (Java6版)</span></h3>
 	<p>
 		outsideSql() の後、<em class="keyword">cursorHandling()</em> を呼び出し、その後
 		<em class="keyword">selectCursor()</em> を呼び出します。
@@ -96,9 +111,6 @@
 --
 <span class="attribute">memberBhv</span>.outsideSql().cursorHandling().<span class="point">selectCursor</span>(pmb, handler);
 </code></pre>
-	<p>
-		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
-	</p>
 	<h3 id="typedcall">定型呼び出し形式</h3>
 	<p>
 		TypedParameterBean を引数に受け取ります。(null は許可されません)
@@ -125,7 +137,7 @@
 		selectCursor() の処理の中で、この fetchCursor() がコールバックされます。
 	</p>
 <pre><span class="codetitle">e.g. TypeSafeCursorの利用 @Java</span><code>
-memberBhv.outsideSql().cursorHandling()
+memberBhv.outsideSql()
 .selectCursor(PATH_sel<span class="abbreviation">...</span>, pmb, <span class="keyword">new</span> <span class="point">PurchaseSummaryMemberCursorHandler</span>() {
     <span class="keyword">public</span> Object fetchCursor(<span class="point">PurchaseSummaryMemberCursor</span> cursor) <span class="keyword">thr</span><span class="abbreviation">...</span> {
         <span class="keyword">while</span> (cursor.next()) { <span class="comment">// on memory per one record</span>

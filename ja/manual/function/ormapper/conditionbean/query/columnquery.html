@@ -47,7 +47,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#relation">関連テーブルのカラム</a></li>
 				<li><a href="#derivedreferrer">子テーブルの導出カラム</a></li>
 				<li><a href="#derivedbase">基点テーブルの導出カラム</a></li>
@@ -86,13 +87,59 @@
 	<div class="relatedpage"><a href="#derivedreferrer">子テーブルの導出カラム</a></div>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		ConditionBean の <em class="keyword">columnQuery()</em>
 		を呼び出し、左辺のカラムを指定するコールバックを引数に設定し、続けて greaterEqual()
 		などの比較条件メソッドを呼び出して、今度は右辺のカラムを指定するコールバックを引数に設定します。
 		必要であれば、さらに続けて右辺カラムの演算調整が必要であれば演算メソッドを呼び出します。
 	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. ColumnQueryの実装手順 (Eclipseでコード補完) {BIRTHDATE &lt; FORMALIZED_DATETIME} @Java</span><code>
+cb.coQ <span class="comment">// .coQ と打って enter</span>
+--
+
+<span class="comment">// メソッドが補完されて、引数の "colCBLambda" が選択状態に</span>
+cb.<span class="point">columnQuery</span>(colCBLambda)
+--
+
+<span class="comment">// colCBLambdaの部分で、_li (補完テンプレートが有効なら)</span>
+cb.columnQuery(<span class="point">_li</span>)
+--
+
+<span class="comment">// Expression Style (一行スタイル) で SpecifyColumn を</span>
+cb.columnQuery(colCB -> colCB.specify().col<span class="abbreviation">...</span>)
+--
+
+<span class="comment">// 左辺のカラム BIRTHDATE を指定</span>
+cb.columnQuery(colCB -> colCB.specify().<span class="point">columnBirthdate()</span>)
+--
+
+<span class="comment">// 続けて、比較条件 .leT (lessThan) と打って enter</span>
+cb.columnQuery(colCB -> colCB.specify().columnBirthdate())
+        .leT
+--
+
+<span class="comment">// 同じ要領で今度は右辺のカラム FORMALIZED_DATETIME を指定</span>
+cb.columnQuery(colCB -&gt; colCB.specify().columnBirthdate())
+        .<span class="subpoint">lessThan</span>(colCB -&gt; colCB.specify().<span class="point">columnFormalizedDatetime()</span>)
+</code></pre>
+	<p>
+		SQL上では、指定された左辺と右辺のカラムを比較する条件が展開されます。
+	</p>
+	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
+	<p>
+		Lambdaの形式は、Expression Style (一行スタイル) でも Block Style (複数行スタイル)
+		でもどちらでも良いですが、Eclipse だと "Lambdaのネストの中での Block Style とメソッドチェーン"
+		が相性が悪いため、ドキュメントとしては Expression Style をメインに書いています。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html#escapeclipse">DBFlute on Java8 - Eclipseのご乱心に注意</a></div>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+<pre><span class="codetitle">e.g. 生まれてから正式会員になった会員 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> dfloc.<span class="point">BIRTHDATE</span> &lt; dfloc.<span class="point">FORMALIZED_DATETIME</span>
+</code></pre>
 <pre><span class="codetitle">e.g. ColumnQueryの実装手順 (Eclipseでコード補完) {BIRTHDATE &lt; FORMALIZED_DATETIME} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.coQ <span class="comment">// .coQ と打って enter</span>
@@ -136,30 +183,14 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
     }
 }); <span class="comment">// 必要に応じて、右辺の演算メソッドを呼び出す e.g. ...}).plus(3)</span>
 </code></pre>
-	<p>
-		SQL上では、指定された左辺と右辺のカラムを比較する条件が展開されます。
-	</p>
-	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
-<pre><span class="codetitle">e.g. 生まれてから正式会員になった会員 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc
- <span class="keyword">where</span> dfloc.<span class="point">BIRTHDATE</span> &lt; dfloc.<span class="point">FORMALIZED_DATETIME</span>
-</code></pre>
 	<h3 id="relation">関連テーブルのカラム</h3>
 	<p>
 		関連テーブル(many-to-one, one-to-one)のカラムも利用できます。
 	</p>
 <pre><span class="codetitle">e.g. 会員セキュリティ情報の更新日時と退会日時が同じ会員 @Java</span><code>
 <span class="abbreviation">...</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime();
-    }
-}).equal(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">specifyMemberWithdrawal()</span>.columnWithdrawalDatetime();
-    }
-});
+cb.columnQuery(colCB -&gt; colCB.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime())
+        .equal(colCB -&gt; colCB.specify().<span class="point">specifyMemberWithdrawal()</span>.columnWithdrawalDatetime());
 </code></pre>
 	<p>
 		但し、バインド変数付きの biz-one-to-one のテーブルに関しては、あらかじめ SetupSelect(BizOneToOne) もしくは

@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>(外だしSQL)autoPaging().selectPage() | DBFlute</title>
+	<title>(外だしSQL)selectPage() as autoPaging | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>(外だしSQL)autoPaging().selectPage()</h1>
+	<h1>(外だしSQL)selectPage() as autoPaging</h1>
 	<p>
 		"外だしSQLの使い方" を既に読んでいることが前提となります。
 	</p>
@@ -48,7 +48,12 @@
 				<li><a href="#automeaning">ページング条件が自動(オート)</a></li>
 			</ul>
 		</li>
-		<li><a href="#howto">実装方法</a></li>
+		<li><a href="#howto">実装方法</a>
+			<ul>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
+			</ul>
+		</li>
 	</ul>
 	
 	<h2 id="overview">概要</h2>
@@ -76,11 +81,14 @@
 	</div>
 
 	<h2 id="howto">実装方法</h2>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
-		手順は <em class="keyword">手動ページングとほとんど同じ</em> で、途中で呼び出すメソッドが <em class="keyword">autoPaging()</em>
-		となります。また、<em class="keyword">SQLでページング条件を記述する必要はありません</em>。
+		手動ページングでなければ自動ページングになります。つまり、以下の条件です。
 	</p>
-	<div class="relatedpage"><a href="./selectpagemanual.html">OutsideSql - manualPaging().selectPage()</a></div>
+	<ul>
+		<li>"df:pmb extends Paging" で、SQLでページング条件を記述しなければ</li>
+	</ul>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
 <pre><span class="codetitle">e.g. AutoPagingで実データ処理IFコメントの利用 {PostgreSQL} @OutsideSql</span><code>
 <span class="comment">/*IF pmb.isPaging()*/</span>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
@@ -95,6 +103,19 @@
  <span class="keyword">order by</span> <span class="abbreviation">...</span>
  <span class="comment">/*END*/</span>
 </code></pre>
+<pre><span class="codetitle">e.g. 外だしSQLの自動ページング検索の実装手順 (Eclipseでコード補完) @Java</span><code>
+<span class="attribute">memberBhv</span>.o <span class="comment">// .o と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().selP <span class="comment">// .selP と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectPage</span>(pmb);
+</code></pre>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+	<p>
+		手順は <em class="keyword">手動ページングとほとんど同じ</em> で、途中で呼び出すメソッドが <em class="keyword">autoPaging()</em>
+		となります。また、<em class="keyword">SQLでページング条件を記述する必要はありません</em>。
+	</p>
+	<div class="relatedpage"><a href="./selectpagemanual.html">OutsideSql - manualPaging().selectPage()</a></div>
 <pre><span class="codetitle">e.g. 外だしSQLの自動ページング検索の実装手順 (Eclipseでコード補完) @Java</span><code>
 <span class="attribute">memberBhv</span>.o <span class="comment">// .o と打って enter</span>
 --

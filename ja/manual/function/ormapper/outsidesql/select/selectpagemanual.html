@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>(外だしSQL)manualPaging().selectPage() | DBFlute</title>
+	<title>(外だしSQL)selectPage() as manualPaging | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>(外だしSQL)manualPaging().selectPage()</h1>
+	<h1>(外だしSQL)selectPage() as manualPaging</h1>
 	<p>
 		"外だしSQLの使い方" を既に読んでいることが前提となります。
 	</p>
@@ -50,6 +50,8 @@
 				<li><a href="#pagingcondition">ページング条件の指定</a></li>
 				<li><a href="#pagingifcomment">実データ処理IFコメント</a></li>
 				<li><a href="#methodcall">メソッドの呼び出し</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#typedcall">定型呼び出し形式</a></li>
 				<li><a href="#freestyle">フリースタイル形式</a></li>
 				<li><a href="#resulttype">検索結果の受け取り</a></li>
@@ -74,10 +76,18 @@
 	<h2 id="howto">実装方法</h2>
 	<h3 id="pagingbean">Paging用のParameterBeanを用意</h3>
 	<p>
-		自動生成する ParameterBean が、汎用的なページングの機能を備えた SimplePagingBean
-		を継承するように指定します。(同時に TypedParameterBean のために ManualPaging の自動判別がされます) 
+		ParameterBeanの宣言で、df:pmb extends Paging というように Paging を継承します。
+		すると、自動生成される ParameterBean が、汎用的なページングの機能を備えた SimplePagingBean
+		を継承します。 
 	</p>
-	<div class="detailpage"><a href="../../../generator/task/sql2entity/pmbclassoption.html#pagingoption">ParameterBean - ページング検索のオプション</a></div>
+	<div class="relatedpage"><a href="../../../generator/task/sql2entity/pmbclassoption.html#pagingoption">ParameterBean - ページング検索のオプション</a></div>
+<pre><span class="codetitle">e.g. ページング検索用のParameterBeanを生成 @OutsideSql</span><code>
+<span class="comment">-- !df:pmb</span> <span class="point">extends Paging</span><span class="comment">!</span>
+<span class="comment">-- !!AutoDetect!!</span>
+
+<span class="keyword">select</span> <span class="abbreviation">...</span>
+  <span class="keyword">from</span> <span class="abbreviation">...</span>
+</code></pre>
 	<h3 id="pagingcondition">ページング条件の指定</h3>
 	<p>
 		パラメータコメントを利用して、ページング条件を指定します。これは DBMS
@@ -120,6 +130,21 @@
  <span class="comment">/*END*/</span>
 </code></pre>
 	<h3 id="methodcall">メソッドの呼び出し</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
+	<p>
+		outsideSql() の後、<em class="keyword">selectPage()</em> を呼び出します。
+	</p>
+<pre><span class="codetitle">e.g. 外だしSQLの手動ページング検索の実装手順 (Eclipseでコード補完) @Java</span><code>
+<span class="attribute">memberBhv</span>.o <span class="comment">// .o と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().selP <span class="comment">// .sP と打って enter</span>
+--
+<span class="attribute">memberBhv</span>.outsideSql().<span class="point">selectPage</span>(pmb);
+</code></pre>
+	<p>
+		メソッドはオーバーロードで "定型呼び出し形式" と "フリースタイル形式" と二つあります。
+	</p>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 	<p>
 		outsideSql() の後、<em class="keyword">manualPaging()</em>
 		を呼び出し、その後 <em class="keyword">selectPage()</em> を呼び出します。
