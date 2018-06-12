@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -70,13 +71,60 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
 		まずは、ConditionBean で paging() を呼び出し、ページサイズと検索対象のページ番号を設定します。
 		そして、Behaviorの <em class="keyword">selectPage()</em>
 		を呼び出し、その ConditionBean を指定します。
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/sidebar/paging.html">ConditionBean - Paging</a></div>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. selectPage()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
+<span class="attribute">memberBhv</span>.selP <span class="comment">// .selP と打って enter</span>
+--
+
+<span class="comment">// メソッドが補完されて、引数の "cbLambda" が選択状態に</span>
+<span class="attribute">memberBhv</span>.<span class="point">selectPage</span>(cbLambda);
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.selectPage(<span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// Lambda引数名はcbにして...</span>
+<span class="attribute">memberBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+})
+--
+
+<span class="comment">// paging()メソッドを呼び出す</span>
+<span class="attribute">memberBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+    <span class="localvar">cb</span>.<span class="point">paging</span>(<span class="literal">20</span>, currentPageNumber); <span class="comment">// 1 ページ 20 件で 3 ページ目を検索対象に</span>
+})
+--
+
+<span class="comment">// セミコロン ';' を打って ctrl+2, L で戻り値補完</span>
+<span class="point">PagingResultBean</span>&lt;Member&gt; <span class="localvar">memberPage</span> = <span class="attribute">memberBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span> <span class="comment">// tabでカーソル移動してcbで検索条件</span>
+    <span class="localvar">cb</span>.paging(<span class="literal">20</span>, currentPageNumber); <span class="comment">// 1 ページ 20 件で 3 ページ目を検索対象に</span>
+});
+--
+
+<span class="comment">// PagingResultBeanを使って、ページングナビゲーションをいい感じに</span>
+PagingResultBean&lt;Member&gt; <span class="localvar">memberPage</span> = <span class="attribute">memberBhv</span>.selectPage(<span class="localvar">cb</span> -&gt; {
+    <span class="localvar">cb</span>.query().set<span class="abbreviation">...</span>
+    <span class="localvar">cb</span>.paging(<span class="literal">20</span>, currentPageNumber);
+});
+<span class="keyword">int</span> allRecordCount = memberPage.<span class="subpoint">getAllRecordCount()</span>;
+<span class="keyword">int</span> allPageCount = memberPage.<span class="subpoint">getAllPageCount()</span>;
+<span class="keyword">for</span> (Member member : memberPage) { <span class="comment">// java.util.Listなのでそのままループ</span>
+    <span class="abbreviation">...</span>
+}
+<span class="abbreviation">...</span>
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. selectPage()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
 <span class="keyword">int</span> currentPageNumber = <span class="literal">3</span>; <span class="comment">// 実業務では、画面などで指定されたページ番号など</span>
 MemberCB() cb = <span class="keyword">new</span> MemberCB();
@@ -100,7 +148,7 @@ cb.<span class="point">paging</span>(<span class="literal">20</span>, currentPag
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="argument">引数</h3>
 	<p>
-		該当のBehaviorに対応するテーブルの ConditionBean となります。
+		該当のBehaviorに対応するテーブルの ConditionBean となります。<span class="frm">(1.1.xよりコールバック)</span>
 	</p>
 	<p>
 		ConditionBeanが必ず存在することが前提であるため、nullを指定した場合は例外発生します。

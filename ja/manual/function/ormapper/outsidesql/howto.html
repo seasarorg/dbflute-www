@@ -46,6 +46,7 @@
 		<li><a href="#implflow">実装の流れ</a></li>
 		<li><a href="#sqlfile">外だしSQLをパラメータコメントを使って2Way-SQLで書く</a>
 			<ul>
+				<li><a href="#preconeditor">まず前提: Eclipse or IntelliJ or ...?</a></li>
 				<li><a href="#createnewfile">SQLファイルの作成 (EMecha利用)</a></li>
 				<li><a href="#writetwowaysql">2Way-SQLを実装</a></li>
 			</ul>
@@ -100,13 +101,19 @@
 	</ol>
 
 	<h2 id="sqlfile">外だしSQLをパラメータコメントを使って2Way-SQLで書く</h2>
+	<h3 id="preconeditor">まず前提: Eclipse or IntelliJ or ...?</h3>
+	<p>
+		ドキュメントとしては、Eclipse で EMechaプラグインを使っていることを前提にしていますが、
+		<em class="keyword">IntelliJでも最終的に規約どおりの外だしSQLが(手動で)作成できればOK</em> です。
+		手順を参考に手動で外だしSQLを作成してください。
+	</p>
 	<h3 id="createnewfile">SQLファイルの作成 (EMecha利用)</h3>
 	<p>
-		外だしSQLのSQLは、厳密には基点テーブルが特定できないことがありますが、管理上どこかのテーブルに紐付けます。
-		外だしSQLの紐付けテーブルと呼びます。
+		外だしSQLのSQLは、厳密には基点テーブルが特定できないこともありますが、管理上どこかのテーブルに紐付けます。
+		<em class="mark">外だしSQLの紐付けテーブル</em> と呼びます。
 	</p>
 	<p>
-		Eclipse の リソースの検索(ctrl + shift + R)から対応する Behavior (Exクラス)
+		Eclipse の "リソースの検索(ctrl + shift + R)" から対応する Behavior (Exクラス)
 		を開き、Javaエディター内で右クリックして <em class="keyword">EMecha - New Outside Sql</em>
 		と選択すると画面が起動します。
 		<span class="frm">(Eclipseでない方は、EMechaで作成される相当のSQLファイルを手動で作成します)</span>
@@ -114,7 +121,7 @@
 	<div class="relatedpage"><a href="../../helper/emecha/emsql/index.html#newoutsidesql">EMecha - EMSql - SQLファイルの作成</a></div>
 	<div class="relatedpage"><a href="../../../topic/programming/shortcut/searchcut.html">検索ショートカット</a></div>
 	<p class="imgbox">図 : EMSqlの画面 (初期状態)
-		<span class="working"><!-- <a href="../../../../data/screen/emsql-main.png" title="EMSqlの画面 (初期状態)"> --><img src="../../../../data/screen/emsql-main.png" alt="EMSqlの画面 (初期状態)" width="500" height="500" /><!-- </a> --></span>
+		<a href="../../../../data/model/emecha/emecha-EMSql-newsql.png" title="EMSqlの画面 (初期状態)"><img src="../../../../data/model/emecha/emecha-EMSql-newsql.png" alt="EMSqlの画面 (初期状態)" width="500" height="500" /></a>
 	</p>
 	<dl class="textlist">
 		<dt>SQL名 (SQL Name) を入力</dt>
@@ -195,6 +202,10 @@ foo-project
 		Eclipse以外の環境を使っているなど、どうしても EMecha
 		が利用できないケースでも、EMechaで作っているSQLファイルを手動で作成すればOKです。パッケージやSql2Entityマークなど、文字の打ち間違いに気をつけましょう。
 	</p>
+	<p>
+		タイトル (df:title) や、説明(df:description)は必須です<span class="frm">(Sql2EntityタスクやOutsideSqlタスクでチェックされます)</span>。外だしSQLには、必ず業務的なタイトルと説明を入れましょう。
+		"SQL title here." や "SQL description here." のままではいけません。
+	</p>
 	<h3 id="writetwowaysql">2Way-SQLを実装</h3>
 	<p>
 		そうしたら、パラメータコメントを駆使して、2Way-SQLとしてSQLを実装していきます。
@@ -263,7 +274,7 @@ foo-project
 	<h3 id="comment">Sql2Entityタスクの実行</h3>
 	<p>
 		それでは、Sql2Entityタスクを叩いて、CustomizeEntity や ParameterBean を自動生成しましょう。
-		DBFluteクライアント配下の sql2entity.(bat|sh) をコマンドから実行します。
+		DBFluteクライアント配下の manage.bat|sh から Sql2Entity を実行します。
 	</p>
 	<p>
 		Windows環境のEclipse上からは、ダブルクリックで実行できます。もしくは、"ctrl + shift + R" の "Open Resource"
@@ -294,7 +305,7 @@ foo-project
 	<ol>
 		<li>ParameterBean を new して条件値をセットしていく <span class="frm">※SQL業務名 + Pmb という名前のクラス</span></li>
 		<li>outsideSql()メソッドから検索スタイルを選ぶ <span class="frm">※リスト検索、一件検索、ページング検索など</span></li>
-		<li><em class="keyword">ctrl + 2 -&gt; L</em> のショートカットで戻り値を補完 <span class="frm">※CustomizeEntityで受け取り</span></li>
+		<li><em class="keyword">ctrl+2, L</em> のショートカットで戻り値を補完 <span class="frm">※CustomizeEntityで受け取り</span></li>
 	</ol>
 <pre><span class="codetitle">e.g. リスト検索 (TypedParameterBean) {名前が 'S' で始まる会員を検索｝@Java</span><code>
 SimpleMemberPmb pmb = <span class="keyword">new</span> SimpleMemberPmb();
@@ -306,11 +317,11 @@ List&lt;SimpleMember&gt; memberList
 </code></pre>
 	<dl class="shortkeymainlist">
 		<dt><a href="./select/selectlist.html">リスト検索</a></dt><dd>outsideSql().selectList(pmb)</dd>
-		<dt><a href="./select/selectentity.html">一件検索</a></dt><dd>outsideSql().entityHandling().selectEntity(pmb)</dd>
-		<dt><a href="./select/selectentitywithdeletedcheck.html">一件検索(チェック)</a></dt><dd>outsideSql().entityHandling().selectEntityWithDeletedCheck(pmb)</dd>
-		<dt><a href="./select/selectpagemanual.html">手動ページング検索</a></dt><dd>outsideSql().manualHandling().selectPage(pmb)</dd>
-		<dt><a href="./select/selectpageauto.html">自動ページング検索</a></dt><dd>outsideSql().autoHandling().selectPage(pmb)</dd>
-		<dt><a href="./select/selectcursor.html">カーソル検索</a></dt><dd>outsideSql().cursorHandling().selectPage(pmb)</dd>
+		<dt><a href="./select/selectentity.html">一件検索</a></dt><dd>outsideSql().selectEntity(pmb)</dd>
+		<dt><a href="./select/selectentitywithdeletedcheck.html">一件検索(チェック)</a></dt><dd>outsideSql().selectEntityWithDeletedCheck(pmb)</dd>
+		<dt><a href="./select/selectpagemanual.html">手動ページング検索</a></dt><dd>outsideSql().selectPage(pmb) as manual</dd>
+		<dt><a href="./select/selectpageauto.html">自動ページング検索</a></dt><dd>outsideSql().selectPage(pmb) as auto</dd>
+		<dt><a href="./select/selectcursor.html">カーソル検索</a></dt><dd>outsideSql().selectPage(pmb)</dd>
 	</dl>
 
 	<h3 id="typewrongpmb">ParameterBeanのプロパティがおかしい場合</h3>
@@ -506,15 +517,6 @@ List&lt;SimpleMember&gt; memberList
 memberBhv<span class="point">.o</span> <span class="comment">// ".o" とだけ打って enter</span>
  <span class="attribute">to</span>
 memberBhv.<span class="point">outsideSql()</span> <span class="comment">// 続けて "." と打って続きのメソッドを補完</span>
-</code></pre>
-	<p>
-		外だしSQLで頻繁に利用されるリスト検索 selectList() は、outsideSql()の直後で唯一の "s" で始まるメソッドです。".s"
-		と打って enter とするだけで呼び出せます。
-	</p>
-<pre><span class="codetitle">e.g. Eclipseでのショートカット (selectList()を一文字で補完) @Java</span><code>
-memberBhv.outsideSql()<span class="point">.s</span> <span class="comment">// ".s" とだけ打って enter</span>
- <span class="attribute">to</span>
-memberBhv.outsideSql().<span class="point">selectList(pmb)</span>; <span class="comment">// 最後にセミコロンを</span>
 </code></pre>
 	<p>
 		その他メソッド(経由するメソッドも含む)に関しても、先頭文字をおおよそ把握しておくとさらに良いでしょう。

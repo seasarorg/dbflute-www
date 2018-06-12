@@ -47,7 +47,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#manymax">max()でequal()でも一件とは限らない</a></li>
 				<li><a href="#outerquery">外側クエリーでの絞り込みを忘れずに</a></li>
 				<li><a href="#relation">関連テーブルのカラム</a></li>
@@ -95,7 +96,82 @@
 	<div class="relatedpage"><a href="../../behavior/select/scalarselect.html">Behavior - ScalarSelect</a></div>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
+	<p>
+		query() の後、<em class="keyword">scalar_[condition-key]()</em>
+		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
+		のコールバック実装を引数に指定します。コールバックの中では、SpecifyColumn を使って比較対象カラムを(一つ)指定します。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="./specifycolumn.html#onlyonecolumn"> -->SpecifyColumn - 他の機能から間借りされる<!-- </a> --></span></div>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. ScalarConditionの実装手順 (Eclipseでコード補完) {MEMBER, BIRTHDATE} @Java</span><code>
+<span class="comment">// cb: MemberCB</span>
+cb.q <span class="comment">// .q と打って enter</span>
+--
+
+cb.query()
+--
+
+<span class="comment">// .sc まで打つと比較条件選択、そして、E (Equal) で enter</span>
+<span class="comment">//  =&gt; Equal, GreaterThan, LessThan,</span>
+<span class="comment">//     GreaterEqual, LessEqual, NotEqual</span>
+cb.query().scE
+--
+
+<span class="comment">// チェーン呼び出しで、max() や min()、sum() などの関数を選んで enter</span>
+<span class="comment">//  =&gt; max(), min(), sum(), avg()</span>
+cb.query().<span class="point">scalar_Equal()</span>.max
+--
+
+<span class="comment">// メソッドが補完されて、引数の "scalarCBLambda" が選択状態に</span>
+cb.query().scalar_Equal().<span class="point">max</span>(scalarCBLambda)
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+cb.query().scalar_Equal().max(<span class="subpoint">_ll</span>)
+--
+
+<span class="comment">// Lambda引数名はテーブルを識別できるCB名(memberCB)にして...</span>
+cb.query().scalar_Equal().max(memberCB -&gt; {
+    memberCB.specify().<span class="point">columnBirthdate()</span>; <span class="comment">// 比較対象カラムの指定</span>
+    memberCB.query()<span class="abbreviation">...</span> <span class="comment">// 絞り込み条件</span>
+})
+--
+
+<span class="comment">// セミコロン ';' を忘れずに</span>
+cb.query().scalar_Equal().max(memberCB -&gt; {
+    memberCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
+    memberCB.query()<span class="abbreviation">...</span> <span class="comment">// 絞り込み条件</span>
+});
+
+ <span class="keyword">or</span>
+
+<span class="comment">// partitionBy()などを利用する時は、チェーンで続けて実装</span>
+cb.query().scalar_Equal().max(memberCB -&gt; {
+    memberCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
+    memberCB.query()<span class="abbreviation">...</span> <span class="comment">// 絞り込み条件</span>
+}).<span class="subpoint">partitionBy</span>(<span class="abbreviation">...</span>);
+</code></pre>
+<pre><span class="codetitle">e.g. ScalarConditionを使って一番若い会員(のレコード)を取得 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc
+ <span class="keyword">where</span> dfloc.BIRTHDATE = (<span class="keyword">select</span> max(sub1loc.BIRTHDATE)
+                            <span class="keyword">from</span> MEMBER sub1loc
+       )
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
+	</p>
+	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
+	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
+<pre><span class="codetitle">e.g. 全体平均より多い購入価格の購入を検索 @Java</span><code>
+<span class="comment">// cb: PurchaseCB</span>
+cb.query().scalar_GreaterThan().avg(purchaseCB -&gt; {
+    purchaseCB.specify().columnPurchasePrice();
+});
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 	<p>
 		query() の後、<em class="keyword">scalar_[condition-key]()</em>
 		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
@@ -149,27 +225,6 @@ cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;Membe
     }
 });
 </code></pre>
-<pre><span class="codetitle">e.g. ScalarConditionを使って一番若い会員(のレコード)を取得 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc
- <span class="keyword">where</span> dfloc.BIRTHDATE = (<span class="keyword">select</span> max(sub1loc.BIRTHDATE)
-                            <span class="keyword">from</span> MEMBER sub1loc
-       )
-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
-	</p>
-	<div class="relatedpage"><a href="#usablecondition">this - 利用できる比較条件</a></div>
-	<div class="relatedpage"><a href="#usablefunc">this - 利用できる関数</a></div>
-<pre><span class="codetitle">e.g. 全体平均より多い購入価格の購入を検索 @Java</span><code>
-PurchaseCB cb = <span class="keyword">new</span> PurchaseCB();
-cb.query().scalar_GreaterThan().avg(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.specify().columnPurchasePrice();
-    }
-});
-</code></pre>
 	<h3 id="manymax">max()でequal()でも一件とは限らない</h3>
 	<p>
 		max() で equal() したからといって、結果が一件になるとは限りません。例えば、"一番若い会員"
@@ -177,12 +232,11 @@ cb.query().scalar_GreaterThan().avg(<span class="keyword">new</span> SubQuery&lt
 		そういった場合は、一件検索ではなくリスト検索になります。業務的な結果件数の可能性を考慮して、Behavior のメソッドを選んで下さい。
 	</p>
 <pre><span class="codetitle">e.g. 一番若い会員は何人もいるかもしれない @Java</span><code>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) { <span class="comment">// 一番若い会員</span>
-        subCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
-    }
+List&lt;Member&gt; memberList = memberBhv.<span class="point">selectList</span>(cb -&gt; { <span class="comment">// 複数件の可能性</span>
+    cb.query().scalar_Equal().max(memberCB -&gt; { <span class="comment">// 一番若い会員</span>
+        memberCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
+    });
 });
-<span class="abbreviation">...</span> = memberBhv.<span class="point">selectList</span>(cb); <span class="comment">// 複数件の可能性</span>
 </code></pre>
 	<h3 id="outerquery">外側クエリーでの絞り込みを忘れずに</h3>
 	<p>
@@ -191,11 +245,9 @@ cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;Membe
 		そういった場合は、一件検索ではなくリスト検索になります。結果件数の可能性を考慮して、Behavior のメソッドを選んで下さい。
 	</p>
 <pre><span class="codetitle">e.g. 会員ステータスごとに一番若い会員 @Java</span><code>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) { <span class="comment">// 一番若い正式会員</span>
-        subCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
-        subCB.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 絞り込み条件</span>
-    }
+cb.query().scalar_Equal().max(memberCB -&gt; { <span class="comment">// 一番若い正式会員</span>
+    memberCB.specify().columnBirthdate(); <span class="comment">// 比較対象カラムの指定</span>
+    memberCB.query().<span class="subpoint">setMemberStatusCode_Equal_Formalized()</span>; <span class="comment">// 絞り込み条件</span>
 });
 cb.query().<span class="point">setMemberStatusCode_Equal_Formalized</span>(); <span class="comment">// 外側の絞り込み条件</span>
 </code></pre>
@@ -214,10 +266,8 @@ cb.query().<span class="point">setMemberStatusCode_Equal_Formalized</span>(); <s
 		関連テーブル(many-to-one, one-to-one)のカラムも利用できます。 
 	</p>
 <pre><span class="codetitle">e.g. 会員セキュリティ情報を一番最近に更新した会員 @Java</span><code>
-cb.query().<span class="point">queryMemberSecurity()</span>.scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberSecurityCB&gt;() {
-    <span class="keyword">public void</span> query(MemberSecurityCB subCB) { <span class="comment">// 一番最近に更新したセキュリティ</span>
-        subCB.specify().<span class="point">columnUpdateDatetime()</span>;
-    }
+cb.query().<span class="point">queryMemberSecurity()</span>.scalar_Equal().max(securityCB -&gt; {
+    securityCB.specify().<span class="point">columnUpdateDatetime()</span>; <span class="comment">// 一番最近に更新したセキュリティ</span>
 });
 </code></pre>
 
@@ -228,20 +278,11 @@ cb.query().<span class="point">queryMemberSecurity()</span>.scalar_Equal().max(<
 		例えば、すべての会員の中で一番若い会員ではなく、会員ステータスごとに一番若い会員を検索するなど。
 	</p>
 <pre><span class="codetitle">e.g. 会員ステータスごとに一番若い会員 @Java</span><code>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.specify().columnBirthdate();
-    }
-}).<span class="point">partitionBy</span>(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">columnMemberStatusCode</span>();
-    }
+cb.query().scalar_Equal().max(<span class="localvar">memberCB</span> -&gt; {
+    <span class="localvar">memberCB</span>.specify().columnBirthdate();
+}).<span class="point">partitionBy</span>(<span class="localvar">colCB</span> -&gt; { <span class="comment">// カラム指定だけなので、Lambda引数名はcolCB</span>
+    <span class="localvar">colCB</span>.specify().<span class="subpoint">columnMemberStatusCode</span>();
 });
-<span class="comment">// cb.query().scalar_Equal().max(subCB -&gt; {</span>
-<span class="comment">//     subCB.specify().columnBirthdate();</span>
-<span class="comment">// }.partitionBy(spCB -&gt; {</span>
-<span class="comment">//     spCB.specify().columnMemberStatusCode</span>();
-<span class="comment">// })</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 会員ステータスごとに一番若い会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -263,15 +304,11 @@ cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;Membe
 		外側クエリーでも同じ条件で絞り込む必要があります。
 	</p>
 <pre><span class="codetitle">e.g. 会員ステータスごとに一番若い、会員名称に "vi" を含む会員 @Java</span><code>
-cb.query().scalar_Equal().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.specify().columnBirthdate();
-        subCB.query().<span class="point">setMemberName_LikeSearch</span>(<span class="attribute">"vi"</span>, <span class="keyword">new</span> LikeSe<span class="abbreviation">...</span>);
-    }
-}).partitionBy(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().columnMemberStatusCode();
-    }
+cb.query().scalar_Equal().max(<span class="localvar">memberCB</span> -&gt; {
+    <span class="localvar">memberCB</span>.specify().columnBirthdate();
+    <span class="localvar">memberCB</span>.query().<span class="subpoint">setMemberName_LikeSearch</span>(<span class="attribute">"vi"</span>, <span class="keyword">new</span> LikeSe<span class="abbreviation">...</span>);
+}).partitionBy(<span class="localvar">colCB</span> -&gt; {
+    <span class="localvar">colCB</span>.specify().columnMemberStatusCode();
 });
 cb.query().<span class="point">setMemberName_LikeSearch</span>(<span class="attribute">"vi"</span>, <span class="keyword">new</span> LikeSe<span class="abbreviation">...</span>);
 </code></pre>
@@ -298,19 +335,13 @@ cb.query().<span class="point">setMemberName_LikeSearch</span>(<span class="attr
 		なので、そのときは ColumnQuery + DerivedReferrer を使うことになります。<span class="frm">(Partitionカラムがテーブル区分値であることが前提)</span>
 	</p>
 <pre><span class="codetitle">e.g. サービスランクごとに一番若い会員 @Java</span><code>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">columnBirthdate()</span>;
-    }
-}).equal(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberServiceAsOne().specifyServiceRank()
-                .derivedMemberServiceList().<span class="point">max</span>(<span class="keyword">new</span> SubQuery&lt;Me<span class="abbreviation">...</span>CB&gt;() {
-            <span class="keyword">public void</span> query(MemberServiceCB subCB) {
-                subCB.specify().specifyMember().<span class="point">columnBirthdate()</span>;
-            }
-        }, <span class="keyword">null</span>);
-    }
+cb.columnQuery(<span class="localvar">colCB</span> -&gt; {
+    <span class="localvar">colCB</span>.specify().<span class="point">columnBirthdate()</span>;
+}).equal(<span class="localvar">colCB</span> -&gt; {
+    <span class="localvar">colCB</span>.specify().specifyMemberServiceAsOne().specifyServiceRank()
+            .derivedMemberServiceList().<span class="point">max</span>(<span class="localvar">serviceCB</span> -&gt; {
+        <span class="localvar">serviceCB</span>.specify().specifyMember().<span class="point">columnBirthdate()</span>;
+    }, <span class="keyword">null</span>);
 });
 </code></pre>
 <pre><span class="codetitle">e.g. 会員ステータスごとに一番若い会員 @DisplaySql</span><code>

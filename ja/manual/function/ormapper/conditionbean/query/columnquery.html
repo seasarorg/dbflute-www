@@ -48,7 +48,7 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
-				<li><a href="#implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#relation">関連テーブルのカラム</a></li>
 				<li><a href="#derivedreferrer">子テーブルの導出カラム</a></li>
 				<li><a href="#derivedbase">基点テーブルの導出カラム</a></li>
@@ -107,6 +107,7 @@ cb.<span class="point">columnQuery</span>(colCBLambda)
 cb.columnQuery(<span class="point">_li</span>)
 --
 
+<span class="comment">// Lambda引数名はcolCBにして...</span>
 <span class="comment">// Expression Style (一行スタイル) で SpecifyColumn を</span>
 cb.columnQuery(colCB -> colCB.specify().col<span class="abbreviation">...</span>)
 --
@@ -134,7 +135,7 @@ cb.columnQuery(colCB -&gt; colCB.specify().columnBirthdate())
 		が相性が悪いため、ドキュメントとしては Expression Style をメインに書いています。
 	</p>
 	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html#escapeclipse">DBFlute on Java8 - Eclipseのご乱心に注意</a></div>
-	<h3 id="implflow">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. 生まれてから正式会員になった会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
@@ -201,15 +202,10 @@ cb.columnQuery(colCB -&gt; colCB.specify().<span class="point">specifyMemberSecu
 <pre><span class="codetitle">e.g. (有効な)会員住所情報の更新日時と退会日時が同じ会員 @Java</span><code>
 <span class="abbreviation">...</span>
 cb.query().<span class="point">queryMemberAddressAsValid</span>(currentDate());
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">specifyMemberAddressAsValid()</span>.columnUpdateDatetime();
-    }
-}).equal(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberWithdrawal().columnWithdrawalDatetime();
-    }
-});
+cb.columnQuery(colCB -&gt; colCB.specify().<span class="point">specifyMemberAddressAsValid()</span>
+                                       .columnUpdateDatetime())
+        .equal(colCB -&gt; colCB.specify().specifyMemberWithdrawal()
+                                       .columnWithdrawalDatetime());
 </code></pre>
 	<h3 id="derivedreferrer">子テーブルの導出カラム</h3>
 	<h4 id="specifyderivedreferrer">(Specify)DerivedReferrer の利用</h4>
@@ -220,20 +216,13 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	<div class="relatedpage"><a href="../specify/derivedreferrer.html">(Specify)DerivedReferrer</a></div>
 <pre><span class="codetitle">e.g. 生まれる前、もしくは生まれた瞬間に(支払済み)購入をしたことのある会員 @Java</span><code>
 <span class="abbreviation">...</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().columnBirthdate();
-    }
-}).lessEqual(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().<span class="point">derivedPurchaseList()</span>.min(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.specify().<span class="point">columnPurchaseDatetime()</span>;
-                subCB.query().setPaymentCompleteFlg_Equal_True();
-            }
+cb.columnQuery(colCB -&gt; colCB.specify().columnBirthdate())
+    .lessEqual(colCB -&gt; {
+        colCB.specify().<span class="point">derivedPurchase()</span>.min(purchaseCB -&gt; {
+            purchaseCB.specify().<span class="point">columnPurchaseDatetime()</span>;
+            purchaseCB.query().setPaymentCompleteFlg_Equal_True();
         }, <span class="keyword">null</span>); <span class="comment">// エリアス名は利用しないので null 固定</span>
-    }
-});
+    });
 </code></pre>
 <pre><span class="codetitle">e.g. 生まれる前、もしくは、生まれた瞬間に(支払済み)購入をしたことのある会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -252,28 +241,21 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	</p>
 <pre><span class="codetitle">e.g. サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @Java</span><code>
 <span class="abbreviation">...</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberServiceAsOne().columnPointCount();
-    }
-}).greaterThan(new SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberServiceAsOne()
-                .specifyServiceRank().<span class="point">derivedMemberServiceList()</span>
-                        .avg(<span class="keyword">new</span> SubQuery&lt;MemberServiceCB&gt;() {
-            <span class="keyword">public void</span> query(MemberServiceCB subCB) {
-                subCB.specify().columnPointCount();
-            }
-        }, <span class="keyword">null</span>, <span class="keyword">new</span> DerivedReferrerOption().coalesce(<span class="literal">0</span>));
-    }
-});
+cb.columnQuery(colCB -&gt; colCB.specify().specifyMemberServiceAsOne().columnPointCount())
+  .greaterThan(colCB -&gt; {
+      colCB.specify().specifyMemberServiceAsOne()
+                     .specifyServiceRank()
+                     .<span class="point">derivedMemberService()</span>.avg(serviceCB -&gt; {
+          serviceCB.specify().columnPointCount();
+      }, <span class="keyword">null</span>, op -&gt; op.coalesce(<span class="literal">0</span>));
+  });
 </code></pre>
 <pre><span class="codetitle">e.g. サービスランクごとの平均ポイント数よりも多いポイント数を持っている会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc
     <span class="keyword">left outer join</span> MEMBER_SERVICE dfrel_3 <span class="keyword">on</span> dfloc.MEMBER_ID = dfrel_3.MEMBER_ID
     <span class="keyword">left outer join</span> SERVICE_RANK dfrel_3_1 <span class="keyword">on</span> dfrel_3.SERVICE_RANK_CODE = dfrel_3_1.SERVICE_RANK_CODE 
- <span class="keyword">where</span> dfrel_3.POINT_COUNT &gt; (select coalesce(avg(sub1loc.POINT_COUNT), <span class="literal">0</span>)
+ <span class="keyword">where</span> dfrel_3.POINT_COUNT &gt; (<span class="keyword">select</span> coalesce(avg(sub1loc.POINT_COUNT), <span class="literal">0</span>)
                                 <span class="keyword">from</span> MEMBER_SERVICE sub1loc 
                                <span class="keyword">where</span> sub1loc.SERVICE_RANK_CODE = dfrel_3_1.SERVICE_RANK_CODE
        )
@@ -296,22 +278,13 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	</p>
 	<div class="relatedpage"><a href="#usablecalculation">this - 利用できる演算調整</a></div>
 <pre><span class="codetitle">e.g. 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @Java</span><code>
-<span class="abbreviation">...</span>
-<span class="keyword">final int</span> minDefault = <span class="literal">0</span>; <span class="comment">// 購入のない会員も含むため (null を 0 に)</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().derivedPurchaseList().min(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(PurchaseCB subCB) {
-                subCB.specify().columnPurchasePrice();
-                subCB.query().setPaymentCompleteFlg_Equal_True();
-            }
-        }, <span class="keyword">null</span>, <span class="keyword">new</span> DerivedReferrerOption().coalesce(minDefault));
-    }
-}).lessThan(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().columnMemberId();
-    }
-}).<span class="point">multiply</span>(<span class="literal">500</span>).<span class="point">plus</span>(<span class="literal">1</span>);
+cb.columnQuery(colCB -&gt; {
+    colCB.specify().derivedPurchaseList().min(purchaseCB -&gt; {
+        purchaseCB.specify().columnPurchasePrice();
+        purchaseCB.query().setPaymentCompleteFlg_Equal_True();
+    }, <span class="keyword">null</span>, op -&gt; op.coalesce(<span class="literal">0</span>)); <span class="comment">// 購入のない会員も含むため</span>
+}).lessThan(colCB -&gt; colCB.specify().columnMemberId())
+  .<span class="point">multiply</span>(<span class="literal">500</span>).<span class="point">plus</span>(<span class="literal">1</span>);
 </code></pre>
 <pre><span class="codetitle">e.g. 支払済み購入最小価格が、会員IDに 500 を掛けて 1 足したものよりも小さい会員 @DisplaySql</span><code>
 <span class="abbreviation">...</span>
@@ -332,16 +305,9 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	</p>
 	<div class="detailpage"><a href="../specify/derivedreferrer.html#funcfilter">(Specify)DerivedReferrer - 導出値をSQL関数でフィルタ</a></div>
 <pre><span class="codetitle">e.g. 右辺カラムの日時に対して、時分秒ミリ秒を切り取って 1 日進める @Java</span><code>
-<span class="abbreviation">...</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().columnBirthdate();
-    }
-}).greaterThan(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().columnFormalizedDatetime();
-    }
-}).<span class="point">convert</span>(<span class="keyword">new</span> ColumnConversionOption().truncTime().addDay(<span class="literal">1</span>));
+cb.columnQuery(colCB -&gt; colCB.specify().columnBirthdate())
+  .greaterThan(colCB -&gt; colCB.specify().columnFormalizedDatetime())
+  .<span class="point">convert</span>(op -&gt; op.truncTime().addDay(<span class="literal">1</span>));
 </code></pre>
 	<p>
 		演算とフィルタは組み合わせて利用することができます。(指定された順序に処理される)
@@ -356,21 +322,15 @@ cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
 	</p>
 <pre><span class="codetitle">e.g. 左辺カラムは 1 を足して、右辺カラムは 2 を引く @Java</span><code>
 <span class="abbreviation">...</span>
-cb.columnQuery(<span class="keyword">new</span> SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberServiceAsOne().columnPointCount();
-    }
-}).greaterThan(new SpecifyQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> specify(MemberCB cb) {
-        cb.specify().specifyMemberServiceAsOne()
-                .specifyServiceRank().<span class="point">derivedMemberServiceList()</span>
-                        .avg(<span class="keyword">new</span> SubQuery&lt;MemberServiceCB&gt;() {
-            <span class="keyword">public void</span> query(MemberServiceCB subCB) {
-                subCB.specify().columnPointCount();
-            }
-        }, <span class="keyword">null</span>, <span class="keyword">new</span> DerivedReferrerOption().coalesce(<span class="literal">0</span>));
-    }
-}).<span class="point">left</span>().plus(<span class="literal">1</span>).<span class="point">right</span>().minus(<span class="literal">2</span>);
+cb.columnQuery(colCB -&gt; colCB.specify().specifyMemberServiceAsOne().columnPointCount())
+  .greaterThan(colCB -&gt; {
+      colCB.specify().specifyMemberServiceAsOne()
+                     .specifyServiceRank()
+                     .<span class="point">derivedMemberService()</span>
+                     .avg(serviceCB -&gt; {
+                         serviceCB.specify().columnPointCount();
+                     }, <span class="keyword">null</span>, op -&gt; op.coalesce(<span class="literal">0</span>));
+  }).<span class="point">left</span>().plus(<span class="literal">1</span>).<span class="point">right</span>().minus(<span class="literal">2</span>);
 </code></pre>
 
 	<h2 id="methodspec">メソッド仕様</h2>

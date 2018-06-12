@@ -42,7 +42,8 @@
 		<li><a href="#overview">概要</a></li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#andpart">or 条件の中の and 条件</a></li>
 				<li><a href="#splitby">LikeSearch の SplitBy</a></li>
 				<li><a href="#datefromto">日付のFromTo (DateFromTo)</a></li>
@@ -80,7 +81,57 @@
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
+	<p>
+		ConditionBean の orScopeQuery() を呼び出し、引数のコールバック(orQuery)で or
+		条件の Query を設定します。そのコールバック内で設定された条件同士が or で連結されます。
+	</p>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. OrScopeQuery条件の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+cb.or <span class="comment">// .or と打って enter</span>
+--
+
+<span class="comment">// メソッドが補完されて、引数の "orCBLambda" が選択状態に</span>
+cb.<span class="point">orScopeQuery</span>(orCBLambda);
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+cb.orScopeQuery(<span class="subpoint">_ll</span>);
+--
+
+<span class="comment">// 実装メソッドの空実装が自動生成される (Eclipse-3.5 以上)</span>
+cb.orScopeQuery(orCB -&gt; {
+    <span class="comment">// 会員名称が "S" で始まる、もしくは、会員IDが 3 の会員</span>
+    orCB.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, op -&gt: op.likePrefix());
+    orCB.query().setMemberId_Equal(memberId);
+});
+</code></pre>
+<pre><span class="codetitle">e.g. 会員名称が "S"、もしくは、会員IDが 3 の会員 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc 
+ <span class="keyword">where</span> (dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
+     <span class="keyword">or</span> dfloc.MEMBER_ID = <span class="literal">3</span>
+       )
+</code></pre>
+	<p>
+		通常の Query と OrScopeQuery を組み合わせて利用できます。
+	</p>
+<pre><span class="codetitle">e.g. 正式会員で、会員名称が "S" で始まる、もしくは、会員IDが 3 の会員 @Java</span><code>
+cb.<span class="point">query()</span>.setMemberStatusCode_Equal_Formalized();
+cb.<span class="point">orScopeQuery</span>(orCB -&gt: {
+    orCB.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, op -&gt: op.likePrefix());
+    orCB.query().setMemberId_Equal(<span class="literal">3</span>);
+});
+</code></pre>
+<pre><span class="codetitle">e.g. 正式会員で、かつ、[会員名称が "S" で始まる、もしくは、会員IDが 3] の会員 @DisplaySql</span><code>
+<span class="abbreviation">...</span>
+  <span class="keyword">from</span> MEMBER dfloc 
+ <span class="keyword">where</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
+   <span class="point">and</span> (dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
+     <span class="keyword">or</span> dfloc.MEMBER_ID = <span class="literal">3</span>
+       )
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 	<p>
 		ConditionBean の orScopeQuery() を呼び出し、引数のコールバック(orQuery)で or
 		条件の Query を設定します。そのコールバック内で設定された条件同士が or で連結されます。
@@ -119,37 +170,6 @@ cb.orScopeQuery(<span class="keyword">new</span> OrQuery&lt;MemberCB&gt;() {
     }
 }); <span class="comment">// セミコロンを忘れずに</span>
 </code></pre>
-<pre><span class="codetitle">e.g. 会員名称が "S" もしくは "J" で始まる、もしくは、会員IDが 3 の会員 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc 
- <span class="keyword">where</span> (dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
-     <span class="keyword">or</span> dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'J%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
-     <span class="keyword">or</span> dfloc.MEMBER_ID = <span class="literal">3</span>
-       )
-</code></pre>
-	<p>
-		通常の Query と OrScopeQuery を組み合わせて利用できます。
-	</p>
-<pre><span class="codetitle">e.g. 正式会員で、会員名称が "S" もしくは "J" で始まる、もしくは、会員IDが 3 の会員 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.<span class="point">query()</span>.setMemberStatusCode_Equal_Formalized();
-cb.<span class="point">orScopeQuery</span>(<span class="keyword">new</span> OrQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB orCB) {
-        orCB.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
-        orCB.query().setMemberName_PrefixSearch(<span class="literal">"J"</span>);
-        orCB.query().setMemberId_Equal(<span class="literal">3</span>);
-    }
-});
-</code></pre>
-<pre><span class="codetitle">e.g. 正式会員で、会員名称が "S" もしくは "J" で始まる、もしくは、会員IDが 3 の会員 @DisplaySql</span><code>
-<span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc 
- <span class="keyword">where</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
-   <span class="point">and</span> (dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'S%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
-     <span class="keyword">or</span> dfloc.MEMBER_NAME <span class="keyword">like</span> <span class="literal">'J%'</span> <span class="keyword">escape</span> <span class="literal">'|'</span>
-     <span class="keyword">or</span> dfloc.MEMBER_ID = <span class="literal">3</span>
-       )
-</code></pre>
 	<h3 id="andpart">or 条件の中の and 条件</h3>
 	<p>
 		or 条件の中で and 条件を利用することができます。これを OrScopeQuery の AndPart
@@ -158,22 +178,16 @@ cb.<span class="point">orScopeQuery</span>(<span class="keyword">new</span> OrQu
 	</p>
 <pre><span class="codetitle">e.g. 退会会員、もしくは、正式会員日時のなく会員IDが100以上、もしくは、生年月日のない正式会員 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.<span class="point">orScopeQuery</span>(<span class="keyword">new</span> OrQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB orCB) {
-        orCB.query().setMemberStatusCode_Equal_Withdrawal();
-        orCB.<span class="point">orScopeQueryAndPart</span>(<span class="keyword">new</span> AndQuery&lt;MemberCB&gt;() {
-            <span class="keyword">public void</span> query(MemberCB andCB) {
-                andCB.query().setMemberId_GreaterEqual(<span class="literal">100</span>);
-                andCB.query().setFormalizedDatetime_IsNull();
-            }
-        };
-        orCB.<span class="point">orScopeQueryAndPart</span>(<span class="keyword">new</span> AndQuery&lt;MemberCB&gt;() {
-            <span class="keyword">public void</span> query(MemberCB andCB) {
-                andCB.query().setMemberStatusCode_Equal_Formalized();
-                andCB.query().setBirthdate_IsNull();
-            }
-        };
-    }
+cb.<span class="point">orScopeQuery</span>(orCB -&gt; {
+    orCB.query().setMemberStatusCode_Equal_Withdrawal();
+    orCB.<span class="point">orScopeQueryAndPart</span>(andCB -&gt; {
+        andCB.query().setMemberId_GreaterEqual(<span class="literal">100</span>);
+        andCB.query().setFormalizedDatetime_IsNull();
+    });
+    orCB.<span class="point">orScopeQueryAndPart</span>(andCB -&gt; {
+        andCB.query().setMemberStatusCode_Equal_Formalized();
+        andCB.query().setBirthdate_IsNull();
+    });
 });
 </code></pre>
 <pre><span class="codetitle">e.g. 退会会員、もしくは、正式会員日時のなく会員IDが100以上、もしくは、生年月日のない正式会員 @DisplaySql</span><code>
@@ -273,12 +287,9 @@ cb.orScopeQuery(<span class="keyword">new</span> OrQuery&lt;MemberCB&gt;() {
 		次第では上書きになりますが、OrScopeQuery 内では(AndPart も含む)、呼び出した分だけ条件が付与されます。
 	</p>
 <pre><span class="codetitle">e.g. 会員IDが 1 もしくは 3 の会員 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.<span class="point">orScopeQuery</span>(<span class="keyword">new</span> OrQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB orCB) {
-        orCB.query().setMemberId_Equal(<span class="literal">1</span>);
-        orCB.query().setMemberId_Equal(<span class="literal">3</span>);
-    }
+cb.<span class="point">orScopeQuery</span>(orCB -&gt; {
+    orCB.query().setMemberId_Equal(<span class="literal">1</span>);
+    orCB.query().setMemberId_Equal(<span class="literal">3</span>);
 });
 </code></pre>
 <pre><span class="codetitle">e.g. 会員IDが 1 もしくは 3 の会員 @DisplaySql</span><code>

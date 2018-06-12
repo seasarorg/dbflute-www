@@ -49,7 +49,8 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#property">まずはプロパティの作成</a></li>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#manytomany">子テーブルの親テーブル (many-to-many)</a></li>
 				<li><a href="#onetomanytomany">子テーブルの子テーブル (one-to-many-to-many)</a></li>
 				<li><a href="#manytoonetomany">親テーブルの子テーブル (many-to-one-to-many)</a></li>
@@ -140,9 +141,9 @@
 		という感じで、DB上の命名ポリシーに変換したものが推奨されます<span class="frm">(実際には、大文字小文字アンダースコア区別せず動作しますが習慣として)</span>。
 		また、定数の名前は任意ですが、習慣的に "ALIAS_latestLoginDatetime" にすると良いでしょう。
 	</p>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
 	<p>
-		specify() の後、<em class="keyword">derived[referrer-table]List()</em>
+		specify() の後、<em class="keyword">derived[referrer-table]()</em>
 		を呼び出し、その後、max() や sum() など関数メソッドを選び、SubQuery
 		のコールバック実装を引数に指定します。第二引数は、導出カラムを受け取るためのプロパティに対応するエリアス名、
 		オーバーロードの第三引数は、様々なオプション(coalesce 関数の利用など)を指定する DerivedReferrerOption
@@ -150,6 +151,63 @@
 	</p>
 	<div class="relatedpage"><a href="#funcfilter">this - 導出値をSQL関数でフィルタ</a></div>
 	<div class="relatedpage"><a href="./specifycolumn.html#onlyonecolumn">SpecifyColumn - 他の機能から間借りされる</a></div>
+	<div class="relatedpage"><a href="../../../../../tutorial/onjava8.html">DBFlute on Java8</a></div>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
+<span class="comment">// cb: MemberCB</span>
+cb.sp <span class="comment">// .sp と打って enter</span>
+--
+
+<span class="comment">// .d まで打つと関連テーブル選択、ML (MemberLogin) で enter</span>
+cb.specify().dML
+--
+
+<span class="comment">// max() や min()、sum() などの関数メソッドを選んで enter</span>
+<span class="comment">//  =&gt; max(), min(), sum(), avg(), count(), countDistinct()</span>
+<span class="comment">// (それぞれに、オーバーロードで DerivedReferrerOption が指定できる)</span>
+cb.specify().<span class="point">derivedMemberLogin()</span>.ma
+--
+
+<span class="comment">// メソッドが補完されて、引数の "derivedCBLambda" が選択状態に</span>
+cb.specify().derivedMemberLogin().<span class="point">max</span>(derivedCBLambda, aliasName);
+--
+
+<span class="comment">// derivedCBLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+cb.specify().derivedMemberLogin().max(<span class="subpoint">_ll</span>, aliasName);
+--
+
+<span class="comment">// Lambda引数名はcbにして...</span>
+<span class="comment">// サブクエリ(子テーブル)の導出カラムと絞り込み条件を指定</span>
+cb.specify().derivedMemberLogin().max(<span class="localvar">loginCB</span> -&gt; {
+    <span class="localvar">loginCB</span>.specify().<span class="point">columnLoginDatetime()</span>; <span class="comment">// 導出カラムの指定</span>
+    <span class="localvar">loginCB</span>.query().setMobileLoginFlg_Equal_False(); <span class="comment">// 絞り込み条件</span>
+}, <span class="subpoint">Member.ALIAS_latestLoginDatetime</span>); <span class="comment">// エリアス名を指定 (EMechaで自動生成)</span>
+
+<span class="abbreviation">...</span>
+
+<span class="comment">// 検索結果のEntityから、手動で作ったgetterメソッド経由で値を取得できる</span>
+<span class="keyword">for</span> (Member member : memberList) {
+    LocalDate latestLoginDatetime = member.<span class="point">getLatestLoginDatetime()</span>;
+    <span class="abbreviation">...</span>
+}
+</code></pre>
+	<p>
+		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
+	</p>
+<pre><span class="codetitle">e.g. (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
+<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
+     , (<span class="keyword">select</span> max(sub1loc.LOGIN_DATETIME)
+          <span class="keyword">from</span> MEMBER_LOGIN sub1loc 
+         <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
+           <span class="keyword">and</span> sub1loc.MOBILE_LOGIN_FLG = <span class="literal">0</span>
+       ) <span class="keyword">as</span> LATEST_LOGIN_DATETIME
+  <span class="keyword">from</span> MEMBER dfloc
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
+	</p>
+	<div class="relatedpage"><a href="#usablefunc">this - 利用できる集計関数</a></div>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 <pre><span class="codetitle">e.g. (Specify)DerivedReferrerの実装手順 (Eclipseでコード補完) {MEMBER, MEMBER_LOGIN} @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
 cb.sp <span class="comment">// .sp と打って enter</span>
@@ -209,35 +267,16 @@ fore <span class="comment">// fore とまで打って ctrl + space そして ent
     <span class="abbreviation">...</span>
 }
 </code></pre>
-	<p>
-		SQL上では、FKを構成する関連カラムを使った相関条件が自動的に付与されます。
-	</p>
-<pre><span class="codetitle">e.g. (Specify)DerivedReferrerを使って(モバイル除く)最終ログイン日時も取得 @DisplaySql</span><code>
-<span class="keyword">select</span> dfloc.MEMBER_ID as c1, dfloc.MEMBER_NAME as c2, <span class="abbreviation">...</span>
-     , (<span class="keyword">select</span> max(sub1loc.LOGIN_DATETIME)
-          <span class="keyword">from</span> MEMBER_LOGIN sub1loc 
-         <span class="keyword">where</span> sub1loc.MEMBER_ID = dfloc.MEMBER_ID
-           <span class="keyword">and</span> sub1loc.MOBILE_LOGIN_FLG = <span class="literal">0</span>
-       ) <span class="keyword">as</span> LATEST_LOGIN_DATETIME
-  <span class="keyword">from</span> MEMBER dfloc
-<span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		適切な比較条件、および、関数を選んで実装して下さい。関数によっては利用できるカラムのデータ型が限定されるものもあります。
-	</p>
-	<div class="relatedpage"><a href="#usablefunc">this - 利用できる集計関数</a></div>
 	<h3 id="manytomany">子テーブルの親テーブル (many-to-many)</h3>
 	<p>
 		子テーブルの親テーブル(many-to-many)のカラムも導出カラムとして利用できます。実際には、親テーブルというよりも、子テーブルの
 		one-to-one のテーブルのカラムを導出カラムに、という使い方が実用的と考えられます。
 	</p>
 <pre><span class="codetitle">e.g. 会員ステータスごとに会員セキュリティの更新日時の最大値を導出 @Java</span><code>
-MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
-cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime();
-    }
-}, MemberStatus.ALIAS_lastestSecurityUpdateDatetime);
+<span class="comment">// cb: MemberStatusCB</span>
+cb.specify().derivedMember().max(<span class="localvar">memberCB</span> -&gt; {
+    <span class="localvar">memberCB</span>.specify().<span class="point">specifyMemberSecurity()</span>.columnUpdateDatetime();
+}, MemberStatus.<span class="attribute">ALIAS_lastestSecurityUpdateDatetime</span>);
 </code></pre>
 	<h3 id="onetomanytomany">子テーブルの子テーブル (one-to-many-to-many)</h3>
 	<p>
@@ -246,18 +285,14 @@ cb.specify().derivedMemberList().max(<span class="keyword">new</span> SubQuery&l
 		を利用します。<span class="frm">(@since 0.9.7.7)</span>
 	</p>
 <pre><span class="codetitle">e.g. 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @Java</span><code>
-MemberStatusCB cb = <span class="keyword">new</span> MemberStatusCB();
-cb.specify().<span class="point">derivedMemberList()</span>.avg(<span class="keyword">new</span> SubQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.specify().<span class="point">derivedPurchaseList()</span>.max(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(MemberCB subCB) {
-                subCB.specify().<span class="point">columnPurchasePrice()</span>;
-                subCB.query().set<span class="abbreviation">...</span>
-            }
-        }, <span class="keyword">null</span>);
-        subCB.query().set<span class="abbreviation">...</span>
-    }
-}, MemberStatus.ALIAS_avgMaxPurchasePrice);
+<span class="comment">// cb: MemberStatusCB</span>
+cb.specify().<span class="subpoint">derivedMember()</span>.avg(<span class="localvar">memberCB</span> -&gt; {
+    <span class="localvar">memberCB</span>.specify().<span class="subpoint">derivedPurchase()</span>.max(<span class="localvar">purchaseCB</span> -&gt; {
+        <span class="localvar">purchaseCB</span>.specify().<span class="point">columnPurchasePrice()</span>;
+        <span class="localvar">purchaseCB</span>.query().set<span class="abbreviation">...</span>
+    }, <span class="keyword">null</span>);
+    <span class="localvar">memberCB</span>.query().set<span class="abbreviation">...</span>
+}, MemberStatus.<span class="attribute">ALIAS_avgMaxPurchasePrice</span>);
 cb.query().set<span class="abbreviation">...</span>
 </code></pre>
 <pre><span class="codetitle">e.g. 会員ごとの最大購入価格の会員ステータスごとの平均を導出 @DisplaySql</span><code>
@@ -284,12 +319,10 @@ cb.query().set<span class="abbreviation">...</span>
 		DerivedReferrer を使って実現します。
 	</p>
 <pre><span class="codetitle">e.g. 会員ログインから会員を経由して(会員ごとの)購入価格の合計を導出 @Java</span><code>
-MemberLoginCB cb = <span class="keyword">new</span> MemberLoginCB();
-cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().sum(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-    <span class="keyword">public void</span> query(PurchaseCB subCB) {
-        subCB.specify().columnPurchasePrice();
-    }
-}, MemberLogin.ALIAS_memberPurchasePriceSummary);
+<span class="comment">// cb: MemberLoginCB</span>
+cb.specify().<span class="point">specifyMember()</span>.derivedPurchase().sum(<span class="localvar">purchaseCB</span> -&gt; {
+    <span class="localvar">purchaseCB</span>.specify().columnPurchasePrice();
+}, MemberLogin.<span class="attribute">ALIAS_memberPurchasePriceSummary</span>);
 </code></pre>
 	<h3 id="funcfilter">導出値をSQL関数でフィルタ</h3>
 	<p>
@@ -297,14 +330,13 @@ cb.specify().<span class="point">specifyMember()</span>.derivedPurchaseList().su
 		にて、そのフィルタ処理を指定することができます。<span class="frm">@since 0.9.7.4</span>
 	</p>
 <pre><span class="codetitle">e.g. 最終ログイン日時が null の場合は 1192-01-01 として扱う {MEMBER_LOGIN} @Java</span><code>
-cb.query().derivedMemberLoginList().max(<span class="keyword">new</span> SubQuery&lt;MemberLoginCB&gt;() {
-    <span class="keyword">public void</span> query(MemberLoginCB subCB) {
-        <span class="comment">// 一度もログインしていない、もしくは、モバイルでしか</span>
-        <span class="comment">// ログインしていない会員の場合は、null の可能性がある</span>
-        subCB.specify().columnLoginDatetime();
-        subCB.query().setMobileLoginFlg_Equal_False();
-    }
-}, Member.ALIAS_<span class="abbreviation">...</span>, <span class="point">new DerivedReferrerOption().coalesce("1192-01-01")</span>);
+<span class="comment">// cb: MemberCB</span>
+cb.query().derivedMemberLogin().max(loginCB -&gt; {
+    <span class="comment">// 一度もログインしていない、もしくは、</span>
+    <span class="comment">// モバイルでしかログインしていない会員なら null がありえる</span>
+    loginCB.specify().columnLoginDatetime();
+    loginCB.query().setMobileLoginFlg_Equal_False();
+}, Member.ALIAS_<span class="abbreviation">...</span>, <span class="point">op -&gt; op.coalesce("1192-01-01")</span>);
 </code></pre>
 	<h4>利用できるSQL関数</h4>
 	<p>
