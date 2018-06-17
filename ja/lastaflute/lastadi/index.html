@@ -53,6 +53,17 @@
 			</ul>
 		</li>
 		<li><a href="#lightening">Lightening Boot</a></li>
+		<li><a href="#connectionpool">ConnectionPool (DBCP)</a>
+			<ul>
+				<li><a href="#dbcpimpl">Implementation</a></li>
+			</ul>
+		</li>
+		<li><a href="#transaction">Transaction</a>
+			<ul>
+				<li><a href="#tximpl">Implementation</a></li>
+				<li><a href="#txanno">javax.transaction.Transactional</a></li>
+			</ul>
+		</li>
 		<li><a href="#prop">lasta_di.properties</a></li>
 		<li><a href="#dixml">Di xml</a>
 			<ul>
@@ -175,6 +186,49 @@ com.example
 		<dt>Small dependencies</dt><dd>Javassit, JTA, Slf4j <span class="frm">(only three)</span></dd>
 		<dt>Lazy Loading</dt><dd>Minimum initialization in <span class="frm">(in hot, warm)</span></dd>
 	</dl>
+
+	<h2 id="connectionpool">ConnectionPool (DBCP)</h2>
+	<h3 id="dbcpimpl">Implementation</h3>
+	<p>
+		Lasta Di has the original connection pool, which can handle transactions.
+	</p>
+	<dl class="keymainlist">
+		<dt>ConnectionPool</dt><dd>interface of connection pool, checkOut(), checkInTx()</dd>
+		<dt>SimpleConnectionPool</dt><dd>simple implementation of connection pool</dd>
+		<dt>PooledDataSource</dt><dd>data source using connection pool</dd>
+	</dl>
+	<p>
+		if you use Lasta Di with LastaFlute, you can use the extended implementation classes which have more rich functions.
+		(e.g. HookedConnectionPool, HookedPooledDataSource)
+	</p>
+
+	<h2 id="transaction">Transaction</h2>
+	<h3 id="tximpl">Implementation</h3>
+	<p>
+		Lasta Di has the original JTA implementation, which is related to connection pool.
+	</p>
+	<dl class="keymainlist">
+		<dt>LaTransactionManager</dt><dd>simple implementation of TransactionManager interface</dd>
+		<dt>LaUserTransaction</dt><dd>simple implementation of UserTransaction interface</dd>
+		<dt>LaTransaction</dt><dd>simple implementation of Transaction interface</dd>
+	</dl>
+	<p>
+		if you use Lasta Di with LastaFlute, you can use the extended implementation classes which have more rich functions.
+		(e.g. HookedTransactionManager, HookedUserTransaction, RomanticTransaction)
+	</p>
+	<h3 id="txanno">javax.transaction.Transactional</h3>
+	<p>
+		javax.transaction.Transactional is supported.
+		You can use it as default in several Quick component (e.g. Logic, Service).
+	</p>
+	<p>
+		However if you use Lasta Di with LastaFlute, you can use the TransactionStage interface provided by LastaFlute which is programatic transaction.
+		So the annotation may be small use.
+	</p>
+	<p>
+		Attention, the annotation process is implemented by interceptor (AOP) so you can use it at public method.
+		While, Lasta Di can support "this" call of AOP so you can use the annotation in the same class.
+	</p>
 
 	<h2 id="prop">lasta_di.properties</h2>
 	<p>

@@ -347,8 +347,7 @@
 				<li>引数の値で null は許されない</li>
 				<li>平均購入価格の分、その会員のサービスポイント数を足す</li>
 				<li>足す際、パフォーマンス考慮のために事前selectはせず、updateだけで足す <span class="frm">(varyingUpdat...)</span></li>
-				<li>ジョブスケジューラーからで呼ばれることを想定した処理として <span class="frm">(つまりバッチ処理として)</span></li>
-				<li>Transactionを発行するときは、Java標準のアノテーションを使う</li>
+				<li>ジョブスケジューラーからで呼ばれることを想定した処理として実装 <span class="frm">(つまりバッチ処理として)</span></li>
 			</ul>
 		</dd>
 		<dt>対応テストメソッド</dt>
@@ -364,16 +363,35 @@
 	<h3 id="cursorbonus">ボーナスステージ</h3>
 	<p>
 		さて、MySQL (ハンズオンのデフォルト) を使っているのであれば、そのままでは実はメモリ対策になっていません。
-		outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
+		DBFluteがカーソル検索をしていても、MySQLのJDBCドライバーが全件メモリ上に保持してしまいます<span class="frm">(少なくとも、MySQL JDBC-5.1.xでは)</span>。
+		ジョブスケジューラーからで呼ばれることを想定したバッチ処理であれば、検索対象が100万件になるかもしれませんので、このままだと本番環境で OutOfMemoryError が発生する可能性があります。
+	</p>
+	<p>
+		そこで、outsideSql().configure() メソッドを使って、StatementConfig の FetchSize に Integer.MIN_VALUE
 		を設定して再実行してみましょう。
 	</p>
-	<div class="relatedpage"><a href="../../manual/reference/dbway/mysql/index.html#cursorselect">MySQLの取扱い - カーソル検索でのメモリ対策</a></div>
 	<p>
-		(...テスト再実行中) <span class="frm">※エラーメッセージには真摯な姿勢で...エラーメッセージでググったり...</span>
+		ただし、ここから壁が待っています。それに伴い、新しい要件です。
 	</p>
+	<dl class="textlist">
+		<dt>本番でもテストでも動く</dt>
+		<dd>
+			本番環境でもUnitTest実行でも問題なく動作するようにしましょう。
+			ハンズオンでは、本番での実行をテストする仕組みはありませんが、論理的に問題なく実行されることを想定した実装をしましょう。
+		</dd>
+		<dt>Interceptorを実行させない</dt>
+		<dd>
+			Logicクラスにはたくさんの Interceptor (AOP) が仕掛けられているとします。
+			UnitTestの環境では実行しづらい処理が含まれていると想定して、UnitTestのときは実行されないようにしましょう。
+		</dd>
+		<dt>テストデータは元に戻す</dt>
+		<dd>
+			やむを得ずトランザクションをコミットせざるを得ないにしても、無理矢理でも良いのでUnitTestでデータが自動的に元に戻るようにしてみましょう。
+		</dd>
+	</dl>
 	<div class="relatedpage"><a href="../../manual/topic/programming/mind/errormessage.html">エラーメッセージには真摯に接する</a></div>
 	<p>
-		ちなみに、テストクラスにて新しいトランザクションを発行したり、トランザクション分離レベルを制御したりできます<span class="frm">(@since UTFlute-0.3.3)</span>。
+		ちなみに、ハンズオンの環境では、テストクラスにて新しいトランザクションを発行したり、トランザクション分離レベルを制御したりできます。
 		これらはスーパークラスのメソッドです。
 	</p>
 	<dl class="shortvaluemainlist">
@@ -381,10 +399,9 @@
 		<dt>READ COMMITTED にする</dt><dd>adjustTransactionIsolationLevel_ReadCommitted()</dd>
 	</dl>
 	<p>
-		ちなみに、ハンズオンで使っているUTFluteは、こういうときのためにあります。
-		<span class="frm">(DIコンテナがやっているAOPと同じような処理をUTFlute方式で実現...)</span>
+		さて、どうしてもわからない場合は、ヒントが用意されています。見ると後悔するかもしれませんので、タイミング良く見てください。
 	</p>
-	<div class="detailpage"><a href="../../manual/function/helper/utflute/index.html">UTFlute</a></div>
+	<div class="detailpage"><a href="./hint/hint09.html">セクション 9 のヒント</a></div>
 	<h3 id="superbonus">スーパーボーナスステージ</h3>
 	<p>
 		もし、ものすごい頑張れるのであれば、一行ずつフェッチでCSVにデータを出力してみてください。
