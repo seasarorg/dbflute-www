@@ -74,6 +74,7 @@
 				<li><a href="#tablestatementthendolvar">then の $$変数$$ <span class="frm">(of table)</span></a></li>
 				<li><a href="#tablestatementnot">否定表現 (not) <span class="frm">(of table)</span></a></li>
 				<li><a href="#tablestatementandor">かつ、もしくは (and/or) <span class="frm">(of table)</span></a></li>
+				<li><a href="#tablestatementnotandor">not と and/or の組み合わせ <span class="frm">(of table)</span></a></li>
 				<li><a href="#tablestatementsupplement">補足コメント (期待値など) <span class="frm">(of table)</span></a></li>
 			</ul>
 		</li>
@@ -88,6 +89,7 @@
 				<li><a href="#columnstatementcolumnis">カラムの特性 (column is) <span class="frm">(of column)</span></a></li>
 				<li><a href="#columnstatementnot">否定表現 (not) <span class="frm">(of column)</span></a></li>
 				<li><a href="#columnstatementandor">かつ、もしくは (and/or) <span class="frm">(of column)</span></a></li>
+				<li><a href="#columnstatementnotandor">not と and/or の組み合わせ <span class="frm">(of column)</span></a></li>
 				<li><a href="#columnstatementsupplement">補足コメント (期待値など) <span class="frm">(of column)</span></a></li>
 			</ul>
 		</li>
@@ -520,8 +522,44 @@ column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
 		<li>文章の連結の中で、and と or を混ぜて使うことはできない (and なら全部 and)</li>
 		<li>値の連結の中で、and と or を混ぜて使うことはできない (and なら全部 and)</li>
 		<li>文章の連結は and で、値の連結は or とかは大丈夫 (逆も同じ)</li>
-		<li>"is not SEA or LAND" の場合は、"SEAでもなくLANDでもない" になる (すべての要素がnotになる)</li>
 	</ul>
+	<h3 id="tablestatementnotandor">not と and/or の組み合わせ <span class="frm">(of table)</span></h3>
+	<p>
+		文章の連結の場合は、特にそれぞれの文章で独立した not になるので、特に迷うことはないでしょう。
+	</p>
+	<p>
+		値の連結 の and/or と not の組み合わせた場合は、<em class="bigmark">is not (連結条件)</em>
+		というように、括弧 "()" で囲われているようなイメージで、連結条件だけで先に評価された後に not の評価がされます。
+	</p>
+	<dl class="textlist">
+		<dt>例えば、"is not SEA and LAND"</dt>
+		<dd><em class="keyword">(SEAかつLANDにヒットするもの) ではないもの</em> となる。</dd>
+		<dd>
+			SEAかつLANDというものは存在し得ないので、"絶対に0件ヒットになるの逆" となり全件ヒットになるので、この表現は意味がない。
+			prefix:, suffix:, contain: を複合的に使って絞り込むようにヒットさせたもの、ではないものをヒットさせるのが通常の使い方となる。
+		</dd>
+		<dd>
+			<dl class="textlist">
+				<dt>"is not prefix:SEA_ and suffix:_LAND"</dt>
+				<dd><em class="keyword">(SEA_で始まり、かつ、_LANDで終わるもの) ではないもの</em></dd>
+				<dt>"is not contain:SEA and contain:_LAND"</dt>
+				<dd><em class="keyword">(SEAを含み、かつ、LANDも含むもの) ではないもの</em></dd>
+			</dl>
+		</dd>
+		<dt>例えば、"is not SEA or LAND"</dt>
+		<dd><em class="keyword">(SEAもしくはLANDにヒットするもの) ではないもの</em> となる。</dd>
+		<dd>
+			この場合、SEAとLANDを単純に除外したと言える。よく使われる想定のパターンである。
+		</dd>
+		<dd>
+			<dl class="textlist">
+				<dt>"is not prefix:SEA_ or prefix:_LAND"</dt>
+				<dd><em class="keyword">(SEA_で始まる、もしくは、LAND_で終わるもの) ではないもの</em></dd>
+				<dt>"is not contain:SEA or contain:LAND"</dt>
+				<dd><em class="keyword">(SEAを含み、もしくは、LANDも含むもの) ではないもの</em></dd>
+			</dl>
+		</dd>
+	</dl>
 	<h3 id="tablestatementsupplement">補足コメント (期待値など) <span class="frm">(of table)</span></h3>
 	<p>
 		期待値などの補足を、statement自体に含めてコメントすることができます。すると、エラーになったときに一緒に表示されます。
@@ -695,6 +733,10 @@ column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
 		tableMapの方とまったく同じです。
 	</p>
 	<h3 id="columnstatementandor">かつ、もしくは (and/or) <span class="frm">(of column)</span></h3>
+	<p>
+		tableMapの方とまったく同じです。
+	</p>
+	<h3 id="columnstatementnotandor">not と and/or の組み合わせ <span class="frm">(of column)</span></h3>
 	<p>
 		tableMapの方とまったく同じです。
 	</p>
