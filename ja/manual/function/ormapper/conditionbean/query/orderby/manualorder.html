@@ -50,8 +50,9 @@
 		<li><a href="#howto">実装方法</a>
 			<ul>
 				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#optionmethod">オプションのメソッド</a></li>
+				<li><a href="#conditionalprior">条件判定でので優先処理</a></li>
 				<li><a href="#specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</a></li>
-				<li><a href="#manualorderbean">ManualOrderBean で細かい制御</a></li>
 			</ul>
 		</li>
 		<li><a href="#methodspec">メソッド仕様</a>
@@ -65,7 +66,6 @@
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる型</a></li>
-		<li><a href="#concept">いざってとき技、でも概念を明確化</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
@@ -83,16 +83,12 @@
 	</p>
 	<h3 id="priororder">優先処理</h3>
 	<p>
-		指定された値を優先して並べます。主に、文字列カラムで利用します。
+		指定された値を優先して並べます。
 	</p>
 	<p>
-		例えば、会員ステータスに表示順(DisplayOrder)のようなカラムが存在しない場合 <span class="frm">(かつ、どうしてもカラム追加できない場合)</span>
-		でも、"正式会員、仮会員、退会会員" という決まった順番で並べて検索することができます。
+		また、正式会員と仮会員だけは最初に並べて、それ以外の会員は単に更新日時で並べるというような、ある値だけを優先するソート要件がある場合などにも対応できます。
+		"24時間以内に更新されたものを先に並べる" というような条件で指定することもできます。
 	</p>
-	<p>
-		また、仮会員だけは最初に並べて、それ以外の会員は単に更新日時で並べるというような、ある値だけを優先するソート要件がある場合などにも対応できます。
-	</p>
-	<div class="relatedpage"><a href="#concept">this - いざってとき技、でも概念を明確化</a></div>
 	<p>
 		アプリでは、並べる順番の値のリストを指定することで、order by の中で case when 構文を使ってそのソート条件を実現します。
 		必ず OrderBy と組み合わせて指定します。
@@ -121,15 +117,13 @@
 		を呼び出し、コールバックで特殊条件を指定します。Lambda の引数は、ManualOrderBean です。
 	</p>
 <pre><span class="codetitle">e.g. 指定された値の順番通りに並べる実装手順 {MEMBER_STATUS_CODE} @Java</span><code>
-<span class="comment">// cb: MemberCB</span>
-
-<span class="comment">// 会員を正式会員、仮会員、退会会員の順番で並べるとする</span>
+<span class="comment">// 会員を正式会員、仮会員を先に並べるとする</span>
 <span class="comment">// (区分値カラムであれば、CDef 自体を値としてそのまま利用できる)</span>
 List&lt;CDef.MemberStatus&gt; orderValueList = <span class="keyword">new</span> ArrayList&lt;CDef.MemberStatus&gt;();
 orderValueList.add(CDef.MemberStatus.Formalized);  <span class="comment">// 正式会員</span>
 orderValueList.add(CDef.MemberStatus.Provisional); <span class="comment">// 仮会員</span>
-orderValueList.add(CDef.MemberStatus.Withdrawal);  <span class="comment">// 退会会員</span>
 
+<span class="comment">// cb: MemberCB</span>
 <span class="comment">// OrderBy指定の後、.wi まで打ってメソッドを選択</span>
 cb.query().addOrderBy_MemberStatusCode_Asc().wi
 --
@@ -139,80 +133,57 @@ cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder
 --
 
 <span class="comment">// _ll で補完 (DBFlute補完テンプレートが有効なら)</span>
-cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder</span>(opLambda);
+cb.query().addOrderBy_MemberStatusCode_Asc().withManualOrder(<span class="subpoint">_ll</span>);
 --
 
-
-
-cb.query().addOrderBy_Birthdate_Desc().withNullsLast(); <span class="comment">// その後のソート順を設定</span>
-cb.query().addOrderBy_MemberName_Asc();
+<span class="comment">// Lambda引数名は op にして...色々な特殊条件を指定</span>
+cb.query().addOrderBy_MemberStatusCode_Asc().withManualOrder(op -&gt; {
+    op.<span class="subpoint">acceptOrderValueList</span>(orderValueList); <span class="comment">// 優先処理</span>
+});
+cb.query().addOrderBy_MemberName_Asc(); <span class="comment">// その後のソート順</span>
 </code></pre>
-<pre><span class="codetitle">e.g. 正式会員、仮会員、退会会員の順番で並べる @DisplaySql</span><code>
+<pre><span class="codetitle">e.g. 正式会員、仮会員を先に並べる @DisplaySql</span><code>
 <span class="keyword">select</span> <span class="abbreviation">...</span>
   <span class="keyword">from</span> MEMBER dfloc  
  <span class="keyword">order by</span> 
    <span class="keyword">case</span>
      <span class="keyword">when</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'FML'</span> <span class="keyword">then</span> <span class="literal">0</span>
      <span class="keyword">when</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'PRV'</span> <span class="keyword">then</span> <span class="literal">1</span>
-     <span class="keyword">when</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'WDL'</span> <span class="keyword">then</span> <span class="literal">2</span>
-     <span class="keyword">else</span> <span class="literal">3</span>
-   <span class="keyword">end asc</span>, dfloc.BIRTHDATE <span class="keyword">desc nulls last</span>, dfloc.MEMBER_NAME <span class="keyword">asc</span>
+     <span class="keyword">else</span> <span class="literal">2</span>
+   <span class="keyword">end asc</span>, dfloc.MEMBER_NAME <span class="keyword">asc</span>
 </code></pre>
-	<p>
-		降順(Desc)を指定すると、指定されたリストの逆順に並びますが、必要性はあまりないでしょう。
-	</p>
-	<p>
-		リストで指定する値は、そのカラムが持つ値の一部でも構いません。その指定された値だけが優先して並び、それ以外は二番目以降のソート条件通りに並びます。
-	</p>
-<pre><span class="codetitle">e.g. "Pixy" というアカウントの会員だけ最初に並べて、後は更新日時の降順 @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-List&lt;String&gt; orderValueList = Arrays.asList(<span class="literal">"Pixy"</span>); <span class="comment">// 読み取り専用リストでもOK</span>
-cb.query().addOrderBy_MemberAccount_Asc().<span class="point">withManualOrder</span>(orderValueList);
-cb.query().addOrderBy_UpdateDatetime_Desc();
-</code></pre>
-<pre><span class="codetitle">e.g. "Pixy" というアカウントの会員だけ最初に並べて、後は更新日時の降順 @DisplaySql</span><code>
-<span class="keyword">select</span> <span class="abbreviation">...</span>
-  <span class="keyword">from</span> MEMBER dfloc  
- <span class="keyword">order by</span> 
-   <span class="keyword">case</span>
-     <span class="keyword">when</span> dfloc.MEMBER_ACCOUNT = <span class="literal">'Pixy'</span> <span class="keyword">then</span> <span class="literal">0</span>
-     <span class="keyword">else</span> <span class="literal">1</span>
-   <span class="keyword">end asc</span>, dfloc.UPDATE_DATETIME <span class="keyword">desc</span>
-</code></pre>
-	<h3 id="specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</h3>
-	<p>
-		SpecifiedDerivedOrderBy に対しても利用できますが、必要になる場面はあまり想定されません。
-	</p>
-	<div class="relatedpage"><a href="./specifiedderivedorderby.html">SpecifiedDerivedOrderBy</a></div>
-	<h3 id="manualorderbean">ManualOrderBean で細かい制御</h3>
-	<p>
-		ManualOrderBean を引数にとるオーバーロードメソッドがあります。
-		これを利用すると、もっと細かい制御が指定できるようになります。<span class="frm">@since 0.9.8.2</span>
-	</p>
+	<h3 id="optionmethod">オプションのメソッド</h3>
+	<dl class="shoshortkeymainlist">
+		<dt>優先処理</dt><dd>op.accessOrderValueList(), op.when_LessThan(), op.when_FromTo(), ...</dd>
+		<dt>計算処理</dt><dd>op.plus(), op.minus(), op.multiply(), ...</dd>
+		<dt>関数処理</dt><dd>op.convert(convOp -&gt; convOp.truncTime())</dd>
+	</dl>
+	<h3 id="conditionalprior">条件判定でので優先処理</h3>
 	<p>
 		例えば、24時間以内に更新されたデータを優先して並べるが、それより前のものに関しては別のカラムの値で並べる。
 		この場合、日付の大なり小なり比較が必要になりますが、ManualOrderBean で比較演算子を指定して条件を追加することができます。
 	</p>
 <pre><span class="codetitle">e.g. 24時間以内に更新されたデータを優先して並べる {UPDATE_DATETIME} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-ManualOrderBean mob = <span class="keyword">new</span> ManualOrderBean();
-mob.<span class="point">when_GreaterThan</span>(date24before); <span class="comment">// 更新日時 &gt; 24時間前</span>
-cb.query().addOrderBy_UpdateDatetime_Asc().<span class="point">withManualOrder</span>(mob);
-cb.query().addOrderBy_Birthdate_Desc().withNullsLast(); <span class="comment">// その後のソート順を設定</span>
-cb.query().addOrderBy_MemberName_Asc();
+cb.query().addOrderBy_UpdateDatetime_Asc().<span class="subpoint">withManualOrder</span>(op -&gt; {
+    op.<span class="point">when_GreaterThan</span>(date24before); <span class="comment">// 更新日時 &gt; 24時間前</span>
+});
+cb.query().addOrderBy_MemberName_Asc(); <span class="comment">// その後のソート順</span>
 </code></pre>
 	<p>
 		一つのケース(when)に対して複数の条件を連結させることもできます。whenメソッドで一つ目の条件を追加した後に続けて and_ もしくは、or_
 		で二つ目以降の条件を追加します。ただし、三つ以上の条件を連結する際、一つのケース内で利用できる連結子(and/or)は一つです。and と or を組み合わせて利用することはできません。
 	</p>
 <pre><span class="codetitle">e.g. 会員IDが 5 から 10 の会員を優先して並べる {MEMBER_ID} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
-ManualOrderBean mob = <span class="keyword">new</span> ManualOrderBean();
-mob.<span class="point">when_GreaterEqual</span>(5).<span class="point">and_LessEqual</span>(10); <span class="comment">// 5 から 10</span>
-cb.query().addOrderBy_MemberId_Asc().<span class="point">withManualOrder</span>(mob);
-cb.query().addOrderBy_Birthdate_Desc().withNullsLast(); <span class="comment">// その後のソート順を設定</span>
-cb.query().addOrderBy_MemberName_Asc();
+cb.query().addOrderBy_MemberId_Asc().<span class="subpoint">withManualOrder</span>(op -&gt; {
+    op.<span class="point">when_GreaterEqual</span>(5).<span class="point">and_LessEqual</span>(10); <span class="comment">// 5 から 10</span>
+});
+cb.query().addOrderBy_MemberName_Asc(); <span class="comment">// その後のソート順</span>
 </code></pre>
+	<h3 id="specifiedderived">SpecifiedDerivedOrderBy との組み合わせ</h3>
+	<p>
+		SpecifiedDerivedOrderBy に対しても利用できます。
+	</p>
+	<div class="relatedpage"><a href="./specifiedderivedorderby.html">SpecifiedDerivedOrderBy</a></div>
 
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>
@@ -221,7 +192,8 @@ cb.query().addOrderBy_MemberName_Asc();
 		<dt>nullの指定</dt><dd>nullが指定されたら例外です。また、リストの中の null 要素は無視されます。</dd>
 		<dt>空リストの指定</dt>
 		<dd>
-			空リストが指定されたらその ManualOrder は無効です。もし、同じカラムに対して既に一度 ManualOrder
+			acceptOrderValueList()に空リストが指定されたらその ManualOrder
+			は無効です。もし、同じカラムに対して既に一度 ManualOrder
 			を設定している場合は、その設定を上書きして、ManualOrder を無効化します。
 		</dd>
 		<dt>ケースの条件値</dt>
@@ -255,28 +227,6 @@ cb.query().addOrderBy_MemberName_Asc();
 	<p>
 		SQLの文法的に許される限り全ての型に対してサポートされます。
 	</p>
-
-	<div class="inucolumn">
-		<h2 id="concept">いざってとき技、でも概念を明確化</h2>
-		<p>
-			まず、会員ステータスのようなテーブルに表示順カラムがない場合は、カラムを追加する方が良いです。
-			また、例えば、特別な扱いをする "得意先の会社"
-			を常に先に並べたいというような優先する値があるような場合も、そういう情報をDB上で持ってシンプルな OrderBy
-			で実現できるようにする方が良いです。
-			それがどうしてもできないときの "いざってとき技" が ManualOrder
-			です。(制限も幾つかあるので、使わないに越したことはないです)
-		</p>
-		<p>
-			ただ、こういう ManualOrder という概念が機能として存在することが大事だと考えています。
-			DB設計する上で忘れていた、そういう考慮を知らなかった、というような状態が少しでも少なくなればと。
-			また、"頻繁に扱うある特別なデータだけは常に先に並べられるようにする" という隠れやすい業務要件も忘れずに。
-			全てのデータに対してフラットな扱いをするとは限りません。DB構造ではフラットな扱いでも、
-			人から見るとデータごとに着目の濃度に違いがあることがあります。ソート設計をするときに、データの構造だけにとらわれず、
-			その辺も考慮できるとよりユーザにとって使いやすいものになります(もちろん、パフォーマンスや実装などの現実問題も考える必要ありますが)。
-			逆に、その辺を十分理解して、あらかじめDB構造に反映できれば一番良いでしょう。すると ManualOrder も不要で実装もシンプルになります。
-			適応できる場面は少ないかもしれませんが、そういう概念を知っておくことが、より良い業務仕様の策定につながると考えます。
-		</p>
-	</div>
 
 </div>
 </div>
