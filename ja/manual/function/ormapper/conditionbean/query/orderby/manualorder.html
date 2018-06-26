@@ -42,6 +42,9 @@
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#basicconcept">基本概念</a></li>
+				<li><a href="#priororder">優先処理</a></li>
+				<li><a href="#calcorder">計算処理</a></li>
+				<li><a href="#funcorder">関数処理</a></li>
 			</ul>
 		</li>
 		<li><a href="#howto">実装方法</a>
@@ -68,11 +71,25 @@
 	<h2 id="overview">概要</h2>
 	<h3 id="basicconcept">基本概念</h3>
 	<p>
-		指定された値(リスト)の順番通りに並べる設定をします。
+		特殊条件を付けて order by を指定します。例えば...
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>優先処理</dt><dd>指定された値を優先して並べる <span class="frm">e.g. SEA, LAND を先に並べて、後は別の条件</span></dd>
+		<dt>計算処理</dt><dd>カラムに足し算、掛け算など計算をして並べる <span class="frm">e.g. PURCHASE_COUNT * 2</span></dd>
+		<dt>関数処理</dt><dd>カラムに関数を仕掛けて並べる <span class="frm">e.g. trunc(PURCHASE_DATETIME)</span></dd>
+	</dl>
+	<p>
+		会話上では、<em class="keyword">まにゅあるおーだー</em> と表現します。
+	</p>
+	<h3 id="priororder">優先処理</h3>
+	<p>
+		指定された値を優先して並べます。主に、文字列カラムで利用します。
 	</p>
 	<p>
-		例えば、会員ステータスに表示順(DisplayOrder)のようなカラムが存在しない場合(かつ、どうしてもカラム追加できない場合)でも、"正式会員、仮会員、退会会員"
-		という決まった順番で並べて検索することができます。
+		例えば、会員ステータスに表示順(DisplayOrder)のようなカラムが存在しない場合 <span class="frm">(かつ、どうしてもカラム追加できない場合)</span>
+		でも、"正式会員、仮会員、退会会員" という決まった順番で並べて検索することができます。
+	</p>
+	<p>
 		また、仮会員だけは最初に並べて、それ以外の会員は単に更新日時で並べるというような、ある値だけを優先するソート要件がある場合などにも対応できます。
 	</p>
 	<div class="relatedpage"><a href="#concept">this - いざってとき技、でも概念を明確化</a></div>
@@ -80,29 +97,53 @@
 		アプリでは、並べる順番の値のリストを指定することで、order by の中で case when 構文を使ってそのソート条件を実現します。
 		必ず OrderBy と組み合わせて指定します。
 	</p>
+	<h3 id="calcorder">計算処理</h3>
 	<p>
-		会話上では、<em class="keyword">まにゅあるおーだー</em> と表現します。
+		カラムに足し算、掛け算など計算をして並べます。主に、数値カラムで利用します。
+	</p>
+	<p>
+		計算処理が入る分、処理コストはかかりますし、インデックスが活用できなくなる可能性もあるので、パフォーマンスのことを考えると
+		<em class="keyword">気軽に使う機能ではない</em> ということは念頭に置きましょう。
+	</p>
+	<h3 id="funcorder">関数処理</h3>
+	<p>
+		カラムに関数を仕掛けて並べます。主に、数値カラムで利用します。
+	</p>
+	<p>
+		関数処理が入る分、処理コストはかかりますし、インデックスが活用できなくなる可能性もあるので、パフォーマンスのことを考えると
+		<em class="keyword">気軽に使う機能ではない</em> ということは念頭に置きましょう。<span class="frm">(DBMSによっては、関数インデックスを作れるものもありますので、そういったものも検討すると良いでしょう)</span>
 	</p>
 
 	<h2 id="howto">実装方法</h2>
 	<h3 id="implflow">実装の流れ</h3>
 	<p>
 		まずは、OrderBy のメソッド呼び出しの直後に続けて、withManualOrder()
-		を呼び出し、並べる順番の値のリスト(orderValueList)を引数に指定します。
-		(オーバーロードメソッドあり：後述)
+		を呼び出し、コールバックで特殊条件を指定します。Lambda の引数は、ManualOrderBean です。
 	</p>
-<pre><span class="codetitle">e.g. 指定された値の順番通りに並べる実装手順 (Eclipseでコード補完) {MEMBER_STATUS_CODE} @Java</span><code>
-MemberCB cb = <span class="keyword">new</span> MemberCB();
+<pre><span class="codetitle">e.g. 指定された値の順番通りに並べる実装手順 {MEMBER_STATUS_CODE} @Java</span><code>
+<span class="comment">// cb: MemberCB</span>
 
-<span class="comment">// 区分値カラムであれば、CDef 自体を値としてそのまま利用できる</span>
+<span class="comment">// 会員を正式会員、仮会員、退会会員の順番で並べるとする</span>
+<span class="comment">// (区分値カラムであれば、CDef 自体を値としてそのまま利用できる)</span>
 List&lt;CDef.MemberStatus&gt; orderValueList = <span class="keyword">new</span> ArrayList&lt;CDef.MemberStatus&gt;();
 orderValueList.add(CDef.MemberStatus.Formalized);  <span class="comment">// 正式会員</span>
 orderValueList.add(CDef.MemberStatus.Provisional); <span class="comment">// 仮会員</span>
 orderValueList.add(CDef.MemberStatus.Withdrawal);  <span class="comment">// 退会会員</span>
 
-cb.query().addOrderBy_MemberStatusCode_Asc().wi <span class="comment">// .wi まで打ってメソッドを選択</span>
+<span class="comment">// OrderBy指定の後、.wi まで打ってメソッドを選択</span>
+cb.query().addOrderBy_MemberStatusCode_Asc().wi
 --
-cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder</span>(orderValueList);
+
+<span class="comment">// メソッドが補完されて、引数の "opLambda" が選択状態に</span>
+cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder</span>(opLambda);
+--
+
+<span class="comment">// _ll で補完 (DBFlute補完テンプレートが有効なら)</span>
+cb.query().addOrderBy_MemberStatusCode_Asc().<span class="point">withManualOrder</span>(opLambda);
+--
+
+
+
 cb.query().addOrderBy_Birthdate_Desc().withNullsLast(); <span class="comment">// その後のソート順を設定</span>
 cb.query().addOrderBy_MemberName_Asc();
 </code></pre>
