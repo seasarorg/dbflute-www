@@ -91,6 +91,13 @@
 				<li><a href="#gitignorestrategy">DBFlute Introはgitignoreする？</a></li>
 			</ul>
 		</li>
+		<li><a href="#decommentserver">デコメントサーバー</a>
+			<ul>
+				<li><a href="#notplainserver">単純に常駐させると？</a></li>
+				<li><a href="#serverfordecomment">デコメントのためのモード</a></li>
+				<li><a href="#autocommitpiece">溜まったpieceファイルは？</a></li>
+			</ul>
+		</li>
 		<li><a href="#forcommiter">コミッター向け情報</a>
 			<ul>
 				<li><a href="#repository">Githubリポジトリ</a></li>
@@ -422,6 +429,50 @@
 		Introのバージョンを強制させたい場合は、コミット対象にしておけば横展開が簡単にはあります。
 		ただ、それなりのサイズではあるので、やはりignoreにしてIntroのアップグレードは各自に任せるのも良いでしょう。
 		<span class="frm">(LastaFluteのExampleでは、デフォルトでignoreになっています)</span>
+	</p>
+
+	<h2 id="decommentserver">デコメントサーバー</h2>
+	<p>
+		各々のディベロッパーが Intro をつどつど起動するのではなく、Intro
+		を社内サーバーなどに常駐させて、手軽にデコメントを登録するやり方もあります。
+	</p>
+	<h3 id="notplainserver">単純に常駐させると？</h3>
+	<p>
+		ただ、単純に Intro を常駐させると、以下のような不都合があります。
+	</p>
+	<ul>
+		<li>デコメントの author が、すべてサーバーのアカウントになってしまう</li>
+		<li>Introの別の機能で、複数人同時実行してはいけないものがあって不安</li>
+	</ul>
+	<h3 id="serverfordecomment">デコメントのためのモード</h3>
+	<p>
+		そこで、<em class="keyword">デコメント登録を目的としたサーバーとしての起動モード</em> をサポートしています。
+	</p>
+	<p>
+		Javaの起動パラメーターで <em class="mark">intro.decomment.server</em> を指定します。
+	</p>
+<pre><span class="codetitle">e.g. DBFlute Intro をデコメントサーバーとして起動 @Command</span><code>
+java <span class="point">-Dintro.decomment.server</span>=<span class="keyword">true</span> -jar dbflute-intro.jar
+</code></pre>
+	<p>
+		すると、以下のような挙動になり、安心してデコメントを利用することができます。
+	</p>
+	<ul>
+		<li>初回デコメント登録時だけauthorを入力すると、クッキーに保存されて自動的に利用される</li>
+		<li>Introの別の機能で、複数人同時実行してはいけないものは実行できないようになる</li>
+	</ul>
+	<p>
+		こちらを利用するためには、以下のバージョンが必要です。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>DBFlute</dt><dd><em class="mark">1.1.8</em> (patch 2018/06/30) 以上</dd>
+		<dt>Intro</dt><dd><em class="mark">0.2.2</em> 以上</dd>
+	</dl>
+	<h3 id="autocommitpiece">溜まったpieceファイルは？</h3>
+	<p>
+		デコメントを登録すると、どんどんサーバーにpieceファイルが溜まっていきます。
+		それを放っておいても共有されませんので、例えば Jenkins
+		などを使い、定期的にpieceファイルがgitにコミットされるようにすると良いでしょう。
 	</p>
 
 	<h2 id="forcommiter">コミッター向け情報</h2>
