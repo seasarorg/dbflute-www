@@ -45,6 +45,13 @@
 				<li><a href="#oldstyle">それ以前のバージョンからアップグレード</a></li>
 			</ul>
 		</li>
+		<li><a href="#patch">DBFlute Engineのパッチ</a>
+			<ul>
+				<li><a href="#patchconfirm">パッチが提供されているか確認</a></li>
+				<li><a href="#patchcurrent">利用しているバージョンの確認</a></li>
+				<li><a href="#patchhowto">パッチの適用方法</a></li>
+			</ul>
+		</li>
 		<li><a href="#migration">DBFluteの移行情報</a></li>
 		<li><a href="#oldversion">DBFluteの過去バージョン</a></li>
 	</ul>
@@ -78,6 +85,82 @@
 		<li><a href="./maven.html"><em class="keyword">Maven DBFlute Plugin</em> でコマンドからアップグレード</a></li>
 		<li><a href="./plain.html">テンプレートを利用して <em class="keyword">手動</em> でアップグレード</a></li>
 	</ul>
+
+	<h2 id="patch">DBFlute Engineのパッチ</h2>
+	<p>
+		DBFlute Engineは、バージョンを変えずにパッチが提供されることがあります。
+	</p>
+	<p>
+		主に、ReplaceSchema や SchemaHTML
+		など、DB管理支援ツールとしての機能において、早めに提供したほうが良いだろうというものがあったときに提供されます。
+		DBFlute Runtimeは何も変わりませんので、パッチを適用して自動生成をし直して自動生成クラスに差分が何もないようであれば、アプリ実行時への影響は何もないと言えます。
+	</p>
+	<h3 id="patchconfirm">パッチが提供されているか確認</h3>
+	<p>
+		ChangeLogで確認をすることができます。最新版の対応項目で例えば <em class="smallmark">*6/30パッチ</em> <span class="frm">(6月30日付けのパッチであることを示す)</span>
+		というように書いたものがあればパッチが存在します。その最新のパッチ日付を確認しましょう。
+	</p>
+	<div class="detailpage"><a href="../changelog/index.html">ChangeLog</a></div>
+	<p>
+		パッチが提供されている場合は、公開されている DBFlute Engine がすでにパッチ適用済みのものになっています。<span class="frm">(つまり、単純な上書き運用です)</span>
+	</p>
+	<h3 id="patchcurrent">利用しているバージョンの確認</h3>
+	<p>
+		現在、利用しているバージョンの詳細 <span class="frm">(パッチの日付を含む)</span> は、DBFlute Engine の <em class="mark">product-is-dbflute-1.x.x</em>
+		ファイルの <em class="mark">Deploy Date</em> <span class="frm">(デプロイ日付)</span> で確認できます。
+	</p>
+<pre><span class="codetitle">e.g. DBFlute Engineのバージョン詳細ファイル {maihamadb, 1.1.8} @Directory</span><code>
+[PROJECT]
+ |
+ |-dbflute_maihamadb <span class="comment">// DBFlute Client</span>
+ |  |-<span class="abbreviation">...</span>
+ |
+ |-mydbflute
+ |  |-dbflute-1.1.8 <span class="comment">// DBFlute Engine</span>
+ |  |-<span class="abbreviation">...</span>
+ |  |-<span class="point">product-is-dbflute-1.1.8</span>
+<span class="abbreviation">...</span>
+</code></pre>
+<pre><span class="codetitle">e.g. バージョン詳細ファイルの中身 {maihamadb, 1.1.8 patch 2018/06/30} @Directory</span><code>
+It's a mark file!
+
+[Product Name]
+DBFlute
+
+[Product Version]
+1.1.8
+
+[Deploy Date]
+<span class="point">2018-06-30 11:41:25.475</span>
+</code></pre>
+	<p>
+		最新のパッチ日付よりもデプロイ日付の方が古ければ、パッチが存在すると言えます。
+	</p>
+	<h3 id="patchhowto">パッチの適用方法</h3>
+	<p>
+		パッチを適用するときは、以下のような流れになります。
+	</p>
+	<ol>
+		<li>DBFlute Engineの最新版を手動でダウンロード</li>
+		<li>mydbflute配下の DBFlute Engineをまるごと差し替え</li>
+		<li>通常のアップグレード時と同じに、再自動生成</li>
+	</ol>
+<pre><span class="codetitle">e.g. DBFlute Engineのパッチを当てるときの差し替えディレクトリ {maihamadb, 1.1.8} @Directory</span><code>
+[PROJECT]
+ |
+ |-dbflute_maihamadb <span class="comment">// DBFlute Client</span>
+ |  |-<span class="abbreviation">...</span>
+ |
+ |-mydbflute
+ |  |-<span class="point">dbflute-1.1.8</span> <span class="comment">// このディレクトリをまるごと差し替え</span>
+ |  |-<span class="abbreviation">...</span>
+ |  |-product-is-dbflute-1.1.8
+<span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		最新版のダウンロードは、最新バージョンのページにて。
+	</p>
+	<div class="detailpage"><a href="../newest.html">DBFluteの最新バージョン</a></div>
 
 	<h2 id="migration">DBFluteの移行情報</h2>
 	<p>
