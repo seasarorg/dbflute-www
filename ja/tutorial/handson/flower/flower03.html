@@ -425,16 +425,11 @@ dbflute-hands-on
             <span class="localvar">cb</span>.setupSelect_Member().withMemberSecurityAsOne();
             <span class="localvar">cb</span>.setupSelect_Product().withProductStatus();
             <span class="localvar">cb</span>.setupSelect_Product().withProductCategory().withProductCategorySelf();
-            <span class="localvar">cb</span>.columnQuery(<span class="localvar">colCB</span> -&gt; {
-                <span class="localvar">colCB</span>.specify().columnPurchaseDatetime();
-            }).greaterEqual(<span class="localvar">colCB</span> -&gt; { <span class="comment">// ぴったしは含むとする</span>
-                <span class="localvar">colCB</span>.specify().specifyMember().columnFormalizedDatetime();
-            });
-            <span class="localvar">cb</span>.columnQuery(<span class="localvar">colCB</span> -&gt; {
-                <span class="localvar">colCB</span>.specify().columnPurchaseDatetime();
-            }).lessThan(<span class="localvar">colCB</span> -&gt; {
-                <span class="localvar">colCB</span>.specify().specifyMember().columnFormalizedDatetime();
-            }).convert(<span class="localvar">op</span> -&gt; <span class="localvar">op</span>.truncTime().addDay(<span class="literal">8</span>)); <span class="comment">// 24*7 hours + あるふぁ</span>
+            <span class="localvar">cb</span>.columnQuery(<span class="localvar">colCB</span> -&gt; <span class="localvar">colCB</span>.specify().columnPurchaseDatetime())
+                    .greaterEqual(<span class="localvar">colCB</span> -&gt; <span class="localvar">colCB</span>.specify().specifyMember().columnFormalizedDatetime()) <span class="comment">// ぴったしは含むとする</span>
+            <span class="localvar">cb</span>.columnQuery(<span class="localvar">colCB</span> -&gt; <span class="localvar">colCB</span>.specify().columnPurchaseDatetime()
+                    .lessThan(<span class="localvar">colCB</span> -&gt; <span class="localvar">colCB</span>.specify().specifyMember().columnFormalizedDatetime())
+                    .convert(<span class="localvar">op</span> -&gt; <span class="localvar">op</span>.truncTime().addDay(<span class="literal">8</span>)); <span class="comment">// 24*7 hours + あるふぁ</span>
         });
 
         <span class="comment">// ## Assert ##</span>

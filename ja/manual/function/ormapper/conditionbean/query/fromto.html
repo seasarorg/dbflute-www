@@ -67,9 +67,9 @@
 		<li><a href="#methodspec">メソッド仕様</a>
 			<ul>
 				<li><a href="#basicspec">基本仕様</a></li>
-				<li><a href="#argumenttype">条件値の型は java.util.Date</a></li>
-				<li><a href="#argumentplain">条件値の日付の値はそのまま</a></li>
-				<li><a href="#optionreuse">指定されたオプションの再利用</a></li>
+				<li><a href="#argumenttype">条件値の型は java.util.Date <span class="frm">*1.0.x (Java6版)</span></a></li>
+				<li><a href="#argumentplain">条件値の日付の値はそのまま <span class="frm">*1.0.x (Java6版)</span></a></li>
+				<li><a href="#optionreuse">指定されたオプションの再利用 <span class="frm">*1.0.x (Java6版)</span></a></li>
 			</ul>
 		</li>
 		<li><a href="#supported">サポートされる型</a></li>
@@ -476,7 +476,19 @@ cb.query().setBirthdate_FromTo(<span class="keyword">null</span>, toDate
 	<h2 id="methodspec">メソッド仕様</h2>
 	<h3 id="basicspec">基本仕様</h3>
 	<dl class="textlist">
-		<dt>nullの指定</dt>
+		<dt>nullの指定 <span class="frm">*1.1.x (Java8版)</span></dt>
+		<dd>
+			ConditionBeanの基本仕様と同じく例外になります。
+			引数の fromDate と toDate が両方とも null
+			の場合は、その条件は無効となります。片方だけが null
+			の場合はもう一つの条件だけが有効になります。
+		</dd>
+		<dd>
+			ただ、片方だけ null にして "fromだけ" もしくは "toだけ"
+			の条件にしたいことも想定されるので、そのときは op.allowOneSide() を呼び出すと、片方だけ null
+			が許されて、nullの方は条件が無効になります。
+		</dd>
+		<dt>nullの指定 <span class="frm">*1.0.x (Java6版)</span></dt>
 		<dd>
 			引数の fromDate と toDate が両方とも null
 			の場合は、その条件は無効となります。片方だけが null
@@ -487,17 +499,17 @@ cb.query().setBirthdate_FromTo(<span class="keyword">null</span>, toDate
 		<dt>同カラムに対する同じ条件値での複数指定</dt>
 		<dd>内部的に、GreaterEqual や LessThan など、別のメソッドを呼び出しているだけなので、その利用した条件の仕様通りです。</dd>
 	</dl>
-	<h3 id="argumenttype">条件値の型は java.util.Date</h3>
+	<h3 id="argumenttype">条件値の型は java.util.Date <span class="frm">*1.0.x (Java6版)</span></h3>
 	<p>
 		プロパティの型が java.sql.Timestamp であっても、引数の条件値の型は java.util.Date
 		です。java.sql.Timestamp は java.util.Date の継承クラスなので特に問題ありません。
 	</p>
-	<h3 id="argumentplain">条件値の日付の値はそのまま</h3>
+	<h3 id="argumentplain">条件値の日付の値はそのまま <span class="frm">*1.0.x (Java6版)</span></h3>
 	<p>
 		内部での日付調整があっても、条件値として指定した日付オブジェクトの値はそのままです。
 		内部では新たに日付オブジェクトを作成して利用しています。
 	</p>
-	<h3 id="optionreuse">指定されたオプションの再利用</h3>
+	<h3 id="optionreuse">指定されたオプションの再利用 <span class="frm">*1.0.x (Java6版)</span></h3>
 	<p>
 		FromToOption はスレッドセーフではありませんが、同じスレッド内であれば別のカラムに再利用することはできます。
 		全く同じオプションで、別のカラムも曖昧検索する場合に利用できます。
