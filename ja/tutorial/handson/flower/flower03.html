@@ -635,25 +635,24 @@ dbflute-hands-on
      */</span>
     <span class="keyword">public void</span> test_cursor() <span class="keyword">throws</span> Exception {
         <span class="comment">// ## Arrange ##</span>
-        Deque&lt;String&gt; statusDeque = new LinkedList&lt;String&gt;();
-        Set&lt;String&gt; statusSet = new HashSet&lt;String&gt;();
+        String[] previousBox = <span class="keyword">new</span> String[1]; <span class="comment">// Lambda使うとこういうのしづらい!?</span>
+        Set&lt;String&gt; statusSet = <span class="keyword">new</span> HashSet&lt;String&gt;();
 
         <span class="comment">// ## Act ##</span>
         <span class="attribute">memberBhv</span>.selectCursor(<span class="localvar">cb</span> -> {
             <span class="localvar">cb</span>.setupSelect_MemberStatus();
             <span class="localvar">cb</span>.query().queryMemberStatus().addOrderBy_DisplayOrder_Asc();
             <span class="localvar">cb</span>.query().addOrderBy_MemberId_Desc();
-        } , member -> {
+        }, member -> {
             <span class="comment">// ## Assert ##</span>
             assertTrue(member.getMemberStatus().isPresent());
-            String previous = !statusDeque.isEmpty() ? statusDeque.peekLast() : <span class="keyword">null</span>;
+            String previous = previousBox[0];
             String current = member.getMemberStatusCode();
             log(previous, current);
             <span class="keyword">if</span> (previous != <span class="keyword">null</span> && !previous.equals(current)) {
                 assertFalse(statusSet.contains(current));
             }
-            statusDeque.clear(); <span class="comment">// so always previous only</span>
-            statusDeque.add(current);
+            previousBox[0] = current;
             statusSet.add(current);
         });
         assertHasAnyElement(statusSet);
