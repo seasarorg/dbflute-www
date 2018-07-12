@@ -52,7 +52,12 @@
 			</ul>
 		</li>
 		<li><a href="#loginaction">ログイン画面のAction</a></li>
-		<li><a href="#loginrequired">ログイン必須チェック</a></li>
+		<li><a href="#loginrequired">ログイン必須チェック</a>
+			<ul>
+				<li><a href="#loginrequiredbyhook">ActionHookでチェックされる</a></li>
+				<li><a href="#loginrequiredexception">ログイン必須例外がthrowされる</a></li>
+			</ul>
+		</li>
 		<li><a href="#loginassist">とにかく LoginAssist</a>
 			<ul>
 				<li><a href="#asssithierarchy">LoginAssistの階層構造</a></li>
@@ -140,6 +145,7 @@
 	</p>
 
 	<h2 id="loginrequired">ログイン必須チェック</h2>
+	<h3 id="loginrequiredbyhook">ActionHookでチェックされる</h3>
 	<p>
 		ログイン必須画面にログインしていない状態でのアクセスを防ぐ仕組みは、ActionHook
 		の godHandPrologue() で行われています。その中から、TypicalGodHandPrologue#performPrologue() が呼ばれています。
@@ -174,6 +180,14 @@
 	<p>
 		ここでの loginManager の実体は [App]LoginAssist のことです。LoginAssist は LoginManager インターフェースを implements
 		しているので、フレームワークの中では、LoginManagerとして取り扱っています。
+	</p>
+	<h3 id="loginrequiredexception">ログイン必須例外がthrowされる</h3>
+	<p>
+		ログインしていない状態で、ログイン必須のActionにアクセスした場合は、LoginRequiredException が throw されます。
+	</p>
+	<p>
+		LastaFlute組み込みの例外クラスで、LaApplicationException を継承しているため業務例外として扱われます。
+		どのように例外ハンドリングされるのか？細かく追いたい場合は ApplicationExceptionResolver や ApiFailureHook を読むと良いでしょう。
 	</p>
 
 	<h2 id="loginassist">とにかく LoginAssist</h2>
