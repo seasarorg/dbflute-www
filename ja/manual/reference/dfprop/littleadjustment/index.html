@@ -47,9 +47,10 @@
 				<li><a href="#isavailabledatabasedependency">isAvailableDatabaseDependency</a></li>
 				<li><a href="#isavailabledatabasenativejdbc">isAvailableDatabaseNativeJDBC</a></li>
 				<li><a href="#isavailablenonprimarykeywritable">isAvailableNonPrimaryKeyWritable</a></li>
-				<li><a href="#ischeckselectedclassification">isCheckSelectedClassification</a></li>
-				<li><a href="#isforceclassificationsetting">isForceClassificationSetting</a></li>
-				<li><a href="#isMakeEntityChaseRelation">isMakeEntityChaseRelation</a></li>
+				<li><a href="#classificationundefinedhandlingtype">classificationUndefinedHandlingType <span class="frm">@since 1.1</span></a></li>
+				<li><a href="#ischeckselectedclassification">isCheckSelectedClassification <span class="frm">*old</span></a></li>
+				<li><a href="#isforceclassificationsetting">isForceClassificationSetting <span class="frm">*old</span></a></li>
+				<li><a href="#isMakeEntityChaseRelation">isMakeEntityChaseRelation <span class="frm">*deleted</span></a></li>
 				<li><a href="#isentityconvertemptystringtonull">isEntityConvertEmptyStringToNull</a></li>
 				<li><a href="#ismakeconditionqueryequalemptystring">isMakeConditionQueryEqualEmptyString</a></li>
 				<li><a href="#ispagingcountlater">isPagingCountLater</a></li>
@@ -184,7 +185,29 @@
 		additionalPrimaryKey を利用することをお奨めします。
 	</p>
 	<div class="detailpage"><a href="../additionalprimarykey/index.html">additionalPrimaryKeyMap.dfprop</a></div>
-	<h3 id="ischeckselectedclassification">isCheckSelectedClassification</h3>
+	<h3 id="classificationundefinedhandlingtype">classificationUndefinedHandlingType <span class="frm">@since 1.1</span></h3>
+	<p>
+		DB上に(DBFluteプロパティで)区分値として定義されていない値が検索されたときの挙動を決めるプロパティ。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
+	<dl class="keymainlist">
+		<dt>EXCEPTION</dt><dd>UndefinedClassificationCodeException が throw される</dd>
+		<dt>LOGGING</dt><dd>INFOログが出力され、処理は続行される <span class="frm">(CDefではgetできない)</span></dd>
+		<dt>ALLOWED</dt><dd>特にログも出力されず、処理は続行される <span class="frm">(CDefではgetできない)</span></dd>
+	</dl>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>EXCEPTION or LOGGING or ALLOWED</dd>
+		<dt>デフォルト</dt><dd>LOGGING</dd>
+	</dl>
+	<p>
+		DB上の値がDBFluteプロパティで定義された区分値の中に必ず存在するなら(隠れ区分値がなければ)、EXCEPTIONにすると良いでしょう。
+		データバグを発見するのに有効です。通常は隠れ区分値があってはいけないと想定されるので、多くのプロジェクトで活用できると想定されます。
+	</p>
+	<h3 id="ischeckselectedclassification">isCheckSelectedClassification <span class="frm">*old</span></h3>
+	<p>
+		<span class="frm">※DBFlute-1.1.x (Java8版) からは、classificationUndefinedHandlingType の方がメインのプロパティとなります。
+		互換性は維持される想定ですが、classificationUndefinedHandlingType に移行する方が良いでしょう。</span>
+	</p>
 	<p>
 		DB上に(DBFluteプロパティで)区分値として定義されていない値が検索されたときに明示的な例外にするプロパティ。定義されていない値が(検索時に)検知されると
 		IllegalClassificationCodeException が発生する。
@@ -200,7 +223,10 @@
 		isForceClassificationSetting プロパティと併用すると良いでしょう。
 	</p>
 	<div class="relatedpage"><a href="#isforceclassificationsetting">this - isForceClassificationSetting</a></div>
-	<h3 id="isforceclassificationsetting">isForceClassificationSetting</h3>
+	<h3 id="isforceclassificationsetting">isForceClassificationSetting <span class="frm">*old</span></h3>
+	<p>
+		<span class="frm">※DBFlute-1.1.x (Java8版) からは、デフォルトで true になり、classificationDefinitionMap.dfprop にて区分値ごとに調整ができるようになっています。</span>
+	</p>
 	<p>
 		EntityやCBにおいて、区分値の関連付いたカラムのネイティブ型での設定メソッドの可視性を protected にするプロパティ。
 		区分値メソッドの利用を強制させることができます。
@@ -208,7 +234,7 @@
 	<div class="relatedpage"><a href="../../../function/genbafit/implfit/classification/index.html">現場フィット - 区分値</a></div>
 	<dl class="textlist">
 		<dt>値候補</dt><dd>true or false</dd>
-		<dt>デフォルト</dt><dd>false</dd>
+		<dt>デフォルト</dt><dd>true if 1.1.x, false if 1.0.x</dd>
 		<dt>補足</dt>
 		<dd>
 			<ul class="supplementlist">
@@ -234,7 +260,10 @@
 		ちなみに、このプロパティを一時的に有効にして、コンパイルエラー経由でネイティブ型での設定メソッドの利用箇所を特定するというツール的な使い方もできます。
 		(区分値をハードコードしている箇所を探すために)
 	</p>
-	<h3 id="isMakeEntityChaseRelation">isMakeEntityChaseRelation</h3>
+	<h3 id="isMakeEntityChaseRelation">isMakeEntityChaseRelation <span class="frm">*deleted</span></h3>
+	<p>
+		<span class="frm">※すでに削除されています。</span>
+	</p>
 	<p>
 		null を意識せずにEntityのリレーションを辿るためのメソッドを生成するプロパティ。
 	</p>
