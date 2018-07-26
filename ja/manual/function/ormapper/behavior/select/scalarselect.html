@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>scalarSelect(cb) | DBFlute</title>
+	<title>selectScalar(cb) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,7 +37,7 @@
 </div>
 
 <div id="content">
-	<h1>scalarSelect(cb)</h1>
+	<h1>selectScalar(cb)</h1>
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
@@ -46,7 +46,8 @@
 		</li>
 		<li><a href="#howto">実装方法</a>
 			<ul>
-				<li><a href="#implflow">実装の流れ</a></li>
+				<li><a href="#implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></a></li>
+				<li><a href="#implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></a></li>
 				<li><a href="#derived">子テーブルの導出カラム</a></li>
 				<li><a href="#funcfilter">導出値をSQL関数でフィルタ</a></li>
 			</ul>
@@ -74,16 +75,68 @@
 		の絞り込み条件をもとに取得することができます。
 	</p>
 	<p>
-		スカラ値の取得ではなくスカラ値を使ってSQL内で絞り込み条件をする、というような場合は、ScalarSelect
-		ではなく、ScalarCondition となります。
+		スカラ値の取得ではなく、スカラ値を使ってSQL内で絞り込み条件をする、というような場合は、ScalarCondition
+		という別の機能になります。<span class="frm">(取得ではなく単なる絞り込み条件なので)</span>
 	</p>
 	<div class="relatedpage"><a href="../../conditionbean/query/scalarcondition.html">ConditionBean - ScalarCondition</a></div>
 	<p>
-		会話上では、<em class="keyword">すからせれくと</em> と表現します。
+		会話上では、<em class="keyword">せれくとすから</em> と表現します。
 	</p>
 
 	<h2 id="howto">実装方法</h2>
-	<h3 id="implflow">実装の流れ</h3>
+	<h3 id="implflow">実装の流れ <span class="frm">※1.1.x (Java8版)</span></h3>
+	<p>
+		Behaviorの <em class="keyword">selectScalar()</em>
+		を呼び出し、受け取るスカラ値のプログラム型を引数に指定します。続けて、関数メソッドを呼び出し、ConditionBean で絞り込みを指定するコールバックを引数に指定します。
+	</p>
+<pre><span class="codetitle">e.g. scalarSelect()の実装手順 (Eclipseでコード補完) {MEMBER} @Java</span><code>
+<span class="attribute">memberBhv</span>.sc <span class="comment">// .sc と打って enter</span>
+--
+
+<span class="attribute">memberBhv</span>.<span class="point">scalarSelect(resultType)</span>;
+--
+
+<span class="comment">// 引数に受け取るスカラ値のプログラム型を指定し、</span>
+<span class="comment">// max() や min()、sum() などの関数メソッドを選んで enter</span>
+<span class="comment">//  =&gt; max(), min(), sum(), avg()</span>
+<span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).ma
+--
+
+<span class="comment">// メソッドが補完されて、引数の "cbLambda" が選択状態に</span>
+<span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).<span class="point">max</span>(cbLambda)
+--
+
+<span class="comment">// cbLambdaの部分で、_ll (補完テンプレートが有効なら)</span>
+<span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).max(<span class="subpoint">_ll</span>)
+--
+
+<span class="comment">// Lambda引数名はcbにして...</span>
+<span class="comment">// ScalarQuery のConditionBeanで導出カラムと絞り込み条件を指定</span>
+<span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).max(<span class="localvar">cb</span> -&gt; {
+    cb.specify().<span class="point">columnBirthdate()</span>; <span class="comment">// 生年月日の最大値</span>
+    cb.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 正式会員に限る</span>
+})
+--
+
+<span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).max(<span class="localvar">cb</span> -&gt; {
+    cb.specify().columnBirthdate();
+    cb.query().setMemberStatusCode_Equal_Formalized();
+}); <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
+--
+
+<span class="comment">// どん！</span>
+<span class="comment">// (もしくは、ifPresent()やalwaysPresent()を使って、チェーンで戻り値を扱うでもOK)</span>
+OptionalScalar&lt;LocalDate&gt; <span class="point">maxDate</span> = <span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).max(<span class="localvar">cb</span> -&gt; {
+    cb.specify().columnBirthdate();
+    cb.query().setMemberStatusCode_Equal_Formalized();
+});
+</code></pre>
+<pre><span class="codetitle">e.g. 正式会員における、生年月日の最大値を取得 @DisplaySql</span><code>
+<span class="keyword">select</span> max(dfloc.BIRTHDATE) <span class="keyword">as</span> dfscalar
+  <span class="keyword">from</span> MEMBER dfloc 
+ <span class="keyword">where</span> dfloc.MEMBER_STATUS_CODE = <span class="literal">'FML'</span>
+</code></pre>
+	<h3 id="implflow10x">実装の流れ <span class="frm">※1.0.x (Java6版)</span></h3>
 	<p>
 		Behaviorの <em class="keyword">scalarSelect()</em>
 		を呼び出し、受け取るスカラ値のプログラム型を引数に指定します。続けて、関数メソッドを呼び出し、ConditionBean で絞り込みを指定するコールバックを引数に指定します。
@@ -132,7 +185,7 @@
 }); <span class="comment">// セミコロン ';' を打って ctrl(or command) + 2 そして L</span>
 --
 
-Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.scalarSelect(Date.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
+LocalDate <span class="point">max</span> = <span class="attribute">memberBhv</span>.scalarSelect(LocalDate.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
     <span class="keyword">public void</span> query(MemberCB cb) {
         cb.specify().columnBirthdate(); <span class="comment">// 生年月日の最大値</span>
         cb.query().setMemberStatusCode_Equal_Formalized(); <span class="comment">// 正式会員に限る</span>
@@ -150,15 +203,11 @@ Date <span class="point">max</span> = <span class="attribute">memberBhv</span>.s
 		ScalarSelect の中で (Specify)DerivedReferrer を利用します。<span class="frm">(@since 0.9.7.7)</span>
 	</p>
 <pre><span class="codetitle">e.g. それぞれの会員の平均購入価格の会員全体での最大 @Java</span><code>
-Integer <span class="point">maxAvg</span> = <span class="attribute">memberBhv</span>.scalarSelect(Integer.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        subCB.specify().<span class="point">derivedPurchaseList()</span>.avg(<span class="keyword">new</span> SubQuery&lt;PurchaseCB&gt;() {
-            <span class="keyword">public void</span> query(MemberCB subCB) {
-                subCB.specify().<span class="point">columnPurchasePrice()</span>;
-            }
-        }, <span class="keyword">null</span>);
-        subCB.query().set<span class="abbreviation">...</span>
-    }
+OptionalScalar&lt;Integer&gt; <span class="subpoint">maxAvg</span> = <span class="attribute">memberBhv</span>.scalarSelect(Integer.<span class="keyword">class</span>).max(<span class="localvar">cb</span> -&gt; {
+    cb.specify().<span class="point">derivedPurchaseList()</span>.avg(<span class="localvar">purchaseCB</span> -&gt; {
+        purchaseCB.specify().<span class="subpoint">columnPurchasePrice()</span>;
+    }, <span class="keyword">null</span>);
+    cb.query().set<span class="abbreviation">...</span>
 });
 </code></pre>
 <pre><span class="codetitle">e.g. それぞれの会員の平均購入価格の会員全体での最大 @DisplaySql</span><code>
@@ -175,11 +224,9 @@ Integer <span class="point">maxAvg</span> = <span class="attribute">memberBhv</s
 		にて、そのフィルタ処理を指定することができます。<span class="frm">@since 0.9.8.4</span>
 	</p>
 <pre><span class="codetitle">e.g. 集計対象レコードが一件も存在しなかった場合に null ではなく 0 を戻す @Java</span><code>
-Integer maxValue = <span class="attribute">memberBhv</span>.scalarSelect(Integer.<span class="keyword">class</span>).max(<span class="keyword">new</span> ScalarQuery&lt;MemberCB&gt;() {
-    <span class="keyword">public void</span> query(MemberCB subCB) {
-        cb.specify().columnMemberId();
-    }
-}, <span class="point">new ScalarSelectOption().coalesce(0)</span>);
+Integer maxValue = <span class="attribute">memberBhv</span>.scalarSelect(Integer.<span class="keyword">class</span>).max(<span class="localvar">cb</span> -&gt; {
+    cb.specify().columnMemberId();
+}, op -&gt; op.<span class="point">coalesce</span>(<span class="literal">0</span>));
 </code></pre>
 	<p>
 		もろもろの仕様は DerivedReferrer における DerivedReferrerOption と基本的に同じです。 
@@ -193,7 +240,11 @@ Integer maxValue = <span class="attribute">memberBhv</span>.scalarSelect(Integer
 	</p>
 	<h3 id="result">戻り値</h3>
 	<p>
-		検索結果が一件もない場合は、(DBMSの関数の仕様に従って) null になることがあります。
+		OptionalScalar型です。
+	</p>
+	<p>
+		検索結果が一件もない場合は、(DBMSの関数の仕様に従って) Optional が empty になることがあります。
+		coalesce()関数などを使うことで、nullがなくなるようにすることもできます。
 	</p>
 	<h3 id="specifycolumn">導出カラムの指定</h3>
 	<p>
