@@ -64,6 +64,7 @@
 		<li><a href="#actionflowlog">ActionやJSPなどを一発で探せるように</a></li>
 		<li><a href="#calllersqllog">SQLに呼び出しActionを埋め込み</a></li>
 		<li><a href="#sqlcountlog">RequestごとのSQLの発行回数</a></li>
+		<li><a href="#inoutlog">本番環境でのリクエストの全記録</a></li>
 	</ul>
 
 	<h2 id="manydebug">幾度となくログを見る</h2>
@@ -531,6 +532,34 @@ java.lang.IllegalStateException: test error
 	<p>
 		TypicalBaseAction の ActionCallback の finally の中で SqlStringFilter の結果を見て、このログ出力が行われています。
 	</p>
+
+	<h2 id="inoutlog">本番環境でのリクエストの全記録</h2>
+	<p>
+		こちらはオプションです。もし、リクエストの全記録を本番環境で残したいのであれば、InOutログというものを出力することができます。
+	</p>
+	<div class="detailpage"><a href="../action/logging/inoutlog.html">リクエストの全記録、InOutログ</a></div>
+<pre><span class="codetitle">e.g. in-out logging contents @inout_[app].log</span><code>
+<span class="comment">// これは、HtmlResponseのときのログ</span>
+2017-08-20 00:16:08,784 [qtp2068434592-11] INFO  (InOutLogger@log():50) - GET /signin/ SigninAction@index() (2017-08-20 00:16:06.834) [00m01s950ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /signin/signin.html)
+2017-08-20 00:16:34,321 [qtp2068434592-15] INFO  (InOutLogger@log():50) - GET /member/list/ MemberListAction@index() (2017-08-20 00:16:33.946) [00m00s375ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /member/member_list.html) sqlCount:{total=2, selectCB=2}
+2017-08-20 00:16:49,572 [qtp2068434592-11] INFO  (InOutLogger@log():50) - POST /member/edit/ MemberEditAction@update() (2017-08-20 00:16:49.491) [00m00s081ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} *ValidationErrorException #5fd42ca requestParameter:{lastaflute.action.TRANSACTION_TOKEN=a30cdf490b0f7b831507d84730d8d288, birthdate=1965-03-03, versionNo=0, memberName=, memberStatus=FML, update=Update, memberAccount=Pixy, memberId=1, previousStatus=FML} responseBody:(...Forwarding to /member/member_edit.html)
+
+<span class="comment">// これは、JsonResponseのときのログ</span>
+2017-08-20 01:16:36,433 [qtp2068434592-17] INFO  (InOutLogger@log():50) - POST /wx/request/json/body/ WxRequestJsonBodyAction@index() (2017-08-20 01:16:36.312) [00m00s121ms] {Apache-HttpClient/4.5.2 (Java/1.8.0_131)}
+requestBody:
+{sea: "mystic"}
+
+responseBody:
+{
+  "body": {
+    "sea": "mystic",
+    "land": null,
+    "piari": null,
+    "bonvo": null,
+    "dstore": null
+  }
+}
+</code></pre>
 
 </div>
 </div>

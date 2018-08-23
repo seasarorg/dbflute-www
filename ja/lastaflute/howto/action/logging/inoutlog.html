@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,LastaFlute,Java,Lean Startup,Incremental Development" />
+	<link rel="stylesheet" type="text/css" href="../../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>リクエストの全記録、InOutログ | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-default">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html"><img src="../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html"><img src="../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html"><img src="../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html"><img src="../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html"><img src="../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html"><img src="../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html"><img src="../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html"><img src="../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>リクエストの全記録、InOutログ</h1>
+	<div class="relatedpage"><span class="working"><!-- <a href="../../index.html"> -->LastaFlute<!-- </a> --></span></div>
+	<ul class="indexlist">
+		<li><a href="#overview">概要</a></li>
+		<li><a href="#howto">ログの出し方</a>
+			<ul>
+				<li><a href="#enablelogging">isUseInOutLogging()をオーバーライド</a></li>
+				<li><a href="#setuplogback">logbackの設定を追加</a></li>
+				<li><a href="#inoutlogoption">InOutのログを調整する？</a></li>
+			</ul>
+		</li>
+		<li><a href="#logcontents">どんなログが出力されるか？</a></li>
+	</ul>
+
+	<h2 id="overview">概要</h2>
+	<p>
+		トラブル対応のときのために、本番環境でもActionのリクエストとレスポンスの内容を残しておきたい場合は、
+		LastaFluteにてそれら情報を専用のログファイルに出力することができます<span class="frm">(@since LastaFlute-1.0.0)</span>。
+		<span class="frm">(もちろん、若干のパフォーマンス劣化が発生する可能性があるので、不要であればやらないほうが良いです)</span>
+	</p>
+<pre><span class="codetitle">e.g. in-out logging contents @inout_[app].log</span><code>
+<span class="comment">// これは、HtmlResponseのときのログ</span>
+2017-08-20 00:16:08,784 [qtp2068434592-11] INFO  (InOutLogger@log():50) - GET /signin/ SigninAction@index() (2017-08-20 00:16:06.834) [00m01s950ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /signin/signin.html)
+2017-08-20 00:16:34,321 [qtp2068434592-15] INFO  (InOutLogger@log():50) - GET /member/list/ MemberListAction@index() (2017-08-20 00:16:33.946) [00m00s375ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /member/member_list.html) sqlCount:{total=2, selectCB=2}
+2017-08-20 00:16:49,572 [qtp2068434592-11] INFO  (InOutLogger@log():50) - POST /member/edit/ MemberEditAction@update() (2017-08-20 00:16:49.491) [00m00s081ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} *ValidationErrorException #5fd42ca requestParameter:{lastaflute.action.TRANSACTION_TOKEN=a30cdf490b0f7b831507d84730d8d288, birthdate=1965-03-03, versionNo=0, memberName=, memberStatus=FML, update=Update, memberAccount=Pixy, memberId=1, previousStatus=FML} responseBody:(...Forwarding to /member/member_edit.html)
+
+<span class="comment">// これは、JsonResponseのときのログ</span>
+2017-08-20 01:16:36,433 [qtp2068434592-17] INFO  (InOutLogger@log():50) - POST /wx/request/json/body/ WxRequestJsonBodyAction@index() (2017-08-20 01:16:36.312) [00m00s121ms] {Apache-HttpClient/4.5.2 (Java/1.8.0_131)}
+requestBody:
+{sea: "mystic"}
+
+responseBody:
+{
+  "body": {
+    "sea": "mystic",
+    "land": null,
+    "piari": null,
+    "bonvo": null,
+    "dstore": null
+  }
+}
+</code></pre>
+	<p>
+		LastaFlute の InOutLoggerクラスで処理されます。
+	</p>
+	<div class="relatedpage"><a href="https://github.com/lastaflute/lastaflute/blob/develop/src/main/java/org/lastaflute/web/ruts/inoutlogging/InOutLogger.java">InOutLogger.java | Github</a></div>
+
+	<h2 id="howto">ログの出し方</h2>
+	<p>
+		ActionAdjustmentProvider にて、設定できます。
+	</p>
+	<div class="detailpage"><a href="../adjustment.html#inoutlogging">ActionやJSONの微調整 - ActionのInOutのログを出力する？</a></div>
+	<h3 id="enablelogging">isUseInOutLogging()をオーバーライド</h3>
+	<p>
+		isUseInOutLogging() をオーバーライドして、true にすると有効になります。
+	</p>
+	<h3 id="setuplogback">logbackの設定を追加</h3>
+	<p>
+		出力される Logger (Slf4j上の) の名前は、<em class="mark">lastaflute.inout</em> になります。
+		大量のログになるはずなので<span class="frm">(ハードディスクの容量にも気をつけましょう)</span>、普段のアプリログに混ぜないためです。
+		logbackで何も設定しなければ、どこにも出力はされませんので、ログファイルの設定をしましょう。
+	</p>
+<pre><span class="codetitle">e.g. set appender and logger for in-out logging @logback.xml</span><code>
+  &lt;appender <span class="keyword">name</span>=<span class="literal">"inoutfile"</span> <span class="keyword">class</span>=<span class="literal">"ch.qos.logback.core.rolling.RollingFileAppender"</span>&gt;
+    &lt;File&gt;<span class="literal">${log.file.basedir}/inout_${domain.name}.log</span>&lt;/File&gt;
+    &lt;Append&gt;<span class="literal">true</span>&lt;/Append&gt;
+    &lt;encoder&gt;&lt;pattern&gt;<span class="literal">${log.pattern}</span>&lt;/pattern&gt;&lt;/encoder&gt;
+    &lt;rollingPolicy <span class="keyword">class</span>=<span class="literal">"ch.qos.logback.core.rolling.TimeBasedRollingPolicy"</span>&gt;
+      &lt;fileNamePattern&gt;<span class="literal">${log.file.basedir}/backup/inout_${domain.name}${backup.date.suffix}.log</span>&lt;/fileNamePattern&gt;
+      &lt;maxHistory&gt;<span class="literal">${backup.max.history}</span>&lt;/maxHistory&gt;
+    &lt;/rollingPolicy&gt;
+  &lt;/appender&gt;
+
+  <span class="abbreviation">...</span>
+
+  &lt;logger <span class="keyword">name</span>=<span class="literal">"lastaflute.inout"</span> <span class="keyword">additivity</span>=<span class="literal">"false"</span> <span class="keyword">level</span>=<span class="literal">"${log.level}"</span>&gt;
+    &lt;appender-ref <span class="keyword">ref</span>=<span class="literal">"inoutfile"</span>/&gt;
+  &lt;/logger&gt;
+</code></pre>
+	<h3 id="inoutlogoption">InOutのログを調整する？</h3>
+	<p>
+		InOutLogOptionで、InOutのログを調整できます。<span class="frm">(isUseInOutLogging()がtrueであることが前提)</span>
+	</p>
+	<dl class="longkeymainlist">
+		<dt>非同期</dt><dd>先の通り不要だと思われるが、いざってときのために</dd>
+		<dt>responseBody抑制</dt><dd>あまりにデカすぎるしレスポンスは要らないってとき</dd>
+		<dt>requestParameterフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+		<dt>requestBodyフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+		<dt>responseBodyフィルター</dt><dd>暗号化するとか!? いざってときのために</dd>
+	</dl>
+	<p>
+		このメソッドは、何度も呼び出される可能性があるので、InOutLogOption自体はインスタンス変数などでキャッシュしておくと良いでしょう。
+	</p>
+
+	<h2 id="logcontents">どんなログが出力されるか？</h2>
+<pre><span class="codetitle">e.g. in-out logging contents @inout_[app].log</span><code>
+<span class="comment">// これは、HtmlResponseのときのログ</span>
+2017-08-20 00:16:08,784 [qtp2068434592-11] INFO  (InOutLogger@log():50) - GET /signin/ SigninAction@index() (2017-08-20 00:16:06.834) [00m01s950ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /signin/signin.html)
+2017-08-20 00:16:34,321 [qtp2068434592-15] INFO  (InOutLogger@log():50) - GET /member/list/ MemberListAction@index() (2017-08-20 00:16:33.946) [00m00s375ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} responseBody:(...Forwarding to /member/member_list.html) sqlCount:{total=2, selectCB=2}
+2017-08-20 00:16:49,572 [qtp2068434592-11] INFO  (InOutLogger@log():50) - POST /member/edit/ MemberEditAction@update() (2017-08-20 00:16:49.491) [00m00s081ms] {Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:5...} *ValidationErrorException #5fd42ca requestParameter:{lastaflute.action.TRANSACTION_TOKEN=a30cdf490b0f7b831507d84730d8d288, birthdate=1965-03-03, versionNo=0, memberName=, memberStatus=FML, update=Update, memberAccount=Pixy, memberId=1, previousStatus=FML} responseBody:(...Forwarding to /member/member_edit.html)
+
+<span class="comment">// これは、JsonResponseのときのログ</span>
+2017-08-20 01:16:36,433 [qtp2068434592-17] INFO  (InOutLogger@log():50) - POST /wx/request/json/body/ WxRequestJsonBodyAction@index() (2017-08-20 01:16:36.312) [00m00s121ms] {Apache-HttpClient/4.5.2 (Java/1.8.0_131)}
+requestBody:
+{sea: "mystic"}
+
+responseBody:
+{
+  "body": {
+    "sea": "mystic",
+    "land": null,
+    "piari": null,
+    "bonvo": null,
+    "dstore": null
+  }
+}
+</code></pre>
+	<ul class="codeoutro">
+		<li>HTTPメソッド (GET or POST or ...)</li>
+		<li>リクエストURLやActionクラスの名前</li>
+		<li>開始日時やコスト時間 <span class="frm">(ログのヘッダーはログ出力日時、つまり実質的に終了日時なので、別途開始日時が必要)</span></li>
+		<li>UserAgent <span class="frm">(あまりに長い可能性があるので、最初の限られた文字数分だけ)</span></li>
+		<li>例外のときは例外クラスも <span class="frm">(詳細やスタックトレースは、エラーログの方を参照。ハッシュコードで辿れる)</span></li>
+		<li>リクエストパラメーター (requestParameter) <span class="frm">(GETやPOSTなどのFormパラメーターのときなど)</span></li>
+		<li>リクエストボディ (requestBody) <span class="frm">(JSONによるリクエストのときなど)</span></li>
+		<li>レスポンスボディ (responseBody) <span class="frm">(HTMLレスポンスや、JSONレスポンスのとき)</span></li>
+		<li>SQLの発行回数 (sqlCount) <span class="frm">(SQLを発行していれば)</span></li>
+		<li>メールの送信回数 (mailCount) <span class="frm">(メールを送信していれば)</span></li>
+	</ul>
+	<p>
+		出し始めたらキリがないので、このくらいにしております。あくまで本番でいざってときのデバッグに役に立つものが出せればと言うところで。
+	</p>
+	<p>
+		また、ログ出力は非同期ではありませんが、HtmlResponseのときのリダイレクトを除き、レスポンスを書き込んだ後にログ出力なのでリクエスト側に遅延は発生しません。
+		<span class="frm">(アプリケーションサーバーによって挙動が変わるかもしれませんが、TomcatとJettyで確認しています)</span>
+	</p>
+	<p>
+		このメソッドは、何度も呼び出される可能性があるので、基本的には true or false 固定で。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../"><img src="../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../../ja/lastaflute/howto/action/makeasjson">Actionの作り方 (JSON)</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/howto/impldesign/actiondesign.html">Actionの実装デザイン</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/howto/impldesign/logicdesign.html">Logicの実装デザイン</a></li>
+				<li><a href="../../../../../ja/lastaflute/howto/impldesign/beandesign.html">Beanの実装デザイン</a></li>
+				<li><a href="../../../../../ja/lastaflute/howto/impldesign/jsondesign.html">JSON APIのデザイン</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/howto/upgrade/index.html">LastaFluteのアップグレード</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/howto/upgrade/lachangelog.html">ChangeLog</a></li>
+				<li><a href="../../../../../ja/lastaflute/howto/upgrade/migration/index.html">移行情報(注意点など)</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
