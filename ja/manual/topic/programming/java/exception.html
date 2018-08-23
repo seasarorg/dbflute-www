@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,トピック,Topic,Java,Javaの基本" />
+	<meta name="keywords" content="DBFlute,トピック,Topic,プログラミング" />
 	<link rel="stylesheet" type="text/css" href="../../../../../css/sub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Javaの補足資料 | DBFlute</title>
+	<title>Java - Exception (例外) | DBFlute</title>
 </head>
 <body>
 <div id="container" class="ct-manual">
@@ -37,37 +37,59 @@
 </div>
 
 <div id="content">
-	<h1>Javaの補足資料</h1>
+	<h1>Java - Exception (例外)</h1>
 	<ul class="indexlist">
-		<li><a href="#overview">概要</a></li>
-		<li><a href="#linklist">リンクの一覧</a>
-			<ul>
-				<li><a href="#beginners">Javaビギナー</a></li>
-				<li><a href="#basicapi">基本のJavaAPI</a></li>
-			</ul>
-		</li>
+		<li><a href="#structure">例外クラスの継承構造</a></li>
+		<li><a href="#translation">例外の翻訳</a></li>
 	</ul>
 
-	<h2 id="overview">概要</h2>
+	<h2 id="structure">例外クラスの継承構造</h2>
 	<p>
-		Javaの基本的な補足資料です。
-		DBFluteと直接関係はありませんが、基本中の基本で合わせて利用することが多いので、
-		補完的な資料として用意されています。(よく利用される機能のみ紹介)
+		コピーして自身のテキストエディターで見たほうが見やすいです。
 	</p>
+<pre><span class="codetitle">e.g. exception class model @Java</span><code>
 
-	<h2 id="linklist">リンクの一覧</h2>
-	<h3 id="beginners">Javaビギナー</h3>
-	<ul>
-		<li><a href="./beginners.html">Java - Beginner's Hint</a></li>
-	</ul>
-	<h3 id="basicapi">基本のJavaAPI</h3>
-	<ul>
-		<li><a href="./string.html">Java の String の補足</a></li>
-		<li><span class="working"><!-- <a href="./integer.html"> -->Java の Integer の補足<!-- </a> --></span></li>
-		<li><a href="./date.html">Java の Date の補足</a></li>
-		<li><a href="./exception.html">Java の Exception (例外)</a></li>
-		<li><a href="./java8/mapandflat.html">map() and flatMap()</a></li>
-	</ul>
+                           +-----------------+
+                           |                 |
+                  +------------------+       |
+                  |     Throwable    | <>----+
+                  +------------------+
+                           △ 
+                           ｜
+            +------------------------------+
+            |                              |
+   +--------------------+        +-------------------+
+   |       Error        |        |    Exception      |
+   +--------------------+        +-------------------+
+     NoSuchMethodError                    △ 
+     OutOfMemoryError                     ｜
+                           +------------------------------+
+                           |                              |
+                 +--------------------+        +-------------------+
+                 |  RuntimeException  |        |    XxxException   |
+                 +--------------------+        +-------------------+
+                           △                 IOException, SQLException
+                           ｜
+                   NullPointerException            
+                   IllegalStateException
+
+</code></pre>
+
+	<h2 id="translation">例外の翻訳</h2>
+	<p>
+		コピーして自身のテキストエディターで見たほうが見やすいです。
+	</p>
+<pre><span class="codetitle">e.g. translation of exception @Java</span><code>
+
+                 catch        catch        catch
+     <---- 例外  /      例外  /     例外    /    例外
+             \ /         \ /          \ /       |
+   o          |           |            |         \
+  /|\   ->    A     ->    B    ->     C      ->      D -> D'
+  /\           |     |        PK           ^^v
+               |     |                     も
+               +設定ファイル (PK)
+</code></pre>
 
 </div>
 </div>
