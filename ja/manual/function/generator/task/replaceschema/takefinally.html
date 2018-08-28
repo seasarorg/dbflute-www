@@ -45,7 +45,12 @@
 				<li><a href="#afterloaddata">データ登録後に実行したいSQL</a></li>
 			</ul>
 		</li>
-		<li><a href="#assert">データの整合性チェック</a></li>
+		<li><a href="#assert">データの整合性チェック</a>
+			<ul>
+				<li><a href="#listzero">不整合なデータのリストを検出</a></li>
+				<li><a href="#countzero">不整合なデータのカウントを検出</a></li>
+			</ul>
+		</li>
 		<li><a href="#testpattern">テストパターンのチェック</a>
 			<ul>
 				<li><a href="#peronesql">SQL一つ一つごとの切り替え</a></li>
@@ -103,7 +108,7 @@
 	<p>
 		ここでいう "不整合なデータ" とは、主には "どうしてもDBMSの制約(FKやUQなど)ではチェックできない業務的な制約を違反したデータ" のことを示します。
 	</p>
-	<h3>不整合なデータのリストを検出</h3>
+	<h3 id="listzero">不整合なデータのリストを検出</h3>
 	<p>
 		select文に "-- #df:assertListZero#"
 		というSQLコメント(assertコメント)を定義すると、その検索が一件でも結果を持った場合にReplaceSchemaが中断され、検出されたデータがログに出力されます。"select句"
@@ -135,7 +140,7 @@
        )
 ;
 </code></pre>
-	<h3>不整合なデータのカウントを検出</h3>
+	<h3 id="countzero">不整合なデータのカウントを検出</h3>
 	<p>
 		また、"select count(*)文" では "-- #df:assertCountZero"
 		が利用できます。但し、この場合は検出時に不整合なデータのカウント(件数)しかわからないので、通常は
