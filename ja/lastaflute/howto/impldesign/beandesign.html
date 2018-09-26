@@ -56,6 +56,13 @@
 				<li><a href="#proposal">実装デザインの提案</a></li>
 			</ul>
 		</li>
+		<li><a href="#rolesuffix">役割のわかるクラス名Suffix</a>
+			<ul>
+				<li><a href="#convpolicy">規約と慣習による統一化</a></li>
+				<li><a href="#outsidebean">外部やり取りのBean</a></li>
+				<li><a href="#insidebean">内部やり取りだけのBean</a></li>
+			</ul>
+		</li>
 		<li><a href="#nestedexp">ネストした構造の表現</a>
 			<ul>
 				<li><a href="#innnerpart">インナークラスのPart</a></li>
@@ -69,10 +76,60 @@
 	<h2 id="overview">いきなりまとめ</h2>
 	<h3 id="proposal">実装デザインの提案</h3>
 	<dl class="keymainlist">
+		<dt><a href="#rolesuffix">役割のわかるクラス名Suffix</a></dt><dd>Body, Result, Param, Return など</dd>
 		<dt><a href="#nestedexp">ネストした構造の表現</a></dt><dd><em class="mark">インナークラス</em> で定義、クラス名は <em class="mark">...Part</em> で終わる</dd>
 		<dt><a href="#egdefault">JavaDocでe.g.デフォルト値</a></dt><dd><em class="mark">e.g.</em> でデフォルト値 (いーじーでふぉるとち) を書く <span class="frm">(for Swagger)</span></dd>
 		<dt><a href="#latostring">気軽なtoString()</a></dt><dd><em class="mark">Lato</em> で気軽にtoString()をオーバーライド</dd>
 	</dl>
+
+	<h2 id="rolesuffix">役割のわかるクラス名Suffix</h2>
+	<h3 id="convpolicy">規約と慣習による統一化</h3>
+	<p>
+		LastaFluteでは、Beanのクラス名に Suffix を付けることで役割を明確にしたいと考えています。
+	</p>
+	<p>
+		規約のものもあれば、慣習のものもあります。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>規約</dt><dd>そういうsuffixじゃないと動かない</dd>
+		<dt>慣習</dt><dd>動かないわけじゃないけど、みんなでそうしよう</dd>
+	</dl>
+	<p>
+		慣習に関しては、単なる提案になりますので、必ずしもそうでないといけないわけではありませんが、大勢でブレるくらいであれば、LastaFlute
+		の提案する慣習に則った方が多くの人が理解できるものになります。<span class="frm">(現場で変更する場合は、しっかり統一性を保つためのファシリテーションをしましょう)</span>
+	</p>
+	<h3 id="outsidebean">外部やり取りのBean</h3>
+	<p>
+		リクエストパラメーターや、JSONデータの変換、HTMLテンプレートへ渡す値など、外部の世界とのデータの受け渡しに関しては、このようになっています。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>...Form <span class="frm">(規約)</span></dt><dd>リクエストパラメーターを受け取るクラス</dd>
+		<dt>...Body <span class="frm">(規約)</span></dt><dd>リクエストされたJSON Bodyを受け取るクラス</dd>
+		<dt>...Bean <span class="frm">(慣習)</span></dt><dd>Thymeleafに渡すデータのクラス、その他の用途でも使うかも <span class="frm">(HtmlBean)</span></dd>
+		<dt>...Result <span class="frm">(慣習)</span></dt><dd>レスポンスで戻すJSONを表現するクラス <span class="frm">(JsonResult)</span></dd>
+		<dt>...Part <span class="frm">(慣習)</span></dt><dd>BodyやResultなどの入れ物クラスの一部データをまとめたインナークラス</dd>
+	</dl>
+	<p>
+		Thymeleafに渡すデータのクラスだけ、Beanのままです。ここは良い名前が浮かびませんでした。
+		そもそも、サーバーサイドHTML方式のユーザーも少ないので、検討も先送りしてBeanのままですが、現場で統一ができるのであれば、別のsuffixにしても良いでしょう。
+	</p>
+	<h3 id="insidebean">内部やり取りだけのBean</h3>
+	<p>
+		Logicなど、アプリの内部レイヤ間でのデータの受け渡しに関しては、このようになっています。
+	</p>
+	<dl class="shoshortkeymainlist">
+		<dt>...Param</dt><dd>Logicなどで項目が多い場合にまとめる引数クラス <span class="frm">(RemoteApiの送信データでも利用)</span></dd>
+		<dt>...Return</dt><dd>Logicなどで項目が多い場合にまとめる戻り値クラス <span class="frm">(RemoteApiの受信データでも利用)</span></dd>
+	</dl>
+	<p>
+		本来、ここはフレームワークが一切関わらないクラスたちなので、現場でケースバイケースでカスタマイズやアドリブがあっても全然良いところですが、
+		最低限区別しようという提案です。例えば、付ける名前が困り、なんとなくすべて区別せずに ...Bean とか ...Dto
+		とかにするくらいであれば、Param, Return を使いましょうというニュアンスです。
+	</p>
+	<p>
+		引数でも戻り値でも両方で使うようなケースであれば、業務的な意味の深い名前を付けられるクラスなので、その場合は Bean (or その他) でも良いでしょう。
+		<span class="frm">(ただし、他の規約や慣習で利用されている名前は避けたほうが良いかなと)</span>
+	</p>
 
 	<h2 id="nestedexp">ネストした構造の表現</h2>
 	<h3 id="innnerpart">インナークラスのPart</h3>
