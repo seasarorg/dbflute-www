@@ -160,7 +160,7 @@
 	<h3 id="firstexplain">2Way-SQLを活かして実行計画</h3>
 	<p>
 		2Way-SQLの特徴を活かして、作成した外だしSQLの実行計画を見てみましょう。
-		(Windows で Eclipse なら) ctrl + shift + R (リソースの検索) で login-mysql-root.bat(sh) を起動して maihamadb に接続(use)し、explain [SQL文字列]
+		login-mysql-root.bat(sh) を実行してMySQLにroot接続して、use maihamadb; してから explain [SQL文字列]
 		を流してみましょう。
 	</p>
 <pre><span class="codetitle">e.g. 外だしSQLのコメントを必須に設定 @Command</span><code>
@@ -268,7 +268,8 @@
 	</dl>
 	<h3 id="theoutside">外だしSQLならでは</h3>
 	<p>
-		理解しましょう。ConditionBeanではできない、外だしSQLならではの検索と言えます。
+		ConditionBeanと外だしSQLの概念的な違いを理解しましょう。
+		ちょうど、この外だしSQLは、"ConditionBeanでは実現できない、外だしSQLならではの検索" と言えます。
 	</p>
 	<div class="relatedpage"><a href="../../manual/function/ormapper/conditionbean/cbscope.html">ConditionBeanのスコープ</a></div>
 	<h3 id="challenge">お手軽チャレンジ</h3>
@@ -280,30 +281,19 @@
 
 	<h2 id="commentrequired">外だしSQLのコメントを必須に</h2>
 	<p>
-		外だしSQLのコメント(タイトルと説明)を必須にして、一括チェックすることができます。
+		外だしSQLのコメント(タイトルと説明)は必須になっています。
+		<span class="frm">※Java8 (DBFlute-1.1) よりデフォルトで必須です。</span>
 	</p>
 	<p>
-		<span class="frm">※Java8 (DBFlute-1.1) では、最初から必須です。</span>
+		試しに、すでに作成した外だしSQLのどれかを、コメント削除して "OutsideSqlTestタスク"
+		を実行してみてください。manage.sh(bat) の 25 番です。
 	</p>
 	<p>
-		プロパティの設定で、OutsideSqlTestタスク実行時にコメントの有無を例外として検知できます。
-		outsideSqlMap.dfprop の isRequiredSqlTitle と isRequiredSqlDescription を true
-		にして、OutsideSqlTestタスクを実行してみてください。
+		"タイトルと説明のないSQLは作らないようにしよう" という思想です。
+		他人の作ったSQLは、非常にメンテナンスしづらいものです。
+		何のためのSQLか？どういう特徴を持っているSQLなのか？最低限の情報を残しておきたいものです。
 	</p>
-	<div class="detailpage"><span class="working"><!-- <a href="../../manual/function/genbafit/dbflutefit/outsidesqltitle/index.html"> -->現場フィット - 外だしSQLのタイトル<!-- </a> --></span></div>
-	<div class="relatedpage"><a href="../../manual/reference/dfprop/outsidesqldefinition/index.html#isrequiredsqltitle">dfprop - isRequiredSqlTitle</a></div>
-<pre><span class="codetitle">e.g. 外だしSQLのコメントを必須に設定 @outsideSqlMap.dfprop</span><code>
- <span class="abbreviation">...</span>
-    ; isRequiredSqlTitle = <span class="keyword">true</span>
-
- <span class="abbreviation">...</span>
-    ; isRequiredSqlDescription = <span class="keyword">true</span>
-
- <span class="abbreviation">...</span>
-</code></pre>
-	<p>
-		どこかで落ちたら、落ちないように修正しましょう。
-	</p>
+	<div class="detailpage"><a href="../../manual/function/genbafit/dbflutefit/outsidesqltitle/index.html">現場フィット - 外だしSQLのタイトル</a></div>
 
 	<h2 id="columncomment">プロパティとカラムのコメントを付与</h2>
 	<p>
