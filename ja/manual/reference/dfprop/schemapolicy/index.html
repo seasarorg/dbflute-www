@@ -102,7 +102,7 @@
 		<li><a href="#example">Example</a>
 			<ul>
 				<li><a href="#simpleexample">シンプルなポリシーのExample</a></li>
-				<li><a href="#variousexample">様々なポリシーのExample</a></li>
+				<li><a href="#hyperexample">ハイパーなポリシーのExample</a></li>
 				<li><a href="#insteadofidentity">identityIfPureIDPK で除外テーブル</a></li>
 			</ul>
 		</li>
@@ -795,10 +795,26 @@ column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
     }
 }
 </code></pre>
-	<h3 id="variousexample">様々なポリシーのExample</h3>
-<pre><span class="codetitle">e.g. 様々なポリシー @schemaPolicyMap.dfprop</span><code>
+	<h3 id="hyperexample">ハイパーなポリシーのExample</h3>
+	<p>
+		かなり突っ込んだハイパーなポリシーのExampleです。
+	</p>
+	<p>
+		まるごとコピーしてから、現場にフィットするように修正しると良いでしょう。
+		ただし、いくつかの設定がMySQLに依存していますので、その部分は利用しているDBMSに合わせましょう。
+	</p>
+<pre><span class="codetitle">e.g. ハイパーなポリシー @schemaPolicyMap.dfprop</span><code>
 <span class="keyword">map:</span>{
-    <span class="abbreviation">...</span>
+    <span class="comment"># ドキュメントへのリンクとか、dfpropに書いておくといいんじゃないかと</span>
+    <span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+    <span class="comment"># document is here:</span>
+    <span class="comment"># http://dbflute.seasar.org/ja/manual/reference/dfprop/schemapolicy/</span>
+    <span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+
+    ; tableExceptList = <span class="keyword">list:{}</span>
+    ; tableTargetList = <span class="keyword">list:{}</span>
+    ; columnExceptMap = <span class="keyword">map:</span>{}
+    ; isMainSchemaOnly = <span class="keyword">false</span>
 
     ; <span class="localvar">wholeMap</span> = <span class="keyword">map:</span>{
         ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{
@@ -809,6 +825,7 @@ column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
             ; sameColumnNameIfSameColumnAlias
         }
     }
+
     ; <span class="localvar">tableMap</span> = <span class="keyword">map:</span>{
         ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{
             ; hasPK
@@ -820,19 +837,104 @@ column.statement: if columnName is suffix:_FLG then dbType is BOOLEAN
         ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
             ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">$$ALL$$</span> <span class="keyword">then</span> fkName <span class="keyword">is</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
             ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">$$ALL$$</span> <span class="keyword">then</span> indexName <span class="keyword">is</span> <span class="attribute">prefix:</span>IX_<span class="attribute">$$table$$</span> <span class="keyword">or</span> <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+
+            <span class="comment">## 共通カラム ##</span>
+            # もし、"区分値テーブルは共通カラムがない" とかであれば、ALLじゃなくてprefixなどで絞り込み
+            ; if tableName is <span class="attribute">$$ALL$$</span> then hasCommonColumn => 区分値のテーブルも含めて共通カラムは必須
+
+            <span class="comment">## 制約 (e.g. PK, FK) ##</span>
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+            <span class="comment"># 例えば FK なら、FK_[テーブル名]_[FKカラム名 or 相手のテーブル名]</span>
+            ; if tableName is <span class="attribute">$$ALL$$</span> then fkName is <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+
+            <span class="comment"># MySQL では FK も INDEX に含まれるため、INDEX名も同様のチェックが必要</span>
+            ; if tableName is <span class="attribute">$$ALL$$</span> then indexName is <span class="attribute">prefix:</span>IX_<span class="attribute">$$table$$</span> or <span class="attribute">prefix:</span>FK_<span class="attribute">$$table$$</span>
+
+            <span class="comment"># ERDツールによっては、PK制約名を付けづらいケースもあるかも (なら諦めるもアリ)</span>
+            ; if tableName is <span class="attribute">$$ALL$$</span> then pkName is <span class="attribute">prefix:</span>PK_<span class="attribute">$$table$$</span>
+
+            <span class="comment"># UQ制約名の付け方は、色々なパターンがありそう</span>
+            ; if tableName is <span class="attribute">$$ALL$$</span> then uniqueName is <span class="attribute">prefix:</span>UQ_<span class="attribute">$$table$$</span>
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+
+            <span class="comment">## 区分値テーブル ##</span>
+            <span class="comment"># CLS_で始まるテーブルを区分値テーブルとしていることが前提。
+            # コード値をchar(3)だけにするか、色々なサイズも許すか、それによってチェックするかしないかも変わりそう。
+            # 限定できるなら、char(2) or char(3) というように or でつなげることもできる。</span>
+            ; if tableName is <span class="attribute">prefix:</span>CLS_ then pk_dbType_with_size is char(3)
+
+            <span class="comment">## コメント ##</span>
+            ; if alias is <span class="attribute">$$tableName$$</span> then bad => 論理名が物理名と同じじゃダメ
+            ; if alias is <span class="attribute">$$comment$$</span> then bad => コメントが論理名と同じじゃダメ
+            ; if tableName is <span class="attribute">$$comment$$</span> then bad => コメントがテーブル名と同じじゃダメ
         }
     }
     ; <span class="localvar">columnMap</span> = <span class="keyword">map:</span>{
-        ; <span class="localvar">themeList</span> = <span class="keyword">list:</span>{ upperCaseBasis }
-        ; <span class="localvar">statementList</span> = <span class="keyword">list:</span>{
-            <span class="comment"># CODE column</span>
-            ; <span class="keyword">if</span> tableName <span class="keyword">is</span> <span class="attribute">prefix:</span>CLS_ <span class="keyword">and</span> column <span class="keyword">is</span> pk <span class="keyword">then</span> classification <span class="keyword">=&gt;</span> set classification dfprop
+        ; themeList = list:{
+            ; hasAlias
+            <span class="comment"># 全カラムコメント必須はさすがにつらいと思うのでコメントアウト。
+            # いやいや、コメントは必ず入れよう！というのであれば、ぜひコメントアウト解除で！</span>
+            <span class="comment">#; hasComment</span>
+            ; upperCaseBasis
+        }
+        ; statementList = list:{
+            <span class="comment">## IDカラム ##</span>
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+            ; if columnName is <span class="attribute">suffix:</span>_ID then alias is <span class="attribute">pattern:</span>.+ID(\(.+\))?$ => IDカラムなら論理名は "なんとかID" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_ID then alias is not <span class="attribute">suffix:</span>ID => IDカラムじゃないのに、"なんとかID" という論理名なの？
 
-            <span class="comment"># FLG column</span>
-            ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLAG <span class="keyword">then</span> bad
-            ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> notNull
-            ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> dbType is INTEGER
-            ; <span class="keyword">if</span> columnName <span class="keyword">is</span> <span class="attribute">suffix:</span>_FLG <span class="keyword">then</span> classification
+            <span class="comment"># IDカラムを数値だけにするか、文字列もOKか、現場によってポリシー変わりそう</span>
+            ; if columnName is <span class="attribute">suffix:</span>_ID then dbType is bigint or int or bigint unsigned or int unsigned => IDカラムは数値で！
+
+            ; if columnName is <span class="attribute">$$table$$</span>_ID then alias is <span class="attribute">$$tableAlias$$</span>ID => カラム名が[テーブル名]_IDなのであれば、論理名も[テーブル論理名ID]にしよう
+            ; if alias is <span class="attribute">$$tableAlias$$</span>ID then columnName is <span class="attribute">$$table$$</span>_ID => 論理名が[テーブル論理名ID]なのであれば、カラム名も[テーブル名]_IDにしよう
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+
+            <span class="comment">## NOカラム ##</span>
+            ; if columnName is <span class="attribute">suffix:</span>_NO then alias is <span class="attribute">suffix:</span>番号 or suffix:NO => NOカラムなら論理名は "なんとか番号" とか "なんとかNO" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_NO then alias is not suffix:番号 and not <span class="attribute">suffix:</span>NO => NOカラムじゃないのに、"なんとか番号" とか "なんとかNO" という論理名なの？
+
+            <span class="comment">## CODEカラム ##</span>
+            ; if columnName is <span class="attribute">suffix:</span>_CODE then alias is <span class="attribute">suffix:</span>コード => CODEカラムなら論理名は "なんとかコード" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_CODE then alias is not <span class="attribute">suffix:</span>コード => CODEカラムじゃないのに、"なんとかコード" という論理名なの？
+            ; if tableName is <span class="attribute">prefix:</span>CLS_ and column is pk then classification => 区分値テーブルだったら、PKは区分値カラムのはず (dfpropを確認しよう)
+            ; if columnName is <span class="attribute">suffix:</span>_CD then bad => _CODE に統一
+
+            <span class="comment">## FLGカラム ##</span>
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/</span>
+            ; if columnName is <span class="attribute">suffix:</span>_FLG then alias is <span class="attribute">suffix:</span>フラグ => FLGカラムなら論理名は "なんとかフラグ" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_FLG then alias is not <span class="attribute">suffix:</span>フラグ => FLGカラムじゃないのに、"なんとかフラグ" という論理名なの？
+
+            <span class="comment"># MySQLのメタデータとしては、boolean は bit になる</span>
+            ; if columnName is <span class="attribute">suffix:</span>_FLG then dbType is bit
+
+            ; if columnName is <span class="attribute">suffix:</span>_FLG then column is notNull => nullのフラグはやめよー
+            ; if columnName is <span class="attribute">suffix:</span>_FLAG then bad => _FLG に統一
+            <span class="comment"># _/_/_/_/_/_/_/_/_/_/</span>
+
+            <span class="comment">## DATEカラム ##</span>
+            ; if columnName is <span class="attribute">suffix:</span>_DATE then alias is <span class="attribute">suffix:</span>日 => DATEカラム(時分秒のない日付)なら論理名は "なんとか日" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_DATE then alias is not <span class="attribute">suffix:</span>日 => DATEカラム(時分秒のない日付)じゃないのに、"なんとか日" という論理名なの？
+            ; if columnName is <span class="attribute">suffix:</span>_DATE then dbType is date => なんとか_DATEなら、日付ということで date に
+
+            <span class="comment">## DATETIMEカラム ##</span>
+            ; if columnName is <span class="attribute">suffix:</span>_DATETIME then alias is <span class="attribute">suffix:</span>日時 => DATETIMEカラムなら論理名は "なんとか日時" にしよう
+            ; if columnName is not <span class="attribute">suffix:</span>_DATETIME then alias is not <span class="attribute">suffix:</span>日時 => DATETIMEカラムじゃないのに、"なんとか日時" という論理名なの？
+            ; if columnName is <span class="attribute">suffix:</span>_DATETIME then dbType is datetime => なんとか_DATETIMEなら、日時ということで datetime に
+
+            <span class="comment">## コメント ##</span>
+            ; if alias is <span class="attribute">$$columnName$$</span> and columnName is not <span class="attribute">pattern:</span>(URL|UUID|CUID) then bad => 論理名が物理名が同じなのはダメ。ただ、URLとかはしょうがないので not pattern に列挙
+            ; if alias is <span class="attribute">$$comment$$</span> then bad => コメントが論理名と同じなのはダメ
+            ; if columnName is <span class="attribute">$$comment$$</span> then bad => コメントがカラム名と同じなのはダメ
+
+            <span class="comment"># 区分値カラムの扱い方は、色々なパターンがありそう</span>
+            ; if columnName is <span class="attribute">suffix:</span>_TYPE then bad => "_TYPE" で終わるカラム名なら、"_TYPE_CODE" にして区分値テーブルで表現しよう
+
+            <span class="comment">## NGワード ##</span>
+            <span class="comment"># 表記ゆれとか曖昧な表現とかをチェックしたいなら、ここで bad, bad</span>
+            ; if alias is <span class="attribute">contain:</span>名称 then bad => 「名」で統一
+            ; if alias is <span class="attribute">pattern:</span>.*[^名]カナ.* then bad => 「カナ」は「名カナ」にしてください。
+            ; if alias is <span class="attribute">pattern:</span>(.*ユーザ[^ー].*|.*ユーザ) then bad => 「ユーザ」は、「ユーザー」で統一してください。
         }
     }
 }
