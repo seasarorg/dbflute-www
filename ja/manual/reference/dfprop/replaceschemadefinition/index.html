@@ -57,6 +57,7 @@
 				<li><a href="#sqlfileencoding">sqlFileEncoding</a></li>
 				<li><a href="#skipsheet">skipSheet</a></li>
 				<li><a href="#ischeckschemapolicyinreps">isCheckSchemaPolicyInReps</a></li>
+				<li><a href="#conventionaltakeassertmap">conventionalTakeAssertMap <span class="frm">@since 1.1.7</span></a></li>
 				<li><a href="#isincrementsequencetodatamax">isIncrementSequenceToDataMax</a></li>
 				<li><a href="#issuppressbatchupdate">isSuppressBatchUpdate</a></li>
 				<li><a href="#objecttypetargetlist">objectTypeTargetList</a></li>
@@ -203,6 +204,57 @@
 		<dt>値候補</dt><dd>true or false</dd>
 		<dt>デフォルト</dt><dd>false</dd>
 	</dl>
+	<h3 id="conventionaltakeassertmap">conventionalTakeAssertMap <span class="frm">@since 1.1.7</span></h3>
+	<p>
+		ReplaceSchema の TakeFinally のタイミングにて、規約的なアサートを実行できます。
+		例えば、"テストデータが一件も存在しないテーブルがあったらエラー" にするなど、定型的で横断的なチェックが可能です。
+	</p>
+	<dl class="textlist">
+		<dt>値候補</dt><dd>map型プロパティの key-value</dd>
+		<dt>デフォルト</dt><dd>なし</dd>
+		<dt>補足</dt>
+		<dd>
+			<ul class="supplementlist">
+				<li>emptyTableMapで、空っぽのテーブルに対するアサート</li>
+			</ul>
+		</dd>
+	</dl>
+	<p>
+		"テストデータが一件も存在しないテーブルがあったらエラー" というアサートは、emptyTableMap を利用します。
+		<span class="frm">(つまり、テーブルを追加したら必ず一件以上はテストデータを入れましょう、というチェックですね)</span>
+	</p>
+<pre><span class="codetitle">e.g. テストデータが一件も存在しないテーブルがあったらエラー @replaceSchemaMap.dfprop</span><code>
+    <span class="comment"># /- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # o conventionalTakeAssertMap: (NotRequired - Default map:{})
+    #  Does it assert data by conventional rule in take-finally
+    #  For example, you can check empty table (no-data).
+    #</span>
+    ; conventionalTakeAssertMap = <span class="keyword">map:</span>{
+        ; <span class="point">emptyTableMap</span> = <span class="keyword">map:</span>{
+            ; isFailure = <span class="keyword">true</span>
+            ; workableRepsEnvTypeList = <span class="keyword">list:</span>{ut}
+            ; tableExceptList = <span class="keyword">list:</span>{}
+            ; tableTargetList = <span class="keyword">list:</span>{}
+            ; errorIfFirstDateAfter = <span class="keyword">null</span>
+        }
+    }
+    <span class="comment"># - - - - - - - - - -/</span>
+</code></pre>
+	<p>
+		既存テーブルは諦めるとして、"これから追加されるテーブルだけはテストデータを一件以上入れよう"
+		という場合は、errorIfFirstDateAfter に "今日" を入れましょう。
+	</p>
+<pre><span class="codetitle">e.g. 新しいテーブルで、テストデータが一件も存在しなかったらエラー @replaceSchemaMap.dfprop</span><code>
+            <span class="abbreviation">...</span>
+            ; tableTargetList = <span class="keyword">list:</span>{}
+            ; <span class="point">errorIfFirstDateAfter</span> = <span class="literal">2018/09/28</span>
+        }
+        <span class="abbreviation">...</span>
+</code></pre>
+	<p>
+		比較対象となるテーブル作成日(firstDate)は、SchemaPolicyCheck における firstDate と仕組みは同じです。
+	</p>
+	<div class="relatedpage"><a href="../../../function/genbafit/implfit/schemapolicy/index.html#firstdate">DB設計のチェックスタイル - これから追加されるものだけチェック</a></div>
 	<h3 id="isincrementsequencetodatamax">isIncrementSequenceToDataMax</h3>
 	<p>
 		テーブルのPKに関連付けたシーケンスの次の採番値を、登録したデータの最大値に 1
