@@ -303,6 +303,22 @@ cb.setupSelect_MemberAddressAsValid(currentDate);
 		は利用できません。一つでもバインド変数があれば利用できます。
 		(埋め込み区分値はここで言うバインド変数には含まれません)
 	</p>
+	<p>
+		また、IFコメントで区分値に対する判定を行うこともできます<span class="frm">(@since 1.1.9)</span>。
+		IFコメントの条件式にて、バインド変数で指定された区分値の code() の等値条件の比較対象として、$cls([区分値要素]) を指定します。
+		<span class="frm">(code()メソッドを忘れずに！)</span>
+	</p>
+<pre><span class="codetitle">e.g. IFコメントで埋め込み区分値との比較、Bronzeならポイントが100以上 @additionalForeignKeyMap.dfprop</span><code>
+<span class="attribute">$$foreignAlias$$</span>.SERVICE_RANK_CODE = <span class="comment">/*serviceRank(<span class="attribute">$$CDef$$</span>.ServiceRank)*/</span>
+<span class="comment">/*IF $$parameterBase$$.serviceRank.<span class="subpoint">code()</span> == <span class="point">$cls(ServiceRank.Bronze)</span>*/</span>
+<span class="keyword">and</span> <span class="attribute">$$foreignAlias$$</span>.SERVICE_POINT_COUNT &gt;= <span class="literal">100</span>
+<span class="comment">/*END*/</span>
+</code></pre>
+	<p>
+		一方で、ここ dfprop におけるIFコメントの表現はかなり限定的です。基本的には外だしSQLのIFコメントとして扱われるので、表現力はそれと全く同じです。
+		少し dfprop の都合による調整が行われていて、$$parameterBase$$ や $cls()
+		などを利用できるようになっていますが、必要性が生じた時に積み上げで対応しているので、ちょっと違うパターンだと動かないこともあるでしょう。
+	</p>
 	<h4>改行をうまく活用 <span class="frm">@since 0.9.9.1B</span></h4>
 	<p>
 		fixedCondition で指定した値の中の改行は、SQL上で反映されます<span class="frm">(@since 0.9.9.1B)</span>。
