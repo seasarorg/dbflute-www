@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
-	<meta name="keywords" content="DBFlute,LastaFlute,移行,Migration,アップグレード,Upgrade" />
+	<meta name="keywords" content="DBFlute,チュートリアル,Tutorial,Deveploer,Architect" />
 	<link rel="stylesheet" type="text/css" href="../../../../../css/lasub.css" />
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>DBFluteの移行情報 | DBFlute</title>
+	<title>LastaFlute移行 1.0.9 to 1.1.0 | LastaFlute</title>
 </head>
 <body>
 <div id="container" class="ct-default">
@@ -37,39 +37,45 @@
 </div>
 
 <div id="content">
-	<h1>LastaFluteの移行情報</h1>
-	<p>
-		LastaFluteをアップグレードする際の移行についての情報。
-	</p>
-	<div class="relatedpage"><a href="../index.html">LastaFluteのアップグレード</a></div>
+	<h1>LastaFlute移行 1.0.9 to 1.1.0</h1>
 	<ul class="indexlist">
-		<li><a href="#changelog">Change Log</a></li>
-		<li><a href="#attention">移行ポイント</a>
-			<ul>
-				<li><a href="#over100">1.0.0以降</a></li>
-			</ul>
-		</li>
+		<li><a href="#swaggeraction">SwaggerAction で独立オプション</a></li>
+		<li><a href="#swaggerui3">swagger-ui を 2.x から 3.x にアップ</a></li>
 	</ul>
 
-	<h2 id="changelog">Change Log</h2>
+	<h2 id="swaggeraction">SwaggerAction で独立オプション</h2>
 	<p>
-		LastaFluteのバージョンごとの対応課題については、ChangeLog のページを参照。
+		(swaggerを使っていない方には無関係です。app.SwaggerAction.java はありますか？)
 	</p>
-	<div class="detailpage"><a href="../lachangelog.html">LastaFlute の ChangeLog</a></div>
+	<p>
+		SwaggerAction の json() にて、switchMappingOption() を呼ぶようにしてください。
+	</p>
+<pre><span class="codetitle">e.g. SwaggerAction@json(), use switchMappingOption() @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;Map&lt;String, Object&gt;&gt; json() {
+    verifySwaggerAllowed();
+    Map&lt;String, Object&gt; <span class="localvar">swaggerMap</span> = <span class="keyword">new</span> SwaggerGenerator().generateSwaggerMap(<span class="localvar">op</span> -&gt; {});
+    <span class="keyword">return</span> asJson(<span class="localvar">swaggerMap</span>).switchMappingOption(<span class="localvar">op</span> -&gt; {}); <span class="comment">// not to depend on application settings</span>
+}
+</code></pre>
+	<p>
+		アプリケーションで独自に設定したJSONのマッピングオプションに依存しないようにします。
+		特に独自に設定しているオプションがなければほとんど問題は発生しないものですが、安全のためにしっかり読んでおきましょう。
+	</p>
 
-	<h2 id="attention">移行ポイント</h2>
+	<h2 id="swaggerui3">swagger-ui を 2.x から 3.x にアップ</h2>
 	<p>
-		アップグレードする際は必ずご覧下さい。
+		(swaggerを使っていない方には無関係です。依存関係に swagger-ui はありますか？)
 	</p>
-	<h3 id="over100">1.0.0以降</h3>
-	<ul>
-		<li><a href="./lamig109to110.html">LastaFlute-1.0.9 から <em class="keyword">1.1.0</em> への移行</a> <span class="frm">*ポイントあり</span></li>
-		<li><a href="./lamig101to102.html">LastaFlute-1.0.1 から <em class="keyword">1.0.2</em> への移行</a> <span class="frm">*ポイントあり</span></li>
-		<li><a href="./lamig082to083.html">LastaFlute-0.8.2 から <em class="keyword">0.8.3</em> への移行</a> <span class="frm">*ポイントあり</span></li>
-	</ul>
 	<p>
-		※移行ポイントがある場合のみ、ページを作っています。
+		Lasta Doc.jar-0.3.4 より、swagger-ui の 3.x を推奨しています。2.x
+		でもある程度は動くかもしれませんが、動かない点があっても対応はしていきません。
+		ぜひ 3.x にアップグレードしましょう。
 	</p>
+<pre><span class="codetitle">e.g. swagger-ui version in Maven settings @pom.xml</span><code>
+<span class="comment">// 最新版をインターネットで探して設定しましょう</span>
+&lt;swagger.ui.version&gt;<span class="point">3.19.0</span>&lt;/swagger.ui.version&gt;
+</code></pre>
 
 </div>
 </div>
