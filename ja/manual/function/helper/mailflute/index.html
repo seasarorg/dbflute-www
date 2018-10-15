@@ -66,6 +66,14 @@
 				<li><a href="#loopbeansforcomment">3. テンプレートで、FORコメントでXxxBeanをループさせる</a></li>
 			</ul>
 		</li>
+		<li><a href="#async">非同期でメール送信</a>
+			<ul>
+				<li><a href="#asyncoverview">非同期メールのおおまかな概要</a></li>
+				<li><a href="#asynconeorall">明示的に非同期？デフォルトで非同期？</a></li>
+				<li><a href="#laasyncexplicitly">LastaFluteで明示的に非同期メール</a></li>
+				<li><a href="#laasyncimplicitly">LastaFluteでデフォルトで非同期メール</a></li>
+			</ul>
+		</li>
 		<li><a href="#unittest">UTFlute で UnitTest</a>
 			<ul>
 				<li><a href="#reservemailassertion">reserveMailAssertion() でアサート予約</a></li>
@@ -341,6 +349,62 @@ Hello,
 <span class="comment">/*END*/</span>
 <span class="abbreviation">...</span>
 </code></pre>
+
+	<h2 id="async">非同期でメール送信</h2>
+	<h3 id="asyncoverview">非同期メールのおおまかな概要</h3>
+	<p>
+		MailFluteには、非同期でメール送信するオプションが用意されています。
+		そのオプションが指定されると、メールの送信処理だけが非同期になります。
+		<span class="frm">(厳密には、テンプレート読み込みと、メッセージ文字列の作成などの準備処理は同期的で、最後の送信処理だけ非同期)</span>
+	</p>
+	<p>
+		MailFlute自体は、非同期の処理自体は持っていないので、必ず利用しているフレームワークが提供します。
+		よって、MailFluteのオプションを利用しているフレームワークがどのように利用するかで実装や挙動が変わります。
+		例えば、LastaFluteとの組み合わせであれば、LastaFlute の AsyncManager が、メールの非同期の実装となっています。
+		<span class="frm">(LastaFlute の Example で、すでにその連携のための実装がされています)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../../lastaflute/howto/architecture/typesafemail.html#deliverydepartment">DeliveryDepartmentでもっと細かく</a></div>
+	<p>
+		ここでは、LastaFluteとの組み合わせのときの例で説明します。
+	</p>
+	<h3 id="asynconeorall">明示的に非同期？デフォルトで非同期？</h3>
+	<p>
+		非同期戦略は、大きく二つに分かれます。
+	</p>
+	<dl class="shortkeymainlist">
+		<dt>明示的に非同期</dt><dd>メール送信する側で明示的に非同期を指定する</dd>
+		<dt>デフォルトで非同期</dt><dd>仕組みで暗黙的に非同期を指定して、メール送信する側では意識しない</dd>
+	</dl>
+	<p>
+		すべてのメールが非同期で送信でOKというのであれば、デフォルトで非同期にしてしまいましょう。
+	</p>
+	<p>
+		LastaFlute の Example (harbor, maihamaなど) では、最初からデフォルトで非同期になっています。
+		なので、LastaFlute の Example でスタートアップしたときは、asyncのオプションのことを気にする必要性がありません。
+	</p>
+	<h3 id="laasyncexplicitly">LastaFluteで明示的に非同期メール</h3>
+	<p>
+		非同期でメールを送信するオプションが用意されています。例えば、LastaFluteでは Postcard に async()
+		というメソッドがあり、それを呼ぶと非同期になります。
+		<span class="frm">(ただ、LastaFlute の Example では、デフォルトで非同期になっているので、その仕組みを外してなければ、このメソッドを呼び出す必要はありません)</span>
+	</p>
+<pre><span class="codetitle">e.g. LastaFluteでのPostcardにおける async() の実装 @Java</span><code>
+<span class="point">WelcomeMemberPostcard</span>.droppedInto(<span class="localvar">postbox</span>, <span class="localvar">postcard</span> -&gt; {
+    <span class="localvar">postcard</span>.setFrom(<span class="literal">"from@example.com"</span>, <span class="attribute">LABELS_OFFICE_MAIL</span>);
+    <span class="localvar">postcard</span>.addTo(<span class="literal">"to@example.com"</span>);
+    <span class="localvar">postcard</span>.setMemberName(<span class="literal">"sea"</span>);
+    <span class="localvar">postcard</span>.setBirthdate(birthdate);
+    <span class="localvar">postcard</span>.<span class="point">async()</span>;
+});
+</code></pre>
+	<h3 id="laasyncimplicitly">LastaFluteでデフォルトで非同期メール</h3>
+	<p>
+		LastaFlute の Example ではこちらになっています。もう、メール送信側のプログラムでは何も気にせずメール送信しても、非同期で送信されます。
+	</p>
+	<p>
+		ただし、メール送信に失敗しても例外は非同期スレッドの中で処理されますから、呼び出し側のトランザクションをロールバックすることはできません。
+		<span class="frm">(その必要性がないことが前提です。そして、多くの場合において、その必要性がないことを想定しています)</span>
+	</p>
 
 	<h2 id="unittest">UTFlute で UnitTest</h2>
 	<p>
