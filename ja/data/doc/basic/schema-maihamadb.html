@@ -44,9 +44,9 @@ h3 {
 h4 {
 	padding: 0 0 0 10px;
 	margin: 1em 10% 0 1em;
-	border-top: solid 1px #af0000;
-	border-bottom: solid 1px #af0000;
-	font-size: 1.4em;
+	border-top: none;
+	border-bottom: solid 1px #663333;
+	font-size: 1.3em;
 	color: #333333;
 }
 
@@ -219,6 +219,46 @@ span.tablefirstdatetitle {
 }
 
 /* -------------------------------------------------
+                                    Arrange Query
+------------------------------------------------- */
+span.arrqycount {
+	font-size: 0.5em;
+}
+dl.arrqylist {
+	margin-top: 0.7em;
+	padding-left: 3em;
+}
+dl.arrqylist dt {
+	display: list-item;
+	list-style-type: circle;
+	font-size: 1.3em;
+	margin-top: 0.3em;
+}
+dl.arrqylist dd {
+	padding-left: 1em;
+}
+dl.arrqylist dd pre {
+	font-size: 1.1em;
+}
+dl.arrqylist dd.subinfo {
+	padding-left: 2em;
+}
+dl.arrqylist dd.subinfo span.sqlap {
+	font-style: italic;
+	color: #002266;
+}
+dl.arrqylist dd.subinfo span.file {
+	font-style: italic;
+	color: #002266;
+}
+dl.arrqylist dd.subinfo span.ctet {
+	color: green;
+}
+dl.arrqylist dd.subinfo span.pmb {
+	color: green;
+}
+
+/* -------------------------------------------------
                              Behavior Query Path
 ------------------------------------------------- */
 span.bqpcount {
@@ -314,11 +354,12 @@ dl.procedurelist dd.column pre {
 	margin: 0 auto;
 	border: 1px solid #999999;
 	padding: 15px;
-	background-color: #ffffff;
+	background-color: #fff8f8;
 	border-radius: 4px;
 }
 .decommentmodalcontent p {
 	font-size: 14px;
+	color: #222277;
 }
 .decommentinput {
 	display: block;
@@ -326,10 +367,26 @@ dl.procedurelist dd.column pre {
 	margin-top: 10px;
 	font-size: 12px;
 }
+.decommentmodal-ok-area {
+	text-align: right;
+	margin: 0em 1em 0em 0em
+}
 .decommentmodal-ok-btn {
-	margin: 10px 5px 0 0;
-	padding: 5px 10px;
-	border-radius: 4px;
+	display: inline-block;
+	margin: 0.5em 0em;
+	padding: 0.5em 1.5em 0.5em 1.5em;
+	text-decoration: none;
+	border-radius: 3px;
+	font-weight: bold;
+	color: #FFF;
+	text-align: right;
+	background-image: -webkit-linear-gradient(45deg, #709dff 0%, #b0c9ff 100%);
+	background-image: linear-gradient(45deg, #709dff 0%, #b0c9ff 100%);
+	transition: .4s;
+}
+.decommentmodal-ok-btn:hover{
+	background-image: -webkit-linear-gradient(45deg, #709dff 50%, #b0c9ff 100%);
+	background-image: linear-gradient(45deg, #709dff 50%, #b0c9ff 100%);
 }
 .decommentmodal-close-btn {
 	position: absolute;
@@ -351,6 +408,18 @@ dl.procedurelist dd.column pre {
 .decommentmodal-close-btn:hover {
 	background-color: #eed;
 }
+.decomment-user-input {
+	display: none;
+}
+.decomment-user-name {
+	margin-top: 0.5em;
+	padding: 5px;
+	border: thin solid #aa3344;
+}
+.decomment-user-name-desc {
+	margin-left: 0.5em;
+	color: #222277;
+}
 	</style>
 </head>
 
@@ -360,9 +429,15 @@ dl.procedurelist dd.column pre {
 <div class="navilinkarea">
 <p class="sublink">
  <a href="#cdef">Classification Definition</a>
-| <a href="#outsidesql">OutsideSql List</a>
+| <a href="#arrangequery">ArrangeQuery List</a>
+| <a href="#procedure">Procedure List</a>
+| <a href="#diagram">Schema Diagram</a>
 </p>
 <p class="sisterlink"><a href="./history-maihamadb.html">to HistoryHTML</a></p>
+<p class="sistersublink">
+<a href="./properties-maihamadb.html">to PropertiesHTML</a>
+| <a href="./lastadoc-harbor.html">to lastadoc-harbor.html</a>
+</p>
 </div>
 
 <div style="display:none" id="unmapped-tables">
@@ -432,7 +507,6 @@ dl.procedurelist dd.column pre {
 		<th>ReferrerTable</th>
 		<th>TableComment</th>
 		<th>EntityName</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="table-list-body">
@@ -441,13 +515,12 @@ dl.procedurelist dd.column pre {
 		<td class="aliascell">会員</td>
 		<td class="namecell" data-name="MEMBER"><a href="#member" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=11">MEMBER</a></td>
 		<td class="typecell">TABLE</td>
-		<td class="relcell"><a href="#member_status" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=Member's address at the target date.">MEMBER_ADDRESS(AsValid)</a>, <a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\nselect max(login.LOGIN_DATETIME)\n  from MEMBER_LOGIN login\n where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n)$$sqend$$&quot;, comment=Member's latest login">MEMBER_LOGIN(AsLatest)</a></td>
+		<td class="relcell"><a href="#member_status" title="FK_MEMBER_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=Member's address at the target date.">MEMBER_ADDRESS(AsValid)</a>, <a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\nselect max(login.LOGIN_DATETIME)\n  from MEMBER_LOGIN login\n where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n)$$sqend$$&quot;">MEMBER_LOGIN(AsLatest)</a></td>
 		<td class="relcell"><a href="#member_address" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>, <a href="#member_following" title="FK_MEMBER_FOLLOWING_MY_MEMBER">MEMBER_FOLLOWING</a>, <a href="#member_following" title="FK_MEMBER_FOLLOWING_YOUR_MEMBER">MEMBER_FOLLOWING</a>, <a href="#member_login" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>, <a href="#member_security" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>, <a href="#member_service" title="FK_MEMBER_SERVICE_MEMBER">MEMBER_SERVICE</a>, <a href="#member_withdrawal" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>, <a href="#purchase" title="FK_PURCHASE_MEMBER">PURCHASE</a></td>
 		<td class="commentcell MEMBER_comment"><pre>会員のプロフィールやアカウントなどの基本情報を保持する。
 基本的に物理削除はなく、退会したらステータスが退会会員になる。
 ライフサイクルやカテゴリの違う会員情報は、one-to-oneなどの関連テーブルにて。</pre></td>
 		<td class="subcell">Member</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -460,7 +533,6 @@ dl.procedurelist dd.column pre {
 会員を基点に考えた場合、構造的には one-to-many だが、業務的な定型条件で one-to-one になる。このような構造を「業務的one-to-one」と呼ぶ！
 有効期間は隙間なく埋められるが、ここでは住所情報のない会員も存在し、厳密には(業務的な) "1 : 0..1" である。</pre></td>
 		<td class="subcell">MemberAddress</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -471,19 +543,17 @@ dl.procedurelist dd.column pre {
 		<td class="relcell">&nbsp;</td>
 		<td class="commentcell MEMBER_FOLLOWING_comment"><pre>とある会員が他の会員をフォローできる。すると、フォローした会員の購入履歴が閲覧できる。</pre></td>
 		<td class="subcell">MemberFollowing</td>
-		<td class="subcell">2013/07/01</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
 		<td class="aliascell">会員ログイン</td>
 		<td class="namecell" data-name="MEMBER_LOGIN"><a href="#member_login" title="type=TABLE, primaryKey={MEMBER_LOGIN_ID}, nameLength=12, columnCount=5">MEMBER_LOGIN</a></td>
 		<td class="typecell">TABLE</td>
-		<td class="relcell"><a href="#member_status" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a>, <a href="#member" title="FK_MEMBER_LOGIN_MEMBER">MEMBER</a></td>
+		<td class="relcell"><a href="#member" title="FK_MEMBER_LOGIN_MEMBER">MEMBER</a>, <a href="#member_status" title="FK_MEMBER_LOGIN_MEMBER_STATUS">MEMBER_STATUS</a></td>
 		<td class="relcell">&nbsp;</td>
 		<td class="commentcell MEMBER_LOGIN_comment"><pre>ログインするたびに登録されるログイン履歴。
 登録されたら更新されるも削除されることもない。さらには、登録する人もプログラムもはっきりしているので、(紙面の都合上もあって)ここでは共通カラムは省略している。</pre></td>
 		<td class="subcell">MemberLogin</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -494,7 +564,6 @@ dl.procedurelist dd.column pre {
 		<td class="relcell">&nbsp;</td>
 		<td class="commentcell MEMBER_SECURITY_comment"><pre>会員とは one-to-one で、会員一人につき必ず一つのセキュリティ情報がある</pre></td>
 		<td class="subcell">MemberSecurity</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -506,7 +575,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell MEMBER_SERVICE_comment"><pre>会員のサービス情報（ポイントサービスなど）。
 テストケースのために、あえて統一性を崩してユニーク制約経由の one-to-one を表現している。</pre></td>
 		<td class="subcell">MemberService</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -520,7 +588,6 @@ dl.procedurelist dd.column pre {
 
 こういった固定的なマスタテーブルには、更新日時などの共通カラムは定義していないが、業務上そういった情報を管理する必要性が低いという理由に加え、ExampleDBとして共通カラムでER図が埋め尽くされてしまい見づらくなるというところで割り切っている。実業務では統一的に定義することもある。</pre></td>
 		<td class="subcell">MemberStatus</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -534,7 +601,6 @@ dl.procedurelist dd.column pre {
 共通カラムがあってバージョンNOがないパターン。
 基本的に更新は入らないが、重要なデータなので万が一のために更新系の共通カラムも。</pre></td>
 		<td class="subcell">MemberWithdrawal</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -545,7 +611,6 @@ dl.procedurelist dd.column pre {
 		<td class="relcell"><a href="#purchase" title="FK_PURCHASE_PRODUCT">PURCHASE</a></td>
 		<td class="commentcell PRODUCT_comment"><pre>&nbsp;</pre></td>
 		<td class="subcell">Product</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -556,7 +621,6 @@ dl.procedurelist dd.column pre {
 		<td class="relcell"><a href="#product" title="FK_PRODUCT_PRODUCT_CATEGORY">PRODUCT</a>, <a href="#product_category" title="FK_PRODUCT_CATEGORY_PARENT">PRODUCT_CATEGORY</a></td>
 		<td class="commentcell PRODUCT_CATEGORY_comment"><pre>商品のカテゴリを表現するマスタ。自己参照FKの階層になっている。</pre></td>
 		<td class="subcell">ProductCategory</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">11</td>
@@ -564,22 +628,20 @@ dl.procedurelist dd.column pre {
 		<td class="namecell" data-name="PRODUCT_STATUS"><a href="#product_status" title="type=TABLE, primaryKey={PRODUCT_STATUS_CODE}, nameLength=14, columnCount=3">PRODUCT_STATUS</a></td>
 		<td class="typecell">TABLE</td>
 		<td class="relcell">&nbsp;</td>
-		<td class="relcell"><a href="#product" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a>, <a href="#summary_product" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">SUMMARY_PRODUCT</a></td>
+		<td class="relcell"><a href="#product" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a></td>
 		<td class="commentcell PRODUCT_STATUS_comment"><pre>商品のステータスを表現する固定的なマスタ。</pre></td>
 		<td class="subcell">ProductStatus</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">12</td>
 		<td class="aliascell">購入</td>
 		<td class="namecell" data-name="PURCHASE"><a href="#purchase" title="type=TABLE, primaryKey={PURCHASE_ID}, nameLength=8, columnCount=12">PURCHASE</a></td>
 		<td class="typecell">TABLE</td>
-		<td class="relcell"><a href="#member" title="FK_PURCHASE_MEMBER">MEMBER</a>, <a href="#product" title="FK_PURCHASE_PRODUCT">PRODUCT</a>, <a href="#summary_product" class="additionalfk" title="FK_PURCHASE_SUMMARY_PRODUCT">SUMMARY_PRODUCT</a></td>
+		<td class="relcell"><a href="#member" title="FK_PURCHASE_MEMBER">MEMBER</a>, <a href="#product" title="FK_PURCHASE_PRODUCT">PRODUCT</a></td>
 		<td class="relcell"><a href="#purchase_payment" title="FK_PURCHASE_PAYMENT_PURCHASE">PURCHASE_PAYMENT</a></td>
 		<td class="commentcell PURCHASE_comment"><pre>一つの商品に対する購入を表現する(購入履歴とも言える)。
 実業務であれば購入詳細というテーブルを作り、「購入という行為」と「その中身（詳細）」を違う粒度のデータとしてそれぞれ管理するのが一般的と言えるでしょう。というか、注文とか請求とかそういうことを考え始めたらもっと複雑になるはずですが、ExampleDBということで割り切っています。</pre></td>
 		<td class="subcell">Purchase</td>
-		<td class="subcell">2010/06/15</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">13</td>
@@ -591,7 +653,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell PURCHASE_PAYMENT_comment"><pre>購入に対する支払。
 分割払いもできるのでmanyとなり、会員からの孫テーブルのテストができてうれしい。</pre></td>
 		<td class="subcell">PurchasePayment</td>
-		<td class="subcell">2014/05/29</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">14</td>
@@ -603,7 +664,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell REGION_comment"><pre>主に会員の住所に対応する漠然とした地域。
 かなりざっくりした感じではある。唯一の業務的one-to-oneの親テーブルのケース。</pre></td>
 		<td class="subcell">Region</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">15</td>
@@ -614,7 +674,6 @@ dl.procedurelist dd.column pre {
 		<td class="relcell"><a href="#member_service" title="FK_MEMBER_SERVICE_SERVICE_RANK_CODE">MEMBER_SERVICE</a></td>
 		<td class="commentcell SERVICE_RANK_comment"><pre>会員のサービスレベルを表現するランク。(ゴールドとかプラチナとか)</pre></td>
 		<td class="subcell">ServiceRank</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">16</td>
@@ -625,37 +684,13 @@ dl.procedurelist dd.column pre {
 		<td class="relcell"><a href="#member_withdrawal" title="FK_MEMBER_WITHDRAWAL_WITHDRAWAL_REASON">MEMBER_WITHDRAWAL</a></td>
 		<td class="commentcell WITHDRAWAL_REASON_comment"><pre>会員に選ばせる定型的な退会理由のマスタ。そういえば、これ表示順カラムがないですねぇ...</pre></td>
 		<td class="subcell">WithdrawalReason</td>
-		<td class="subcell"></td>
-	</tr>
-	<tr>
-		<td class="rownumcell">17</td>
-		<td class="aliascell"></td>
-		<td class="namecell" data-name="SUMMARY_PRODUCT"><a href="#summary_product" title="type=VIEW, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=5">SUMMARY_PRODUCT</a></td>
-		<td class="typecell">VIEW</td>
-		<td class="relcell"><a href="#product_status" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a></td>
-		<td class="relcell"><a href="#purchase" class="additionalfk" title="FK_PURCHASE_SUMMARY_PRODUCT">PURCHASE</a></td>
-		<td class="commentcell SUMMARY_PRODUCT_comment"><pre>&nbsp;</pre></td>
-		<td class="subcell">SummaryProduct</td>
-		<td class="subcell">2010/06/15</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">18</td>
-		<td class="aliascell"></td>
-		<td class="namecell" data-name="SUMMARY_WITHDRAWAL"><a href="#summary_withdrawal" title="type=VIEW, primaryKey={}, nameLength=18, columnCount=9">SUMMARY_WITHDRAWAL</a></td>
-		<td class="typecell">VIEW</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="commentcell SUMMARY_WITHDRAWAL_comment"><pre>&nbsp;</pre></td>
-		<td class="subcell">SummaryWithdrawal</td>
-		<td class="subcell">2010/12/03</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=6, columnCount=11">
 (会員)MEMBER
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
-&nbsp;<span class="bqpcount"><a href="#member_sql">(outsideSql=9)</a></span>
+&nbsp;<span class="arrqycount"><a href="#member_arrqy">(arrangeQuery=2)</a></span>
 </h2>
 <div class="tablecomment MEMBER_comment" data-name="MEMBER"><pre>会員のプロフィールやアカウントなどの基本情報を保持する。
 基本的に物理削除はなく、退会したらステータスが退会会員になる。
@@ -680,7 +715,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member-body">
@@ -695,13 +729,12 @@ dl.procedurelist dd.column pre {
 		<td class=" columnnamecell" id="member_member_id">MEMBER_ID</td>
 		<td class="typecell">INTEGER</td>
 		<td class="sizecell"> 10 </td>
-		<td class="relcell"><a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=Member's address at the target date.">MEMBER_ADDRESS(AsValid)</a>,<br><a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\nselect max(login.LOGIN_DATETIME)\n  from MEMBER_LOGIN login\n where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n)$$sqend$$&quot;, comment=Member's latest login">MEMBER_LOGIN(AsLatest)</a>&nbsp;</td>
+		<td class="relcell"><a href="#member_address" class="additionalfk" title="FK_MEMBER_MEMBER_ADDRESS_VALID: fixedCondition=&quot;$$foreignAlias$$.VALID_BEGIN_DATE &lt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null\n     and $$foreignAlias$$.VALID_END_DATE &gt;= /*$$locationBase$$.parameterMapMemberAddressAsValid.targetDate*/null&quot;, comment=Member's address at the target date.">MEMBER_ADDRESS(AsValid)</a>,<br><a href="#member_login" class="additionalfk" title="FK_MEMBER_MEMBER_LOGIN_LATEST: fixedCondition=&quot;$$foreignAlias$$.LOGIN_DATETIME = ($$sqbegin$$\nselect max(login.LOGIN_DATETIME)\n  from MEMBER_LOGIN login\n where login.MEMBER_ID = $$foreignAlias$$.MEMBER_ID\n)$$sqend$$&quot;">MEMBER_LOGIN(AsLatest)</a>&nbsp;</td>
 		<td class="relcell"><a href="#member_address" title="FK_MEMBER_ADDRESS_MEMBER">MEMBER_ADDRESS</a>,<br><a href="#member_following" title="FK_MEMBER_FOLLOWING_MY_MEMBER">MEMBER_FOLLOWING</a>,<br><a href="#member_following" title="FK_MEMBER_FOLLOWING_YOUR_MEMBER">MEMBER_FOLLOWING</a>,<br><a href="#member_login" title="FK_MEMBER_LOGIN_MEMBER">MEMBER_LOGIN</a>,<br><a href="#member_security" title="FK_MEMBER_SECURITY_MEMBER">MEMBER_SECURITY</a>,<br><a href="#member_service" title="FK_MEMBER_SERVICE_MEMBER">MEMBER_SERVICE</a>,<br><a href="#member_withdrawal" title="FK_MEMBER_WITHDRAWAL_MEMBER">MEMBER_WITHDRAWAL</a>,<br><a href="#purchase" title="FK_PURCHASE_MEMBER">PURCHASE</a>&nbsp;</td>
 		<td class="relcell"> &nbsp;</td>
 		<td class="commentcell"><pre>連番として自動採番される。会員IDだけに限らず採番方法はDBMS次第。</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -713,7 +746,7 @@ dl.procedurelist dd.column pre {
 		<td class="aliascell">会員名称</td>
 		<td class=" columnnamecell" id="member_member_name">MEMBER_NAME</td>
 		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 200 </td>
+		<td class="sizecell"> 100 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
 		<td class="relcell"> &nbsp;</td>
@@ -721,7 +754,6 @@ dl.procedurelist dd.column pre {
 苗字と名前を分けて管理することが多いが、ここでは単純にひとまとめ。</pre></td>
 		<td class="subcell">memberName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -741,7 +773,6 @@ dl.procedurelist dd.column pre {
 昨今メールアドレスをログインIDとすることが多いので、あまり見かけないかも!?</pre></td>
 		<td class="subcell">memberAccount</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -761,7 +792,6 @@ dl.procedurelist dd.column pre {
 ステータスが変わるたびに、このカラムが更新される。</pre></td>
 		<td class="subcell">memberStatusCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -781,7 +811,6 @@ dl.procedurelist dd.column pre {
 一度確定したらもう二度と更新されないはずだ！</pre></td>
 		<td class="subcell">formalizedDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -800,7 +829,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>必須項目ではないので、このデータがない会員もいる。</pre></td>
 		<td class="subcell">birthdate</td>
 		<td class="subcell">LocalDate</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -821,7 +849,6 @@ dl.procedurelist dd.column pre {
 仕様はどのテーブルでも同じなので、共通カラムの説明はこのテーブルでしか書かない。</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -841,7 +868,6 @@ dl.procedurelist dd.column pre {
 会員テーブルであれば当然、会員自身であるはずだが、他のテーブルの場合では管理画面から運用者による登録など考えられるので、しっかり保持しておく。</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -861,7 +887,6 @@ dl.procedurelist dd.column pre {
 業務的な利用はあまり推奨されないと別項目で説明したが、このカラムはソートの要素としてよく利用される。</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -881,7 +906,6 @@ dl.procedurelist dd.column pre {
 システムは誰が何をしたのかちゃんと覚えているのさ。</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">11</td>
@@ -901,14 +925,12 @@ dl.procedurelist dd.column pre {
 更新回数と等しく、主に排他制御のために利用される。</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_address" title="type=TABLE, primaryKey={MEMBER_ADDRESS_ID}, nameLength=14, columnCount=11">
 (会員住所情報)MEMBER_ADDRESS
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment MEMBER_ADDRESS_comment" data-name="MEMBER_ADDRESS"><pre>会員の住所に関する情報で、同時に有効期間ごとに履歴管理されている。
 会員を基点に考えた場合、構造的には one-to-many だが、業務的な定型条件で one-to-one になる。このような構造を「業務的one-to-one」と呼ぶ！
@@ -933,7 +955,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_address-body">
@@ -955,7 +976,6 @@ dl.procedurelist dd.column pre {
 期間ごとに同じ会員のデータを保持することがあるため、これは単なるPKであってFKではない。</pre></td>
 		<td class="subcell">memberAddressId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -975,7 +995,6 @@ dl.procedurelist dd.column pre {
 期間ごとのデータがあるので、これだけではユニークにはならない。有効開始日と合わせて複合ユニーク制約となるが、厳密には完全な制約にはなっていない。有効期間の概念はRDBでは表現しきれないのである。</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -995,7 +1014,6 @@ dl.procedurelist dd.column pre {
 前の有効終了日の次の日の値が格納される。</pre></td>
 		<td class="subcell">validBeginDate</td>
 		<td class="subcell">LocalDate</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1015,7 +1033,6 @@ dl.procedurelist dd.column pre {
 期間の最後の日が格納される。基本的に、次の有効開始日の一日前の値となるが、次の有効期間がない場合は 9999/12/31 となる。</pre></td>
 		<td class="subcell">validEndDate</td>
 		<td class="subcell">LocalDate</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -1034,7 +1051,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>まるごと住所</pre></td>
 		<td class="subcell">address</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -1053,7 +1069,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>地域を参照するID。かなり漠然とした地域。</pre></td>
 		<td class="subcell">regionId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -1072,7 +1087,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -1091,7 +1105,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -1110,7 +1123,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -1129,7 +1141,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">11</td>
@@ -1148,14 +1159,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_following" title="type=TABLE, primaryKey={MEMBER_FOLLOWING_ID}, nameLength=16, columnCount=4">
 (会員フォローイング)MEMBER_FOLLOWING
-&nbsp;<span class="tablefirstdatetitle">since 2013/07/01</span>
 </h2>
 <div class="tablecomment MEMBER_FOLLOWING_comment" data-name="MEMBER_FOLLOWING"><pre>とある会員が他の会員をフォローできる。すると、フォローした会員の購入履歴が閲覧できる。</pre></div>
 <input type="hidden" value="MEMBER_FOLLOWING">
@@ -1178,7 +1187,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_following-body">
@@ -1199,7 +1207,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>連番</pre></td>
 		<td class="subcell">memberFollowingId</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -1218,7 +1225,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>気になった人がいて...勇気を振り絞った会員のID。</pre></td>
 		<td class="subcell">myMemberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -1237,7 +1243,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>いきなりのアクションに...ちょっと心揺らいだ会員のID。</pre></td>
 		<td class="subcell">yourMemberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1256,14 +1261,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>ふりかえるとちょっと恥ずかしい気持ちになる日時</pre></td>
 		<td class="subcell">followDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_login" title="type=TABLE, primaryKey={MEMBER_LOGIN_ID}, nameLength=12, columnCount=5">
 (会員ログイン)MEMBER_LOGIN
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment MEMBER_LOGIN_comment" data-name="MEMBER_LOGIN"><pre>ログインするたびに登録されるログイン履歴。
 登録されたら更新されるも削除されることもない。さらには、登録する人もプログラムもはっきりしているので、(紙面の都合上もあって)ここでは共通カラムは省略している。</pre></div>
@@ -1287,7 +1290,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_login-body">
@@ -1308,7 +1310,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">memberLoginId</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -1327,7 +1328,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -1347,7 +1347,6 @@ dl.procedurelist dd.column pre {
 同じ会員が同じ日時にログインはできない。(ユニーク制約で重複ログインできないようにしてある)</pre></td>
 		<td class="subcell">loginDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1366,7 +1365,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>モバイル機器からのログインか否か。</pre></td>
 		<td class="subcell">mobileLoginFlg</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -1385,14 +1383,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>ログイン時の会員ステータス</pre></td>
 		<td class="subcell">loginMemberStatusCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_security" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=15, columnCount=10">
 (会員セキュリティ情報)MEMBER_SECURITY
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment MEMBER_SECURITY_comment" data-name="MEMBER_SECURITY"><pre>会員とは one-to-one で、会員一人につき必ず一つのセキュリティ情報がある</pre></div>
 <input type="hidden" value="MEMBER_SECURITY">
@@ -1415,7 +1411,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_security-body">
@@ -1436,7 +1431,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>そのまま one-to-one を構成するためのFKとなる。</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -1448,7 +1442,7 @@ dl.procedurelist dd.column pre {
 		<td class="aliascell">ログインパスワード</td>
 		<td class=" columnnamecell" id="member_security_login_password">LOGIN_PASSWORD</td>
 		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 50 </td>
+		<td class="sizecell"> 100 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
 		<td class="relcell"> &nbsp;</td>
@@ -1456,7 +1450,6 @@ dl.procedurelist dd.column pre {
 本当は良くないが、Exampleなのでひとまず暗号化していない。</pre></td>
 		<td class="subcell">loginPassword</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -1475,7 +1468,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>パスワードを忘れた際のリマインダ機能における質問の内容。</pre></td>
 		<td class="subcell">reminderQuestion</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1494,7 +1486,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>パスワードを忘れた際のリマインダ機能における質問の答え。</pre></td>
 		<td class="subcell">reminderAnswer</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -1514,7 +1505,6 @@ dl.procedurelist dd.column pre {
 これが多いと忘れっぽい会員と言えるが、そんなことを知ってもしょうがない。</pre></td>
 		<td class="subcell">reminderUseCount</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -1533,7 +1523,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -1552,7 +1541,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -1571,7 +1559,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -1590,7 +1577,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -1609,14 +1595,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_service" title="type=TABLE, primaryKey={MEMBER_SERVICE_ID}, nameLength=14, columnCount=9">
 (会員サービス)MEMBER_SERVICE
-&nbsp;<span class="tablefirstdatetitle">since 2010/11/26</span>
 </h2>
 <div class="tablecomment MEMBER_SERVICE_comment" data-name="MEMBER_SERVICE"><pre>会員のサービス情報（ポイントサービスなど）。
 テストケースのために、あえて統一性を崩してユニーク制約経由の one-to-one を表現している。</pre></div>
@@ -1640,7 +1624,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_service-body">
@@ -1661,7 +1644,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>独立した主キーとなるが、実質的に会員IDとは one-to-one である。</pre></td>
 		<td class="subcell">memberServiceId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">2011/05/05</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -1680,7 +1662,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>会員を参照するID。ユニークなので、会員とは one-to-one の関係に。</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -1699,7 +1680,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>購入したら増えて使ったら減る。</pre></td>
 		<td class="subcell">servicePointCount</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1718,7 +1698,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>どんなランクがあるのかドキドキですね。</pre></td>
 		<td class="subcell">serviceRankCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -1737,7 +1716,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -1756,7 +1734,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -1775,7 +1752,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -1794,7 +1770,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -1813,15 +1788,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_status" title="type=TABLE, primaryKey={MEMBER_STATUS_CODE}, nameLength=13, columnCount=4">
 (会員ステータス)MEMBER_STATUS
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
-&nbsp;<span class="bqpcount"><a href="#member_status_sql">(outsideSql=1)</a></span>
 </h2>
 <div class="tablecomment MEMBER_STATUS_comment" data-name="MEMBER_STATUS"><pre>会員のステータスを示す固定的なマスタテーブル。いわゆるテーブル区分値！
 業務運用上で増えることはなく、増減するときはプログラム修正ともなうレベルの業務変更と考えられる。
@@ -1847,7 +1819,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_status-body">
@@ -1869,7 +1840,6 @@ dl.procedurelist dd.column pre {
 固定的なデータなので連番とか番号にはせず、データを直接見たときも人が直感的にわかるように、例えば "FML" とかの３桁のコード形式にしている。(3って何会員だっけ？とかの問答をやりたくないので)</pre></td>
 		<td class="subcell">memberStatusCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -1889,7 +1859,6 @@ dl.procedurelist dd.column pre {
 国際化対応するときはもっと色々考える必要があるかと...ということで英語名カラムがないので、そのまま区分値メソッド名の一部としても利用される。</pre></td>
 		<td class="subcell">memberStatusName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -1909,7 +1878,6 @@ dl.procedurelist dd.column pre {
 区分値の一つ一つの要素に気の利いた説明があるとディベロッパーがとても助かるので絶対に欲しい。</pre></td>
 		<td class="subcell">description</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -1929,14 +1897,12 @@ dl.procedurelist dd.column pre {
 並べるときは、このカラムに対して昇順のソート条件にする。</pre></td>
 		<td class="subcell">displayOrder</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="member_withdrawal" title="type=TABLE, primaryKey={MEMBER_ID}, nameLength=17, columnCount=8">
 (会員退会情報)MEMBER_WITHDRAWAL
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment MEMBER_WITHDRAWAL_comment" data-name="MEMBER_WITHDRAWAL"><pre>退会会員の退会に関する詳細な情報。
 退会会員のみデータが存在し、"1 : 0..1" のパターンの one-to-one である。
@@ -1962,7 +1928,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="member_withdrawal-body">
@@ -1983,7 +1948,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2003,7 +1967,6 @@ dl.procedurelist dd.column pre {
 何も言わずに退会する会員もいるので必須項目ではない。</pre></td>
 		<td class="subcell">withdrawalReasonCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2023,7 +1986,6 @@ dl.procedurelist dd.column pre {
 もう言いたいこと言ってもらう感じ。サイト運営側としてはこういうのは真摯に受け止めて改善していきたいところ。</pre></td>
 		<td class="subcell">withdrawalReasonInputText</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -2043,7 +2005,6 @@ dl.procedurelist dd.column pre {
 正式会員日時と違い、こっちは one-to-one の別テーブルで管理されている。</pre></td>
 		<td class="subcell">withdrawalDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -2062,7 +2023,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -2081,7 +2041,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -2100,7 +2059,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -2119,14 +2077,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="product" title="type=TABLE, primaryKey={PRODUCT_ID}, nameLength=7, columnCount=11">
 (商品)PRODUCT
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment PRODUCT_comment" data-name="PRODUCT"><pre></pre></div>
 <input type="hidden" value="PRODUCT">
@@ -2149,7 +2105,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="product-body">
@@ -2170,7 +2125,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">productId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2190,7 +2144,6 @@ dl.procedurelist dd.column pre {
 実業務ではしっかりとコメントを入れることが強く強く推奨される。「よりによってこのテーブルでやらないでよ！」あわわ、何も聞こえません〜</pre></td>
 		<td class="subcell">productName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2209,7 +2162,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>これだけは書いておこう、商品を識別する業務上のコード。よく品番とか言うかもしれませんねぇ...</pre></td>
 		<td class="subcell">productHandleCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -2228,7 +2180,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">productCategoryCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -2247,7 +2198,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">productStatusCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -2266,7 +2216,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">regularPrice</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">2010/11/26</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -2285,7 +2234,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -2304,7 +2252,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -2323,7 +2270,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -2342,7 +2288,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">11</td>
@@ -2361,14 +2306,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="product_category" title="type=TABLE, primaryKey={PRODUCT_CATEGORY_CODE}, nameLength=16, columnCount=3">
 (商品カテゴリ)PRODUCT_CATEGORY
-&nbsp;<span class="tablefirstdatetitle">since 2010/11/26</span>
 </h2>
 <div class="tablecomment PRODUCT_CATEGORY_comment" data-name="PRODUCT_CATEGORY"><pre>商品のカテゴリを表現するマスタ。自己参照FKの階層になっている。</pre></div>
 <input type="hidden" value="PRODUCT_CATEGORY">
@@ -2391,7 +2334,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="product_category-body">
@@ -2412,7 +2354,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>自分のテーブルの別のレコードからも参照される。</pre></td>
 		<td class="subcell">productCategoryCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2431,7 +2372,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">productCategoryName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2450,14 +2390,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>最上位の場合はデータなし。まさひく自己参照FKカラム！</pre></td>
 		<td class="subcell">parentCategoryCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="product_status" title="type=TABLE, primaryKey={PRODUCT_STATUS_CODE}, nameLength=14, columnCount=3">
 (商品ステータス)PRODUCT_STATUS
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
 </h2>
 <div class="tablecomment PRODUCT_STATUS_comment" data-name="PRODUCT_STATUS"><pre>商品のステータスを表現する固定的なマスタ。</pre></div>
 <input type="hidden" value="PRODUCT_STATUS">
@@ -2480,7 +2418,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="product_status-body">
@@ -2496,12 +2433,11 @@ dl.procedurelist dd.column pre {
 		<td class="typecell">CHAR</td>
 		<td class="sizecell"> 3 </td>
 		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell"><a href="#product" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a>,<br><a href="#summary_product" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">SUMMARY_PRODUCT</a>&nbsp;</td>
+		<td class="relcell"><a href="#product" title="FK_PRODUCT_PRODUCT_STATUS">PRODUCT</a>&nbsp;</td>
 		<td class="relcell"><a href="#ProductStatusCls">ProductStatus</a></td>
 		<td class="commentcell"><pre>商品ステータスを識別するコード。</pre></td>
 		<td class="subcell">productStatusCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2520,7 +2456,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>表示用の名称、英語名カラムがないのでそのままメソッド名の一部としても利用される。</pre></td>
 		<td class="subcell">productStatusName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2539,15 +2474,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>もう、ご想像の通りです。</pre></td>
 		<td class="subcell">displayOrder</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">2011/05/05</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="purchase" title="type=TABLE, primaryKey={PURCHASE_ID}, nameLength=8, columnCount=12">
 (購入)PURCHASE
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
-&nbsp;<span class="bqpcount"><a href="#purchase_sql">(outsideSql=1)</a></span>
 </h2>
 <div class="tablecomment PURCHASE_comment" data-name="PURCHASE"><pre>一つの商品に対する購入を表現する(購入履歴とも言える)。
 実業務であれば購入詳細というテーブルを作り、「購入という行為」と「その中身（詳細）」を違う粒度のデータとしてそれぞれ管理するのが一般的と言えるでしょう。というか、注文とか請求とかそういうことを考え始めたらもっと複雑になるはずですが、ExampleDBということで割り切っています。</pre></div>
@@ -2571,7 +2503,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="purchase-body">
@@ -2592,7 +2523,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">purchaseId</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2612,7 +2542,6 @@ dl.procedurelist dd.column pre {
 購入を識別する自然キー(複合ユニーク制約)の筆頭要素。</pre></td>
 		<td class="subcell">memberId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2625,13 +2554,12 @@ dl.procedurelist dd.column pre {
 		<td class=" columnnamecell" id="purchase_product_id">PRODUCT_ID</td>
 		<td class="typecell">INTEGER</td>
 		<td class="sizecell"> 10 </td>
-		<td class="relcell"><a href="#product" title="FK_PURCHASE_PRODUCT">PRODUCT</a>,<br><a href="#summary_product" class="additionalfk" title="FK_PURCHASE_SUMMARY_PRODUCT">SUMMARY_PRODUCT</a>&nbsp;</td>
+		<td class="relcell"><a href="#product" title="FK_PURCHASE_PRODUCT">PRODUCT</a>&nbsp;</td>
 		<td class="relcell">&nbsp;</td>
 		<td class="relcell"> &nbsp;</td>
 		<td class="commentcell"><pre>あなたは何を買ったのか？</pre></td>
 		<td class="subcell">productId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -2650,7 +2578,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>購入した瞬間の日時。</pre></td>
 		<td class="subcell">purchaseDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -2669,7 +2596,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>購入した商品の一回の購入における数量。</pre></td>
 		<td class="subcell">purchaseCount</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -2689,7 +2615,6 @@ dl.procedurelist dd.column pre {
 基本は商品の定価に購入数量を掛けたものになるが、ポイント利用や割引があったりと必ずしもそうはならない。</pre></td>
 		<td class="subcell">purchasePrice</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -2708,7 +2633,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>この購入に関しての支払いが完了しているか否か。</pre></td>
 		<td class="subcell">paymentCompleteFlg</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -2727,7 +2651,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -2746,7 +2669,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">10</td>
@@ -2765,7 +2687,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">11</td>
@@ -2784,7 +2705,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">12</td>
@@ -2803,14 +2723,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">versionNo</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="purchase_payment" title="type=TABLE, primaryKey={PURCHASE_PAYMENT_ID}, nameLength=16, columnCount=9">
 (購入支払)PURCHASE_PAYMENT
-&nbsp;<span class="tablefirstdatetitle">since 2014/05/29</span>
 </h2>
 <div class="tablecomment PURCHASE_PAYMENT_comment" data-name="PURCHASE_PAYMENT"><pre>購入に対する支払。
 分割払いもできるのでmanyとなり、会員からの孫テーブルのテストができてうれしい。</pre></div>
@@ -2834,7 +2752,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="purchase_payment-body">
@@ -2855,7 +2772,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>連番</pre></td>
 		<td class="subcell">purchasePaymentId</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -2874,7 +2790,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>支払い対象の購入へのID</pre></td>
 		<td class="subcell">purchaseId</td>
 		<td class="subcell">Long</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -2893,7 +2808,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>支払った金額。さて、小数点なのはなぜでしょう？</pre></td>
 		<td class="subcell">paymentAmount</td>
 		<td class="subcell">BigDecimal</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -2912,7 +2826,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>支払ったときの日時</pre></td>
 		<td class="subcell">paymentDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -2931,7 +2844,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>手渡しや銀行振込など</pre></td>
 		<td class="subcell">paymentMethodCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">2014/05/31</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -2950,7 +2862,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">7</td>
@@ -2969,7 +2880,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">registerUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">8</td>
@@ -2988,7 +2898,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateDatetime</td>
 		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">9</td>
@@ -3007,14 +2916,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">updateUser</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="region" title="type=TABLE, primaryKey={REGION_ID}, nameLength=6, columnCount=2">
 (地域)REGION
-&nbsp;<span class="tablefirstdatetitle">since 2010/11/26</span>
 </h2>
 <div class="tablecomment REGION_comment" data-name="REGION"><pre>主に会員の住所に対応する漠然とした地域。
 かなりざっくりした感じではある。唯一の業務的one-to-oneの親テーブルのケース。</pre></div>
@@ -3038,7 +2945,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="region-body">
@@ -3060,7 +2966,6 @@ dl.procedurelist dd.column pre {
 珍しく(固定的な)マスタテーブルとしては数値だが、Exampleなのでやはり色々なパターンがないとね、ってところで。</pre></td>
 		<td class="subcell">regionId</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -3079,14 +2984,12 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>地域を漠然と表す名称。</pre></td>
 		<td class="subcell">regionName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
 
 <h2 id="service_rank" title="type=TABLE, primaryKey={SERVICE_RANK_CODE}, nameLength=12, columnCount=6">
 (サービスランク)SERVICE_RANK
-&nbsp;<span class="tablefirstdatetitle">since 2010/11/26</span>
 </h2>
 <div class="tablecomment SERVICE_RANK_comment" data-name="SERVICE_RANK"><pre>会員のサービスレベルを表現するランク。(ゴールドとかプラチナとか)</pre></div>
 <input type="hidden" value="SERVICE_RANK">
@@ -3109,7 +3012,6 @@ dl.procedurelist dd.column pre {
 		<th>ColumnComment</th>
 		<th>PropertyName</th>
 		<th>JavaType</th>
-		<th>Since</th>
 	</tr>
 	</thead>
 	<tbody id="service_rank-body">
@@ -3130,7 +3032,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>サービスランクを識別するコード。</pre></td>
 		<td class="subcell">serviceRankCode</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">2</td>
@@ -3150,7 +3051,6 @@ dl.procedurelist dd.column pre {
 ゴールドとかプラチナとか基本的には威厳のある名前</pre></td>
 		<td class="subcell">serviceRankName</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">3</td>
@@ -3170,7 +3070,6 @@ dl.procedurelist dd.column pre {
 購入価格にこの値をかけた数が発生ポイント。ExampleDBとして数少ない貴重な小数点ありのカラム。</pre></td>
 		<td class="subcell">servicePointIncidence</td>
 		<td class="subcell">BigDecimal</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">4</td>
@@ -3189,7 +3088,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>このランクへの新規受け入れができるかどうか。</pre></td>
 		<td class="subcell">newAcceptableFlg</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">5</td>
@@ -3208,7 +3106,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>ランクに関する業務的な説明。</pre></td>
 		<td class="subcell">description</td>
 		<td class="subcell">String</td>
-		<td class="subcell">first</td>
 	</tr>
 	<tr>
 		<td class="rownumcell">6</td>
@@ -3227,7 +3124,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>UI上の表示順を表現する番号。</pre></td>
 		<td class="subcell">displayOrder</td>
 		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
 	</tr>
 	</tbody>
 </table>
@@ -3313,336 +3209,6 @@ dl.procedurelist dd.column pre {
 		<td class="commentcell"><pre>&nbsp;</pre></td>
 		<td class="subcell">displayOrder</td>
 		<td class="subcell">Integer</td>
-	</tr>
-	</tbody>
-</table>
-
-<h2 id="summary_product" title="type=VIEW, primaryKey={PRODUCT_ID}, nameLength=15, columnCount=5">
-SUMMARY_PRODUCT
-&nbsp;<span class="tablefirstdatetitle">since 2010/06/15</span>
-</h2>
-<div class="tablecomment SUMMARY_PRODUCT_comment" data-name="SUMMARY_PRODUCT"><pre></pre></div>
-<input type="hidden" value="SUMMARY_PRODUCT">
-<table class="tablecontent">
-	<thead>
-	<tr>
-		<th class="rownumhead">No.</th>
-		<th>PK</th>
-		<th>ID</th>
-		<th>UQ</th>
-		<th>IX</th>
-		<th>Not<br />Null</th>
-		<th>Alias</th>
-		<th>Name</th>
-		<th>Type</th>
-		<th>Size</th>
-		<th>ForeignTable</th>
-		<th>ReferrerTable</th>
-		<th>Classification</th>
-		<th>ColumnComment</th>
-		<th>PropertyName</th>
-		<th>JavaType</th>
-		<th>Since</th>
-	</tr>
-	</thead>
-	<tbody id="summary_product-body">
-	<tr>
-		<td class="rownumcell">1</td>
-		<td class="flgcell additionalpk">o</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_product_product_id">PRODUCT_ID</td>
-		<td class="typecell">INTEGER</td>
-		<td class="sizecell"> 10 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell"><a href="#purchase" class="additionalfk" title="FK_PURCHASE_SUMMARY_PRODUCT">PURCHASE</a>&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">productId</td>
-		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">2</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_product_product_name">PRODUCT_NAME</td>
-		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 50 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">productName</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">3</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_product_product_handle_code">PRODUCT_HANDLE_CODE</td>
-		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 100 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">productHandleCode</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">4</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_product_product_status_code">PRODUCT_STATUS_CODE</td>
-		<td class="typecell">CHAR</td>
-		<td class="sizecell"> 3 </td>
-		<td class="relcell"><a href="#product_status" class="additionalfk" title="FK_SUMMARY_PRODUCT_PRODUCT_STATUS">PRODUCT_STATUS</a>&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"><a href="#ProductStatusCls">ProductStatus</a></td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">productStatusCode</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">5</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_product_latest_purchase_datetime">LATEST_PURCHASE_DATETIME</td>
-		<td class="typecell">TIMESTAMP</td>
-		<td class="sizecell"> 26, 6 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">latestPurchaseDatetime</td>
-		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
-	</tr>
-	</tbody>
-</table>
-
-<h2 id="summary_withdrawal" title="type=VIEW, primaryKey={}, nameLength=18, columnCount=9">
-SUMMARY_WITHDRAWAL
-&nbsp;<span class="tablefirstdatetitle">since 2010/12/03</span>
-</h2>
-<div class="tablecomment SUMMARY_WITHDRAWAL_comment" data-name="SUMMARY_WITHDRAWAL"><pre></pre></div>
-<input type="hidden" value="SUMMARY_WITHDRAWAL">
-<table class="tablecontent">
-	<thead>
-	<tr>
-		<th class="rownumhead">No.</th>
-		<th>PK</th>
-		<th>ID</th>
-		<th>UQ</th>
-		<th>IX</th>
-		<th>Not<br />Null</th>
-		<th>Alias</th>
-		<th>Name</th>
-		<th>Type</th>
-		<th>Size</th>
-		<th>ForeignTable</th>
-		<th>ReferrerTable</th>
-		<th>Classification</th>
-		<th>ColumnComment</th>
-		<th>PropertyName</th>
-		<th>JavaType</th>
-		<th>Since</th>
-	</tr>
-	</thead>
-	<tbody id="summary_withdrawal-body">
-	<tr>
-		<td class="rownumcell">1</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_member_id">MEMBER_ID</td>
-		<td class="typecell">INTEGER</td>
-		<td class="sizecell"> 10 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">memberId</td>
-		<td class="subcell">Integer</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">2</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_member_name">MEMBER_NAME</td>
-		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 200 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">memberName</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">3</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_withdrawal_reason_code">WITHDRAWAL_REASON_CODE</td>
-		<td class="typecell">CHAR</td>
-		<td class="sizecell"> 3 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">withdrawalReasonCode</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">4</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_withdrawal_reason_text">WITHDRAWAL_REASON_TEXT</td>
-		<td class="typecell">CLOB</td>
-		<td class="sizecell"> 2147483647 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">withdrawalReasonText</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">5</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_withdrawal_reason_input_text">WITHDRAWAL_REASON_INPUT_TEXT</td>
-		<td class="typecell">CLOB</td>
-		<td class="sizecell"> 2147483647 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">withdrawalReasonInputText</td>
-		<td class="subcell">String</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">6</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_withdrawal_datetime">WITHDRAWAL_DATETIME</td>
-		<td class="typecell">TIMESTAMP</td>
-		<td class="sizecell"> 26, 6 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">withdrawalDatetime</td>
-		<td class="subcell">LocalDateTime</td>
-		<td class="subcell">first</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">7</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_member_status_code">MEMBER_STATUS_CODE</td>
-		<td class="typecell">CHAR</td>
-		<td class="sizecell"> 3 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">memberStatusCode</td>
-		<td class="subcell">String</td>
-		<td class="subcell">2010/12/03</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">8</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_member_status_name">MEMBER_STATUS_NAME</td>
-		<td class="typecell">VARCHAR</td>
-		<td class="sizecell"> 50 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">memberStatusName</td>
-		<td class="subcell">String</td>
-		<td class="subcell">2010/12/03</td>
-	</tr>
-	<tr>
-		<td class="rownumcell">9</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell">&nbsp;</td>
-		<td class="flgcell"> &nbsp;</td>
-		<td class="aliascell"></td>
-		<td class=" columnnamecell" id="summary_withdrawal_max_purchase_price">MAX_PURCHASE_PRICE</td>
-		<td class="typecell">INTEGER</td>
-		<td class="sizecell"> 10 </td>
-		<td class="relcell">&nbsp;&nbsp;</td>
-		<td class="relcell">&nbsp;</td>
-		<td class="relcell"> &nbsp;</td>
-		<td class="commentcell"><pre>&nbsp;</pre></td>
-		<td class="subcell">maxPurchasePrice</td>
-		<td class="subcell">Integer</td>
-		<td class="subcell">2010/12/03</td>
 	</tr>
 	</tbody>
 </table>
@@ -3813,22 +3379,22 @@ SUMMARY_WITHDRAWAL
 			<tr>
 				<td>SIT</td>
 				<td>Sit</td>
-				<td class="commentcell">サイトが使いにくいから</td>
+				<td class="commentcell">site&nbsp;is&nbsp;not&nbsp;kindness</td>
 			</tr>
 			<tr>
 				<td>PRD</td>
 				<td>Prd</td>
-				<td class="commentcell">商品に魅力がないから</td>
+				<td class="commentcell">no&nbsp;attractive&nbsp;product</td>
 			</tr>
 			<tr>
 				<td>FRT</td>
 				<td>Frt</td>
-				<td class="commentcell">フリテンだから</td>
+				<td class="commentcell">because&nbsp;of&nbsp;furiten</td>
 			</tr>
 			<tr>
 				<td>OTH</td>
 				<td>Oth</td>
-				<td class="commentcell">その他理由</td>
+				<td class="commentcell">other&nbsp;reasons</td>
 			</tr>
 			</table>
 		</td>
@@ -3846,28 +3412,28 @@ SUMMARY_WITHDRAWAL
 			</tr>
 			<tr>
 				<td>MSC</td>
-				<td>音楽</td>
+				<td>Music</td>
 				<td class="commentcell">&nbsp;</td>
 			</tr>
 			<tr>
 				<td>FOD</td>
-				<td>食品</td>
+				<td>Food</td>
 				<td class="commentcell">&nbsp;</td>
 			</tr>
 			<tr>
 				<td>HEB</td>
-				<td>ハーブ</td>
-				<td class="commentcell">of&nbsp;食品</td>
+				<td>Herb</td>
+				<td class="commentcell">of&nbsp;Food</td>
 			</tr>
 			<tr>
 				<td>MCD</td>
-				<td>音楽cd</td>
-				<td class="commentcell">of&nbsp;音楽</td>
+				<td>MusicCD</td>
+				<td class="commentcell">of&nbsp;Music</td>
 			</tr>
 			<tr>
 				<td>INS</td>
-				<td>楽器</td>
-				<td class="commentcell">of&nbsp;音楽</td>
+				<td>Instruments</td>
+				<td class="commentcell">of&nbsp;Music</td>
 			</tr>
 			</table>
 		</td>
@@ -3885,17 +3451,17 @@ SUMMARY_WITHDRAWAL
 			</tr>
 			<tr>
 				<td>ONS</td>
-				<td>生産販売可能</td>
+				<td>OnSaleProduction</td>
 				<td class="commentcell">&nbsp;</td>
 			</tr>
 			<tr>
 				<td>PST</td>
-				<td>生産中止</td>
+				<td>ProductionStop</td>
 				<td class="commentcell">&nbsp;</td>
 			</tr>
 			<tr>
 				<td>SST</td>
-				<td>販売中止</td>
+				<td>SaleStop</td>
 				<td class="commentcell">&nbsp;</td>
 			</tr>
 			</table>
@@ -3941,137 +3507,26 @@ SUMMARY_WITHDRAWAL
 	</tbody>
 </table>
 
-<h2 id="outsidesql">OutsideSql List</h2>
-<h3 id="member_sql"><a href="#member">MEMBER</a></h3>
-<dl class="bqplist">
-	<dt>(The&nbsp;example&nbsp;for&nbsp;select&nbsp;using&nbsp;domain&nbsp;entity)selectDomainMember</dt>
-	<dd>
-		<pre class="commentdesc"> You can use a domain entity as result type
- if a selected column is one of a domain table.</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectDomainMember.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(The&nbsp;example&nbsp;for&nbsp;selecting&nbsp;scalar&nbsp;value)selectLatestFormalizedDatetime</dt>
-	<dd>
-		<pre class="commentdesc"> You can use a scalar type as result type
- if the select clause has only one column.</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectLatestFormalizedDatetime.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(The&nbsp;example&nbsp;for&nbsp;scalar&nbsp;select)selectMemberName</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for scalar select of outside-SQL
- and also for the following functions:
-  o auto-detection for alternate boolean methods</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectMemberName.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(The&nbsp;example&nbsp;for&nbsp;select&nbsp;using&nbsp;options)selectOptionMember</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for various options of parameter.
- Point:
-   o The option of like search (like, likePrefix, likeContain, likeSuffix)
-   o The option of from-to search (fromDate, toDate)
-   o The option of classifications for ParameterBean (ref(...) or cls(...))
-   o The auto option of classifications for CustomizeEntity 
-   o The option of reference to table columns (ref(...))
-   o How to set several options (...|...)</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectOptionMember.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(Example&nbsp;for&nbsp;ManualPaging)selectPurchaseMaxPriceMember</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for manual-paging of outside-SQL
- and also for the following functions:
-  o auto-detection for parameter-bean's properties
-  o dynamic-size bind parameters by FOR comment
-  o classification property as CDef list</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectPurchaseMaxPriceMember.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb extends Paging)</span>
-	</dd>
-	<dt>(Example&nbsp;for&nbsp;CursorSelect)selectPurchaseSummaryMember</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for cursor-select of outside-SQL
- and also for the following functions:
-  o FOR comment with NEXT</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectPurchaseSummaryMember.sql</span>
-		<span class="ctet">(df:entity *cursor)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(Example&nbsp;for&nbsp;Simple&nbsp;Select)selectSimpleMember</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is the most basic example for outsideSql.
- It uses CustomizeEntity and ParameterBean.</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectSimpleMember.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-	<dt>(Example&nbsp;for&nbsp;AutoPaging)selectUnpaidSummaryMember</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for auto-paging of outside-SQL
- and also for the following functions:
-  o auto-detection for parameter-bean's properties
-  o primary key setting for LoadReferrer</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_selectUnpaidSummaryMember.sql</span>
-		<span class="ctet">(df:entity)</span>
-		<span class="pmb">(df:pmb extends Paging)</span>
-	</dd>
-	<dt>(Force&nbsp;Withdrawal&nbsp;Update)updateMemberChangedToWithdrawalForcedly</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is normal update.</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberBhv_updateMemberChangedToWithdrawalForcedly.sql</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
+<h2 id="arrangequery">ArrangeQuery List</h2>
+<h3 id="member_arrqy"><a href="#member">MEMBER</a></h3>
+<h4 id="member_arrqy_query">MemberCQ</h4>
+<dl class="arrqylist">
+	<dt>arrangeLogin() <span class="commentdesc">// Arrange member login query.</span></dt>
+	<dd>&nbsp;</dd>
+	<dt>arrangeLoginByIdentity() <span class="commentdesc">// Arrange member login query by identity.</span></dt>
+	<dd>&nbsp;</dd>
 </dl>
-<h3 id="member_status_sql"><a href="#member_status">MEMBER_STATUS</a></h3>
-<dl class="bqplist">
-	<dt>(The&nbsp;example&nbsp;for&nbsp;out&nbsp;of&nbsp;target&nbsp;in&nbsp;Sql2Entity)truncateMemberStatusInitialized</dt>
-	<dd>
-		<pre class="commentdesc"> The customize-entity keyword 'df:x' means this SQL is
- out of target in Sql2Entity and OutsideSqlTest task.
- (for example, for non-rolled-back statements)</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">MemberStatusBhv_truncateMemberStatusInitialized.sql</span>
-		<span class="ctet">(df:x)</span>
-		<span class="pmb">(df:pmb)</span>
-	</dd>
-</dl>
-<h3 id="purchase_sql"><a href="#purchase">PURCHASE</a></h3>
-<dl class="bqplist">
-	<dt>(Example&nbsp;for&nbsp;Cursor&nbsp;and&nbsp;Paging&nbsp;select)selectPaymentCompletePurchase</dt>
-	<dd>
-		<pre class="commentdesc"> This SQL is an example for both cursor-select and manual-paging of outside-SQL</pre>
-	</dd>
-	<dd class="subinfo">
-		<span class="file">PurchaseBhv_selectPaymentCompletePurchase.sql</span>
-		<span class="ctet">(df:entity *cursor)</span>
-		<span class="pmb">(df:pmb extends Paging)</span>
-	</dd>
-</dl>
+<h2 id="procedure">Procedure</h2>
+
+<h2 id="diagram">Schema Diagram</h2>
+<h3>maihamadb_erd</h3>
+<p>
+	<a href="../../../modeling/maihamadb.png">
+		<img src="../../../modeling/maihamadb.png"
+			alt="ER Diagram"
+		/>
+	</a>
+</p>
 
 <h2 id="thanks">Thanks</h2>
 <p>
@@ -4084,7 +3539,8 @@ SUMMARY_WITHDRAWAL
 		<div id="decomment-close" class="decommentmodal-close-btn"><span>x</span></div>
 		<p>Input the new column comment of <span id="decomment-modal-column-info"></span></p>
 		<textarea id="decomment-input" class="decommentinput" rows="5"></textarea>
-		<button id="decomment-ok" class="decommentmodal-ok-btn">OK</button>
+		<div id="decomment-user-input" class="decomment-user-input"><input type="text" id="decomment-user-name" class="decomment-user-name" placeholder="User name"/><span class="decomment-user-name-desc">*required (saved in cookie)</span></div>
+		<div class="decommentmodal-ok-area"><button id="decomment-ok" class="decommentmodal-ok-btn">OK</button></div>
 	</div>
 </div>
 <script>
@@ -4581,6 +4037,12 @@ var DecommentUtil = new function(){
 	 */
 	this.unescapeWhitespace = function (string) {
 		return string.split('&nbsp;').join(' ');
+	},
+	/**
+	 * Check is opening with server mode.
+	 */
+	this.isDecommentServer = function() {
+		return document.getElementById("decomment_server") != null;
 	}
 }
 
@@ -5007,58 +4469,6 @@ function StoreClient() {
 				}
 			}
 		}
-		, 'SUMMARY_PRODUCT': {
-			'databaseComment': ''
-			, 'columns': {
-				'PRODUCT_ID': {
-					'databaseComment': ''
-				}
-				, 'PRODUCT_NAME': {
-					'databaseComment': ''
-				}
-				, 'PRODUCT_HANDLE_CODE': {
-					'databaseComment': ''
-				}
-				, 'PRODUCT_STATUS_CODE': {
-					'databaseComment': ''
-				}
-				, 'LATEST_PURCHASE_DATETIME': {
-					'databaseComment': ''
-				}
-			}
-		}
-		, 'SUMMARY_WITHDRAWAL': {
-			'databaseComment': ''
-			, 'columns': {
-				'MEMBER_ID': {
-					'databaseComment': ''
-				}
-				, 'MEMBER_NAME': {
-					'databaseComment': ''
-				}
-				, 'WITHDRAWAL_REASON_CODE': {
-					'databaseComment': ''
-				}
-				, 'WITHDRAWAL_REASON_TEXT': {
-					'databaseComment': ''
-				}
-				, 'WITHDRAWAL_REASON_INPUT_TEXT': {
-					'databaseComment': ''
-				}
-				, 'WITHDRAWAL_DATETIME': {
-					'databaseComment': ''
-				}
-				, 'MEMBER_STATUS_CODE': {
-					'databaseComment': ''
-				}
-				, 'MEMBER_STATUS_NAME': {
-					'databaseComment': ''
-				}
-				, 'MAX_PURCHASE_PRICE': {
-					'databaseComment': ''
-				}
-			}
-		}
 	}
 
 	this.unmappedTableArea = new UnmappedTableArea();
@@ -5247,6 +4657,7 @@ StoreClient.prototype = {
 
 function PickupTableProperty(tableDbName, json) {
 	this.tableDbName = tableDbName;
+	this.inputAuthor = null; // use when decomment server mode.
 	if (json) {
 		this.databaseComment = json.databaseComment;
 		this.isDatabaseCommentConflict = json.isDatabaseCommentConflict;
@@ -5385,6 +4796,7 @@ PickupTableProperty.prototype = {
 			'decomment': (this.decomments[0] || {}).body,
 			'databaseComment': DecommentUtil.escapeNewlineCharacter(this.databaseComment),
 			'commentVersion': this.commentVersion || 0,
+			'inputAuthor': this.inputAuthor,
 			'authors': this.authors || [],
 			'previousPieces': this.previousPieces || []
 		};
@@ -5394,6 +4806,7 @@ PickupTableProperty.prototype = {
 function PickupColumnProperty(tableDbName, columnName, json) {
 	this.tableDbName = tableDbName;
 	this.columnName = columnName;
+	this.inputAuthor = null; // use when decomment server mode.
 	if (json) {
 		this.databaseComment = json['databaseComment'];
 		this.isDatabaseCommentConflict = json['isDatabaseCommentConflict'];
@@ -5527,6 +4940,7 @@ PickupColumnProperty.prototype = {
 			'decomment': (this.decomments[0] || {}).body,
 			'databaseComment': DecommentUtil.escapeNewlineCharacter(this.databaseComment),
 			'commentVersion': this.commentVersion || 0,
+			'inputAuthor': this.inputAuthor,
 			'authors': this.authors || [],
 			'previousPieces': this.previousPieces || []
 		};
@@ -5549,6 +4963,7 @@ Decomment.prototype = {
 		if (document.getElementById("intro_opening") !== null) {
 			this.fetchVirtualPickup();
 			this.setupKeyDownEvent();
+			this.showUserNameInputIfNeed();
 		} else {
 			this.reflectEmbeddedPickup();
 		}
@@ -5567,10 +4982,23 @@ Decomment.prototype = {
 	},
 
 	/**
+	 * Show user name input when decomment server mode.
+	 */
+	showUserNameInputIfNeed: function() {
+		if (DecommentUtil.isDecommentServer() && this.isUserNameEmpty()) {
+			document.querySelector('#decomment-user-input').style.display = 'block';
+		}
+	},
+
+	hideUserNameInput: function() {
+		document.querySelector('#decomment-user-input').style.display = 'none';
+	},
+
+	/**
 	 * Reflect embedded pick
 	 */
 	reflectEmbeddedPickup: function () {
-		this.reflectPickup(this.embeddedPickup);
+		this.reflectPickup(this.storeClient.embeddedPickup);
 	},
 
 	/**
@@ -5646,7 +5074,7 @@ Decomment.prototype = {
 
 				var commentElement = column.querySelector('.commentcell');
 				var tableName = that.getTableNameFromElement(table);
-				var columnName = column.querySelector('.columnnamecell').innerText;
+				var columnName = column.querySelector('.columnnamecell').innerText.trim();
 				var columnProperty = that.storeClient.getColumnPickup(tableName, columnName) || new PickupTableProperty(tableName, columnName)
 				commentElement.onclick = that.createSaveDecommentFunction(columnProperty);
 			});
@@ -5677,8 +5105,12 @@ Decomment.prototype = {
 
 			document.getElementById("decomment-ok").onclick = function () {
 				var decomment = inputElement.value;
+				if (DecommentUtil.isDecommentServer() && that.isUserNameEmpty()) {
+					alert('Input your user name.');
+					return;
+				}
 				if (that.isStillConflicting(decomment)) {
-					alert('Still conflicting. please resolve.');
+					alert('Still conflicting. please resolve.')
 					return;
 				}
 				if (!that.isCommentChanged(previousWholeComment, decomment)) {
@@ -5688,9 +5120,11 @@ Decomment.prototype = {
 				decomment = DecommentUtil.escapeInputText(decomment);
 				decomment = DecommentUtil.deleteUnnecessaryWhitespace(decomment);
 				commentProperty.decomments = [{'body': decomment}]
+				commentProperty.inputAuthor = that.getUserName();
 				var params = commentProperty.toRequestParams()
 				new ApiClient().saveDecomment(params, function () {
-					that.fetchVirtualPickup()
+					that.fetchVirtualPickup();
+					that.hideUserNameInput();
 				});
 				modalElement.style.display = "none";
 			};
@@ -5701,6 +5135,42 @@ Decomment.prototype = {
 				}
 			};
 		};
+	},
+
+	/**
+	 * Get user name. and save to cookie if not saved.
+	 */
+	getUserName : function() {
+		var savedUserName = this.getCookie('decomment-user-name');
+		if (savedUserName) {
+			return savedUserName;
+		}
+		var inputUserName = document.querySelector('#decomment-user-name').value;
+		if (inputUserName && inputUserName.length > 0) {
+			document.cookie = "decomment-user-name=" + inputUserName + ";expires=2147483647";
+		}
+		return inputUserName;
+	},
+
+	/**
+	 * Check user name is inputed.
+	 */
+	isUserNameEmpty : function() {
+		return this.getCookie('decomment-user-name') === null && this.getUserName().length === 0;
+	},
+
+	/**
+	 * Get cookie from key
+	 */
+	getCookie: function (key){
+		var cookies = document.cookie.split('; ');
+		for (var i = 0; i < cookies.length; i++){
+			var c = cookies[i].split('=');
+			if(c[0] === key){
+				return c[1];
+			}
+		}
+		return null;
 	},
 
 	/**
