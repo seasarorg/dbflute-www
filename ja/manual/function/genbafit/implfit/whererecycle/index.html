@@ -83,7 +83,7 @@
 	</p>
 <pre><span class="codetitle">e.g. ある特別な商品を購入したことのある会員名称が "S" で始まる正式会員を検索 @Java</span><code>
 MemberCB cb = <span class="keyword">new</span> MemberCB();
-cb.query().setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+cb.query().setMemberName_LikeSearch(<span class="literal">"S"</span>, op -&gt; op.likePrefix());
 cb.query().setMemberStatusCode_Equal_Formalized();
 cb.query().existsPurchaseList(purchaseCB -&gt; {
     purchaseCB.query().setProductId_Equal(SPECIAL_PRODUCT_ID);
@@ -145,7 +145,7 @@ cb.query().existsPurchaseList(purchaseCB -&gt; {
     <span class="comment"> * 特別過ぎる優待会員</span>
     <span class="comment"> */</span>
     <span class="keyword">public void</span> arrangeTooPreferentialMember() {
-        setMemberName_PrefixSearch(<span class="literal">"S"</span>);
+        setMemberName_LikeSearch(<span class="literal">"S"</span>, op -&gt; op.likePrefix());
         setMemberStatusCode_Equal_Formalized();
         existsPurchaseList(purCB -&gt; {
             purCB.query().setProductId_Equal(<span class="attribute">SPECIAL_PRODUCT_ID</span>);
