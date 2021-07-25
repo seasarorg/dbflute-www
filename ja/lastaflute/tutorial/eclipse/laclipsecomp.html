@@ -1,0 +1,587 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="LastaFlute,Eclipse,Completion,Editor Templates" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/lasub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>LastaFluteのEclipseコード補完 | LastaFlute</title>
+</head>
+<body>
+<div id="container" class="ct-tutorial">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html"><img src="../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html"><img src="../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html"><img src="../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html"><img src="../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html"><img src="../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html"><img src="../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html"><img src="../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html"><img src="../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>LastaFluteのEclipseコード補完</h1>
+	<div class="relatedpage"><a href="../index.html">LastaFluteトップページ</a></div>
+	<div class="relatedpage"><a href="../laimpl.html">LastaFluteの実装チュートリアル</a></div>
+	<div class="relatedpage"><a href="../../../tutorial/eclipse/dfclipsecomp.html">DBFluteのEclipse補完テンプレート</a></div>
+	<ul class="indexlist">
+		<li><a href="#howtocomp">どう打ち込めばいい？</a>
+			<ul>
+				<li><a href="#controlspacecomp">補完文字列を打ってcontrol+space補完</a></li>
+				<li><a href="#comphierarchy">補完文字列の階層構造</a></li>
+				<li><a href="#comphierarchy">Action開発者にオススメ補完３つ！</a></li>
+			</ul>
+		</li>
+		<li><a href="#difield">DIフィールドの補完 <span class="frm">(_lad...)</span></a>
+			<ul>
+				<li><a href="#_ladany">任意のDIフィールド <span class="frm">(_ladany)</span> ★★★</a></li>
+				<li><a href="#_ladcomp">LastaFluteコンポーネントのDIフィールド <span class="frm">(_lad...)</span></a></li>
+			</ul>
+		</li>
+		<li><a href="#executemethod">Executeメソッドの補完 <span class="frm">(_laex...)</span></a>
+			<ul>
+				<li><a href="#_laexhtml">Execute Method で HtmlResponse <span class="frm">(_laexhtml)</span></a></li>
+				<li><a href="#_laexjson">Execute Method で JsonResponse <span class="frm">(_laexjson)</span></a></li>
+			</ul>
+		</li>
+		<li><a href="#propfield">プロパティフィールドの補完 <span class="frm">(_lap...)</span></a>
+			<ul>
+				<li><a href="#_laprop">publicプロパティのフィールド <span class="frm">(_laprop)</span> ★</a></li>
+				<li><a href="#_lapvalidclass">@ValidなPartクラスのフィールド <span class="frm">(_lapvalidclass)</span></a></li>
+				<li><a href="#_lapvalidlist">@ValidなPartクラスのListフィールド <span class="frm">(_lapvalidlist)</span></a></li>
+			</ul>
+		</li>
+		<li><a href="#tostring">BeanのtoString()の補完 <span class="frm">(_latostring)</span> ★</a></li>
+		<li><a href="#validation">バリデーションの補完 <span class="frm">(_lav...)</span></a>
+			<ul>
+				<li><a href="#_lavclienterr">クライアントエラーのgroups属性 <span class="frm">(_lavclienterr)</span></a></li>
+				<li><a href="#_lavmessages">validate()のmoreValidationLambda <span class="frm">(_lavmessages)</span></a></li>
+				<li><a href="#_lavmorevalidate">validate()のmoreValidationLambda続き <span class="frm">(_lavmorevalidate)</span></a></li>
+				<li><a href="#_lavreterrorhtml">validate()のvalidationErrorLambda <span class="frm">(_lavreterrorhtml)</span></a></li>
+			</ul>
+		</li>
+		<li><a href="#setuptemplate">補完テンプレートの環境構築</a>
+			<ul>
+				<li><a href="#dftemplatexml">DBFluteの補完テンプレートxml</a></li>
+				<li><a href="#importwholeway">まるごと入れ替え方式のやり方</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="howtocomp">どう打ち込めばいい？</h2>
+	<p>
+		もし補完テンプレートが設定されていなければ、まず設定しましょう。
+	</p>
+	<div class="relatedpage"><a href="#setuptemplate">this - 補完テンプレートの環境構築</a></div>
+	<h3 id="controlspacecomp">補完文字列を打ってcontrol+space補完</h3>
+	<p>
+		エディター上で補完文字列を打ってcontrol+space補完すると、コードが補完されます。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/friends/eclipse/shortcut/editorcut.html#completion">Eclipse - コード補完 (補完候補の表示)</a></div>
+<pre><span class="codetitle">e.g. DBFluteオリジナルの_llの補完テンプレート @Java</span><code>
+<span class="attribute">memberBhv</span>.selectList(<span class="literal">_ll</span>) <span class="comment">// _ll, control+space, enter</span>
+　↓↓↓
+<span class="attribute">memberBhv</span>.selectList([var] -&gt; {
+    [var].[object]
+})
+</code></pre>
+	<h3 id="comphierarchy">補完文字列の階層構造</h3>
+	<p>
+		(ある程度)補完文字列に階層構造があるので、何をしたいのか？を狙って打ち込んできましょう。
+	</p>
+	<dl class="shoshortkeymainlist">
+		<dt><em class="mark">_lad...</em></dt><dd><a href="#difield"><em>DIフィールドの補完</a> :: e.g. _ladany, _ladconfig, _ladreq, ...</dd>
+		<dt><em class="mark">_laex...</em></dt><dd><a href="#executemethod">Executeメソッドの補完</a> :: e.g. _laexhtml, _laexjson</dd>
+		<dt><em class="mark">_lap...</em></dt><dd><a href="#propfield">プロパティフィールドの補完</a> :: e.g. _laprop, _lapvalidclass, ...</dd>
+		<dt><em class="mark">_latostring</em></dt><dd><a href="#tostring">BeanのtoString()の補完</a> :: Form/Body, Resultクラスなどにて</dd>
+		<dt><em class="mark">_lav...</em></dt><dd><a href="#validation">バリデーションの補完</a> :: e.g. _lavclienterr, _lavmessages, ...</dd>
+	</dl>
+	<div class="inucolumn">
+		<h3 id="comphierarchy">Action開発者にオススメ補完３つ！</h3>
+		<p>
+			jfluteが思う「少なくともこれだけは使いこなして欲しい」と思う補完は...
+		</p>
+		<dl class="shoshortkeymainlist">
+			<dt><em class="mark">_ladany</em></dt><dd><a href="#difield"><em>DIフィールドの補完</a> :: @Resource付きのprivateフィールド</dd>
+			<dt><em class="mark">_laprop</em></dt><dd><a href="#propfield">プロパティフィールドの補完</a> :: publicプロパティの補完</dd>
+			<dt><em class="mark">_latostring</em></dt><dd><a href="#tostring">BeanのtoString()の補完</a> :: Form/Body, Resultクラスなどにて</dd>
+		</dl>
+	</div>
+
+	<h2 id="difield">DIフィールドの補完 <span class="frm">(_lad...)</span></h2>
+	<h3 id="_ladany">任意のDIフィールド <span class="frm">(_ladany)</span> ★★★</h3>
+	<p>
+		<em class="keyword">_ladany</em> (LAstaFlute の Di の ANYthing)
+	</p>
+<pre><span class="codetitle">e.g. 任意のDIフィールドを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaAction <span class="keyword">extends</span> HarborBaseAction {
+
+    <span class="literal">_lada</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    @Resource
+    <span class="keyword">private</span> [component] anything;
+</code></pre>
+	<p>
+		_lad系の一番上に出てくるので、_ladだけで補完してenterでもOKです。
+	</p>
+	<p>
+		とにかくこれだけでも覚えていれば、DIフィールドの宣言がだいぶ楽になるでしょう。
+	</p>
+	<h3 id="_ladcomp">LastaFluteコンポーネントのDIフィールド <span class="frm">(_lad...)</span></h3>
+	<p>
+		LastaFluteが提供しているコンポーネントを狙って補完できます。<span class="frm">(なんとかManagerは大体揃ってます)</span>
+	</p>
+	<dl class="shortkeymainlist">
+		<dt><em class="mark">_ladasync</em></dt><dd>AsyncManager</dd>
+		<dt><em class="mark">_ladconf</em></dt><dd>[App]Config ▲▲ <span class="frm">(e.g. コンフィグ値を取得するとき)</span></dd>
+		<dt><em class="mark">_ladcookie</em></dt><dd>CookieManager</dd>
+		<dt><em class="mark">_ladjob</em></dt><dd>JobManager</dd>
+		<dt><em class="mark">_ladjson</em></dt><dd>JsonManager</dd>
+		<dt><em class="mark">_ladmessage</em></dt><dd>MessageManager</dd>
+		<dt><em class="mark">_ladpostbox</em></dt><dd>Postbox ▲ <span class="frm">(e.g. メールを送信するとき)</span></dd>
+		<dt><em class="mark">_ladprimcipher</em></dt><dd>PrimaryCipher ▲</dd>
+		<dt><em class="mark">_ladrequest</em></dt><dd>RequestManager ▲</dd>
+		<dt><em class="mark">_ladresponse</em></dt><dd>ResponseManager</dd>
+		<dt><em class="mark">_ladsession</em></dt><dd>SessionManager</dd>
+		<dt><em class="mark">_ladtemplate</em></dt><dd>TemplateManager</dd>
+		<dt><em class="mark">_ladtime</em></dt><dd>TimeManager ▲▲▲ <span class="frm">(e.g. 現在日時を取得するとき)</span></dd>
+		<dt><em class="mark">_ladtransaction</em></dt><dd>TransactionStage ▲ <span class="frm">(e.g. トランザクションを発行するとき)</span></dd>
+	</dl>
+	<p>
+		▲マークは、業務クラスの実装でもよく使うかもしれないコンポーネントなので、知っておくと良いでしょう。
+		また、一個一個覚えてなくも補完できるということだけ知っておけば、必要になったときに補完からManagerクラスを探すことができます。
+		<span class="frm">(この補完テンプレートがちょっとしたドキュメントになります)</span>
+	</p>
+
+	<h2 id="executemethod">Executeメソッドの補完 <span class="frm">(_laex...)</span></h2>
+	<h3 id="_laexhtml">Execute Method で HtmlResponse <span class="frm">(_laexhtml)</span></h3>
+	<p>
+		<em class="keyword">_laexhtml</em> (LAstaFlute の EXecute Method の HTMLResponse)
+	</p>
+<pre><span class="codetitle">e.g. HtmlResponseのExecuteMethodを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaAction <span class="keyword">extends</span> HarborBaseAction {
+
+    <span class="literal">_laexh</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    @Execute
+    <span class="keyword">public</span> HtmlResponse [method](Integer [object]Id, [form]Form form) {
+        <span class="keyword">return</span> asHtml(<span class="attribute">path_[object]</span>);
+    }
+    <span class="comment">// []部分がtabで移動して入力できる箇所、後は要件に合わせて好きなように調整</span>
+</code></pre>
+	<h3 id="_laexjson">Execute Method で JsonResponse <span class="frm">(_laexjson)</span></h3>
+	<p>
+		<em class="keyword">_laexjson</em> (LAstaFlute の EXecute Method の JSONResponse)
+	</p>
+<pre><span class="codetitle">e.g. JsonResponseのExecuteMethodを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaAction <span class="keyword">extends</span> HarborBaseAction {
+
+    <span class="literal">_laexj</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    @Execute
+    <span class="keyword">public</span> JsonResponse&lt;[result]&gt; [method](Integer [object]Id, [body]Body body) {
+        <span class="keyword">return</span> asJson([result]);
+    }
+    <span class="comment">// []部分がtabで移動して入力できる箇所、後は要件に合わせて好きなように調整</span>
+</code></pre>
+
+	<h2 id="propfield">プロパティフィールドの補完 <span class="frm">(_lap...)</span></h2>
+	<h3 id="_laprop">publicプロパティのフィールド <span class="frm">(_laprop)</span> ★</h3>
+	<p>
+		<em class="keyword">_laprop</em> (LAstaFlute の (Public) PROPerty)
+	</p>
+<pre><span class="codetitle">e.g. publicプロパティのフィールドを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    <span class="literal">_lapr</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    <span class="comment">/** [xxx_property_description_xxx] e.g. [xxx_example_value_xxx] */</span>
+    @Required
+    <span class="keyword">public</span> [xxx_PropertyType_xxx] [xxx_propertyName_xxx];
+
+    <span class="comment">// []部分がtabで移動して入力できる箇所 (JavaDoc内も同様)</span>
+    <span class="comment">// デフォルトで@Requiredになるが、必須じゃなければ削除してOK</span>
+</code></pre>
+	<p>
+		JavaDocコメントも補完され、e.g.デフォルト値の欄もあるので、ぜひ書いていきましょう。
+	</p>
+	<div class="relatedpage"><a href="../../howto/action/laswagger.html#javadoceg">JavaDocにe.g.でデフォルト値を記載</a></div>
+	<p>
+		補完後に修正抜けあっても目立つように、変数部分にxxxを付けています。
+	</p>
+	<h3 id="_lapvalidclass">@ValidなPartクラスのフィールド <span class="frm">(_lapvalidclass)</span></h3>
+	<p>
+		<em class="keyword">_lapvalidclass</em> (LAstaFlute の Property の VALID CLASS)
+	</p>
+<pre><span class="codetitle">e.g. @ValidなPartクラスのフィールドを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    <span class="literal">_lapvalidcl</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    <span class="comment">/** [xxx_object_description_xxx] */</span>
+    @Required
+    @Valid
+    <span class="keyword">public</span> [xxx_PartName_xxxPart] [xxx_partName_xxx];
+
+    <span class="comment">/**
+     * @author jflute
+     */</span>
+    <span class="keyword">public static class</span> [xxx_PartName_xxx]Part {
+
+        <span class="comment">/** [xxx_property_description_xxx] e.g. [xxx_example_value_xxx] */</span>
+        @Required
+        <span class="keyword">public</span> [xxx_PropertyType_xxx] [xxx_propertyName_xxx];
+    }
+
+    <span class="comment">// []部分がtabで移動して入力できる箇所 (JavaDoc内も同様)</span>
+    <span class="comment">// デフォルトで@Requiredになるが、必須じゃなければ削除してOK</span>
+</code></pre>
+	<p>
+		補完なしで定義するとなるとかなり面倒な構成ですが、特にJSONクラスでは定義することも多いと思われるので、覚えておくと良いでしょう。
+	</p>
+	<h3 id="_lapvalidlist">@ValidなPartクラスのListフィールド <span class="frm">(_lapvalidlist)</span></h3>
+	<p>
+		<em class="keyword">_lapvalidlist</em> (LAstaFlute の Property の VALID LIST)
+	</p>
+<pre><span class="codetitle">e.g. @ValidなPartクラスのListフィールドを補完 @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    <span class="literal">_lapvalidli</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    <span class="comment">/** [xxx_list_description_xxx] */</span>
+    @NotNull
+    @Valid
+    <span class="keyword">public</span> List&lt;[xxx_PartName_xxxPart]&gt; [xxx_partListName_xxx];
+
+    <span class="comment">/**
+     * @author jflute
+     */</span>
+    <span class="keyword">public static class</span> [xxx_PartName_xxx]Part {
+
+        <span class="comment">/** [xxx_property_description_xxx] e.g. [xxx_example_value_xxx] */</span>
+        @Required
+        <span class="keyword">public</span> [xxx_PropertyType_xxx] [xxx_propertyName_xxx];
+    }
+
+    <span class="comment">// []部分がtabで移動して入力できる箇所 (JavaDoc内も同様)</span>
+    <span class="comment">// デフォルトで@Requiredになるが、必須じゃなければ削除してOK</span>
+</code></pre>
+	<p>
+		こちらもJSONクラスではおなじみの構成なので、覚えておくと良いでしょう。
+	</p>
+
+	<h2 id="tostring">BeanのtoString()の補完 <span class="frm">(_latostring)</span> ★</h2>
+	<p>
+		<em class="keyword">_latostring</em> (LAstaFlute の TOSTRING)
+	</p>
+<pre><span class="codetitle">e.g. toString()を補完、Form,Body,ResultなどのBeanクラスにて @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    <span class="abbreviation">...</span>
+
+    <span class="literal">_lato</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+
+　↓↓↓
+
+    @Override
+    <span class="keyword">public</span> String toString() {
+        <span class="keyword">return</span> Lato.string(<span class="keyword">this</span>);
+    }
+</code></pre>
+	<p>
+		Form,Body,Resultなどの入れ物クラスに付けましょう。
+		何かとデバッグログで出力される機会があります。中のデータを出力しておくことで、デバッグに役立つことが多々あります。
+	</p>
+	<p>
+		外側クラスだけに付けておけば、ネストしたクラスの内容も一緒に出力されます。
+	</p>
+	<div class="detailpage"><span class="working"><!-- <a href="../../impldesign/beandesign.html#latostring"> -->Beanの実装デザイン - 気軽なtoString()<!-- </a> --></span></div>
+
+	<h2 id="validation">バリデーションの補完 <span class="frm">(_lav...)</span></h2>
+	<h3 id="_lavclienterr">クライアントエラーのgroups属性 <span class="frm">(_lavclienterr)</span></h3>
+	<p>
+		<em class="keyword">_lavclienterr</em> (LAstaFlute の Validation の CLIENTERRor)
+	</p>
+<pre><span class="codetitle">e.g. バリデーションアノテーションのクライアントエラーのgroup属性を補完 @Java</span><code>
+<span class="keyword">public class</span> SeaResult {
+
+    @Required(<span class="literal">_lavcli</span><span class="abbreviation">...</span>) <span class="comment">// control+space, enterどーん！</span>
+    <span class="keyword">public</span> String <span class="attribute">sea</span>;
+
+　↓↓↓
+
+    @Required(groups = ClientError.<span class="keyword">class</span>)
+    <span class="keyword">public</span> String <span class="attribute">sea</span>;
+</code></pre>
+	<p>
+		システム項目のバリデーションアノテーションに付けるお決まりのgroups属性を補完できます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../action/lavalidation.html#clienterror"> -->見通しのValidation - システム項目は groups=ClientError.class<!-- </a> --></span></div>
+	<p>
+		<span class="frm">(ただ、特に汎用的なJSON APIだとバリデーションエラーなのかクライアントエラーなのか区別せずに実装することも多いので、ちょっとレアな機能かもしれません)</span>
+	</p>
+	<h3 id="_lavmessages">validate()のmoreValidationLambda <span class="frm">(_lavmessages)</span></h3>
+	<p>
+		<em class="keyword">_lavmessages</em> (LAstaFlute の Validation の CLIENTERRor)
+	</p>
+<pre><span class="codetitle">e.g. バリデーションメソッドのmoreValidationLambdaを補完 @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, moreValidationLambda) <span class="comment">// 引数名が補完されて...</span>
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, <span class="literal">_lavme</span><span class="abbreviation">...</span>) <span class="comment">// control+space, enterどーん！</span>
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, <span class="point">messages -&gt; {}</span>); <span class="comment">// セミコロン入れておしまい...?</span>
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, messages -&gt; { <span class="comment">// moreValidateするなら改行入れて続きを</span>
+         <span class="literal">_lavmore</span><span class="abbreviation">...</span> <span class="comment">// 次の補完に続く</span>
+    });
+}
+</code></pre>
+	<p>
+		手打ちで引数名を意識してLambdaを書くのはわりと大変なので、補完できるとスムーズに書けます。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../action/lavalidation.html#validatemethod"> -->2. Action で validate() を呼ぶ<!-- </a> --></span></div>
+	<h3 id="_lavmorevalidate">validate()のmoreValidationLambda続き <span class="frm">(_lavmorevalidate)</span></h3>
+	<p>
+		<em class="keyword">_lavmorevalidate</em> (LAstaFlute の Validation の MOREVALIDATE)
+	</p>
+<pre><span class="codetitle">e.g. バリデーションのmoreValidationLambdaのmoreValidate()を補完 @Java</span><code>
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, messages -&gt; {
+         <span class="literal">_lavmore</span><span class="abbreviation">...</span> <span class="comment">// control+space, enterどーん！</span>
+    });
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, messages -&gt; {
+         <span class="point">moreValidate</span>([localVar], messages) <span class="comment">// localVarは form か body に</span>
+    });
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> JsonResponse&lt;SeaResult&gt; index(SeaBody body) {
+    validateApi(body, messages -&gt; {
+         moreValidate(body, messages) <span class="comment">// command+1 で Create method</span>
+    });
+}
+
+<span class="keyword">private void</span> moreValidate(SeaBody body, HangarMessages messages) {
+    <span class="comment">// command+1から生成されるメソッド、ここで実装の続きを</span>
+}
+</code></pre>
+	<p>
+		お決まりのmoreValidate()メソッドの生成、先にメソッド呼び出しを補完してから、Eclipse標準のcommand+1補完でメソッドを作成すると良いでしょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../action/lavalidation.html#morevalidation"> -->3. Lambdaで、もっとValidation<!-- </a> --></span></div>
+	<h3 id="_lavreterrorhtml">validate()のvalidationErrorLambda <span class="frm">(_lavreterrorhtml)</span></h3>
+	<p>
+		<em class="keyword">_lavreterrorhtml</em> (LAstaFlute の Validation の RETurn ERROR HTML)
+	</p>
+<pre><span class="codetitle">e.g. バリデーションのvalidationErrorLambdaのasHtml()を補完 @Java</span><code>
+@Execute
+<span class="keyword">public</span> HtmlResponse index(SeaForm form) {
+    validate(form, messages -&gt; {}, validationErrorLambda) <span class="comment">// 引数名が補完されて...</span>
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> HtmlResponse index(SeaForm form) {
+    validate(form, messages -&gt; {}, <span class="literal">_lavret</span><span class="abbreviation">...</span>) <span class="comment">// control+space, enterどーん！</span>
+}
+
+　↓↓↓
+
+@Execute
+<span class="keyword">public</span> HtmlResponse index(SeaForm form) {
+    validate(form, messages -&gt; {}, () -&gt; {
+         <span class="keyword">return</span> asHtml([path_]); <span class="comment">// すぐ control+space で path_ の続きを補完</span>
+    });  <span class="comment">// セミコロンも忘れずに</span>
+}
+</code></pre>
+	<p>
+		HtmlResponseのときのお決まりのasHtml()呼び出し、ぜひ補完で実装しましょう。
+	</p>
+	<div class="relatedpage"><span class="working"><!-- <a href="../action/lavalidation.html#validatemethod"> -->2. Action で validate() を呼ぶ<!-- </a> --></span></div>
+
+	<h2 id="setuptemplate">補完テンプレートの環境構築</h2>
+	<h3 id="dftemplatexml">DBFluteの補完テンプレートxml</h3>
+	<p>
+		DBFluteの補完テンプレートを入れましょう。
+		<span class="frm">(ワークスペースの設定なので、workspaceディレクトリごとに設定作業する必要があります)</span>
+	</p>
+	<div class="relatedpage"><a href="../../../tutorial/eclipse/dfclipsecomp.html">DBFluteのEclipse補完テンプレート</a></div>
+	<p>
+		LastaFluteプロジェクトであれば、プロジェクト直下もしくは[app]-baseプロジェクトの <em class="mark">etc/tools/eclipse</em>
+		配下に、<em class="mark">java-editor-templates.xml</em> が置いてあります。
+	</p>
+<pre><span class="codetitle">e.g. Eclipseのエディターテンプレートのxmlファイル @Directory</span><code>
+[app]-base
+ |-<span class="abbreviation">...</span>
+ |-etc
+ |  |-tools
+ |  |  |-eclipse
+ |  |  |  |-code-formatter-profile.xml
+ |  |  |  |-<span class="point">java-editor-templates.xml</span>
+</code></pre>
+	<p>
+		このファイルを、<em class="mark">まるごと入れ替え方式</em> で import しましょう。
+	</p>
+	<h3 id="importwholeway">まるごと入れ替え方式のやり方</h3>
+	<p>
+		importするテンプレートファイルに標準テンプレートも含まれてる場合は、まるごと入れ替え方式で取り込みます。
+		DBFluteの補完テンプレートは、基本的にこの方式を想定しています。
+	</p>
+	<div class="relatedpage"><a href="../../../manual/topic/friends/eclipse/coding/templates.html#importwhole">Eclipse - Importのまるごと入れ替え方式</a></div>
+	<p>
+		まず、メニューの Preferences の <em class="keyword">Java - Editor - Templates</em> で設定画面を開きます。
+	</p>
+	<p class="imgbox">
+		<a href="../../../data/model/friends/eclipse/coding/friends-Eclipse-EditorTemplates-settings-example.png" title="Eclipse EditorTemplates Settings Example"><img src="../../../data/model/friends/eclipse/coding/friends-Eclipse-EditorTemplates-settings-example.png" alt="Eclipse EditorTemplates Settings Example" width="550" height="350" /></a>
+	</p>
+	<p>
+		既存のテンプレートを何か一つ選択して、(Macなら)command+A で全選択します<span class="frm">(全選択できればやり方は何でもOK)</span>。
+		そして、全選択した状態で Remove を押すと既存のテンプレートがすべて消えるので、その状態で Import... を押して、ファイル選択ダイアログでimport対象のxmlファイルを選択します。
+	</p>
+	<p class="imgbox">
+		<a href="../../../data/model/friends/eclipse/coding/friends-Eclipse-EditorTemplates-settings-import-whole.png" title="Eclipse EditorTemplates Settings Import Whole"><img src="../../../data/model/friends/eclipse/coding/friends-Eclipse-EditorTemplates-settings-import-whole.png" alt="Eclipse EditorTemplates Settings Import Whole" width="550" height="320" /></a>
+	</p>
+	<p>
+		期待されているテンプレートが設定されたことを確認して Apply すれば完了です。試しに近くのクラスで補完をしてみましょう。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../"><img src="../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../ja/lastaflute/index.html">LastaFluteトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/index.html#about">LastaFluteとは？</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#lacode">LastaFluteのコード</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/index.html#quicktrial">動かしてみよう</a></li>
+				<li><a href="../../../../ja/lastaflute/index.html#newproject">新プロジェクト</a></li>
+				<li><a href="https://github.com/lastaflute/lastaflute">LastaFlute | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html">LastaFlute実装チュートリアル</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#style">実装スタイル</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#prepare">まず準備</a></li>
+				<li class="upper-space"><a href="../../../../ja/lastaflute/tutorial/laimpl.html#acquaintanceship">ディベロッパーの心得</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/laimpl.html#tenclause">ディベロッパーの十か条</a></li>
+				<li><a href="../../../../ja/lastaflute/tutorial/faqimpl.html">LastaFluteの実装FAQ</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/action/index.html">LastaFlute の Action</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeashtml.html">Actionの作り方 (HTML)</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/action/makeasjson">Actionの作り方 (JSON)</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/impldesign/actiondesign.html">Actionの実装デザイン</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/impldesign/logicdesign.html">Logicの実装デザイン</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/impldesign/beandesign.html">Beanの実装デザイン</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/impldesign/jsondesign.html">JSON APIのデザイン</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/howto/upgrade/index.html">LastaFluteのアップグレード</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/howto/upgrade/lachangelog.html">ChangeLog</a></li>
+				<li><a href="../../../../ja/lastaflute/howto/upgrade/migration/index.html">移行情報(注意点など)</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/lastaflute/lastadi/index.html">Lasta Diトップページ</a>
+			<ul>
+				<li><a href="../../../../ja/lastaflute/lastadi/index.html#twocomp">Two Components</a></li>
+				<li><a href="../../../../ja/lastaflute/lastadi/dixmlexp.html">Di xml の表現</a></li>
+				<li><a href="https://github.com/lastaflute/lasta-di">Lasta Di | Github</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../ja/tutorial/onjava8.html">DBFlute on Java8</a>
+			<ul>
+				<li><a href="../../../../ja/tutorial/onjava8.html#select">とにかく検索は？</a></li>
+				<li><a href="../../../../ja/tutorial/onjava8.html#completion">さあ、補完してみよう！</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
