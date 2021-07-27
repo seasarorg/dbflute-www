@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta name="keywords" content="DBFlute,Eclipse,Git,EGit" />
+	<link rel="stylesheet" type="text/css" href="../../../../../../../css/sub.css" />
+	<!--[if IE 6.0]>
+		<link rel="stylesheet" type="text/css" href="../../../../../../../css/cb/sub.css" />
+	<![endif]--> 
+	<title>Eclipseでgit clone | DBFlute</title>
+</head>
+<body>
+<div id="container" class="ct-manual">
+
+<div id="mainbar">
+<div id="header">
+	<div class="navi-upper"><a href="../../../../../../../ja/sitemap.html">SiteMap</a>|<a href="http://d.hatena.ne.jp/jflute/">Author's Blog</a></div>
+	<div class="navi-main">
+	<ul>
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html"><img src="../../../../../../../image/parts/navi/link-intro.png" alt="Introduction" width="75" height="32" /></a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html"><img src="../../../../../../../image/parts/navi/link-tuto.png" alt="Tutorial" width="56" height="24" /></a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/tutorial/architect.html"><img src="../../../../../../../image/parts/navi/link-arch.png" alt="for Architect" width="80" height="24" /></a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/tutorial/developer.html"><img src="../../../../../../../image/parts/navi/link-dev.png" alt="for Developer" width="87" height="24" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html"><img src="../../../../../../../image/parts/navi/link-env.png" alt="Environment" width="84" height="25" /></a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/environment/setup/index.html"><img src="../../../../../../../image/parts/navi/link-setup.png" alt="Setup" width="42" height="24" /></a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/environment/upgrade/index.html"><img src="../../../../../../../image/parts/navi/link-upgrade.png" alt="Upgrade" width="61" height="25" /></a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html"><img src="../../../../../../../image/parts/navi/link-manual.png" alt="Manual" width="62" height="25" /></a></li>
+	</ul>
+	</div>
+</div>
+
+<div id="content">
+	<h1>Eclipseでgit clone</h1>
+	<p>
+		コミットやプッシュなどの日常Git操作は別ページです。ここではgit cloneのみを紹介しています。
+	</p>
+	<div class="relatedpage"><a href="./egitroutine.html">Eclipseで日常git操作</a></div>
+	<div class="relatedpage"><span class="working"><!-- <a href="../index.html"> -->Friends - Eclipse<!-- </a> --></span></div>
+	<ul class="indexlist">
+		<li><a href="#egit">組み込みのEGitプラグイン</a></li>
+		<li><a href="#clonedir">(0. clone先ディレクトリの設定)</a></li>
+		<li><a href="#gitperspective">1. Git Perspectiveを開く</a></li>
+		<li><a href="#gitrepositories">2. Git Repositories Viewでペースト</a></li>
+		<li><a href="#gitclonewizard">3. git cloneウィザードでclone</a>
+			<ul>
+				<li><a href="#wizardbasic">3-1. リポジトリ基本情報を入力</a></li>
+				<li><a href="#wizardbranch">3-2. ブランチを選択</a></li>
+				<li><a href="#wizarddest">3-3. clone先の調整とimportのチェック</a></li>
+				<li><a href="#confirmclone">3-4. cloneされたことを確認</a></li>
+				<li><a href="#returntojava">3-5. Java Perspectiveに戻る</a></li>
+			</ul>
+		</li>
+	</ul>
+
+	<h2 id="egit">組み込みのEGitプラグイン</h2>
+	<p>
+		ここでは、Eclipseに組み込まれている EGitプラグインを前提としています。
+	</p>
+	<p>
+		(おそらく)どのエディションでも組み込まれているので、新たにインストールする必要はないでしょう。<span class="frm">(一番シンプルな for Java Developer で入っているので)</span>
+	</p>
+
+	<h2 id="clonedir">(0. clone先ディレクトリの設定)</h2>
+	<p>
+		まず、clone先ディレクトリの設定をしておきます。ワークスペース設定なので、同じワークスペースでの２回目以降のgit cloneのときは設定する必要はありません。
+	</p>
+	<p>
+		Eclipseのワークスペース設定である Preferences を開きましょう。
+	</p>
+	<dl class="valuemainlist">
+		<dt>Macなら</dt><dd><em class="keyword">command+,(カンマ)</em> <span class="frm">(メニューの Eclipse - 環境設定... と同じ)</span></dd>
+		<dt>Windowsなら</dt><dd>メニューの Window - Preferences</dd>
+	</dl>
+	<div class="relatedpage"><a href="../../shortcut/operationcut.html#setting">Eclipse, 操作系ショートカット - 設定周り</a></div>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/friends-Eclipse-Preferences-dialog-example.png" title="Eclipse Preferences dialog example"><img src="../../../../../../data/model/friends/eclipse/operation/friends-Eclipse-Preferences-dialog-example.png" alt="Eclipse Preferences dialog example" width="550" height="440" /></a>
+	</p>
+	<p>
+		<em class="keyword">Version Control (Team) - Git</em> の <em class="mark">Default repository folder</em>
+		を、いま Eclipse で扱っている workspaceディレクトリにするのがオススメです。<span class="frm">(workspaceディレクトリにgit cloneされるように)</span>
+	</p>
+	<p>
+		Browse... ボタンから、workspaceディレクトリを選択しましょう。
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPreferences-clone-directory.png" title="Eclipse GitPreferences clone-directory"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPreferences-clone-directory.png" alt="Eclipse GitPreferences clone-directory" width="550" height="380" /></a>
+	</p>
+	<p>
+		<span class="frm">※もし、自身のPC内でのclone先ポリシーがあるのであれば、それに合わせましょう。</span>
+	</p>
+
+	<h2 id="gitperspective">1. Git Perspectiveを開く</h2>
+	<p>
+		右上の＋アイコンで Git Perspective を Open します。
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-add-button.png" title="Eclipse GitPerspective add-button"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-add-button.png" alt="Eclipse GitPerspective add-button" width="520" height="360" /></a>
+	</p>
+	<p>
+		Git を選ぶと...
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-add-selection.png" title="Eclipse GitPerspective add-selection"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-add-selection.png" alt="Eclipse GitPerspective add-selection" width="520" height="360" /></a>
+	</p>
+	<p>
+		すると、Git Perspective が開き、右上の Perspective アイコンに Git が追加されます。 
+		<span class="frm">(ここで、Java Perspective と Git Perspective を行き来することができます)</span>
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-added-view.png" title="Eclipse Git Perspective added view"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitPerspective-added-view.png" alt="Eclipse GitPerspective added view" width="520" height="360" /></a>
+	</p>
+
+	<h2 id="gitrepositories">2. Git Repositories Viewでペースト</h2>
+	<p>
+		まず、clone対象のGitリポジトリのURLをクリップボードにコピーしましょう。
+	</p>
+	<p>
+		このドキュメントでは、HTTPSを想定します。
+	</p>
+	<dl class="longvaluemainlist">
+		<dt>想定されるURL形式</dt><dd>https://[...]/[...][...].git</dd>
+	</dl>
+	<p>
+		その状態で、Git Repositories View にて controlクリック (右クリック) でコンテキストメニューを表示して、Paste Repository Path or URI を選択します。
+		<span class="frm">(Git Repositories View にカーソルを当ててペースト(Macならcommand+v)でもOKです)</span>
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-right-click-paste-uri.png" title="Eclipse Git Repositories right-click paste-uri"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-right-click-paste-uri.png" alt="Eclipse Git Repositories right-click paste-uri" width="520" height="360" /></a>
+	</p>
+	<p>
+		すると、git cloneウィザード画面が表示されます。
+	</p>
+
+	<h2 id="gitclonewizard">3. git cloneウィザードでclone</h2>
+	<p>
+		Git Repositories Viewでペーストされてからの続きです。
+	</p>
+	<h3 id="wizardbasic">3-1. リポジトリ基本情報を入力</h3>
+	<p>
+		Location, Connectionは自動で入力されます。あまり修正する必要はないでしょう。
+	</p>
+	<p>
+		Authentication の User, Password は、clone対象のGitリポジトリの認証情報を入れましょう。
+		<span class="frm">(Github上のpublicリポジトリで、読み取りするだけであれば空欄でもOKです)</span>
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-1st-source.png" title="Eclipse Git Repositories wizard source"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-1st-source.png" alt="Eclipse Git Repositories wizard source" width="520" height="400" /></a>
+	</p>
+	<p>
+		Store in Secure Store は、入力した認証情報を記憶するかどうか？です。
+		Commit や Pull するたびに認証情報を入れるのは少々手間だと思うので、チェックを付けておくと良いとは思います。
+	</p>
+	<h3 id="wizardbranch">3-2. ブランチを選択</h3>
+	<p>
+		cloneするブランチを選択します。clone後にブランチを切り替えたりなどできるので、ここではそんなに気にせずデフォルトでも良いでしょう。
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-2nd-branch.png" title="Eclipse Git Repositories wizard branch"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-2nd-branch.png" alt="Eclipse Git Repositories wizard branch" width="520" height="400" /></a>
+	</p>
+
+	<h3 id="wizarddest">3-3. clone先の調整とimportのチェック</h3>
+	<p>
+		clone先ディレクトリは、Preferencesで設定したディレクトリが指定されています。それで問題なければ特に修正する必要はありません。
+	</p>
+	<p class="imgbox">
+		<a href="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-3rd-dest.png" title="Eclipse Git Repositories wizard destination"><img src="../../../../../../data/model/friends/eclipse/operation/git/friends-Eclipse-GitRepositories-wizard-3rd-dest.png" alt="Eclipse Git Repositories wizard destination" width="520" height="400" /></a>
+	</p>
+	<p>
+		cloneするリポジトリに Eclipse の制御ファイル.projectが含まれているのであれば、cloneと同時に自動importすることもできます。
+		Import all existing Eclipse projects after clone finishes にチェックを付けましょう。
+		<span class="frm">(わからなければ、とりあえずチェックを付けておくでも大丈夫です。"Importできるならする"
+		という感じになります。DBFluteのExampleやハンズオンプロジェクトでは、大抵は.projectを含んでいます)</span>
+	</p>
+	<p>
+		Finishすると clone されます。
+	</p>
+	<h3 id="confirmclone">3-4. cloneされたことを確認</h3>
+	<p>
+		Git Repositories View に clone されたリポジトリが表示されていればOKです。
+	</p>
+	<h3 id="returntojava">3-5. Java Perspectiveに戻る</h3>
+	<p>
+		右上のアイコンを押して、Java Perspective へ戻りましょう。
+	</p>
+	<p>
+		自動importされていれば、Package Explorer に clone したプロジェクトが展開されています。
+	</p>
+	<p>
+		もし Package Explorer に何もなければ、自動importはされていないので、メニューの File - Import... から手動で import しましょう。
+	</p>
+
+</div>
+</div>
+
+<div id="sidebar">
+	<div class="logo"><a href="../../../../../../../"><img src="../../../../../../../image/parts/logo.png" alt="dbflute-logo" width="240" height="110" /></a></div>
+<ul>
+		<li><a href="../../../../../../../ja/manual/function/generator/index.html">自動生成ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/generator/client/index.html">DBFluteクライアント</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/engine/index.html">DBFluteエンジン</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/index.html">DBFluteタスク</a>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/generator/task/generate/index.html">Generate</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/sql2entity/index.html">Sql2Entity</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/generator/task/replaceschema/index.html">ReplaceSchema</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/manage/index.html">Manage</a></li>
+				<li><a href="../../../../../../../ja/manual/function/generator/task/doc/schemahtml.html">SchemaHTML</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/ormapper/index.html">O/Rマッパ</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/behavior/index.html">Behavior</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/conditionbean/index.html">ConditionBean</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/ormapper/outsidesql/index.html">OutsideSql</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/entity/index.html">Entity</a></li>
+				<li><a href="../../../../../../../ja/manual/function/ormapper/runtime/index.html">DBFluteランタイム</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="../../../../../../../ja/manual/function/genbafit/index.html">現場フィット</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/implfit/index.html">アプリ実装の全体最適</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/projectfit/index.html">プロジェクト構成対応</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/genbafit/runtimefit/index.html">実行時共通要件の実現</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/deprecatedfit/index.html">非推奨な構造フォロー</a></li>
+				<li><a href="../../../../../../../ja/manual/function/genbafit/dbflutefit/index.html">DBFluteサポート</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/function/helper/index.html">支援ツール</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/function/generator/intro/index.html">DBFlute Intro</a></li>
+				<li><a href="../../../../../../../ja/manual/function/helper/emecha/index.html">EMecha (Eclipse Plugin)</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/function/helper/maven/index.html">Maven DBFlute Plugin</a></li>
+				<li><a href="../../../../../../../ja/manual/function/helper/saflute/index.html">SAFlute</a></li>
+				<li><a href="../../../../../../../ja/manual/function/helper/utflute/index.html">UTFlute</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/reference/index.html">リファレンス</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/reference/dbway/index.html">DBMSごとの取扱い</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/diway/index.html">DIコンテナごとの取扱い</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/dfprop/index.html">DBFluteプロパティ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/dictionary/index.html">DBFlute用語集</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/example/index.html">DBFlute Example</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/reference/faq/index.html">FAQ</a></li>
+				<li><a href="../../../../../../../ja/manual/reference/troubleshooting/index.html">トラブルシューティング</a></li>
+			</ul>
+		</li>
+		<li><a href="../../../../../../../ja/manual/topic/index.html">トピック</a>
+			<ul>
+				<li><a href="../../../../../../../ja/manual/topic/dbdesign/index.html">DB設計</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/programming/index.html">プログラミング</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/friends/index.html">他のフレームワーク</a></li>
+				<li class="upper-space"><a href="../../../../../../../ja/manual/topic/office/index.html">事務的な話</a></li>
+				<li><a href="../../../../../../../ja/manual/topic/dbflutenet/index.html">DBFlute.NET</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div>
+
+<div id="footer">
+	<div><a href="../../../../../../../ja/sitemap.html">SiteMap</a> <a href="http://d.hatena.ne.jp/jflute">Author's Blog</a><a href="https://www.seasar.org/issues/browse/DBFLUTE">BTS</a></div>
+	<ul class="footer-navi">
+		<li class="hd-introduction"><a href="../../../../../../../ja/introduction/index.html">Introduction</a></li>
+		<li class="hd-tutorial"><a href="../../../../../../../ja/tutorial/index.html">Tutorial</a>
+			<ul>
+				<li class="hd-architect"><a href="../../../../../../../ja/tutorial/architect.html">for Architect</a></li>
+				<li class="hd-developer"><a href="../../../../../../../ja/tutorial/developer.html">for Developer</a></li>
+			</ul>
+		</li>
+		<li class="hd-environment"><a href="../../../../../../../ja/environment/index.html">Environment</a>
+			<ul>
+				<li class="hd-install"><a href="../../../../../../../ja/environment/setup/index.html">Setup</a></li>
+				<li class="hd-upgrade"><a href="../../../../../../../ja/environment/upgrade/index.html">Upgrade</a></li>
+			</ul>
+		</li>
+		<li class="hd-manual"><a href="../../../../../../../ja/manual/index.html">Manual</a></li>
+	</ul>
+
+</div>
+
+</div>
+</body>
+</html>
