@@ -8,7 +8,7 @@
 	<!--[if IE 6.0]>
 		<link rel="stylesheet" type="text/css" href="../../../../../css/cb/sub.css" />
 	<![endif]--> 
-	<title>Nashornからsaiへの移行 | LastaFlute</title>
+	<title>NashornからRhinoへの移行 | LastaFlute</title>
 </head>
 <body>
 <div id="container" class="ct-default">
@@ -37,49 +37,44 @@
 </div>
 
 <div id="content">
-	<h1>Nashornからsaiへの移行</h1>
+	<h1>NashornからRhinoへの移行</h1>
 	<div class="relatedpage"><a href="./index.html">LastaFluteの移行情報</a></div>
-	<!-- #pending
-	<div class="relatedpage"><a href="./lahorntorhino.html">NashornからRhinoへの移行</a></div>
-	 -->
 	<ul class="indexlist">
 		<li><a href="#overview">概要</a>
 			<ul>
 				<li><a href="#lastauses">LastaFluteでNashornを使ってるところ</a></li>
 				<li><a href="#nashornremoved">NashornがJava15から外された</a></li>
-				<li><a href="#saifork">Nashornをforkしたsaiが登場</a></li>
+				<li><a href="#rhino">RhinoがJavaScript Engineをサポート</a></li>
+				<li><a href="#since">ただし、Lasta Di, DBFluteを最新に</a></li>
 			</ul>
 		</li>
-		<li><a href="#freegen">FreeGen環境のsai移行</a>
+		<li><a href="#freegen">FreeGen環境のRhino移行</a>
 			<ul>
-				<li><a href="#dbflutesai">DBFlute-1.2.4より sai を有効に</a></li>
-				<li><a href="#saidownload">sai の jarファイルたちをダウンロード</a></li>
-				<li><a href="#dbfluteextlib">DBFluteクライアントのextlibに配置</a></li>
+				<li><a href="#dbfluterhino">DBFlute-1.2.5 patch 2021/09/01 より</a></li>
+				<li><a href="#saidownload">manageタスクの 31 (sai) で extlib にダウンロード</a></li>
 				<li><a href="#jargitmanaged">jarをgitにコミットするかしないか？</a></li>
-				<li><a href="#olddbflute">DBFluteをアップグレードできない場合</a></li>
+				<li><a href="#handydownload">もし、手作業ダウンロードするのであれば</a></li>
+				<li><a href="#enginesource">関連するDBFlute Engineのソースコードは？</a></li>
 			</ul>
 		</li>
-		<li><a href="#lastadixml">Lasta Diのsai移行</a>
+		<li><a href="#lastadixml">Lasta DiのRhino移行</a>
 			<ul>
 				<li><a href="#newlastadi">いま起動しても落ちないのであれば？</a></li>
 				<li><a href="#bootfailurenow">いま起動で落ちるのであれば？</a></li>
-				<li><a href="#saidependency">saiを依存ライブラリに追加</a></li>
-				<li><a href="#lastadiprop">lasta_di.properties に sai を設定</a></li>
+				<li><a href="#rhinodependency">Rhinoを依存ライブラリに追加</a></li>
+				<li><a href="#lastadisource">関連するLasta Diのソースコードは？</a></li>
 			</ul>
 		</li>
 		<li><a href="#licensecare">念のため、ライセンスに注目</a></li>
 	</ul>
 
 	<h2 id="overview">概要</h2>
-	<!-- #pending
 	<p>
-		<em class="keyword">【追記】sai ではなく、Rhino をオススメするようにしました。</em>
+		<em class="keyword">
+		【追記】まだ課題あり。saiを使ってください。by jflute (2021/09/02)
+		</em>
 	</p>
-	<div class="detailpage"><a href="./lahorntorhino.html">NashornからRhinoへの移行</a></div>
-	<p>
-		Lasta Di や DBFlute Engine のバージョンを上げることができないときに sai を使います。
-	</p>
-	 -->
+	<div class="detailpage"><a href="./lahorntosai.html">Nashornからsaiへの移行</a></div>
 	<h3 id="lastauses">LastaFluteでNashornを使ってるところ</h3>
 	<p>
 		Java組み込みのJavaScriptエンジン <em class="mark">Nashorn</em> というものがあります。
@@ -98,120 +93,71 @@
 	<p>
 		<span class="frm">(なので、Java15以上の環境で、FreeGenを実行したり、Lasta Di を起動したりすると落ちます)</span>
 	</p>
-	<h3 id="saifork">Nashornをforkしたsaiが登場</h3>
+	<h3 id="rhino">RhinoがJavaScript Engineをサポート</h3>
 	<p>
-		Nashornをforkした <em class="mark">sai</em> というライブラリが利用できます。
+		Nashornが非推奨になったことを受けて、Mozilla Foundationが提供している <em class="mark">Rhino</em> が、Javaにおける JavaScript Engine
+		をサポートしました。今後はそれを利用していくことをオススメしています。
 	</p>
 	<dl class="shortkeymainlist">
-		<dt>Github</dt><dd><a href="https://github.com/codelibs/sai">https://github.com/codelibs/sai</a></dd>
+		<dt>Github</dt><dd><a href="https://github.com/mozilla/rhino">https://github.com/mozilla/rhino</a></dd>
 	</dl>
+	<p>
+		<span class="frm">(Nashornをforkしたsaiもありますが、状況回避的なforkであるためJavaScriptの進化への追従などが厳しいですし、
+		DBFluteにとってライセンス的にも扱いやすいRhinoがサポートしたということから)</span>
+	</p>
+	<h3 id="since">ただし、Lasta Di, DBFluteを最新に</h3>
+	<p>
+		ただ、NashornとRhinoで少し挙動や仕様が違う部分がありましたので、Lasta Di や DBFlute Engineにて (できる範囲で) その違いを吸収するようにしています。
+	</p>
+	<p>
+		ゆえに、Rhinoが利用できるのは、それぞれ以下のバージョン以降になります。
+	</p>
+	<dl class="valuemainlist">
+		<dt>Lasta Di</dt><dd>@since 0.8.5</dd>
+		<dt>DBFlute Engine</dt><dd>@since 1.2.5 patch 2021/09/01</dd>
+	</dl>
+	<p>
+		もし、上記のバージョンにアップグレードできない環境で、かつ、Java15以降となる場合は、Nashornをforkしたsaiを利用することになります。
+	</p>
+	<div class="relatedpage"><a href="./lahorntosai.html">Nashornからsaiへの移行</a></div>
 
-	<h2 id="freegen">FreeGen環境のsai移行</h2>
+	<h2 id="freegen">FreeGen環境のRhino移行</h2>
 	<p>
 		以下のような流れで移行できます。
 	</p>
 	<ol>
-		<li>DBFlute を 1.2.4 以上にアップグレードする</li>
-		<li>sai の jarファイルたちをダウンロードする</li>
-		<li>extlib に sai の jarファイルたちを配置する</li>
+		<li>DBFlute を 1.2.5 patch 2021/09/01 以上にアップグレードする</li>
+		<li>manageタスクの 31 (sai) を実行して jarファイルたちをextlibにダウンロードする</li>
 	</ol>
-	<h3 id="dbflutesai">DBFlute-1.2.4より sai を有効に</h3>
+	<h3 id="dbfluterhino">DBFlute-1.2.5 patch 2021/09/01 より</h3>
 	<p>
-		DBFlute-1.2.4 より、クラスパスに sai が存在すれば sai を利用するようにしました。
+		DBFlute-1.2.5 patch 2021/09/01 より、クラスパスに Rhino が存在すれば Rhino を利用するようにしました。
+		<span class="frm">(また、若干のRhinoに合わせた対応もしています)</span>
 	</p>
 	<p>
 		なので、まずはDBFluteを最新版にアップグレードをしましょう。
 	</p>
-	<h3 id="saidownload">sai の jarファイルたちをダウンロード</h3>
+	<h3 id="saidownload">manageタスクの 31 (sai) で extlib にダウンロード</h3>
 	<p>
-		まず、sai-0.2.0においては、全部で6つのjarファイルのダウンロードが必要です。
-	</p>
-	<ul>
-		<li><em class="mark">asm-7.1.jar</em></li>
-		<li><em class="mark">asm-analysis-7.1.jar</em></li>
-		<li><em class="mark">asm-commons-7.1.jar</em></li>
-		<li><em class="mark">asm-tree-7.1.jar</em></li>
-		<li><em class="mark">asm-util-7.1.jar</em></li>
-		<li><em class="mark">sai-0.2.0.jar</em></li>
-	</ul>
-	<h4>もし、DBFlute-1.2.5 patch 2021/08/29 以降なら</h4>
-	<p>
-		<em class="keyword">saiタスクを使って移行できます。</em>
+		<em class="keyword">manageタスクにて、sai (31) を実行しましょう。</em>
 	</p>
 	<p>
-		<em class="mark">manageタスクの 31 (sai)</em> を実行して jarファイルたちをextlibにダウンロードしましょう。
+		すると、DBFluteクライアントの extlibディレクトリ配下に Rhino のjarファイルたちがダウンロードされます。
+		<span class="frm">(RhinoのバージョンはDBFlute Engineのバージョンごとに固定です)</span>
 	</p>
-	<p>
-		これで終了です。FreeGenを実行できます。
-	</p>
-	<h4>もし、手作業ダウンロードなら</h4>
-	<p>
-		mvnrepository のサイトに、jarファイルへのダウンロードリンク (Files の jar) が貼られていますので、そこからそれぞれダウンロードすることができます。
-	</p>
-	<dl class="shortkeymainlist">
-		<dt>asm</dt><dd><a href="https://mvnrepository.com/artifact/org.ow2.asm/asm/7.1">https://mvnrepository.com/artifact/org.ow2.asm/asm/7.1</a></dd>
-		<dt>asm-analysis</dt><dd><a href="https://mvnrepository.com/artifact/org.ow2.asm/asm-analysis/7.1">https://mvnrepository.com/artifact/org.ow2.asm/asm-analysis/7.1</a></dd>
-		<dt>asm-commons</dt><dd><a href="https://mvnrepository.com/artifact/org.ow2.asm/asm-commons/7.1">https://mvnrepository.com/artifact/org.ow2.asm/asm-commons/7.1</a></dd>
-		<dt>asm-tree</dt><dd><a href="https://mvnrepository.com/artifact/org.ow2.asm/asm-tree/7.1">https://mvnrepository.com/artifact/org.ow2.asm/asm-tree/7.1</a></dd>
-		<dt>asm-util</dt><dd><a href="https://mvnrepository.com/artifact/org.ow2.asm/asm-util/7.1">https://mvnrepository.com/artifact/org.ow2.asm/asm-util/7.1</a></dd>
-		<dt>sai</dt><dd><a href="https://mvnrepository.com/artifact/org.codelibs/sai/0.2.0">https://mvnrepository.com/artifact/org.codelibs/sai/0.2.0</a></dd>
-	</dl>
-	<h4>Mavenのcopy-dependenciesなら</h4>
-	<p>
-		バージョン合わせてのダウンロードが面倒だと思われる方は、Mavenなどのビルドツールを一時的に利用してダウンロードする方法でも良いでしょう。
-		<span class="frm">(jfluteはいつもこうしてます)</span>
-	</p>
-	<p>
-		例えば Maven であれば、pom.xmlにsaiのdependencyを追加して...
-	</p>
-<pre><span class="codetitle">e.g. pom.xmlにsaiのdependencyを追加 @Xml</span><code>
-&lt;dependencies&gt;
-    <span class="abbreviation">...</span>
-
-    &lt;dependency&gt;
-        &lt;groupId&gt;<span class="literal">org.codelibs</span>&lt;/groupId&gt;
-        &lt;artifactId&gt;<span class="literal">sai</span>&lt;/artifactId&gt;
-        &lt;version&gt;<span class="literal">0.2.0</span>&lt;/version&gt;
-    &lt;/dependency&gt;
-
-    <span class="abbreviation">...</span>
-&lt;/dependencies&gt;
-</code></pre>
-	<p>
-		copy-dependencies を実行すると、(デフォルトであれば)target/dependency配下にjarファイルがダウンロードされます。
-	</p>
-<pre><span class="codetitle">e.g. 依存ライブラリをすべてダウンロードするMavenコマンド @Command</span><code>
-mvn dependency:copy-dependencies
-</code></pre>
-	<p>
-		<span class="frm">※ちなみに、「そもそも DBFlute Engine に組み込めば？」と思われるかもですが、ライセンス的に組み込めません。</span>
-	</p>
-	<h3 id="dbfluteextlib">DBFluteクライアントのextlibに配置</h3>
-	<p>
-		DBFlute Engineの実行クラスパスにjarファイルを追加することのできる "DBFluteクライアントの extlib ディレクトリ"
-		に、sai のjarファイルたちを配置します。
-	</p>
-<pre><span class="codetitle">e.g. DBFluteクライアントの extlib に sai を配置 @Directory</span><code>
+<pre><span class="codetitle">e.g. DBFluteクライアントの extlib に rhino を配置、ドキュメント執筆時の最新版 @Directory</span><code>
 dbflute_maihamadb
  |-dfprop
  |-<span class="abbreviation">...</span>
  |-<span class="point">extlib</span>
- |  |-<span class="subpoint">asm-7.1.jar</span>
- |  |-<span class="subpoint">asm-analysis-7.1.jar</span>
- |  |-<span class="subpoint">asm-commons-7.1.jar</span>
- |  |-<span class="subpoint">asm-tree-7.1.jar</span>
- |  |-<span class="subpoint">asm-util-7.1.jar</span>
- |  |-<span class="subpoint">sai-0.2.0.jar</span>
+ |  |-<span class="subpoint">rhino-1.7.13.jar</span>
+ |  |-<span class="subpoint">rhino-engine-1.7.13.jar</span>
  |-<span class="abbreviation">...</span>
  |-log
 </code></pre>
 	<p>
-		これにて、LastaFluteのFreeGenは、saiを使って実行するようになります。
+		これにて、FreeGen を実行できるようになります。
 	</p>
-	<p>
-		DBFlute Engineのソースコードで関連するクラスは、DfFrgJavaScriptJsonEngineです。
-	</p>
-	<div class="relatedpage"><a href="https://github.com/dbflute/dbflute-core/blob/master/dbflute-engine/src/main/java/org/dbflute/logic/manage/freegen/table/json/engine/DfFrgJavaScriptJsonEngine.java">dbflute-engine - DfFrgJavaScriptJsonEngine.java | Github</a></div>
 	<h3 id="jargitmanaged">jarをgitにコミットするかしないか？</h3>
 	<p>
 		どちらも大丈夫です。プロジェクトの都合に合わせましょう。
@@ -220,20 +166,32 @@ dbflute_maihamadb
 		<dt>gitにコミットする</dt><dd>他の人は配置作業せずにFreeGenが実行できる</dd>
 		<dt>gitignoreにする</dt><dd>他の人もダウンロードして配置する必要あるが、gitは軽くなる</dd>
 	</dl>
-	<h3 id="olddbflute">DBFluteをアップグレードできない場合</h3>
+	<h3 id="handydownload">もし、手作業ダウンロードするのであれば</h3>
 	<p>
-		どうしてもDBFluteをアップグレードできない場合は、Nashornのjarファイルたちをextlibに配置すると動くかもしれません。
-		<span class="frm">(ただ、試したことはないです)</span>
+		もし、Rhinoの最新版を使いたいなどで、手作業ダウンロードするのであれば、	mvnrepository
+		のサイトにjarファイルへのダウンロードリンク (Files の jar) が貼られていますので、そこからそれぞれダウンロードすることができます。
 	</p>
+	<dl class="shortkeymainlist">
+		<dt>rhino</dt><dd><a href="https://mvnrepository.com/artifact/org.mozilla/rhino">https://mvnrepository.com/artifact/org.mozilla/rhino</a></dd>
+		<dt>rhino-engine</dt><dd><a href="https://mvnrepository.com/artifact/org.mozilla/rhino-engine">https://mvnrepository.com/artifact/org.mozilla/rhino-engine</a></dd>
+	</dl>
+	<p>
+		<span class="frm">※バージョンや依存関係に注意</span>
+	</p>
+	<h3 id="enginesource">関連するDBFlute Engineのソースコードは？</h3>
+	<p>
+		内部的な挙動を確認したい場合の参考として、DBFlute Engineのソースコードで関連する主なクラスは、DfFrgJavaScriptJsonEngineとなります。
+	</p>
+	<div class="relatedpage"><a href="https://github.com/dbflute/dbflute-core/blob/master/dbflute-engine/src/main/java/org/dbflute/logic/manage/freegen/table/json/engine/DfFrgJavaScriptJsonEngine.java">dbflute-engine - DfFrgJavaScriptJsonEngine.java | Github</a></div>
 
-	<h2 id="lastadixml">Lasta Diのsai移行</h2>
+	<h2 id="lastadixml">Lasta DiのRhino移行</h2>
 	<h3 id="newlastadi">いま起動しても落ちないのであれば？</h3>
 	<p>
 		まず、Java15以降でLastaFluteのプロジェクトを起動して落ちていないのであれば、ひとまず移行はしなくても良いかもしれません。
 	</p>
 	<p>
 		Lasta Di の新しいバージョンでは、Lasta Di内部で使っている Di xml では、JavaScript表現を使わないように修正されています。
-		なので、アプリケーションの中の Di xml でJavaScript表現を使わない限り sai を入れる必要はありません。
+		なので、アプリケーションの中の Di xml でJavaScript表現を使わない限り Rhino を入れる必要はありません。
 	</p>
 	<p>
 		Di xmlは起動時にすべて読み込まれますから、起動して落ちていないということはアプリケーションでも使っていない可能性が高いです。
@@ -247,67 +205,41 @@ dbflute_maihamadb
 		先の通り、Lasta Di の新しいバージョンでは、内部の Di xml でJavaScript表現を使わないようにしているので、アップグレードするだけで解決するかもしれません。
 	</p>
 	<p>
-		アップグレードしても落ちる<span class="frm">(アプリでJavaScript表現を使っている)</span>、もしくは、アップグレードがどうしてもできないのでれば、saiを入れましょう。
+		アップグレードしても落ちる<span class="frm">(アプリでJavaScript表現を使っている)</span>、もしくは、アップグレードがどうしてもできないのでれば Rhino を入れましょう。
 	</p>
-	<h3 id="saidependency">saiを依存ライブラリに追加</h3>
+	<h3 id="rhinodependency">Rhinoを依存ライブラリに追加</h3>
 	<p>
 		例えば Maven であれば、pom.xmlにsaiのdependencyを追加します。
 	</p>
-<pre><span class="codetitle">e.g. pom.xmlにsaiのdependencyを追加 @Xml</span><code>
-<span class="comment">&lt;!-- javascript engine (instead of nashorn)
- you can get the jar files including dependencies by mvn dependency:copy-dependencies
- --&gt;</span>
+<pre><span class="codetitle">e.g. pom.xmlにRhinoのdependencyを追加、ドキュメント執筆時の最新版 @Xml</span><code>
+<span class="comment">&lt;!-- javascript engine (instead of nashorn) --&gt;</span>
 &lt;dependencies&gt;
     &lt;dependency&gt;
-        &lt;groupId&gt;<span class="literal">org.codelibs</span>&lt;/groupId&gt;
-        &lt;artifactId&gt;<span class="literal">sai</span>&lt;/artifactId&gt;
-        &lt;version&gt;<span class="literal">0.2.0</span>&lt;/version&gt;
+        &lt;groupId&gt;<span class="literal">org.mozilla</span>&lt;/groupId&gt;
+        &lt;artifactId&gt;<span class="literal">rhino-engine</span>&lt;/artifactId&gt;
+        &lt;version&gt;<span class="literal">1.7.13</span>&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;
 </code></pre>
-	<h3 id="lastadiprop">lasta_di.properties に sai を設定</h3>
-	<h4>Lasta Di-0.8.5 (LastaFlute-1.2.2) 以降なら</h4>
 	<p>
-		クラスパスに sai があれば sai を利用するので、lasta_di.properties の設定は不要です。
+		これにて Lasta Di は、JavaScript表現が必要なときに Rhino を使うようになります。
+		<span class="frm">(Rhinoがクラスパスに存在していれば、自動的に Rhino を使うようになります)</span>
 	</p>
-	<h4>Lasta Di-0.8.4 (LastaFlute-1.2.1) までなら</h4>
+	<h3 id="lastadisource">関連するLasta Diのソースコードは？</h3>
 	<p>
-		lasta_di.properties に、dixml.script.managed.engine.nameプロパティを追加して、sai を設定しましょう。
-	</p>
-<pre><span class="codetitle">e.g. lasta_di.properties に sai を設定 @Xml</span><code>
-<span class="comment"># name of engine managed by Lasta Di for script on Di xml</span>
-dixml.script.managed.engine.name = sai
-</code></pre>
-	<p>
-		これにて Lasta Di は、JavaScript表現が必要なときに sai を使うようになります。
-	</p>
-	<p>
-		Lasta Diのソースコードで関連するクラスは、JavaScriptExpressionEngineです。
+		Lasta Diのソースコードで関連する主なクラスは、JavaScriptExpressionEngineです。
 	</p>
 	<div class="relatedpage"><a href="https://github.com/lastaflute/lasta-di/blob/develop/src/main/java/org/lastaflute/di/core/expression/engine/JavaScriptExpressionEngine.java">lasta-di - JavaScriptExpressionEngine.java | Github</a></div>
-	<p>
-		もしかしたら、将来の Lasta Di では、この properties の設定をしなくてもデフォルトで sai を使うようになるかもしれません。
-		<span class="frm">(sai あれば使う、なければ Nashorn を探す、というようなロジックにするかも。ただ、どのみちMavenやGradleなどの依存ライブラリには追加しないといけません)</span>
-	</p>
 
 	<div class="inucolumn">
 		<h2 id="licensecare">念のため、ライセンスに注目</h2>
 		<p>
-			Sai は <em class="mark">The GNU General Public License ("CLASSPATH" EXCEPTION)</em> です。
+			Rhino は <em class="mark">Mozilla Public License Version 2.0</em> です。
 		</p>
-		<div class="relatedpage"><a href="https://raw.githubusercontent.com/codelibs/sai/master/LICENSE">Sai LICENSE | Github</a></div>
+		<div class="relatedpage"><a href="https://github.com/mozilla/rhino/blob/master/LICENSE.txt">Rhino LICENSE | Github</a></div>
 		<p>
-			いわゆる GPL に "CLASSPATH" EXCEPTION が付いています。
-			開発しているアプリケーションの配布形式など、ライセンスが適合するか確認するようにしてください。
+			改変などしない限りは制約の少ないライセンスではありますが、一応しっかり知っておきましょう。
 		</p>
-		<p>
-			<span class="frm">(DBFluteクライアントのextlibに関しては、DBFlute Engineも含めてまるごと配布するようなアプリでなければ、特に問題はないと思われます。
-			また、Lasta Diのクラスパスに関しては、アプリケーションのwarファイルをまるごと配布するようなアプリでなければ、特に問題はないと思われます。ただ、アプリケーション側で確認はして、自己責任で判断してください)</span>
-		</p>
-		<p>
-			ASMは <em class="mark">3-Clause BSD License</em> です。
-		</p>
-		<div class="relatedpage"><a href="https://asm.ow2.io/license.html">ASM LICENSE | ASM Official</a></div>
 	</div>
 
 </div>
