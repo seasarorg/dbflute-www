@@ -44,16 +44,22 @@
 			<ul>
 				<li><a href="#automapping">自動マッピング</a></li>
 				<li><a href="#datatypemapping">DBデータ型とJDBC型のマッピング</a></li>
+				<li><a href="#pointtypemapping">カラム名でJDBC型をポイント指定</a></li>
 			</ul>
 		</li>
-		<li><a href="#defaultmapping">JDBC型とプログラム型のデフォルトマッピング</a></li>
+		<li><a href="#defaultmapping">デフォルトはどうマッピングされる？</a></li>
 	</ul>
 
 	<h2 id="about">typeMappingMapとは？</h2>
 	<p>
-		JDBC型とプログラム型を関連付ける設定をするDBFluteプロパティ。DBFluteクライアントの dfprop
-		配下の typeMappingMap.dfprop という名前のテキストファイルです。主に JDBCタスク、Sql2Entity
-		タスクから参照されます。
+		JDBC型とプログラム型を関連付ける設定をするDBFluteプロパティ。
+	</p>
+	<p>
+		DBFlute-1.1.x以降は、DBFluteクライアントの dfprop配下の databaseInfoMap.dfprop の中の一つのプロパティとして統合されました。
+		<span class="frm">(Java6版のDBFlute-1.0.xまでは、typeMappingMap.dfprop という独立ファイルでした)</span>
+	</p>
+	<p>
+		主に JDBCタスク、Sql2Entityタスクから参照されます。
 	</p>
 	<div class="relatedpage"><a href="../../../function/generator/task/jdbc/index.html">JDBCタスク</a></div>
 	<div class="relatedpage"><a href="../../../function/generator/task/sql2entity/index.html">Sql2Entityタスク</a></div>
@@ -73,8 +79,8 @@
 	<p>
 		<em class="keyword">map型プロパティ</em> で、JDBC型とプログラム型の関連を key-value 形式で定義します。
 	</p>
-<pre><span class="codetitle">typeMappingMapの仕様 @typeMappingMap.dfprop</span><code>
-<span class="keyword">map:</span>{
+<pre><span class="codetitle">typeMappingMapの仕様 @databaseInfoMap.dfprop</span><code>
+; typeMappingMap = <span class="keyword">map:</span>{
     ; [JDBC-type] = [program-type]
     ...
 }
@@ -95,8 +101,8 @@
 	<p>
 		プログラム型を指定する部分で <em class="keyword">$$AutoMapping$$</em> と指定します。
 	</p>
-<pre><span class="codetitle">自動マッピングの指定 @typeMappingMap.dfprop</span><code>
-<span class="keyword">map:</span>{
+<pre><span class="codetitle">自動マッピングの指定 @databaseInfoMap.dfprop</span><code>
+; typeMappingMap = <span class="keyword">map:</span>{
     ; NUMERIC = <span class="attribute">$$AutoMapping$$</span>
     ; DECIMAL = <span class="attribute">$$AutoMapping$$</span>
     ...
@@ -128,14 +134,14 @@
 	<p>
 		主には、未サポートのDBデータ型を扱えるようにする場合に利用します。
 	</p>
-<pre><span class="codetitle">typeMappingMapのDBデータ型マッピングの仕様 @typeMappingMap.dfprop</span><code>
-<span class="keyword">map:</span>{
+<pre><span class="codetitle">typeMappingMapのDBデータ型マッピングの仕様 @databaseInfoMap.dfprop</span><code>
+; typeMappingMap = <span class="keyword">map:</span>{
     ; $$[DB data type]$$ = [JDBC type]
     ...
 }
 </code></pre>
-<pre><span class="codetitle">e.g. CLOBをなぜかDATE型にマッピング @typeMappingMap.dfprop</span><code>
-<span class="keyword">map:</span>{
+<pre><span class="codetitle">e.g. CLOBをなぜかDATE型にマッピング @databaseInfoMap.dfprop</span><code>
+; typeMappingMap = <span class="keyword">map:</span>{
     ; $$CLOB$$ = DATE
     ...
 }
@@ -144,8 +150,8 @@
 		独自のJDBC型にマッピングすることもできます。存在しないJDBC型を指定された場合は、内部的にその新しい型を取り込んで認識できるようにします。
 		その場合は、新しいJDBC型のプログラム型へのマッピングも同時に指定します。
 	</p>
-<pre><span class="codetitle">e.g. CLOBをKOLOB型(新しい型)にマッピング (KOLOB型のマッピングも設定) @typeMappingMap.dfprop</span><code>
-<span class="keyword">map:</span>{
+<pre><span class="codetitle">e.g. CLOBをKOLOB型(新しい型)にマッピング (KOLOB型のマッピングも設定) @databaseInfoMap.dfprop</span><code>
+; typeMappingMap = <span class="keyword">map:</span>{
     ; $$CLOB$$ = KOLOB
     ; KOLOB = com.example.type.KorondeItai
     ...
@@ -157,7 +163,39 @@
 	</p>
 	<div class="detailpage"><a href="../../../function/ormapper/runtime/allcommon/dbfluteconfig.html#valuetype">DBFluteConfig - ValueType</a></div>
 	
-	<h2 id="defaultmapping">JDBC型とプログラム型のデフォルトマッピング</h2>
+	<h3 id="pointtypemapping">カラム名でJDBC型をポイント指定</h3>
+	<p>
+		実は、"このカラム名だったらこのJDBC型" という設定もできます。
+	</p>
+	<p>
+		時分秒を含んだ日付型しかないDBMS(Oracleなど)の場合に、カラム名の規則でDATEとTIMESTAMPを使い分けたいときなどに使うと良いです。
+		<span class="frm">(時分秒が不要なのにLocalDateTime型で取り扱うのは何かとやりづらいですからね)</span>
+	</p>
+<pre><span class="codetitle">カラム名でJDBC型を指定 @databaseInfoMap.dfprop</span><code>
+# point type mapping, table/column and JDBC type
+; $$df:point$$ = map:{
+    ; WHITE_TYPE_MAPPING_POINT = map:{
+        ; suffix:_LONG_INTEGER = INTEGER
+        ; POINT_DATETIME_DATE = DATE
+    }
+    # example for naming policy type
+    #; $$ALL$$ = map:{
+    #    ; suffix:_DATE = DATE
+    #    ; suffix:_DATETIME = TIMESTAMP
+    #}
+}
+</code></pre>
+	<ul class="codeoutro">
+		<li>WHITE_TYPE_MAPPING_POINTという名前のテーブル</li>
+		<li>そのテーブルの _LONG_INTEGER で終わるカラムはINTEGER型に <span class="frm">(実際の型はLONGだとして)</span></li>
+		<li>そのテーブルの POINT_DATETIME_DATEカラムはDATE型に <span class="frm">(実際の型はTIMESTAMPだとして)</span></li>
+		<li>$$ALL$$ で "すべてのテーブル" という条件にすることもできる</li>
+	</ul>
+
+	<h2 id="defaultmapping">デフォルトはどうマッピングされる？</h2>
+	<p>
+		JDBC型とプログラム型のデフォルトのマッピング表です。
+	</p>
 <pre><span class="codetitle">JDBC型とプログラム型のデフォルトのマッピング</span><code>
  --------------------------------------------------------
  | JDBC Type     | Java Native          | CSharp Native |
